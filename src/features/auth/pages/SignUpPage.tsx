@@ -1,10 +1,9 @@
-import AuthForm from "../components/AuthForm";
+import SignUpForm from "../components/SignUpForm";
+import AuthLayout from "../layouts/AuthLayout";
 
 const SignUpPage = () => {
   return (
-    <div className="container mx-auto">
-      <AuthForm />
-    </div>
+   <AuthLayout form={<SignUpForm/>}/>
   );
 };
 

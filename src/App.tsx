@@ -1,11 +1,8 @@
-import SignUpPage from "./features/auth/pages/SignUpPage";
+import { RouterProvider } from "react-router-dom";
+import { router } from "./app/router";
 
 function App() {
-  return (
-    <>
-      <SignUpPage />
-    </>
-  );
+  return <RouterProvider router={router} />;
 }
 
 export default App;
