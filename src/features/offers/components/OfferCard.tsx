@@ -7,12 +7,13 @@ import {
   CardTitle,
 } from "@/shared/components/ui/card";
 import { Separator } from "@/shared/components/ui/separator";
-import Switch from "@/shared/components/ui/switch";
+
 import Calendar from "@/assets/icons/calendar.svg";
 import Edit from "@/assets/icons/edit.svg";
 import Delete from "@/assets/icons/delete.svg";
 import { useState } from "react";
 import type { Offer } from "../types";
+import { Switch } from "@/shared/components/ui/switch";
 
 interface OfferCardProps {
   offer: Offer;

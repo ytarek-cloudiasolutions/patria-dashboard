@@ -1,170 +1,184 @@
-import OrderStatusDialogDropdown from "./OrderStatusDialogDropdown";
-import type { OrderDetails, OrderStatus } from "../types";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from "@/shared/components/ui/dialog";
+import { useState } from "react";
+import { Card, CardContent } from "@/shared/components/ui/card";
+import { Separator } from "@/shared/components/ui/separator";
+import { Button } from "@/shared/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/shared/components/ui/dropdown-menu";
+import OrdersStatusBadge from "./OrdersStatusBadge";
+import type { Order, OrderStatus } from "../types";
+import { ORDER_STATUS_OPTIONS } from "../data";
+import { ChevronDown, UserRound, MapPin, CreditCard } from "lucide-react";
 
 interface OrderDetailsDialogProps {
-  order: OrderDetails;
-  isOpen: boolean;
-  onClose: () => void;
-  onStatusChange: (orderId: string, newStatus: OrderStatus) => void;
+  open: boolean;
+  order: Order | null;
+  onOpenChange: (open: boolean) => void;
+  onUpdateStatus: (orderId: number, status: OrderStatus) => void;
 }
 
 const OrderDetailsDialog = ({
+  open,
   order,
-  isOpen,
-  onClose,
-  onStatusChange,
+  onOpenChange,
+  onUpdateStatus,
 }: OrderDetailsDialogProps) => {
-  if (!isOpen) return null;
+  const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
+
+  if (!order) {
+    return null;
+  }
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg w-full max-w-xl max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="sticky top-0 bg-white px-6 py-4 flex items-center gap-3">
-          <h2 className="text-[24px] font-semibold ">Order #{order.id}</h2>
-          <div
-            className="px-3 py-1 rounded-full text-sm font-medium"
-            style={{
-              backgroundColor:
-                order.status === "Pending"
-                  ? "#FFF8E6"
-                  : order.status === "Preparing"
-                  ? "#F5F0EA"
-                  : order.status === "Delivered"
-                  ? "#EDF8F0"
-                  : "#FFF0F0",
-              color:
-                order.status === "Pending"
-                  ? "#F9A825"
-                  : order.status === "Preparing"
-                  ? "#6B5E4B"
-                  : order.status === "Delivered"
-                  ? "#059B5A"
-                  : "#C90000",
-            }}
-          >
-            {order.status}
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        showCloseButton={false}
+        className="max-w-174 rounded-[12px] ring-0 p-0 sm:max-w-174"
+      >
+        <div className="relative p-6">
+          {isStatusMenuOpen && (
+            <div className="pointer-events-none absolute inset-0 z-60 rounded-[12px] bg-black/15" />
+          )}
+
+          <div className="mb-8 flex items-center gap-3">
+            <DialogTitle className="text-[#333333] text-[24px] font-semibold">
+              Order #{order.id}
+            </DialogTitle>
+            <OrdersStatusBadge status={order.status} />
           </div>
-        </div>
 
-        {/* Dialog Content */}
-        <div className="px-6 py-6 space-y-6">
-          {/* First Row - Customer Details and Location/Payment in two columns */}
-          <div className="grid grid-cols-2 gap-6">
-            {/* Left Column - Customer Details */}
-            <div className="space-y-4">
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="text-[14px] font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  <span>👤</span> CUSTOMER DETAILS
-                </h3>
-                <div className="space-y-2">
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">
-                      {order.customerName}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">
-                      {order.customerPhone}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">
-                      {order.customerLocation}
-                    </p>
-                  </div>
-                </div>
-              </div>
+          <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+            <Card className="bg-[#f1f1ef] ring-0">
+              <CardContent>
+                <p className="mb-4 flex items-center gap-1 text-28293D-14-semibold uppercase">
+                  <UserRound className="size-4.5" />
+                  Customer details
+                </p>
+                <p className="text-333333-16-semibold mb-1">
+                  {order.customerName}
+                </p>
+                <p className="text-8B8B8B-12-normal mb-2">
+                  {order.customerPhone}
+                </p>
+                <p className="text-23252A-12-normal">{order.address}</p>
+              </CardContent>
+            </Card>
 
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="text-[14px] font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  <span>📍</span> LOCATION
-                </h3>
-                <p className="text-sm text-gray-900">{order.location}</p>
-              </div>
-
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="text-[14px] font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  <span>💳</span> PAYMENT
-                </h3>
-                <p className="text-sm text-gray-900">{order.paymentType}</p>
-              </div>
-            </div>
-
-            {/* Right Column - Order Items */}
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h3 className="text-[14px] font-semibold text-gray-900 mb-4">
-                ORDER DETAILS
-              </h3>
-              <div className="space-y-3 mb-24">
-                {order.items.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center gap-3 pb-3 border-b border-gray-200 last:border-b-0"
-                  >
-                    {item.image && (
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        className="w-12 h-12 rounded object-cover shrink-0"
-                      />
-                    )}
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900">
-                        {item.quantity}x {item.name}
-                      </p>
+            <Card className="row-span-3 bg-[#f1f1ef] ring-0">
+              <CardContent className="flex h-full flex-col">
+                <p className="mb-4 flex items-center gap-1 text-28293D-14-semibold uppercase">
+                  <UserRound className="size-4.5" />
+                  Customer details
+                </p>
+                <div>
+                  {order.items.map((item, index) => (
+                    <div key={item.id}>
+                      <div className="flex items-center gap-2.5 py-2">
+                        <img
+                          src={item.imageUrl}
+                          alt={item.name}
+                          className="size-10 rounded-[8px] object-cover"
+                        />
+                        <span className="text-28293D-14-semibold">
+                          {item.name}
+                        </span>
+                      </div>
+                      {index < order.items.length - 1 && (
+                        <Separator className="bg-[#CACBD4] my-4" />
+                      )}
                     </div>
-                  </div>
+                  ))}
+                </div>
+                <Separator className="my-11.25 bg-[#CACBD4]" />
+                <div className="mt-auto flex items-center justify-between pt-4 text-[14px]">
+                  <span className="text-333333-16-semibold ">Total</span>
+                  <span className="text-333333-16-bold ">
+                    <span className="text-333333-16-normal">EGP </span>
+                    {order.total.toFixed(2)}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-[#f1f1ef] ring-0">
+              <CardContent>
+                <p className="mb-4 flex items-center gap-1 text-28293D-14-semibold uppercase">
+                  <MapPin className="size-4.5" />
+                  Delivery zone
+                </p>
+                <p className="text-28293D-14-semibold">{order.deliveryZone}</p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-[#f1f1ef] ring-0">
+              <CardContent>
+                <p className="mb-4 flex items-center gap-1 text-28293D-14-semibold uppercase">
+                  <CreditCard className="size-4.5" />
+                  Customer details
+                </p>
+                <p className="text-28293D-14-semibold">{order.paymentMethod}</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Separator className="my-6 bg-[#CACBD4]" />
+
+          <div className="mb-6 flex items-center justify-between gap-4">
+            <p className="text-595959-14-medium">Update Status:</p>
+            <DropdownMenu onOpenChange={setIsStatusMenuOpen}>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="h-11 w-full justify-between rounded-[8px] border-[#E5E5E5] bg-white px-4.5 py-3 text-[#000000] text-[14px] font-normal cursor-pointer focus-visible:border-[#E5E5E5] focus-visible:ring-0 md:w-62.5"
+                >
+                  {order.status}
+                  <ChevronDown className="size-6 text-[#000000]" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="z-70  rounded-[16px] p-2 ring-0 [&>[data-slot=dropdown-menu-item]+[data-slot=dropdown-menu-item]]:mt-2"
+              >
+                {ORDER_STATUS_OPTIONS.map((status) => (
+                  <DropdownMenuItem
+                    key={status}
+                    className={
+                      order.status === status
+                        ? "rounded-[16px] px-3 py-2 text-[12px] font-medium bg-primary text-primary-foreground focus:bg-primary focus:text-primary-foreground"
+                        : undefined
+                    }
+                    onSelect={() => onUpdateStatus(order.id, status)}
+                  >
+                    {status}
+                  </DropdownMenuItem>
                 ))}
-              </div>
-
-              {/* Total */}
-              <div className="mt-4 pt-15 border-t border-gray-300 flex justify-between ">
-                <span className="text-[16px] font-semibold">Total</span>
-                <span className="text-[16px] font-semibold text-gray-900">
-                  {order.total}
-                </span>
-              </div>
-            </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
-          {/* Divider */}
-          <div className="border-t border-gray-200 mx-0" />
+          <Separator className="my-6 bg-[#CACBD4]" />
 
-          {/* Status Update Section */}
-          <div className="flex items-center justify-between">
-            <span className="text-gray-600 font-medium">Update Status:</span>
-            <div
-              onClick={(e) => {
-                e.stopPropagation();
-              }}
+          <div className="flex justify-end">
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => onOpenChange(false)}
+              className="px-7.5 py-4 h-14 border-primary text-primary text-[16px] cursor-pointer font-semibold rounded-[5px] hover:text-primary hover:bg-white"
             >
-              <OrderStatusDialogDropdown
-                status={order.status}
-                onStatusChange={(newStatus: OrderStatus) =>
-                  onStatusChange(order.id, newStatus)
-                }
-              />
-            </div>
+              Cancel
+            </Button>
           </div>
         </div>
-
-        {/* Divider */}
-        <div className="px-6 py-6">
-          <div className="border-t border-gray-200" />
-        </div>
-
-        {/* Footer */}
-        <div className="sticky bottom-0 bg-white px-6 py-4 flex justify-end gap-3">
-          <button
-            onClick={onClose}
-            className="px-7.5 py-4 border-2 border-primary text-primary font-medium rounded-[5px]"
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

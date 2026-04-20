@@ -1,11 +1,13 @@
-import ForgotPasswordPage from "@/features/auth/pages/ForgotPasswordPage";
+import ResetPasswordPage from "@/features/auth/pages/ResetPasswordPage";
 import SignInPage from "@/features/auth/pages/SignInPage";
 import SignUpPage from "@/features/auth/pages/SignUpPage";
 import CouponsPage from "@/features/coupons/pages/CouponsPage";
 import CustomersPage from "@/features/customers/pages/CustomersPage";
 import DashboardPage from "@/features/dashboard/pages/DashboardPage";
-import InventoryPage from "@/features/inventory/InventoryPage";
-import KitchenPage from "@/features/kitchen/KitchenPage";
+import InventoryKitchenPage from "@/features/inventory/pages/InventoryKitchenPage";
+import InventoryPage from "@/features/inventory/pages/InventoryPage";
+import KitchenDetailsPage from "@/features/kitchens/pages/KitchenDetailsPage";
+import KitchenPage from "@/features/kitchens/pages/KitchenPage";
 import LocationsPage from "@/features/locations/pages/LocationsPage";
 import OffersPage from "@/features/offers/pages/OffersPage";
 import OrdersPage from "@/features/orders/pages/OrdersPage";
@@ -22,7 +24,7 @@ import { createBrowserRouter } from "react-router-dom";
 export const router = createBrowserRouter([
   { path: "/sign-up", element: <SignUpPage /> },
   { path: "/sign-in", element: <SignInPage /> },
-  { path: "/forgot-password", element: <ForgotPasswordPage /> },
+  { path: "/reset-password", element: <ResetPasswordPage /> },
   {
     path: "/",
     element: <SidebarPage />,
@@ -31,7 +33,9 @@ export const router = createBrowserRouter([
       { path: "/orders", element: <OrdersPage /> },
       { path: "/tables", element: <TablesPage /> },
       { path: "/kitchen", element: <KitchenPage /> },
+      { path: "/kitchen/:kitchenId", element: <KitchenDetailsPage /> },
       { path: "/inventory", element: <InventoryPage /> },
+      { path: "/inventory/:kitchenId", element: <InventoryKitchenPage /> },
       { path: "/products", element: <ProductsPage /> },
       { path: "/offers", element: <OffersPage /> },
       { path: "/coupons", element: <CouponsPage /> },
