@@ -12,7 +12,7 @@ const SidebarPage = () => {
         <div className="flex flex-1 flex-col ml-3">
           <DashboardHeader />
           <main className="size-full flex-1">
-            <Card className="h-250 bg-transparent ring-0 pt-10 px-7.5">
+            <Card className="h-250 bg-transparent ring-0 pt-10 px-6">
               <CardContent className="h-full px-0">
                 <Outlet />
               </CardContent>

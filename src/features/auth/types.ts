@@ -1,18 +1,12 @@
-import type { ReactNode } from "react";
-
 export interface AuthLayoutProps {
-  form: ReactNode;
-}
-
-export interface FormHeaderProps {
-  title: string;
-  subtitle: string;
+  form: React.ReactNode;
 }
 
 export interface InputFieldProps {
   id: string;
   label: LabelProps;
   placeholder: string;
+  className?: string;
 }
 
 export interface LabelProps {

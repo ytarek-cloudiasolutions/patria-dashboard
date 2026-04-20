@@ -7,9 +7,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/shared/components/ui/table";
-import Switch from "@/shared/components/ui/switch";
+
 import StatusBadge from "./StatusBadge";
 import type { Location, LocationStatus } from "../types";
+import { Switch } from "@/shared/components/ui/switch";
 
 interface LocationsTableProps {
   locations: Location[];

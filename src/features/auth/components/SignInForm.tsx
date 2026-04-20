@@ -1,38 +1,40 @@
+import HeaderLayout from "@/layouts/HeaderLayout";
 import AuthRedirectSection from "./AuthRedirectSection";
 import EmailInputField from "./EmailInputField";
 import FormButton from "./FormButton";
-import FormHeader from "./FormHeader";
 import PasswordInputField from "./PasswordInputField";
 import RememberMeField from "./RememberMeField";
 
 const SignInForm = () => {
   return (
     <div>
-      <FormHeader
+      <HeaderLayout
         title="Welcome back, Admin"
-        subtitle="Enter your credentials to access your account."
+        description="Enter your credentials to access your account"
+        className="mb-22.5"
       />
       <form className="flex flex-col mb-4">
-        <div>
-          <EmailInputField />
+        <div className="mb-16">
+          <EmailInputField className="mb-6" />
           <PasswordInputField
             id="password"
             label={{ htmlFor: "password", labelText: "Password" }}
             placeholder="Password"
+            className="mb-6"
           />
-        </div>
-        <div className="flex justify-between items-center mb-16">
-          <RememberMeField />
-          <a href="forgot-password" className="font-medium tex-[16px]">
-            Forgot your Password?
-          </a>
+          <div className="flex justify-between">
+            <RememberMeField />
+            <a href="reset-password" className="text-333333-16-medium">
+              Forgot your Password?
+            </a>
+          </div>
         </div>
         <FormButton buttonText="Sign In" />
       </form>
       <AuthRedirectSection
         actionLinkHref="/sign-up"
-        promptText="Already have an account?"
-        actionLinkText=" Sign Up"
+        promptText="Don't have an account?"
+        actionLinkText="Create account"
       />
     </div>
   );

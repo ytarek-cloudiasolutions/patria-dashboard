@@ -1,333 +1,318 @@
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableHead,
-  TableCell,
-} from "@/shared/components/ui/table";
-import { useState } from "react";
-
-import { ChevronDown, Edit, Plus, Search, Trash } from "lucide-react";
+import { useMemo, useState } from "react";
+import { CookingPot, Plus, Soup, Store } from "lucide-react";
+import HeaderLayout from "@/layouts/HeaderLayout";
 import { Button } from "@/shared/components/ui/button";
-import Switch from "@/shared/components/ui/switch";
-import AddProductDialog, {
-  type ProductFormData,
-} from "../components/AddProductDialog";
-
+import {
+  MOCK_INGREDIENTS,
+  MOCK_PRODUCTS,
+  PRODUCT_CATEGORY_OPTIONS,
+} from "../data";
+import AddIngredientDialog from "../components/AddIngredientDialog";
+import AddProductDialog from "../components/AddProductDialog";
+import IngredientsTable from "../components/IngredientsTable";
+import ProductsFilters from "../components/ProductsFilters";
+import ProductsTable from "../components/ProductsTable";
+import type {
+  Ingredient,
+  IngredientFormData,
+  Product,
+  ProductFormData,
+  ProductTab,
+  RecipeSelection,
+} from "../types";
 const ProductsPage = () => {
-  const [searchTerm, setSearchTerm] = useState("");
+  const [activeTab, setActiveTab] = useState<ProductTab>("products");
+  const [searchValue, setSearchValue] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
-  const [isAddProductDialogOpen, setIsAddProductDialogOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<{
-    index: number;
-    data: {
-      image: string | null;
-      name: string;
-      category: string;
-      description: string;
-      price: string;
-      discountType: string;
-      status: "Available" | "Out of Stock";
-    };
-  } | null>(null);
+  const [products, setProducts] = useState<Product[]>(MOCK_PRODUCTS);
+  const [ingredients, setIngredients] =
+    useState<Ingredient[]>(MOCK_INGREDIENTS);
 
-  const [products, setProducts] = useState([
-    {
-      image: "path/to/image1.jpg",
-      name: "Kunafa Tiramisu",
-      category: "Pastries",
-      price: "EGP 85.20",
-      discount: "EGP 25.00",
-      isAvailable: true,
-    },
-    {
-      image: "path/to/image2.jpg",
-      name: "Eish el Saraya",
-      category: "Pastries",
-      price: "EGP 85.20",
-      discount: "30%",
-      isAvailable: true,
-    },
-    {
-      image: "path/to/image3.jpg",
-      name: "Middle Eastern Roast Beef",
-      category: "Pastries",
-      price: "EGP 85.20",
-      discount: null,
-      isAvailable: false,
-    },
-    {
-      image: "path/to/image4.jpg",
-      name: "Amber Sobia",
-      category: "Coffee",
-      price: "EGP 85.20",
-      discount: null,
-      isAvailable: true,
-    },
-    {
-      image: "path/to/image5.jpg",
-      name: "Blueberry Croissant",
-      category: "Pastries",
-      price: "EGP 85.20",
-      discount: null,
-      isAvailable: true,
-    },
-    {
-      image: "path/to/image6.jpg",
-      name: "Chemex",
-      category: "Coffee",
-      price: "EGP 85.20",
-      discount: null,
-      isAvailable: false,
-    },
-    {
-      image: "path/to/image7.jpg",
-      name: "The Classic Turkey",
-      category: "Sandwiches",
-      price: "EGP 85.20",
-      discount: null,
-      isAvailable: true,
-    },
-  ]);
+  const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
+  const [isIngredientDialogOpen, setIsIngredientDialogOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editingIngredient, setEditingIngredient] = useState<Ingredient | null>(
+    null,
+  );
 
-  const categories = ["All Categories", "Pastries", "Coffee", "Sandwiches"];
+  const filteredProducts = useMemo(() => {
+    const normalizedSearch = searchValue.trim().toLowerCase();
 
-  const handleAddProduct = (
-    productData: ProductFormData,
-    productIndex?: number
-  ) => {
-    let discount: string | null = null;
-    if (productData.discountType !== "None" && productData.discountValue) {
-      if (productData.discountType === "Percentage") {
-        discount = `${productData.discountValue}%`;
-      } else {
-        discount = `EGP ${productData.discountValue}`;
-      }
-    }
+    return products.filter((product) => {
+      const matchesSearch =
+        normalizedSearch.length === 0 ||
+        product.name.toLowerCase().includes(normalizedSearch) ||
+        product.description.toLowerCase().includes(normalizedSearch);
 
-    const newProduct = {
-      image: productData.image
-        ? URL.createObjectURL(productData.image)
-        : "path/to/default-image.jpg",
-      name: productData.productName,
-      category: productData.category,
-      price: `EGP ${parseFloat(productData.price).toFixed(2)}`,
-      discount,
-      isAvailable: productData.status === "Available",
-    };
+      const matchesCategory =
+        selectedCategory === "All Categories" ||
+        product.category === selectedCategory;
 
-    if (productIndex !== undefined) {
-      setProducts((prev) =>
-        prev.map((product, i) =>
-          i === productIndex ? { ...product, ...newProduct } : product
-        )
-      );
-      setEditingProduct(null);
-    } else {
-      setProducts((prev) => [newProduct, ...prev]);
-    }
-    setIsAddProductDialogOpen(false);
-  };
-
-  const handleStatusToggle = (index: number, checked: boolean) => {
-    setProducts((prev) =>
-      prev.map((product, i) =>
-        i === index ? { ...product, isAvailable: checked } : product
-      )
-    );
-  };
-
-  const handleEditProduct = (index: number) => {
-    const product = products[index];
-    setEditingProduct({
-      index,
-      data: {
-        image: product.image,
-        name: product.name,
-        category: product.category,
-        description: "",
-        price: product.price.replace("EGP ", ""),
-        discountType: "",
-        status: product.isAvailable ? "Available" : "Out of Stock",
-      },
+      return matchesSearch && matchesCategory;
     });
-    setIsAddProductDialogOpen(true);
+  }, [products, searchValue, selectedCategory]);
+
+  const filteredIngredients = useMemo(() => {
+    const normalizedSearch = searchValue.trim().toLowerCase();
+
+    return ingredients.filter((ingredient) => {
+      if (normalizedSearch.length === 0) {
+        return true;
+      }
+
+      return (
+        ingredient.name.toLowerCase().includes(normalizedSearch) ||
+        ingredient.description.toLowerCase().includes(normalizedSearch)
+      );
+    });
+  }, [ingredients, searchValue]);
+
+  const openAddProduct = () => {
+    setEditingProduct(null);
+    setIsProductDialogOpen(true);
   };
 
-  const handleDeleteProduct = (index: number) => {
-    setProducts((prev) => prev.filter((_, i) => i !== index));
+  const openAddIngredient = () => {
+    setEditingIngredient(null);
+    setIsIngredientDialogOpen(true);
   };
 
-  const filteredProducts = products.filter((product) => {
-    const matchesSearch =
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.category.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory =
-      selectedCategory === "All Categories" ||
-      product.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  const handleEditProduct = (product: Product) => {
+    setEditingProduct(product);
+    setIsProductDialogOpen(true);
+  };
+
+  const handleEditIngredient = (ingredient: Ingredient) => {
+    setEditingIngredient(ingredient);
+    setIsIngredientDialogOpen(true);
+  };
+
+  const handleProductSave = (
+    payload: ProductFormData,
+    _selectedRecipes: RecipeSelection[],
+  ) => {
+    const parsedPrice = Number(payload.price) || 0;
+
+    if (editingProduct) {
+      setProducts((previous) =>
+        previous.map((product) =>
+          product.id === editingProduct.id
+            ? {
+                ...product,
+                name: payload.name || product.name,
+                description: payload.description || product.description,
+                category: payload.category || product.category,
+                price: parsedPrice,
+                status: payload.status,
+                imageUrl: payload.imageUrl || product.imageUrl,
+                isActive: payload.isActive,
+              }
+            : product,
+        ),
+      );
+      return;
+    }
+
+    const nextProduct: Product = {
+      id: (products.at(-1)?.id ?? 0) + 1,
+      name: payload.name || "New Product",
+      description: payload.description || "No description provided.",
+      category: payload.category || "Pastries",
+      price: parsedPrice,
+      status: payload.status,
+      imageUrl:
+        payload.imageUrl ||
+        "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?w=80&h=80&fit=crop",
+      isActive: payload.isActive,
+      discountLabel: payload.discountValue
+        ? `${payload.discountValue}${payload.discountType || ""}`
+        : undefined,
+    };
+
+    setProducts((previous) => [nextProduct, ...previous]);
+  };
+
+  const handleIngredientSave = (payload: IngredientFormData) => {
+    const parsedPrice = Number(payload.price) || 0;
+    const parsedQuantity = Number(payload.initialQuantity) || 0;
+
+    if (editingIngredient) {
+      setIngredients((previous) =>
+        previous.map((ingredient) =>
+          ingredient.id === editingIngredient.id
+            ? {
+                ...ingredient,
+                name: payload.name || ingredient.name,
+                description: payload.description || ingredient.description,
+                price: parsedPrice,
+                initialQuantity: parsedQuantity,
+                imageUrl: payload.imageUrl || ingredient.imageUrl,
+              }
+            : ingredient,
+        ),
+      );
+      return;
+    }
+
+    const nextIngredient: Ingredient = {
+      id: (ingredients.at(-1)?.id ?? 0) + 1,
+      name: payload.name || "New Ingredient",
+      description: payload.description || "No description provided.",
+      category: "Raw Ingredient",
+      price: parsedPrice,
+      initialQuantity: parsedQuantity,
+      imageUrl:
+        payload.imageUrl ||
+        "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=80&h=80&fit=crop",
+    };
+
+    setIngredients((previous) => [nextIngredient, ...previous]);
+  };
+
+  const handleTabChange = (tab: ProductTab) => {
+    setActiveTab(tab);
+    setSearchValue("");
+    setSelectedCategory("All Categories");
+  };
 
   return (
-    <div className="flex flex-col">
-      {/* Header */}
-      <div className="mb-8 flex items-start justify-between">
-        <div>
-          <h1 className="font-bold text-[32px]">Products</h1>
-          <p className="font-normal text-[16px] text-gray-600">
-            Manage your bakery and coffee menu
-          </p>
-        </div>
+    <section className="space-y-6">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <HeaderLayout
+          title={
+            activeTab === "products"
+              ? "Products"
+              : "Ingredients and raw materials"
+          }
+          description={
+            activeTab === "products"
+              ? "Manage your bakery and coffee menu"
+              : "These ingredients will be used in product recipes"
+          }
+        />
+
         <Button
-          onClick={() => setIsAddProductDialogOpen(true)}
-          className="text-white font-semibold px-7.5 py-4 h-14 rounded-[5px]"
+          className="h-14 rounded-[5px] px-7.5 py-4 text-[#FFFFFF] text-[16px] font-semibold"
+          onClick={
+            activeTab === "products" ? openAddProduct : openAddIngredient
+          }
         >
-          <Plus size={20} />
-          Add New Product
+          <Plus className="mr-3 size-4.5" />
+          {activeTab === "products" ? "Add New Product" : "Add New Ingredient"}
         </Button>
       </div>
 
-      {/* Search and Filter */}
-      <div className="flex items-center gap-8 mb-6">
-        <div className="flex-1">
-          <div className="flex items-center gap-2.5 bg-white p-3.5 rounded-lg border border-[#cacbd4]">
-            <Search className="text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search products..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="font-normal text-[16px] text-[#8b8b8b] w-full focus:outline-none"
-            />
-          </div>
-        </div>
+      <ProductsFilters
+        searchValue={searchValue}
+        selectedCategory={selectedCategory}
+        categories={PRODUCT_CATEGORY_OPTIONS}
+        showCategoryFilter={activeTab === "products"}
+        onSearchChange={setSearchValue}
+        onCategoryChange={setSelectedCategory}
+      />
 
-        <div className="w-80">
-          <div className="flex items-center gap-3 bg-white px-4.5 py-3 rounded-xl border border-neutral-200">
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="font-medium text-[16px] text-black w-full focus:outline-none appearance-none bg-transparent"
-            >
-              {categories.map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="text-gray-500" />
-          </div>
-        </div>
+      <div className="mb-4 grid grid-cols-2 gap-x-2 gap-y-1">
+        <Button
+          type="button"
+          variant="ghost"
+          size="default"
+          onClick={() => handleTabChange("products")}
+          className={`relative h-auto w-full cursor-pointer rounded-none pb-3 text-center text-[16px] font-semibold transition-colors ${
+            activeTab === "products"
+              ? "text-[#333333] font-medium"
+              : "text-[#8B8B8B] hover:text-[#8B8B8B]"
+          }`}
+        >
+          <Store className="size-6" />
+          Products
+          <span
+            className={`absolute right-0 bottom-0 left-0 h-0.5 transition-all ${
+              activeTab === "products" ? "bg-primary" : "bg-[#8B8B8B]"
+            }`}
+          />
+        </Button>
+
+        <Button
+          type="button"
+          variant="ghost"
+          size="default"
+          onClick={() => handleTabChange("ingredients")}
+          className={`relative h-auto w-full cursor-pointer rounded-none pb-3 text-center text-[16px] font-semibold transition-colors ${
+            activeTab === "ingredients"
+              ? "text-[#333333] font-medium"
+              : "text-[#8B8B8B] hover:text-[#8B8B8B]"
+          }`}
+        >
+          <CookingPot className="size-6" />
+          Recipes
+          <span
+            className={`absolute right-0 bottom-0 left-0 h-0.5 transition-all ${
+              activeTab === "ingredients" ? "bg-primary" : "bg-[#8B8B8B]"
+            }`}
+          />
+        </Button>
       </div>
 
-      {/* Table */}
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-16">Image</TableHead>
-            <TableHead>Product</TableHead>
-            <TableHead>Category</TableHead>
-            <TableHead>Price</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="w-40">Actions</TableHead>{" "}
-            {/* Natural alignment */}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {filteredProducts.map((product, index) => (
-            <TableRow key={index} className="h-16">
-              {/* Image */}
-              <TableCell className="align-middle">
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="w-12 h-12 rounded-md object-cover"
-                />
-              </TableCell>
-
-              {/* Product Name */}
-              <TableCell className="align-middle font-medium">
-                {product.name}
-              </TableCell>
-
-              {/* Category */}
-              <TableCell className="align-middle">
-                <span className="px-3 py-1 rounded-full bg-primary text-white text-sm font-medium">
-                  {product.category}
-                </span>
-              </TableCell>
-
-              {/* Price */}
-              <TableCell className="align-middle">
-                <div className="flex flex-col">
-                  <span className="font-medium">{product.price}</span>
-                  {product.discount && (
-                    <span className="text-sm text-gray-500">
-                      Discount: {product.discount}
-                    </span>
-                  )}
-                </div>
-              </TableCell>
-
-              {/* Status */}
-              <TableCell className="align-middle">
-                <span
-                  className={`px-3 py-1 rounded-full text-sm font-medium ${
-                    product.isAvailable
-                      ? "bg-[#EDF8F0] text-[#059B5A]"
-                      : "bg-[#DCDCDC] text-[#23252A]"
-                  }`}
-                >
-                  {product.isAvailable ? "Available" : "Out of Stock"}
-                </span>
-              </TableCell>
-
-              {/* Actions - Now naturally aligned */}
-              <TableCell className="align-middle">
-                <div className="flex items-center gap-4">
-                  <Switch
-                    checked={product.isAvailable}
-                    onCheckedChange={(checked) =>
-                      handleStatusToggle(index, checked)
+      {activeTab === "products" ? (
+        <ProductsTable
+          products={filteredProducts}
+          onEdit={handleEditProduct}
+          onDelete={(productId) => {
+            setProducts((previous) =>
+              previous.filter((product) => product.id !== productId),
+            );
+          }}
+          onToggleActive={(productId, checked) => {
+            setProducts((previous) =>
+              previous.map((product) =>
+                product.id === productId
+                  ? {
+                      ...product,
+                      isActive: checked,
+                      status: checked ? "Available" : "Out Of Stock",
                     }
-                  />
-                  <Edit
-                    className="w-5 h-5 text-gray-500 cursor-pointer hover:text-gray-700 transition-colors"
-                    onClick={() => handleEditProduct(index)}
-                  />
-                  <Trash
-                    className="w-5 h-5 text-red-500 cursor-pointer hover:text-red-700 transition-colors"
-                    onClick={() => {
-                      if (
-                        window.confirm(
-                          `Are you sure you want to delete "${product.name}"?`
-                        )
-                      ) {
-                        handleDeleteProduct(index);
-                      }
-                    }}
-                  />
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+                  : product,
+              ),
+            );
+          }}
+        />
+      ) : (
+        <IngredientsTable
+          ingredients={filteredIngredients}
+          onEdit={handleEditIngredient}
+          onDelete={(ingredientId) => {
+            setIngredients((previous) =>
+              previous.filter((ingredient) => ingredient.id !== ingredientId),
+            );
+          }}
+        />
+      )}
 
-      {/* Add Product Dialog */}
       <AddProductDialog
-        isOpen={isAddProductDialogOpen}
+        open={isProductDialogOpen}
+        product={editingProduct}
+        ingredientOptions={ingredients}
         onOpenChange={(open) => {
-          setIsAddProductDialogOpen(open);
+          setIsProductDialogOpen(open);
           if (!open) {
             setEditingProduct(null);
           }
         }}
-        onSave={handleAddProduct}
-        editingProduct={editingProduct || undefined}
+        onSave={handleProductSave}
       />
-    </div>
+
+      <AddIngredientDialog
+        open={isIngredientDialogOpen}
+        ingredient={editingIngredient}
+        onOpenChange={(open) => {
+          setIsIngredientDialogOpen(open);
+          if (!open) {
+            setEditingIngredient(null);
+          }
+        }}
+        onSave={handleIngredientSave}
+      />
+    </section>
   );
 };
 

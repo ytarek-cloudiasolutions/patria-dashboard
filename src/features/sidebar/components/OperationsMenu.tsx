@@ -2,16 +2,11 @@ import { useNavigate, useLocation } from "react-router-dom";
 import {
   Store, // Dashboard
   ShoppingBag, // Orders
-  Coffee, // Products
-  Heart, // Offers (or Shield for offers)
-  MapPin, // Locations
   Package, // Inventory
-  Send, // Requests (or MessageSquare)
-  Settings, // Settings
-  LogOut,
   UtensilsCrossed,
-  Table,
-  Sofa, // Logout
+  Sofa,
+  LayoutGrid,
+  LayoutDashboardIcon, // Logout
 } from "lucide-react";
 import {
   SidebarMenu,
@@ -33,13 +28,13 @@ const OperationsMenu = () => {
   const navItems: NavItem[] = [
     {
       label: "Dashboard",
-      icon: <Store />,
+      icon: <LayoutDashboardIcon />,
       path: "/",
       isActive: location.pathname === "/",
     },
     {
       label: "Orders",
-      icon: <ShoppingBag />,
+      icon: <Store />,
       path: "/orders",
       isActive: location.pathname === "/orders",
     },
@@ -53,14 +48,14 @@ const OperationsMenu = () => {
       label: "Kitchen",
       icon: <UtensilsCrossed />,
       path: "/kitchen",
-      isActive: location.pathname === "/kitchen",
+      isActive: location.pathname.startsWith("/kitchen"),
     },
 
     {
       label: "Inventory",
       icon: <Package />,
       path: "/inventory",
-      isActive: location.pathname === "/inventory",
+      isActive: location.pathname.startsWith("/inventory"),
     },
   ];
   return (

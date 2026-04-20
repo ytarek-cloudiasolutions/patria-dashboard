@@ -1,378 +1,576 @@
-import React, { useState } from "react";
-import { Upload } from "lucide-react";
-import { Input } from "@/shared/components/ui/input";
-import { Textarea } from "@/shared/components/ui/textarea";
+import { ChevronDown, CircleMinus, ImagePlus, Upload, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/shared/components/ui/button";
+import { Card } from "@/shared/components/ui/card";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/shared/components/ui/select";
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from "@/shared/components/ui/dialog";
 import {
-  CustomDialog,
-  CustomDialogContent,
-  CustomDialogHeader,
-  CustomDialogTitle,
-} from "@/shared/components/ui/custom-dialog";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/shared/components/ui/dropdown-menu";
+import { Input } from "@/shared/components/ui/input";
+import { useFileUpload } from "@/shared/hooks/use-file-upload";
+import { INITIAL_PRODUCT_FORM, PRODUCT_STATUS_OPTIONS } from "../data";
+import type {
+  Ingredient,
+  Product,
+  ProductFormData,
+  ProductStatus,
+  RecipeSelection,
+} from "../types";
 
 interface AddProductDialogProps {
-  isOpen: boolean;
+  open: boolean;
+  product: Product | null;
+  ingredientOptions: Ingredient[];
   onOpenChange: (open: boolean) => void;
-  onSave: (productData: ProductFormData, productIndex?: number) => void;
-  editingProduct?: {
-    index: number;
-    data: {
-      image: string | null;
-      name: string;
-      category: string;
-      description: string;
-      price: string;
-      discountType: string;
-      status: "Available" | "Out of Stock";
-    };
-  };
+  onSave: (
+    payload: ProductFormData,
+    selectedRecipes: RecipeSelection[],
+  ) => void;
 }
 
-export interface ProductFormData {
-  image: File | null;
-  productName: string;
-  category: string;
-  description: string;
-  price: string;
-  discountType: "Percentage" | "Fixed Amount" | "None";
-  discountValue: string;
-  status: "Available" | "Out of Stock";
-}
-
-const CATEGORIES = ["Breads", "Pastries", "Coffee", "Sandwiches"];
-const STATUS_OPTIONS = ["Available", "Out of Stock"];
-const DISCOUNT_TYPES = ["None", "Percentage", "Fixed Amount"];
-
-const AddProductDialog: React.FC<AddProductDialogProps> = ({
-  isOpen,
+const AddProductDialog = ({
+  open,
+  product,
+  ingredientOptions,
   onOpenChange,
   onSave,
-  editingProduct,
-}) => {
-  const [formData, setFormData] = useState<ProductFormData>({
-    image: null,
-    productName: "",
-    category: "",
-    description: "",
-    price: "",
-    discountType: "None",
-    discountValue: "",
-    status: "Available",
+}: AddProductDialogProps) => {
+  const [step, setStep] = useState<1 | 2>(1);
+  const [form, setForm] = useState<ProductFormData>(INITIAL_PRODUCT_FORM);
+  const [selectedRecipes, setSelectedRecipes] = useState<RecipeSelection[]>([]);
+  const [showStepOneErrors, setShowStepOneErrors] = useState(false);
+
+  const [uploadState, uploadActions] = useFileUpload({
+    accept: "image/*",
+    multiple: false,
+    maxFiles: 1,
+    onFilesChange: (files) => {
+      const first = files[0];
+      setForm((previous) => ({ ...previous, imageUrl: first?.preview ?? "" }));
+    },
   });
 
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const isEditMode = !!editingProduct;
+  const uploadedImage = useMemo(
+    () => uploadState.files[0]?.preview,
+    [uploadState.files],
+  );
 
-  React.useEffect(() => {
-    if (editingProduct) {
-      setFormData({
-        image: null,
-        productName: editingProduct.data.name,
-        category: editingProduct.data.category,
-        description: editingProduct.data.description,
-        price: editingProduct.data.price,
-        discountType: editingProduct.data.discountType as
-          | "Percentage"
-          | "Fixed Amount"
-          | "None",
-        discountValue: "",
-        status: editingProduct.data.status,
-      });
-      setImagePreview(editingProduct.data.image);
-    }
-  }, [editingProduct]);
-
-  if (!isOpen) return null;
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setFormData((prev) => ({ ...prev, image: file }));
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setImagePreview(event.target?.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSelectChange = (name: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSave = () => {
-    if (
-      !formData.productName ||
-      !formData.category ||
-      !formData.description ||
-      !formData.price
-    ) {
-      alert("Please fill in all required fields");
+  useEffect(() => {
+    if (!open) {
       return;
     }
-    onSave(formData, editingProduct?.index);
-    handleClose();
+
+    setStep(1);
+    setShowStepOneErrors(false);
+    uploadActions.clearFiles();
+
+    if (product) {
+      setForm({
+        name: product.name,
+        category: product.category,
+        description: product.description,
+        price: product.price.toString(),
+        status: product.status,
+        discountType: "",
+        discountValue: "",
+        imageUrl: product.imageUrl,
+        isActive: product.isActive,
+      });
+      setSelectedRecipes([]);
+      return;
+    }
+
+    setForm(INITIAL_PRODUCT_FORM);
+    setSelectedRecipes([]);
+  }, [open, product]);
+
+  const requiredFields = {
+    name: form.name.trim().length > 0,
+    category: form.category.trim().length > 0,
+    description: form.description.trim().length > 0,
+    price: form.price.trim().length > 0,
+    status: form.status.trim().length > 0,
+  };
+
+  const hasStepOneErrors = Object.values(requiredFields).some(
+    (value) => !value,
+  );
+
+  const setStatus = (status: ProductStatus) => {
+    setForm((previous) => ({ ...previous, status }));
+  };
+
+  const goToStepTwo = () => {
+    if (hasStepOneErrors) {
+      setShowStepOneErrors(true);
+      return;
+    }
+
+    setShowStepOneErrors(false);
+    setStep(2);
+  };
+
+  const addRecipe = (ingredient: Ingredient) => {
+    setSelectedRecipes((previous) => {
+      if (previous.some((entry) => entry.id === ingredient.id)) {
+        return previous;
+      }
+
+      return [
+        ...previous,
+        {
+          id: ingredient.id,
+          name: ingredient.name,
+          quantityLabel: "1 Gram(s)",
+        },
+      ];
+    });
+  };
+
+  const updateRecipeQuantity = (recipeId: number, quantityLabel: string) => {
+    setSelectedRecipes((previous) =>
+      previous.map((recipe) =>
+        recipe.id === recipeId ? { ...recipe, quantityLabel } : recipe,
+      ),
+    );
+  };
+
+  const removeRecipe = (recipeId: number) => {
+    setSelectedRecipes((previous) =>
+      previous.filter((recipe) => recipe.id !== recipeId),
+    );
   };
 
   const handleClose = () => {
-    setFormData({
-      image: null,
-      productName: "",
-      category: "",
-      description: "",
-      price: "",
-      discountType: "None",
-      discountValue: "",
-      status: "Available",
-    });
-    setImagePreview(null);
     onOpenChange(false);
   };
 
-  // Dynamic discount label
-  const discountLabel =
-    formData.discountType === "Percentage"
-      ? "Discount %"
-      : formData.discountType === "Fixed Amount"
-      ? "Discount EGP"
-      : "Discount";
+  const handleSave = () => {
+    onSave(form, selectedRecipes);
+    handleClose();
+  };
+
+  const uploadZoneClass = uploadState.isDragging
+    ? "border-primary bg-primary/5"
+    : "border-[#D1B24A] bg-white";
 
   return (
-    <CustomDialog open={isOpen} onOpenChange={onOpenChange}>
-      <CustomDialogContent showCloseButton={false}>
-        <CustomDialogHeader>
-          <CustomDialogTitle className="font-semibold text-[24px]">
-            {isEditMode ? "Edit Product" : "Add New Product"}
-          </CustomDialogTitle>
-        </CustomDialogHeader>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        showCloseButton={false}
+        className="max-w-174 rounded-[12px] p-0 ring-0 sm:max-w-174"
+      >
+        <div className="relative p-6">
+          <DialogTitle className="text-[24px] font-bold text-[#333333]">
+            {product ? "Edit Product" : "Add New Product"}
+          </DialogTitle>
 
-        <div className="flex flex-col gap-6 mx-[10px]">
-          {/* Image Upload Section */}
-          <div>
-            <div className="flex flex-col justify-center items-center gap-6 self-stretch bg-[#f5f0ea] p-6 rounded-2xl outline-2 outline-dashed outline-[#624f1c]">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="hidden"
-                id="image-upload"
+          <div className="mt-4">
+            <div className="relative pb-6">
+              <div className="absolute top-3 left-4 right-4 h-px bg-[#CACBD4]" />
+              <div
+                className="absolute top-3 left-4 h-px bg-primary transition-all duration-300"
+                style={{ width: step === 2 ? "calc(100% - 2rem)" : "0%" }}
               />
-              <label
-                htmlFor="image-upload"
-                className="flex flex-col items-center gap-2 cursor-pointer w-full"
-              >
-                {imagePreview ? (
-                  <div className="relative">
-                    <img
-                      src={imagePreview}
-                      alt="Preview"
-                      className="w-24 h-24 object-cover rounded-lg"
-                    />
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setImagePreview(null);
-                        setFormData((prev) => ({ ...prev, image: null }));
-                      }}
-                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    <div className="w-6 h-6">
-                      <Upload size={24} className="text-[#20222f]" />
+
+              <div className="relative flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className="flex items-center"
+                >
+                  <span
+                    className={`flex size-6 items-center justify-center rounded-full border text-[12px] font-semibold ${
+                      step === 1 || step === 2
+                        ? "border-primary bg-white text-primary"
+                        : "border-[#A5A7B0] bg-[#E5E7ED] text-[#8B8B8B]"
+                    }`}
+                  >
+                    1
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={goToStepTwo}
+                  className="flex items-center"
+                >
+                  <span
+                    className={`flex size-6 items-center justify-center rounded-full border text-[12px] font-semibold ${
+                      step === 2
+                        ? "border-primary bg-white text-primary"
+                        : "border-[#A5A7B0] bg-[#E5E7ED] text-[#8B8B8B]"
+                    }`}
+                  >
+                    2
+                  </span>
+                </button>
+              </div>
+
+              <div className="mt-2 flex items-center justify-between text-[9px] font-medium">
+                <span
+                  className={step === 1 ? "text-[#333333]" : "text-[#8B8B8B]"}
+                >
+                  Product Description
+                </span>
+                <span
+                  className={step === 2 ? "text-[#333333]" : "text-[#8B8B8B]"}
+                >
+                  Recipes included
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {step === 1 ? (
+            <div className="space-y-4">
+              <div>
+                <p className="mb-2 text-[14px] font-semibold text-[#333333]">
+                  Product Image
+                </p>
+                <div
+                  className={`flex h-19 cursor-pointer items-center justify-center rounded-[10px] border border-dashed transition-colors ${uploadZoneClass}`}
+                  onDragEnter={uploadActions.handleDragEnter}
+                  onDragLeave={uploadActions.handleDragLeave}
+                  onDragOver={uploadActions.handleDragOver}
+                  onDrop={uploadActions.handleDrop}
+                  onClick={uploadActions.openFileDialog}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      uploadActions.openFileDialog();
+                    }
+                  }}
+                >
+                  {uploadedImage || form.imageUrl ? (
+                    <div className="relative flex size-full items-center justify-center p-2">
+                      <img
+                        src={uploadedImage ?? form.imageUrl}
+                        alt="Product"
+                        className="h-12 w-auto max-w-55 rounded-[8px] object-contain"
+                      />
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="icon"
+                        className="absolute top-2 right-2 size-7 rounded-full"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          uploadActions.clearFiles();
+                          setForm((previous) => ({
+                            ...previous,
+                            imageUrl: "",
+                          }));
+                        }}
+                      >
+                        <X className="size-4" />
+                      </Button>
                     </div>
-                    <div className="flex flex-col items-center gap-1">
-                      <span className="font-semibold text-[14px] text-[#333333]">
+                  ) : (
+                    <div className="flex flex-col items-center gap-1.5 text-center">
+                      <ImagePlus className="size-4 text-[#777777]" />
+                      <p className="text-[14px] font-semibold text-[#333333]">
                         Click to upload image
-                      </span>
-                      <span className="font-normal text-[12px] text-[#8b8b8b]">
+                      </p>
+                      <p className="text-[10px] text-[#8B8B8B]">
                         PNG, JPG up to 5MB
-                      </span>
+                      </p>
                     </div>
-                  </>
+                  )}
+
+                  <input
+                    {...uploadActions.getInputProps({ className: "hidden" })}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2.5">
+                <div>
+                  <p className="mb-1.5 text-[14px] font-semibold text-[#333333]">
+                    Product Name <span className="text-[#C90000]">*</span>
+                  </p>
+                  <Input
+                    value={form.name}
+                    onChange={(event) =>
+                      setForm((previous) => ({
+                        ...previous,
+                        name: event.target.value,
+                      }))
+                    }
+                    placeholder="e.g. Artisanal Sourdough"
+                    className={`h-10 rounded-[8px] ${showStepOneErrors && !requiredFields.name ? "border-[#C90000]" : "border-[#E9EAEE]"}`}
+                  />
+                </div>
+
+                <div>
+                  <p className="mb-1.5 text-[14px] font-semibold text-[#333333]">
+                    Category <span className="text-[#C90000]">*</span>
+                  </p>
+                  <Input
+                    value={form.category}
+                    onChange={(event) =>
+                      setForm((previous) => ({
+                        ...previous,
+                        category: event.target.value,
+                      }))
+                    }
+                    placeholder="e.g. Breads, Pastries, Coffee"
+                    className={`h-10 rounded-[8px] ${showStepOneErrors && !requiredFields.category ? "border-[#C90000]" : "border-[#E9EAEE]"}`}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <p className="mb-1.5 text-[14px] font-semibold text-[#333333]">
+                  Description <span className="text-[#C90000]">*</span>
+                </p>
+                <Input
+                  value={form.description}
+                  onChange={(event) =>
+                    setForm((previous) => ({
+                      ...previous,
+                      description: event.target.value,
+                    }))
+                  }
+                  placeholder="Describe this product..."
+                  className={`h-10 rounded-[8px] ${showStepOneErrors && !requiredFields.description ? "border-[#C90000]" : "border-[#E9EAEE]"}`}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2.5">
+                <div>
+                  <p className="mb-1.5 text-[14px] font-semibold text-[#333333]">
+                    Price <span className="text-[#C90000]">*</span>
+                  </p>
+                  <Input
+                    value={form.price}
+                    onChange={(event) =>
+                      setForm((previous) => ({
+                        ...previous,
+                        price: event.target.value,
+                      }))
+                    }
+                    placeholder="Price"
+                    className={`h-10 rounded-[8px] ${showStepOneErrors && !requiredFields.price ? "border-[#C90000]" : "border-[#E9EAEE]"}`}
+                  />
+                </div>
+
+                <div>
+                  <p className="mb-1.5 text-[14px] font-semibold text-[#333333]">
+                    Status <span className="text-[#C90000]">*</span>
+                  </p>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={`h-10 w-full justify-between rounded-[8px] px-4 text-[14px] text-[#333333] hover:bg-white ${showStepOneErrors && !requiredFields.status ? "border-[#C90000]" : "border-[#E9EAEE]"}`}
+                      >
+                        {form.status}
+                        <ChevronDown className="size-4 text-[#333333]" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-55 rounded-[12px] p-1.5">
+                      {PRODUCT_STATUS_OPTIONS.map((status) => (
+                        <DropdownMenuItem
+                          key={status}
+                          onSelect={() => setStatus(status)}
+                          className={`rounded-[8px] px-3 py-2 text-[14px] ${
+                            status === form.status
+                              ? "bg-primary text-primary-foreground focus:bg-primary focus:text-primary-foreground"
+                              : "text-[#333333]"
+                          }`}
+                        >
+                          {status}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2.5">
+                <div>
+                  <p className="mb-1.5 text-[14px] font-semibold text-[#333333]">
+                    Discount Type{" "}
+                    <span className="text-[#8B8B8B]">(Optional)</span>
+                  </p>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="h-10 w-full justify-between rounded-[8px] border-[#E9EAEE] px-4 text-[14px] text-[#8B8B8B] hover:bg-white"
+                      >
+                        {form.discountType || "Select type"}
+                        <ChevronDown className="size-4 text-[#333333]" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-55 rounded-[12px] p-1.5">
+                      {["Percentage", "Fixed", "None"].map((discountType) => (
+                        <DropdownMenuItem
+                          key={discountType}
+                          onSelect={() =>
+                            setForm((previous) => ({
+                              ...previous,
+                              discountType,
+                            }))
+                          }
+                          className={`rounded-[8px] px-3 py-2 text-[14px] ${
+                            form.discountType === discountType
+                              ? "bg-primary text-primary-foreground focus:bg-primary focus:text-primary-foreground"
+                              : "text-[#333333]"
+                          }`}
+                        >
+                          {discountType}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+
+                <div>
+                  <p className="mb-1.5 text-[14px] font-semibold text-[#333333]">
+                    Discount %{" "}
+                    <span className="text-[#8B8B8B]">(Optional)</span>
+                  </p>
+                  <Input
+                    value={form.discountValue}
+                    onChange={(event) =>
+                      setForm((previous) => ({
+                        ...previous,
+                        discountValue: event.target.value,
+                      }))
+                    }
+                    placeholder="e.g. 20"
+                    className="h-10 rounded-[8px] border-[#E9EAEE]"
+                  />
+                </div>
+              </div>
+
+              {showStepOneErrors && hasStepOneErrors ? (
+                <p className="text-[12px] font-medium text-[#C90000]">
+                  Please fill all required fields to continue.
+                </p>
+              ) : null}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div>
+                <p className="mb-1.5 text-[14px] font-semibold text-[#333333]">
+                  Select Recipes
+                </p>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="h-10 w-full justify-between rounded-[8px] border-[#E9EAEE] px-4 text-[14px] font-normal text-[#8B8B8B] hover:bg-white"
+                    >
+                      Search recipes..
+                      <ChevronDown className="size-4 text-[#8B8B8B]" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="start"
+                    className="w-109 rounded-[12px] p-1.5"
+                  >
+                    {ingredientOptions.map((ingredient) => (
+                      <DropdownMenuItem
+                        key={ingredient.id}
+                        className="rounded-[8px] px-3 py-2 text-[14px] text-[#333333]"
+                        onSelect={() => addRecipe(ingredient)}
+                      >
+                        {ingredient.name}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+
+              <div className="space-y-2">
+                {selectedRecipes.length === 0 ? (
+                  <Card className="rounded-[10px] border border-dashed border-[#E9EAEE] bg-[#FCFCFD] p-4 text-center text-[13px] text-[#8B8B8B] shadow-none">
+                    No ingredients selected.
+                  </Card>
+                ) : (
+                  selectedRecipes.map((recipe) => (
+                    <Card
+                      key={recipe.id}
+                      className="rounded-[10px] border border-[#E9EAEE] bg-[#FCFCFD] px-3 py-2 shadow-none"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Input
+                          value={recipe.name}
+                          readOnly
+                          className="h-9 border-none bg-transparent px-0 text-[14px] font-medium text-[#333333] shadow-none focus-visible:ring-0"
+                        />
+
+                        <Input
+                          value={recipe.quantityLabel}
+                          onChange={(event) =>
+                            updateRecipeQuantity(recipe.id, event.target.value)
+                          }
+                          className="h-9 w-35 rounded-[8px] border-[#E9EAEE] text-[13px]"
+                        />
+
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="ml-auto size-8 text-[#FF3B30] hover:bg-transparent hover:text-[#FF3B30]"
+                          onClick={() => removeRecipe(recipe.id)}
+                        >
+                          <CircleMinus className="size-4" />
+                        </Button>
+                      </div>
+                    </Card>
+                  ))
                 )}
-              </label>
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Product Name and Category */}
-          <div className="flex gap-6 self-stretch">
-            <div className="flex flex-col gap-2.5 basis-1/2">
-              <span className="font-medium text-[16px]">Product Name *</span>
-              <Input
-                type="text"
-                name="productName"
-                placeholder="e.g. Artisanal Sourdough"
-                value={formData.productName}
-                onChange={handleInputChange}
-                className="h-12 p-3 rounded-xl border border-solid border-neutral-200 w-full"
-              />
-            </div>
+          <div className="my-4 border-t border-[#F2F3F7]" />
 
-            <div className="flex flex-col gap-2.5 basis-1/2">
-              <span className="font-medium text-[16px]">Category *</span>
-              <Select
-                value={formData.category}
-                onValueChange={(value) => handleSelectChange("category", value)}
+          <div className="flex items-center justify-between">
+            <Button
+              type="button"
+              variant="outline"
+              className="h-10 rounded-[8px] border-[#E9EAEE] px-7 text-[14px]"
+              onClick={handleClose}
+            >
+              Cancel
+            </Button>
+
+            {step === 1 ? (
+              <Button
+                type="button"
+                className="h-10 rounded-[8px] px-7 text-[14px]"
+                onClick={goToStepTwo}
               >
-                <SelectTrigger className="h-12 px-3 p-5.75 rounded-xl border border-solid border-neutral-200 w-full">
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent className="bg-white rounded-2xl border-0 shadow-lg overflow-hidden p-2 w-[var(--radix-select-trigger-width)]">
-                  {CATEGORIES.map((category) => (
-                    <SelectItem
-                      key={category}
-                      value={category}
-                      className="data-[state=checked]:bg-[#8f6900] data-[state=checked]:text-white rounded-2xl cursor-pointer focus:bg-gray-100 py-2 pl-3 [&_svg]:hidden"
-                    >
-                      {category}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Description */}
-          <div className="flex flex-col gap-2.5 self-stretch">
-            <span className="font-medium text-[16px]">Description *</span>
-            <Textarea
-              name="description"
-              placeholder="Describe this product..."
-              value={formData.description}
-              onChange={handleInputChange}
-              className="min-h-[100px] p-3 rounded-xl border border-solid border-neutral-200 resize-none"
-            />
-          </div>
-
-          {/* Price and Status */}
-          <div className="flex gap-6 self-stretch">
-            <div className="flex flex-col gap-2.5 basis-1/2">
-              <span className="font-medium text-[16px]">Price *</span>
-              <Input
-                type="number"
-                name="price"
-                placeholder="e.g. 85.20"
-                value={formData.price}
-                onChange={handleInputChange}
-                step="0.01"
-                className="h-12 p-3 py-5.75 rounded-xl border border-solid border-neutral-200 w-full"
-              />
-            </div>
-
-            <div className="flex flex-col gap-2.5 basis-1/2">
-              <span className="font-medium text-[16px]">Status *</span>
-              <Select
-                value={formData.status}
-                onValueChange={(value) =>
-                  handleSelectChange(
-                    "status",
-                    value as "Available" | "Out of Stock"
-                  )
-                }
+                Next
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                className="h-10 rounded-[8px] px-7 text-[14px]"
+                onClick={handleSave}
               >
-                <SelectTrigger className="h-12 px-3 py-5.75 rounded-xl border border-solid border-neutral-200 w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-white rounded-2xl border-0 shadow-lg overflow-hidden p-2">
-                  {STATUS_OPTIONS.map((status) => (
-                    <SelectItem
-                      key={status}
-                      value={status}
-                      className="data-[state=checked]:bg-[#8f6900] data-[state=checked]:text-white rounded-2xl cursor-pointer focus:bg-gray-100 py-2 pl-3 [&_svg]:hidden"
-                    >
-                      {status}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Discount Type and Discount Value */}
-          <div className="flex gap-6 self-stretch">
-            <div className="flex flex-col gap-2.5 basis-1/2">
-              <span className="font-medium text-[16px]">
-                Discount Type <span className="text-gray-500">(Optional)</span>
-              </span>
-              <Select
-                value={formData.discountType}
-                onValueChange={(value) =>
-                  handleSelectChange("discountType", value)
-                }
-              >
-                <SelectTrigger className="h-12 px-3 py-5.75 rounded-xl border border-solid border-neutral-200 w-full">
-                  <SelectValue placeholder="Select discount type" />
-                </SelectTrigger>
-                <SelectContent className="bg-white rounded-2xl border-0 shadow-lg overflow-hidden p-2">
-                  {DISCOUNT_TYPES.map((type) => (
-                    <SelectItem
-                      key={type}
-                      value={type}
-                      className="data-[state=checked]:bg-[#8f6900] data-[state=checked]:text-white rounded-2xl cursor-pointer focus:bg-gray-100 py-2 pl-3 [&_svg]:hidden"
-                    >
-                      {type}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex flex-col gap-2.5 basis-1/2">
-              <span className="font-medium text-[16px]">{discountLabel}</span>
-              <Input
-                type="number"
-                name="discountValue"
-                placeholder="0"
-                value={formData.discountValue}
-                onChange={handleInputChange}
-                disabled={formData.discountType === "None"}
-                step={formData.discountType === "Percentage" ? "0.01" : "0.01"}
-                className="h-12 p-3 rounded-xl border border-solid border-neutral-200 w-full disabled:bg-gray-100"
-              />
-            </div>
+                <Upload className="mr-2 size-4" />
+                Save Product
+              </Button>
+            )}
           </div>
         </div>
-
-        {/* Separator */}
-        <div className="h-px bg-gray-200 my-6" />
-
-        {/* Action Buttons */}
-        <div className="flex gap-3 justify-end">
-          <Button
-            onClick={handleClose}
-            variant="outline"
-            className="px-7.5 py-4 h-14 border-primary text-primary font-semibold rounded-[5px]"
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSave}
-            className="text-white font-semibold px-7.5 py-4 h-14 rounded-[5px]"
-          >
-            {isEditMode ? "Update Product" : "Save Product"}
-          </Button>
-        </div>
-      </CustomDialogContent>
-    </CustomDialog>
+      </DialogContent>
+    </Dialog>
   );
 };
 

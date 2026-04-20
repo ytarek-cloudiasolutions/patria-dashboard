@@ -8,8 +8,9 @@ import {
 } from "@/shared/components/ui/table";
 import { useState, forwardRef, useImperativeHandle } from "react";
 import { ChevronDown, Copy, Edit, Search, Trash } from "lucide-react";
-import Switch from "@/shared/components/ui/switch";
+
 import type { CouponProps } from "../types";
+import { Switch } from "@/shared/components/ui/switch";
 
 const CouponsTable = forwardRef<
   {
