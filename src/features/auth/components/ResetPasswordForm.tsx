@@ -1,20 +1,23 @@
+import HeaderLayout from "@/layouts/HeaderLayout";
 import FormButton from "./FormButton";
-import FormHeader from "./FormHeader";
+
 import PasswordInputField from "./PasswordInputField";
 
-const ForgotPasswordForm = () => {
+const ResetPasswordForm = () => {
   return (
     <div>
-      <FormHeader
+      <HeaderLayout
         title="Reset Password"
-        subtitle="Enter and confirm your new password to secure your account."
+        description="Enter and confirm your new password to secure your account."
+        className="mb-22.5"
       />
       <form className="flex flex-col mb-4">
-        <div>
+        <div className="mb-16">
           <PasswordInputField
             id="password"
             label={{ htmlFor: "password", labelText: "Password" }}
             placeholder="Password"
+            className="mb-6"
           />
           <PasswordInputField
             id="confirm-password"
@@ -25,11 +28,10 @@ const ForgotPasswordForm = () => {
             placeholder="Confirm Password"
           />
         </div>
-        <div className="mb-16"></div>
         <FormButton buttonText="Sign In" />
       </form>
     </div>
   );
 };
 
-export default ForgotPasswordForm;
+export default ResetPasswordForm;

@@ -259,16 +259,129 @@
 
 @layer components {
   /* Typography variants */
-  .label-base {
-    @apply font-medium! text-[16px]!;
+
+  .text-333333-32-bold {
+    @apply text-[#333333] text-[32px] font-bold;
   }
 
-  .input-base {
-    @apply font-normal! text-[14px]!;
+  .text-333333-16-medium {
+    @apply text-[#333333] text-[16px] font-medium;
   }
 
-  /* Complete input field styling */
-  .input-field {
-    @apply h-12.5! bg-white! px-4.5! py-3! rounded-[12px]! border-[#E5E5E5]!;
+  .text-333333-16-semibold {
+    @apply text-[#333333] text-[16px] font-semibold;
+  }
+
+  .text-333333-16-normal {
+    @apply text-[#333333] text-[16px] font-normal;
+  }
+
+  .text-333333-16-bold {
+    @apply text-[#333333] text-[16px] font-bold;
+  }
+
+  .text-000000-16-medium {
+    @apply text-[#000000] text-[16px] font-medium;
+  }
+
+  .text-8B8B8B-16-normal {
+    @apply text-[#8B8B8B] text-[16px] font-normal;
+  }
+
+  .text-000000-16-normal {
+    @apply text-[#000000] text-[16px] font-normal;
+  }
+
+  .text-primary-16-normal {
+    @apply text-primary text-[16px] font-normal;
+  }
+
+  .text-primary-16-semibold {
+    @apply text-primary text-[16px] font-semibold;
+  }
+
+  .text-FFFFFF-16-semibold {
+    @apply text-[#FFFFFF] text-[16px] font-semibold;
+  }
+
+  .text-23252A-16-normal {
+    @apply text-[#23252A] text-[16px] font-normal;
+  }
+
+  .text-28293D-13-semibold {
+    @apply text-[#28293D] text-[13px] font-bold;
+  }
+
+  .text-000000-13-medium {
+    @apply text-[#000000] text-[13px] font-medium;
+  }
+
+ 
+
+  .text-000000-13-semibold {
+    @apply text-[#000000] text-[13px] font-semibold;
+  }
+
+  .text-23252A-12-medium {
+    @apply text-[#23252A] text-[12px] font-medium;
+  }
+
+  .text-23252A-12-normal {
+    @apply text-[#23252A] text-[12px] font-normal;
+  }
+  .text-8B8B8B-12-medium {
+    @apply text-[#8B8B8B] text-[12px] font-medium;
+  }
+
+  .text-FFFFFF-12-semibold {
+    @apply text-[#FFFFFF] text-[12px] font-semibold;
+  }
+
+  .text-8B8B8B-12-normal {
+    @apply text-[#8B8B8B] text-[12px] font-normal;
+  }
+
+  .text-000000-16-medium {
+    @apply text-[#000000] text-[16px] font-medium;
+  }
+
+  .text-8B8B8B-14-normal {
+    @apply text-[#8B8B8B] text-[14px] font-normal;
+  }
+
+  .text-28293D-14-semibold {
+    @apply text-[#28293D] text-[14px] font-semibold;
+  }
+
+  .text-28293D-14-medium {
+    @apply text-[#28293D] text-[14px] font-medium;
+  }
+
+  .text-28293D-14-normal {
+    @apply text-[#28293D] text-[14px] font-normal;
+  }
+
+  .text-333333-14-semibold {
+    @apply text-[#333333] text-[14px] font-semibold;
+  }
+
+  .text-000000-14-semibold {
+    @apply text-[#000000] text-[14px] font-semibold;
+  }
+
+  .text-595959-14-medium {
+    @apply text-[#595959] text-[14px] font-medium;
+  }
+
+  .text-333333-24-semibold {
+    @apply text-[#333333] text-[24px] font-semibold;
+  }
+
+  .text-595959-11-normal {
+    @apply text-[#595959] text-[14px] font-normal;
+  }
+
+  .text-595959-11-semibold {
+    @apply text-[#595959] text-[14px] font-semibold;
   }
 }

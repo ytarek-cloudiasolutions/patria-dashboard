@@ -1,55 +1,32 @@
-import { useState, useEffect } from "react";
+import * as React from "react";
+import { Switch as SwitchPrimitive } from "radix-ui";
 
-interface SwitchProps {
-  checked: boolean;
-  onCheckedChange: (checked: boolean) => void;
-  disabled?: boolean;
+import { cn } from "@/lib/utils";
+
+function Switch({
+  className,
+  size = "default",
+  ...props
+}: React.ComponentProps<typeof SwitchPrimitive.Root> & {
+  size?: "sm" | "default";
+}) {
+  return (
+    <SwitchPrimitive.Root
+      className={cn(
+        "relative inline-flex h-[18.22px] w-14 items-center rounded-[6.75px] p-0.5 transition-all ring-2 ring-[#059B5A33]",
+        "data-[state=checked]:bg-[#059B5A] data-[state=unchecked]:bg-[#CACBD4] data-[state=unchecked]:ring-[#8B8B8B1A]",
+        className
+      )}
+      {...props}
+    >
+      <SwitchPrimitive.Thumb
+        className={cn(
+          "h-[12.14px] w-[12.14px] rounded-full bg-white shadow transition-transform",
+          "translate-x-0 data-[state=checked]:translate-x-9.5"
+        )}
+      />
+    </SwitchPrimitive.Root>
+  );
 }
 
-const Switch = ({
-  checked,
-  onCheckedChange,
-  disabled = false,
-}: SwitchProps) => {
-  const [isChecked, setIsChecked] = useState(checked);
-
-  // Update internal state when checked prop changes
-  useEffect(() => {
-    setIsChecked(checked);
-  }, [checked]);
-
-  const handleChange = () => {
-    if (!disabled) {
-      const newValue = !isChecked;
-      setIsChecked(newValue);
-      onCheckedChange(newValue);
-    }
-  };
-
-  return (
-    <div
-      className={`w-15 h-5.5 flex justify-center items-center rounded-[6.75px] ${
-        isChecked ? "bg-[#624F1C1A]" : "bg-[#DCDCDC]"
-      }`}
-    >
-      <button
-        onClick={handleChange}
-        disabled={disabled}
-        className={`relative inline-flex h-[18.22px] w-14 items-center rounded-[6.75px] transition-colors py-1.75 ${
-          isChecked ? "bg-primary" : "bg-[#CACBD4]"
-        } ${
-          disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
-        } p-1.5`}
-        aria-label="Toggle switch"
-      >
-        <span
-          className={`inline-block h-[12.14px] w-[12.14px] transform rounded-full bg-white shadow-sm transition-transform ${
-            isChecked ? "translate-x-9" : "translate-x-0"
-          }`}
-        />
-      </button>
-    </div>
-  );
-};
-
-export default Switch;
+export { Switch };

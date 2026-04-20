@@ -3,22 +3,24 @@ import EmailInputField from "./EmailInputField";
 import RememberMeField from "./RememberMeField";
 import FormButton from "./FormButton";
 import AuthRedirectSection from "./AuthRedirectSection";
-import FormHeader from "./FormHeader";
+import HeaderLayout from "@/layouts/HeaderLayout";
 
 const SignUpForm = () => {
   return (
     <div>
-      <FormHeader
+      <HeaderLayout
         title="Set up your admin account"
-        subtitle="Set up your restaurant management space."
+        description="Set up your restaurant management space."
+        className="mb-22.5"
       />
       <form className="flex flex-col mb-4">
-        <div>
-          <EmailInputField />
+        <div className="mb-16">
+          <EmailInputField className="mb-6" />
           <PasswordInputField
             id="password"
             label={{ htmlFor: "password", labelText: "Password" }}
             placeholder="Password"
+            className="mb-6"
           />
           <PasswordInputField
             id="confirm-password"
@@ -27,9 +29,8 @@ const SignUpForm = () => {
               labelText: "Confirm Password",
             }}
             placeholder="Confirm Password"
+            className="mb-6"
           />
-        </div>
-        <div className="mb-16">
           <RememberMeField />
         </div>
         <FormButton buttonText="Sign Up" />
@@ -37,7 +38,7 @@ const SignUpForm = () => {
       <AuthRedirectSection
         actionLinkHref="/sign-in"
         promptText="Already have an account?"
-        actionLinkText=" Sign In"
+        actionLinkText="Sign In"
       />
     </div>
   );

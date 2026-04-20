@@ -63,13 +63,13 @@ const SidebarNavMenu = () => {
       label: "Kitchen",
       icon: <UtensilsCrossed />,
       path: "/kitchen",
-      isActive: location.pathname === "/kitchen",
+      isActive: location.pathname.startsWith("/kitchen"),
     },
     {
       label: "Inventory",
       icon: <Package />,
       path: "/inventory",
-      isActive: location.pathname === "/inventory",
+      isActive: location.pathname.startsWith("/inventory"),
     },
     {
       label: "Requests",
