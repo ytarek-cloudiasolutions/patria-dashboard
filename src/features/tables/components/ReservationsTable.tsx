@@ -1,4 +1,12 @@
-import { Armchair, CalendarDays, Check, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import {
+  Armchair,
+  CalendarDays,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  X,
+} from "lucide-react";
 import { Badge } from "@/shared/components/ui/badge";
 import {
   Table,
@@ -10,14 +18,214 @@ import {
 } from "@/shared/components/ui/table";
 import ReservationStatusDropdown from "./ReservationStatusDropdown";
 import type { Reservation, ReservationStatus } from "../types";
-import { Input } from "@/shared/components/ui/input";
+import DefaultButton from "@/shared/components/DefaultButton";
 
 interface ReservationsTableProps {
   reservations: Reservation[];
   selectedDate: string;
   onDateChange: (date: string) => void;
   onStatusChange: (reservationId: string, status: ReservationStatus) => void;
+  onDeleteReservation: (reservationId: string) => void;
 }
+
+const WEEK_DAYS = ["Mon", "Tue", "Wed", "Thr", "Fri", "Sat", "Sun"];
+
+const toYmd = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const parseYmd = (value: string) => {
+  const [year, month, day] = value.split("-").map(Number);
+  if (!year || !month || !day) return null;
+  return new Date(year, month - 1, day);
+};
+
+const formatFieldDate = (value: string) => {
+  const parsed = parseYmd(value);
+  if (!parsed) return "";
+  return parsed.toLocaleDateString("en-GB");
+};
+
+const buildCalendarDays = (viewDate: Date) => {
+  const year = viewDate.getFullYear();
+  const month = viewDate.getMonth();
+  const firstDayOffset = (new Date(year, month, 1).getDay() + 6) % 7;
+  const startDate = new Date(year, month, 1 - firstDayOffset);
+
+  return Array.from({ length: 42 }, (_, index) => {
+    const date = new Date(startDate);
+    date.setDate(startDate.getDate() + index);
+    return {
+      date,
+      inCurrentMonth: date.getMonth() === month,
+    };
+  });
+};
+
+interface ReservationDatePickerProps {
+  value: string;
+  onChange: (date: string) => void;
+}
+
+const ReservationDatePicker = ({
+  value,
+  onChange,
+}: ReservationDatePickerProps) => {
+  const [open, setOpen] = useState(false);
+  const [tempValue, setTempValue] = useState(value);
+  const [viewDate, setViewDate] = useState<Date>(parseYmd(value) ?? new Date());
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setTempValue(value);
+    setViewDate(parseYmd(value) ?? new Date());
+  }, [value]);
+
+  useEffect(() => {
+    if (!open || value) return;
+    const today = new Date();
+    setTempValue(toYmd(today));
+    setViewDate(today);
+  }, [open, value]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (!wrapperRef.current?.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, [open]);
+
+  const selectedDate = parseYmd(tempValue);
+  const monthLabel = viewDate.toLocaleDateString("en-US", {
+    month: "short",
+    year: "numeric",
+  });
+  const calendarDays = buildCalendarDays(viewDate);
+
+  return (
+    <div ref={wrapperRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((prev) => !prev)}
+        className="h-12 w-85.5 rounded-[12px] border border-[#D1D1D8] bg-white px-4 text-left text-[14px] font-medium text-[#2D2D3D] flex items-center justify-between"
+      >
+        <span className={value ? "text-[#2D2D3D]" : "text-[#8B8B8B]"}>
+          {value ? formatFieldDate(value) : "dd/MM/YYYY"}
+        </span>
+        <CalendarDays className="size-5 text-[#000000]" />
+      </button>
+
+      {open && (
+        <div className="absolute bottom-[calc(100%+8px)] right-0 z-[90] w-85.5 rounded-[16px] border border-[#E5E5E5] bg-white p-4 shadow-lg">
+          <div className="max-h-[70vh] overflow-y-auto pr-1">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="text-[18px] font-semibold text-[#28293D]">
+                {monthLabel}
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setViewDate(
+                      (prev) =>
+                        new Date(prev.getFullYear(), prev.getMonth() - 1, 1)
+                    )
+                  }
+                  className="inline-flex size-8 items-center justify-center rounded-md hover:bg-[#F5F0EA]"
+                >
+                  <ChevronLeft className="size-5 text-[#000000]" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setViewDate(
+                      (prev) =>
+                        new Date(prev.getFullYear(), prev.getMonth() + 1, 1)
+                    )
+                  }
+                  className="inline-flex size-8 items-center justify-center rounded-md hover:bg-[#F5F0EA]"
+                >
+                  <ChevronRight className="size-5 text-[#000000]" />
+                </button>
+              </div>
+            </div>
+
+            <div className="mb-2 grid grid-cols-7 text-center text-[14px] text-[#8B8B8B]">
+              {WEEK_DAYS.map((day) => (
+                <span key={day} className="py-1">
+                  {day}
+                </span>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-7 gap-y-1 text-center">
+              {calendarDays.map(({ date, inCurrentMonth }) => {
+                const dayValue = toYmd(date);
+                const isSelected =
+                  selectedDate && dayValue === toYmd(selectedDate);
+
+                return (
+                  <button
+                    key={dayValue}
+                    type="button"
+                    onClick={() => setTempValue(dayValue)}
+                    className={`mx-auto inline-flex size-9 items-center justify-center rounded-[10px] text-[16px] ${
+                      isSelected
+                        ? "bg-primary text-primary-foreground"
+                        : inCurrentMonth
+                        ? "text-[#23252A] hover:bg-[#F5F0EA]"
+                        : "text-[#8B8B8B] hover:bg-[#F5F0EA]"
+                    }`}
+                  >
+                    {date.getDate()}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="mt-4 flex justify-end gap-3">
+              <DefaultButton
+                data={{
+                  buttonText: "Cancel",
+                  type: "button",
+                  variant: "outline",
+                  onClick: () => {
+                    setTempValue(value);
+                    setOpen(false);
+                  },
+                  className:
+                    "h-11 px-6 text-primary border-primary hover:bg-white hover:text-primary",
+                }}
+              />
+              <DefaultButton
+                data={{
+                  buttonText: "Select",
+                  type: "button",
+                  onClick: () => {
+                    onChange(tempValue);
+                    setOpen(false);
+                  },
+                  className: "h-11 px-6",
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const getActionVisibility = (status: ReservationStatus) => {
   const showConfirm = status === "On Hold" || status === "Sitting";
@@ -32,56 +240,39 @@ const ReservationsTable = ({
   selectedDate,
   onDateChange,
   onStatusChange,
+  onDeleteReservation,
 }: ReservationsTableProps) => {
   return (
     <div className="mt-8">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-[40px] leading-none font-semibold text-[#2C2C3E]">
+        <h2 className="text-[#28293D] text-[20px] font-semibold leading-none">
           Today&apos;s Reservations
         </h2>
-        <Input
-          type="date"
-          value={selectedDate}
-          onChange={(event) => onDateChange(event.target.value)}
-          className="h-12 w-85.5 rounded-[12px] border border-[#D1D1D8] bg-white text-[14px] font-medium text-[#2D2D3D] outline-none"
-        />
+        <ReservationDatePicker value={selectedDate} onChange={onDateChange} />
       </div>
 
-      <Table className="table-fixed">
+      <Table>
         <colgroup>
-          <col className="w-[31%]" />
-          <col className="w-[23%]" />
-          <col className="w-[12%]" />
-          <col className="w-[20%]" />
-          <col className="w-[14%]" />
+          <col style={{ width: "196.4px" }} />
+          <col style={{ width: "196.4px" }} />
+          <col style={{ width: "196.4px" }} />
+          <col style={{ width: "196.4px" }} />
+          <col style={{ width: "196.4px" }} />
         </colgroup>
         <TableHeader>
-          <TableRow className="h-11">
-            <TableHead className="pl-6 pr-4 text-[13px] font-semibold text-[#4B4B5B]">
-              Customer
-            </TableHead>
-            <TableHead className="pl-4 pr-7 text-[13px] font-semibold text-[#4B4B5B]">
-              PEOPLE &amp; DATE
-            </TableHead>
-            <TableHead className="px-7 text-[13px] font-semibold text-[#4B4B5B]">
-              TABLE
-            </TableHead>
-            <TableHead className="px-7 text-[13px] font-semibold text-[#4B4B5B]">
-              Status
-            </TableHead>
-            <TableHead className="pl-7 pr-6 text-[13px] font-semibold text-[#4B4B5B]">
-              Actions
-            </TableHead>
+          <TableRow>
+            <TableHead>CUSTOMER</TableHead>
+            <TableHead>PEOPLE &amp; DATE</TableHead>
+            <TableHead>TABLE</TableHead>
+            <TableHead>STATUS</TableHead>
+            <TableHead>ACTIONS</TableHead>
           </TableRow>
         </TableHeader>
 
-        <TableBody className="[&_tr:hover]:bg-white">
+        <TableBody>
           {reservations.length === 0 ? (
             <TableRow>
-              <TableCell
-                colSpan={5}
-                className="py-8 text-center text-[#8A8A99]"
-              >
+              <TableCell colSpan={5} className="text-center text-gray-500 py-8">
                 No reservations match your current filter.
               </TableCell>
             </TableRow>
@@ -93,30 +284,27 @@ const ReservationsTable = ({
               const hasActions = showConfirm || showTableAction || showDelete;
 
               return (
-                <TableRow key={reservation.id} className="h-16">
-                  <TableCell className="pl-6 pr-4 align-middle">
-                    <p className="text-[13px] font-semibold text-[#292939]">
+                <TableRow key={reservation.id}>
+                  <TableCell className="py-4 text-[#28293D] text-[14px] font-medium">
+                    <p className="font-semibold text-[#292939]">
                       {reservation.customerName}
                     </p>
-                    <p className="mt-1 text-[11px] text-[#9A9AA6]">
+                    <p className="mt-1 text-[12px] text-[#8B8B8B] font-medium">
                       {reservation.phone}
                     </p>
                   </TableCell>
-
-                  <TableCell className="pl-4 pr-7 align-middle">
-                    <p className="text-[13px] font-semibold text-[#2E2E3B]">
+                  <TableCell className="py-4 text-[#28293D] text-[14px] font-medium">
+                    <p className="font-semibold text-[#2E2E3B]">
                       {reservation.people} People
                     </p>
-                    <p className="mt-1 text-[11px] text-[#9A9AA6]">
+                    <p className="mt-1 text-[12px] text-[#8B8B8B] font-medium">
                       {reservation.displayDate}
                     </p>
                   </TableCell>
-
-                  <TableCell className="px-7 align-middle text-[13px] font-medium text-[#2E2E3B]">
+                  <TableCell className="py-4 text-[#28293D] text-[14px] font-medium">
                     {reservation.tableNumber}
                   </TableCell>
-
-                  <TableCell className="px-7 align-middle">
+                  <TableCell className="py-4">
                     <ReservationStatusDropdown
                       value={reservation.status}
                       onChange={(status) =>
@@ -124,10 +312,9 @@ const ReservationsTable = ({
                       }
                     />
                   </TableCell>
-
-                  <TableCell className="pl-7 pr-6 align-middle">
+                  <TableCell className="py-4">
                     {hasActions ? (
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-2">
                         {showConfirm && (
                           <Badge
                             asChild
@@ -163,6 +350,9 @@ const ReservationsTable = ({
                           >
                             <button
                               type="button"
+                              onClick={() =>
+                                onDeleteReservation(reservation.id)
+                              }
                               aria-label={`Delete reservation for ${reservation.customerName}`}
                             >
                               <X size={13} />
@@ -171,7 +361,7 @@ const ReservationsTable = ({
                         )}
                       </div>
                     ) : (
-                      <span className="text-[#8E8E9B]">-</span>
+                      <div className="ml-9 w-[18px] h-0.5 bg-[#8B8B8B] rounded-full" />
                     )}
                   </TableCell>
                 </TableRow>

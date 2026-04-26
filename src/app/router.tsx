@@ -9,8 +9,10 @@ import InventoryPage from "@/features/inventory/pages/InventoryPage";
 import KitchenDetailsPage from "@/features/kitchens/pages/KitchenDetailsPage";
 import KitchenPage from "@/features/kitchens/pages/KitchenPage";
 import LocationsPage from "@/features/locations/pages/LocationsPage";
+import LogisticsPage from "@/features/logistics/pages/LogisticsPage";
 import OffersPage from "@/features/offers/pages/OffersPage";
 import OrdersPage from "@/features/orders/pages/OrdersPage";
+import ProductionPage from "@/features/production/pages/ProductionPage";
 import ProductsPage from "@/features/products/pages/ProductsPage";
 import RequestsPage from "@/features/requests/RequestsPage";
 import SettingsPage from "@/features/settings/SettingsPage";
@@ -41,6 +43,8 @@ export const router = createBrowserRouter([
       { path: "/coupons", element: <CouponsPage /> },
       { path: "/customers", element: <CustomersPage /> },
       { path: "/locations", element: <LocationsPage /> },
+      { path: "/logistics", element: <LogisticsPage /> },
+      { path: "/production", element: <ProductionPage /> },
       { path: "/requests", element: <RequestsPage /> },
       { path: "/users-permissions", element: <UsersPage /> },
       { path: "/settings", element: <SettingsPage /> },

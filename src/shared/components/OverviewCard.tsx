@@ -4,23 +4,19 @@ import { Card, CardContent } from "./ui/card";
 
 const OverviewCard = ({ data }: { data: OverviewCardProps }) => {
   return (
-    <Card className="h-28.75 rounded-[16px] border border-[#E5E5E5] shadow-sm">
-      <CardContent className="flex flex-col">
-        <p className="mb-2 font-semibold text-[12px] text-[#28293D]">
-          {data.title}
-        </p>
-        <div className="flex justify-between items-center">
-          <p className="font-semibold text-[32px] text-[#28293D]">
+    <Card className="py-6 rounded-[16px] border border-[#E5E5E5] ring-0 shadow">
+      <CardContent className="flex justify-between items-center px-6">
+        <div>
+          <p className="mb-2 text-[#28293D] text-[10px] font-semibold ">
+            {data.title}
+          </p>
+          <p className="text-[#28293D] text-[20px] font-semibold">
             {data.value}
           </p>
-          <Badge
-            className={`${data.badgeColor} w-11.5 h-11.5 rounded-[11.15px]`}
-          >
-            <span className={`w-[20.25px] h-[19.5px]${data.iconColor}`}>
-              <img src={data.icon} alt={data.icon} />
-            </span>
-          </Badge>
         </div>
+        <Badge className={`${data.badgeColor} w-11.5 h-11.5 rounded-[11.15px]`}>
+          <span className={`${data.iconColor}`}>{data.icon}</span>
+        </Badge>
       </CardContent>
     </Card>
   );

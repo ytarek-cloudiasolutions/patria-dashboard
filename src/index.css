@@ -316,8 +316,6 @@
     @apply text-[#000000] text-[13px] font-medium;
   }
 
- 
-
   .text-000000-13-semibold {
     @apply text-[#000000] text-[13px] font-semibold;
   }
@@ -375,6 +373,10 @@
 
   .text-333333-24-semibold {
     @apply text-[#333333] text-[24px] font-semibold;
+  }
+
+  .text-28293D-24-semibold {
+    @apply text-[#28293D] text-[24px] font-semibold;
   }
 
   .text-595959-11-normal {

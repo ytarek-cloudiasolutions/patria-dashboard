@@ -1,4 +1,4 @@
-import { ChevronDown, CircleMinus, ImagePlus, Upload, X } from "lucide-react";
+import { ChevronDown, CircleMinus, FileUp, Upload, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/shared/components/ui/button";
 import { Card } from "@/shared/components/ui/card";
@@ -31,7 +31,7 @@ interface AddProductDialogProps {
   onOpenChange: (open: boolean) => void;
   onSave: (
     payload: ProductFormData,
-    selectedRecipes: RecipeSelection[],
+    selectedRecipes: RecipeSelection[]
   ) => void;
 }
 
@@ -59,7 +59,7 @@ const AddProductDialog = ({
 
   const uploadedImage = useMemo(
     () => uploadState.files[0]?.preview,
-    [uploadState.files],
+    [uploadState.files]
   );
 
   useEffect(() => {
@@ -100,7 +100,7 @@ const AddProductDialog = ({
   };
 
   const hasStepOneErrors = Object.values(requiredFields).some(
-    (value) => !value,
+    (value) => !value
   );
 
   const setStatus = (status: ProductStatus) => {
@@ -137,14 +137,14 @@ const AddProductDialog = ({
   const updateRecipeQuantity = (recipeId: number, quantityLabel: string) => {
     setSelectedRecipes((previous) =>
       previous.map((recipe) =>
-        recipe.id === recipeId ? { ...recipe, quantityLabel } : recipe,
-      ),
+        recipe.id === recipeId ? { ...recipe, quantityLabel } : recipe
+      )
     );
   };
 
   const removeRecipe = (recipeId: number) => {
     setSelectedRecipes((previous) =>
-      previous.filter((recipe) => recipe.id !== recipeId),
+      previous.filter((recipe) => recipe.id !== recipeId)
     );
   };
 
@@ -168,31 +168,25 @@ const AddProductDialog = ({
         className="max-w-174 rounded-[12px] p-0 ring-0 sm:max-w-174"
       >
         <div className="relative p-6">
-          <DialogTitle className="text-[24px] font-bold text-[#333333]">
+          <DialogTitle className="text-[#28293D] text-[24px] font-semibold mb-5">
             {product ? "Edit Product" : "Add New Product"}
           </DialogTitle>
 
-          <div className="mt-4">
-            <div className="relative pb-6">
-              <div className="absolute top-3 left-4 right-4 h-px bg-[#CACBD4]" />
+          <div className="mb-8">
+            <div className="relative mx-4 mb-2.5">
+              <div className="absolute top-3 left-0 right-0 h-px bg-[#CACBD4]" />
               <div
-                className="absolute top-3 left-4 h-px bg-primary transition-all duration-300"
-                style={{ width: step === 2 ? "calc(100% - 2rem)" : "0%" }}
+                className="absolute top-3 left-0 h-px bg-primary transition-all duration-300"
+                style={{ width: step === 2 ? "100%" : "0%" }}
               />
 
-              <div className="relative flex items-center justify-between">
+              <div className="relative flex items-start justify-between">
                 <button
                   type="button"
                   onClick={() => setStep(1)}
-                  className="flex items-center"
+                  className="flex flex-col items-start gap-1 text-left"
                 >
-                  <span
-                    className={`flex size-6 items-center justify-center rounded-full border text-[12px] font-semibold ${
-                      step === 1 || step === 2
-                        ? "border-primary bg-white text-primary"
-                        : "border-[#A5A7B0] bg-[#E5E7ED] text-[#8B8B8B]"
-                    }`}
-                  >
+                  <span className="flex size-6 items-center justify-center rounded-full border-2 border-primary bg-[#F5F0EA] text-[11px] font-medium text-[#28293D]">
                     1
                   </span>
                 </button>
@@ -200,102 +194,98 @@ const AddProductDialog = ({
                 <button
                   type="button"
                   onClick={goToStepTwo}
-                  className="flex items-center"
+                  className="flex flex-col items-end gap-1 text-right"
                 >
                   <span
-                    className={`flex size-6 items-center justify-center rounded-full border text-[12px] font-semibold ${
+                    className={`flex size-6 items-center justify-center rounded-full text-[11px] font-medium border-[2px] ${
                       step === 2
-                        ? "border-primary bg-white text-primary"
-                        : "border-[#A5A7B0] bg-[#E5E7ED] text-[#8B8B8B]"
+                        ? "border-primary bg-[#F5F0EA] text-[#28293D]"
+                        : "border-[#8B8B8B] bg-[#CACBD4] text-[#8B8B8B]"
                     }`}
                   >
                     2
                   </span>
                 </button>
               </div>
+            </div>
 
-              <div className="mt-2 flex items-center justify-between text-[9px] font-medium">
-                <span
-                  className={step === 1 ? "text-[#333333]" : "text-[#8B8B8B]"}
-                >
-                  Product Description
-                </span>
-                <span
-                  className={step === 2 ? "text-[#333333]" : "text-[#8B8B8B]"}
-                >
-                  Recipes included
-                </span>
+            <div className="mx-4 flex items-start justify-between text-[9px] leading-tight font-semibold">
+              <div className="flex flex-col">
+                <span className="text-[#28293D]">Product Description</span>
+                {step === 2 ? (
+                  <span className="text-[#4CA97B]">completed</span>
+                ) : null}
               </div>
+              <span
+                className={step === 2 ? "text-[#28293D]" : "text-[#8B8B8B]"}
+              >
+                Recipes included
+              </span>
             </div>
           </div>
 
           {step === 1 ? (
-            <div className="space-y-4">
-              <div>
-                <p className="mb-2 text-[14px] font-semibold text-[#333333]">
-                  Product Image
-                </p>
-                <div
-                  className={`flex h-19 cursor-pointer items-center justify-center rounded-[10px] border border-dashed transition-colors ${uploadZoneClass}`}
-                  onDragEnter={uploadActions.handleDragEnter}
-                  onDragLeave={uploadActions.handleDragLeave}
-                  onDragOver={uploadActions.handleDragOver}
-                  onDrop={uploadActions.handleDrop}
-                  onClick={uploadActions.openFileDialog}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                      event.preventDefault();
-                      uploadActions.openFileDialog();
-                    }
-                  }}
-                >
-                  {uploadedImage || form.imageUrl ? (
-                    <div className="relative flex size-full items-center justify-center p-2">
-                      <img
-                        src={uploadedImage ?? form.imageUrl}
-                        alt="Product"
-                        className="h-12 w-auto max-w-55 rounded-[8px] object-contain"
-                      />
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        size="icon"
-                        className="absolute top-2 right-2 size-7 rounded-full"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          uploadActions.clearFiles();
-                          setForm((previous) => ({
-                            ...previous,
-                            imageUrl: "",
-                          }));
-                        }}
-                      >
-                        <X className="size-4" />
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center gap-1.5 text-center">
-                      <ImagePlus className="size-4 text-[#777777]" />
-                      <p className="text-[14px] font-semibold text-[#333333]">
-                        Click to upload image
-                      </p>
-                      <p className="text-[10px] text-[#8B8B8B]">
-                        PNG, JPG up to 5MB
-                      </p>
-                    </div>
-                  )}
+            <div className="space-y-2">
+              <div
+                className={`flex h-33 cursor-pointer items-center justify-center rounded-[16px] border border-primary border-dashed transition-colors [border-width:2px] [border-dasharray:6,4] mb-8 ${uploadZoneClass}`}
+                onDragEnter={uploadActions.handleDragEnter}
+                onDragLeave={uploadActions.handleDragLeave}
+                onDragOver={uploadActions.handleDragOver}
+                onDrop={uploadActions.handleDrop}
+                onClick={uploadActions.openFileDialog}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    uploadActions.openFileDialog();
+                  }
+                }}
+              >
+                {uploadedImage || form.imageUrl ? (
+                  <div className="relative flex size-full items-center justify-center p-2">
+                    <img
+                      src={uploadedImage ?? form.imageUrl}
+                      alt="Product"
+                      className="h-12 w-auto max-w-55 rounded-[8px] object-contain"
+                    />
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="icon"
+                      className="absolute top-2 right-2 size-7 rounded-full"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        uploadActions.clearFiles();
+                        setForm((previous) => ({
+                          ...previous,
+                          imageUrl: "",
+                        }));
+                      }}
+                    >
+                      <X className="size-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center text-center">
+                    <FileUp className="size-6 text-[#000000] mb-6" />
+                    <p className="text-[14px] font-semibold text-[#333333] mb-1">
+                      Click to upload image
+                    </p>
+                    <p className="text-[12px] text-[#8B8B8B]">
+                      PNG, JPG up to 5MB
+                    </p>
+                  </div>
+                )}
 
-                  <input
-                    {...uploadActions.getInputProps({ className: "hidden" })}
-                  />
-                </div>
+                <input
+                  {...uploadActions.getInputProps({ className: "hidden" })}
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-2.5">
                 <div>
-                  <p className="mb-1.5 text-[14px] font-semibold text-[#333333]">
+                  <p className="mb-1.5 text-[16px] font-medium text-[#000000]">
                     Product Name <span className="text-[#C90000]">*</span>
                   </p>
                   <Input
@@ -307,12 +297,16 @@ const AddProductDialog = ({
                       }))
                     }
                     placeholder="e.g. Artisanal Sourdough"
-                    className={`h-10 rounded-[8px] ${showStepOneErrors && !requiredFields.name ? "border-[#C90000]" : "border-[#E9EAEE]"}`}
+                    className={`h-12.5 rounded-[12px] placeholder:text-[#8B8B8B]  ${
+                      showStepOneErrors && !requiredFields.name
+                        ? "border-[#C90000]"
+                        : "border-[#E5E5E5]"
+                    }`}
                   />
                 </div>
 
                 <div>
-                  <p className="mb-1.5 text-[14px] font-semibold text-[#333333]">
+                  <p className="mb-1.5 text-[16px] font-medium text-[#000000]">
                     Category <span className="text-[#C90000]">*</span>
                   </p>
                   <Input
@@ -324,13 +318,17 @@ const AddProductDialog = ({
                       }))
                     }
                     placeholder="e.g. Breads, Pastries, Coffee"
-                    className={`h-10 rounded-[8px] ${showStepOneErrors && !requiredFields.category ? "border-[#C90000]" : "border-[#E9EAEE]"}`}
+                    className={`h-12.5 rounded-[12px] placeholder:text-[#8B8B8B]  ${
+                      showStepOneErrors && !requiredFields.category
+                        ? "border-[#C90000]"
+                        : "border-[#E5E5E5]"
+                    }`}
                   />
                 </div>
               </div>
 
               <div>
-                <p className="mb-1.5 text-[14px] font-semibold text-[#333333]">
+                <p className="mb-1.5 text-[16px] font-medium text-[#000000]">
                   Description <span className="text-[#C90000]">*</span>
                 </p>
                 <Input
@@ -342,13 +340,17 @@ const AddProductDialog = ({
                     }))
                   }
                   placeholder="Describe this product..."
-                  className={`h-10 rounded-[8px] ${showStepOneErrors && !requiredFields.description ? "border-[#C90000]" : "border-[#E9EAEE]"}`}
+                  className={`h-12.5 rounded-[12px] placeholder:text-[#8B8B8B]  ${
+                    showStepOneErrors && !requiredFields.description
+                      ? "border-[#C90000]"
+                      : "border-[#E5E5E5]"
+                  }`}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-2.5">
                 <div>
-                  <p className="mb-1.5 text-[14px] font-semibold text-[#333333]">
+                  <p className="mb-1.5 text-[16px] font-medium text-[#000000]">
                     Price <span className="text-[#C90000]">*</span>
                   </p>
                   <Input
@@ -360,19 +362,27 @@ const AddProductDialog = ({
                       }))
                     }
                     placeholder="Price"
-                    className={`h-10 rounded-[8px] ${showStepOneErrors && !requiredFields.price ? "border-[#C90000]" : "border-[#E9EAEE]"}`}
+                    className={`h-12.5 rounded-[12px] placeholder:text-[#8B8B8B]  ${
+                      showStepOneErrors && !requiredFields.price
+                        ? "border-[#C90000]"
+                        : "border-[#E5E5E5]"
+                    }`}
                   />
                 </div>
 
                 <div>
-                  <p className="mb-1.5 text-[14px] font-semibold text-[#333333]">
+                  <p className="mb-1.5 text-[16px] font-medium text-[#000000]">
                     Status <span className="text-[#C90000]">*</span>
                   </p>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
                         variant="outline"
-                        className={`h-10 w-full justify-between rounded-[8px] px-4 text-[14px] text-[#333333] hover:bg-white ${showStepOneErrors && !requiredFields.status ? "border-[#C90000]" : "border-[#E9EAEE]"}`}
+                        className={`h-12.5 w-full justify-between rounded-[12px] px-4 text-[14px] text-[#333333] hover:bg-white   ${
+                          showStepOneErrors && !requiredFields.status
+                            ? "border-[#C90000]"
+                            : "border-[#E5E5E5]"
+                        }`}
                       >
                         {form.status}
                         <ChevronDown className="size-4 text-[#333333]" />
@@ -399,7 +409,7 @@ const AddProductDialog = ({
 
               <div className="grid grid-cols-2 gap-2.5">
                 <div>
-                  <p className="mb-1.5 text-[14px] font-semibold text-[#333333]">
+                  <p className="mb-1.5 text-[16px] font-medium text-[#000000]">
                     Discount Type{" "}
                     <span className="text-[#8B8B8B]">(Optional)</span>
                   </p>
@@ -407,7 +417,7 @@ const AddProductDialog = ({
                     <DropdownMenuTrigger asChild>
                       <Button
                         variant="outline"
-                        className="h-10 w-full justify-between rounded-[8px] border-[#E9EAEE] px-4 text-[14px] text-[#8B8B8B] hover:bg-white"
+                        className="h-12.5 w-full justify-between rounded-[12px] border-[#E9EAEE] px-4 text-[14px] text-[#8B8B8B] hover:bg-white"
                       >
                         {form.discountType || "Select type"}
                         <ChevronDown className="size-4 text-[#333333]" />
@@ -437,7 +447,7 @@ const AddProductDialog = ({
                 </div>
 
                 <div>
-                  <p className="mb-1.5 text-[14px] font-semibold text-[#333333]">
+                  <p className="mb-1.5 text-[16px] font-medium text-[#000000]">
                     Discount %{" "}
                     <span className="text-[#8B8B8B]">(Optional)</span>
                   </p>
@@ -450,7 +460,7 @@ const AddProductDialog = ({
                       }))
                     }
                     placeholder="e.g. 20"
-                    className="h-10 rounded-[8px] border-[#E9EAEE]"
+                    className="h-12.5 rounded-[12px] border-[#E9EAEE]"
                   />
                 </div>
               </div>
@@ -465,7 +475,7 @@ const AddProductDialog = ({
             <div className="space-y-4">
               <div>
                 <p className="mb-1.5 text-[14px] font-semibold text-[#333333]">
-                  Select Recipes
+                  Recipe/Ingredients
                 </p>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -537,13 +547,13 @@ const AddProductDialog = ({
             </div>
           )}
 
-          <div className="my-4 border-t border-[#F2F3F7]" />
+          <div className="my-8 border-t border-[#CACBD4]" />
 
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-end gap-4">
             <Button
               type="button"
               variant="outline"
-              className="h-10 rounded-[8px] border-[#E9EAEE] px-7 text-[14px]"
+              className="h-14 rounded-[5px] border-primary px-7.5 py-4 text-[16px] text-primary hover:bg-white hover:text-primary"
               onClick={handleClose}
             >
               Cancel
@@ -552,7 +562,7 @@ const AddProductDialog = ({
             {step === 1 ? (
               <Button
                 type="button"
-                className="h-10 rounded-[8px] px-7 text-[14px]"
+                className="h-14 rounded-[5px] px-7.5 py-4 text-[16px]"
                 onClick={goToStepTwo}
               >
                 Next
@@ -560,11 +570,10 @@ const AddProductDialog = ({
             ) : (
               <Button
                 type="button"
-                className="h-10 rounded-[8px] px-7 text-[14px]"
+                className="h-14 rounded-[5px] px-7.5 py-4 text-[16px]"
                 onClick={handleSave}
               >
-                <Upload className="mr-2 size-4" />
-                Save Product
+                Add Product
               </Button>
             )}
           </div>

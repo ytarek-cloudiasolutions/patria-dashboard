@@ -1,4 +1,4 @@
-import { Armchair, MapPin, Trash2, Users } from "lucide-react";
+import { Armchair, Trash2, Users } from "lucide-react";
 import { Badge } from "@/shared/components/ui/badge";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import type { DiningTable } from "../types";
@@ -24,11 +24,6 @@ const TableCard = ({ table, onDelete, onStatusToggle }: TableCardProps) => {
 
         <div className="flex flex-col items-center gap-2 mb-3">
           <p className=" text-[24px] font-semibold ">{table.tableNumber}</p>
-
-          <p className="flex items-center gap-1 text-[12px] font-semibold text-[#000000]">
-            <MapPin size={14} className="text-[#000000]" />
-            {table.section}
-          </p>
           <p className="flex items-center gap-1 text-[12px] font-medium text-[#595959]">
             <Users size={14} className="text-[#595959]" />
             {table.capacity} People

@@ -10,10 +10,10 @@ const StatusBadge = ({ status }: StatusBadgeProps) => {
 
   return (
     <Badge
-      className={`${
+      className={`text-[13px] border-current ${
         isAvailable
-          ? "bg-[#EDF8F0] text-[#059B5A]"
-          : "bg-[#DCDCDC] text-[#23252A]"
+          ? "bg-[#E2F4ED] text-[#059B5A]"
+          : "bg-[#DCDCDC] text-[#23252A] border-[#595959]"
       }`}
     >
       {isAvailable ? "Available" : "Inactive"}

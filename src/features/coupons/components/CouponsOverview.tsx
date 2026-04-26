@@ -1,16 +1,21 @@
 import { useState } from "react";
-import type { CouponCardProps } from "../types";
-import CouponCard from "./CouponCard";
-import { Gift } from "lucide-react";
+import {
+  CheckCheck,
+  CircleCheckBig,
+  CircleX,
+  TicketSlash,
+} from "lucide-react";
+import OverviewCard from "@/shared/components/OverviewCard";
+import type { OverviewCardProps } from "@/shared/types/overviewCard.types";
 
 const CouponsOverview = () => {
-  const [coupons] = useState<CouponCardProps[]>([
+  const [coupons] = useState<OverviewCardProps[]>([
     {
       id: 1,
       title: "Active Coupons",
       value: 2,
       badgeColor: "bg-[#E2F4ED]",
-      icon: <Gift />,
+      icon: <CircleCheckBig />,
       iconColor: "text-[#059B5A]",
     },
     {
@@ -18,7 +23,7 @@ const CouponsOverview = () => {
       title: "Usage times",
       value: 7,
       badgeColor: "bg-[#DBEAFE]",
-      icon: <Gift />,
+      icon: <CheckCheck />,
       iconColor: "text-[#155DFC]",
     },
     {
@@ -26,7 +31,7 @@ const CouponsOverview = () => {
       title: "Total No. of Coupons",
       value: 5,
       badgeColor: "bg-[#FE9A001A]",
-      icon: <Gift />,
+      icon: <TicketSlash />,
       iconColor: "text-[#C7861E]",
     },
     {
@@ -34,14 +39,14 @@ const CouponsOverview = () => {
       title: "Inactive Coupons",
       value: 3,
       badgeColor: "bg-[#FFF0F0]",
-      icon: <Gift />,
+      icon: <CircleX />,
       iconColor: "text-[#C90000]",
     },
   ]);
   return (
-    <div className="grid grid-cols-4">
+    <div className="grid grid-cols-4 gap-13">
       {coupons.map((coupon) => (
-        <CouponCard key={coupon.id} coupon={coupon} />
+        <OverviewCard key={coupon.id} data={coupon} />
       ))}
     </div>
   );
