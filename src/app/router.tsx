@@ -4,6 +4,7 @@ import SignUpPage from "@/features/auth/pages/SignUpPage";
 import CouponsPage from "@/features/coupons/pages/CouponsPage";
 import CustomersPage from "@/features/customers/pages/CustomersPage";
 import DashboardPage from "@/features/dashboard/pages/DashboardPage";
+import FinancialHubPage from "@/features/financial/pages/FinancialHubPage";
 import InventoryKitchenPage from "@/features/inventory/pages/InventoryKitchenPage";
 import InventoryPage from "@/features/inventory/pages/InventoryPage";
 import KitchenDetailsPage from "@/features/kitchens/pages/KitchenDetailsPage";
@@ -17,7 +18,9 @@ import ProductsPage from "@/features/products/pages/ProductsPage";
 import RequestsPage from "@/features/requests/RequestsPage";
 import SettingsPage from "@/features/settings/SettingsPage";
 import SidebarPage from "@/features/sidebar/pages/SidebarPage";
+import SubscriptionsPage from "@/features/Subscriptions/pages/SubscriptionsPage";
 import TablesPage from "@/features/tables/pages/TablesPage";
+import UsersPermissionsPage from "@/features/users/pages/UsersPermissionsPage";
 import UsersPage from "@/features/users/UsersPage";
 import WhatsAppPage from "@/features/whatsapp/WhatsAppPage";
 
@@ -42,11 +45,13 @@ export const router = createBrowserRouter([
       { path: "/offers", element: <OffersPage /> },
       { path: "/coupons", element: <CouponsPage /> },
       { path: "/customers", element: <CustomersPage /> },
+      { path: "/subscriptions", element: <SubscriptionsPage /> },
       { path: "/locations", element: <LocationsPage /> },
       { path: "/logistics", element: <LogisticsPage /> },
       { path: "/production", element: <ProductionPage /> },
       { path: "/requests", element: <RequestsPage /> },
-      { path: "/users-permissions", element: <UsersPage /> },
+      { path: "/users-permissions", element: <UsersPermissionsPage /> },
+      { path: "/financial-hub", element: <FinancialHubPage /> },
       { path: "/settings", element: <SettingsPage /> },
       { path: "/whatsapp-gateway", element: <WhatsAppPage /> },
     ],
