@@ -211,7 +211,7 @@ const ProductsPage = () => {
         onCategoryChange={setSelectedCategory}
       />
 
-      <div className="mb-4 grid grid-cols-2 gap-x-2 gap-y-1">
+      <div className="mb-4 grid grid-cols-2 gap-x-1.5 gap-y-1">
         <Button
           type="button"
           variant="ghost"

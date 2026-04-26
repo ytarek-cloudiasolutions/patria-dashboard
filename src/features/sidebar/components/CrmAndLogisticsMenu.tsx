@@ -10,7 +10,9 @@ import {
   Settings, // Settings
   LogOut,
   UtensilsCrossed,
-  User, // Logout
+  User,
+  Car,
+  TrendingUpDown, // Logout
 } from "lucide-react";
 import {
   SidebarMenu,
@@ -43,6 +45,18 @@ const CrmAndLogisticsMenu = () => {
       icon: <MapPin />,
       path: "/locations",
       isActive: location.pathname === "/locations",
+    },
+     {
+      label: "Logistics",
+      icon: <Car />,
+      path: "/logistics",
+      isActive: location.pathname === "/logistics",
+    },
+     {
+      label: "Production",
+      icon: <TrendingUpDown />,
+      path: "/production",
+      isActive: location.pathname === "/production",
     },
     {
       label: "Requests",

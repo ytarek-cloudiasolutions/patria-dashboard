@@ -1,8 +1,8 @@
 export interface OverviewCardProps {
-  id: number;
+  id?: number;
   title: string;
   value: number;
   badgeColor: string;
-  icon: string;
+  icon: React.ReactNode;
   iconColor: string;
 }

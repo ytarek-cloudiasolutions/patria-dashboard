@@ -7,58 +7,30 @@ import {
   TableCell,
 } from "@/shared/components/ui/table";
 import { useState, forwardRef, useImperativeHandle } from "react";
-import { ChevronDown, Copy, Edit, Search, Trash } from "lucide-react";
+import { Copy, SquarePen, Trash2 } from "lucide-react";
 
 import type { CouponProps } from "../types";
 import { Switch } from "@/shared/components/ui/switch";
+import CouponsFilters, { type CouponTypeFilter } from "./CouponsFilters";
+import ActionButton from "@/shared/components/ActionButton";
+import { MOCK_COUPONS } from "../data";
 
 const CouponsTable = forwardRef<
   {
     addCoupon: (coupon: CouponProps) => void;
     updateCoupon: (coupon: CouponProps) => void;
+    deleteCoupon: (couponId: number) => void;
   },
-  { onEdit: (coupon: CouponProps) => void }
->(({ onEdit }, ref) => {
+  {
+    onEdit: (coupon: CouponProps) => void;
+    onDelete: (coupon: CouponProps) => void;
+  }
+>(({ onEdit, onDelete }, ref) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedType, setSelectedType] = useState("All Categories");
+  const [selectedType, setSelectedType] =
+    useState<CouponTypeFilter>("All Categories");
 
-  const [coupons, setCoupons] = useState<CouponProps[]>([
-    {
-      id: 1,
-      code: "WELCOME20",
-      discountType: "Fixed",
-      discountValue: 50,
-      usageCount: 2,
-      usageLimit: undefined,
-      startDate: "2026-04-07",
-      endDate: "2026-04-14",
-      isActive: true,
-    },
-    {
-      id: 2,
-      code: "RMDKAREEM",
-      discountType: "Percentage",
-      discountValue: 20,
-      minOrderFee: 85,
-      usageCount: 2,
-      usageLimit: 20,
-      startDate: "2026-04-07",
-      endDate: "2026-04-14",
-      isActive: false,
-    },
-    {
-      id: 3,
-      code: "FIRST30",
-      discountType: "Percentage",
-      discountValue: 30,
-      minOrderFee: 150,
-      usageCount: 10,
-      usageLimit: undefined,
-      startDate: "2026-04-07",
-      endDate: "2026-04-14",
-      isActive: true,
-    },
-  ]);
+  const [coupons, setCoupons] = useState<CouponProps[]>(MOCK_COUPONS);
 
   useImperativeHandle(ref, () => ({
     addCoupon: (coupon: CouponProps) => {
@@ -67,21 +39,35 @@ const CouponsTable = forwardRef<
     updateCoupon: (coupon: CouponProps) => {
       setCoupons((prev) => prev.map((c) => (c.id === coupon.id ? coupon : c)));
     },
+    deleteCoupon: (couponId: number) => {
+      setCoupons((prev) => prev.filter((c) => c.id !== couponId));
+    },
   }));
 
-  const types = ["All Categories", "Fixed", "Percentage"];
-
-  // ✅ Formatters
   const formatDiscountType = (type: CouponProps["discountType"]) =>
     type === "Fixed" ? "Fixed Price (EGP)" : "Percentage (%)";
 
   const formatDiscountValue = (coupon: CouponProps) =>
     coupon.discountType === "Fixed"
-      ? `EGP ${coupon.discountValue.toFixed(2)}`
-      : `${coupon.discountValue}%`;
+      ? (
+          <>
+            EGP <span className="font-semibold">{coupon.discountValue.toFixed(2)}</span>
+          </>
+        )
+      : (
+          <>
+            <span className="font-semibold">{coupon.discountValue}</span>%
+          </>
+        );
 
   const formatCurrency = (value?: number) =>
-    value ? `EGP ${value.toFixed(2)}` : "-";
+    value ? (
+      <>
+        EGP <span className="font-semibold">{value.toFixed(2)}</span>
+      </>
+    ) : (
+      "-"
+    );
 
   const formatUsage = (used: number, limit?: number) =>
     `${used} / ${limit ?? "∞"}`;
@@ -96,7 +82,6 @@ const CouponsTable = forwardRef<
   const formatDateRange = (start: string, end: string) =>
     `${formatDate(start)} - ${formatDate(end)}`;
 
-  // ✅ Actions
   const handleToggle = (id: number, checked: boolean) => {
     setCoupons((prev) =>
       prev.map((coupon) =>
@@ -105,15 +90,10 @@ const CouponsTable = forwardRef<
     );
   };
 
-  const handleDelete = (id: number) => {
-    setCoupons((prev) => prev.filter((c) => c.id !== id));
-  };
-
   const handleCopyCode = (code: string) => {
     navigator.clipboard.writeText(code);
   };
 
-  // ✅ Filter
   const filteredCoupons = coupons.filter((coupon) => {
     const matchesSearch = coupon.code
       .toLowerCase()
@@ -127,47 +107,24 @@ const CouponsTable = forwardRef<
 
   return (
     <div className="flex flex-col mt-6">
-      {/* Search + Filter */}
-      <div className="flex items-center gap-8 mb-6">
-        {/* Search */}
-        <div className="flex-1">
-          <div className="flex items-center gap-2.5 bg-white p-3.5 rounded-lg border border-[#cacbd4]">
-            <Search className="text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search coupons..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full text-[16px] text-[#8b8b8b] focus:outline-none"
-            />
-          </div>
-        </div>
-
-        {/* Filter */}
-        <div className="w-80">
-          <div className="flex items-center gap-3 bg-white px-4.5 py-3 rounded-xl border border-neutral-200">
-            <select
-              value={selectedType}
-              onChange={(e) => setSelectedType(e.target.value)}
-              className="w-full bg-transparent appearance-none focus:outline-none"
-            >
-              {types.map((type) => (
-                <option key={type} value={type}>
-                  {type === "Fixed"
-                    ? "Fixed Price (EGP)"
-                    : type === "Percentage"
-                    ? "Percentage (%)"
-                    : type}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="text-gray-500" />
-          </div>
-        </div>
-      </div>
+      <CouponsFilters
+        searchValue={searchTerm}
+        selectedType={selectedType}
+        onSearchChange={setSearchTerm}
+        onTypeChange={setSelectedType}
+      />
 
       {/* Table */}
       <Table>
+        <colgroup>
+          <col style={{ width: "132px" }} />
+          <col style={{ width: "132px" }} />
+          <col style={{ width: "132px" }} />
+          <col style={{ width: "132px" }} />
+          <col style={{ width: "132px" }} />
+          <col style={{ width: "132px" }} />
+          <col style={{ width: "132px" }} />
+        </colgroup>
         <TableHeader>
           <TableRow>
             <TableHead>CODE</TableHead>
@@ -176,63 +133,73 @@ const CouponsTable = forwardRef<
             <TableHead>MINMUM ORDER FEE</TableHead>
             <TableHead>NO. OF USAGE</TableHead>
             <TableHead>DURATION</TableHead>
-            <TableHead className="flex justify-center items-center">
-              Actions
-            </TableHead>
+            <TableHead>ACTIONS</TableHead>
           </TableRow>
         </TableHeader>
 
         <TableBody>
-          {filteredCoupons.map((coupon) => (
-            <TableRow key={coupon.id} className="h-16">
-              <TableCell className="font-medium flex items-center gap-2">
-                {coupon.code}
-                <Copy
-                  className="w-4 h-4 text-gray-500 cursor-pointer hover:text-gray-700"
-                  onClick={() => handleCopyCode(coupon.code)}
-                />
-              </TableCell>
-
-              <TableCell>{formatDiscountType(coupon.discountType)}</TableCell>
-
-              <TableCell>{formatDiscountValue(coupon)}</TableCell>
-
-              <TableCell>{formatCurrency(coupon.minOrderFee)}</TableCell>
-
-              <TableCell>
-                {formatUsage(coupon.usageCount, coupon.usageLimit)}
-              </TableCell>
-
-              <TableCell>
-                {formatDateRange(coupon.startDate, coupon.endDate)}
-              </TableCell>
-
-              <TableCell>
-                <div className="flex items-center gap-4">
-                  <Switch
-                    checked={coupon.isActive}
-                    onCheckedChange={(checked) =>
-                      handleToggle(coupon.id, checked)
-                    }
-                  />
-
-                  <Edit
-                    className="w-5 h-5 text-gray-500 cursor-pointer hover:text-gray-700"
-                    onClick={() => onEdit(coupon)}
-                  />
-
-                  <Trash
-                    className="w-5 h-5 text-red-500 cursor-pointer hover:text-red-700"
-                    onClick={() => {
-                      if (window.confirm(`Delete coupon "${coupon.code}"?`)) {
-                        handleDelete(coupon.id);
-                      }
-                    }}
-                  />
-                </div>
+          {filteredCoupons.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={7} className="py-8 text-center text-gray-500">
+                No coupons found
               </TableCell>
             </TableRow>
-          ))}
+          ) : (
+            filteredCoupons.map((coupon) => (
+              <TableRow key={coupon.id}>
+                <TableCell className="py-4 text-[#28293D] text-[14px] font-bold">
+                  <div className="flex items-center gap-2">
+                    {coupon.code}
+                    <Copy
+                      className="size-4 text-[#000000] cursor-pointer hover:text-gray-900"
+                      onClick={() => handleCopyCode(coupon.code)}
+                    />
+                  </div>
+                </TableCell>
+                <TableCell className="py-4 text-[#28293D] text-[14px] font-medium">
+                  {formatDiscountType(coupon.discountType)}
+                </TableCell>
+                <TableCell className="py-4 text-[#28293D] text-[14px] font-medium">
+                  {formatDiscountValue(coupon)}
+                </TableCell>
+                <TableCell className="py-4 text-[#28293D] text-[14px] font-medium">
+                  {formatCurrency(coupon.minOrderFee)}
+                </TableCell>
+                <TableCell className="py-4 text-[#28293D] text-[14px] font-medium">
+                  {formatUsage(coupon.usageCount, coupon.usageLimit)}
+                </TableCell>
+                <TableCell className="py-4 text-[#28293D] text-[14px] font-medium">
+                  {formatDateRange(coupon.startDate, coupon.endDate)}
+                </TableCell>
+                <TableCell className="py-4">
+                  <div className="flex items-center gap-4.5">
+                    <Switch
+                      checked={coupon.isActive}
+                      onCheckedChange={(checked) =>
+                        handleToggle(coupon.id, checked)
+                      }
+                    />
+                    <ActionButton
+                      data={{
+                        icon: <SquarePen className="size-4.5" />,
+                        iconColor: "text-[#000000]",
+                        ariaLabel: "Edit coupon",
+                        onClick: () => onEdit(coupon),
+                      }}
+                    />
+                    <ActionButton
+                      data={{
+                        icon: <Trash2 className="size-4.5" />,
+                        iconColor: "text-[#C90000]",
+                        ariaLabel: "Delete coupon",
+                        onClick: () => onDelete(coupon),
+                      }}
+                    />
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
     </div>

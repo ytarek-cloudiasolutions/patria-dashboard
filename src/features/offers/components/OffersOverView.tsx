@@ -15,7 +15,7 @@ const OffersOverView = ({
   onDelete,
 }: OffersOverViewProps) => {
   return (
-    <div className="grid grid-cols-3 gap-y-5.5">
+    <div className="grid grid-cols-3 gap-x-5.5 gap-y-6">
       {offers.map((offer) => (
         <OfferCard
           key={offer.id}

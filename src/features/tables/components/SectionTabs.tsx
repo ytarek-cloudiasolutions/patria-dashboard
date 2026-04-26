@@ -15,10 +15,10 @@ const SectionTabs = ({ activeSection, onSectionChange }: SectionTabsProps) => {
             variant="ghost"
             size="default"
             onClick={() => onSectionChange(section)}
-            className={`relative h-auto w-full rounded-none pb-3 text-center text-[16px] transition-colors ${
+            className={`relative h-auto w-full cursor-pointer rounded-none pb-3 text-center text-[16px] transition-colors ${
               isActive
-                ? "text-[#333333] font-semibold"
-                : "text-[#8B8B8B] hover:text-[#333333] hover:font-semibold"
+                ? "text-[#333333] font-semibold hover:text-[#333333] hover:bg-transparent"
+                : "text-[#8B8B8B] hover:text-[#8B8B8B] hover:bg-transparent"
             }`}
           >
             {section}

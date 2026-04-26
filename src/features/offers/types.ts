@@ -10,4 +10,5 @@ export interface Offer {
   discountType: DiscountType;
   offerValidPeriod: string;
   numberOfProducts: number;
+  offerImage?: string; // optional banner image URL
 }

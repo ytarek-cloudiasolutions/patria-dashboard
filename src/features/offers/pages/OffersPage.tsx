@@ -1,56 +1,18 @@
-import { Button } from "@/shared/components/ui/button";
-import { Plus } from "lucide-react";
+import { Bell, Plus } from "lucide-react";
 import type { Offer } from "../types";
 import { useState } from "react";
 import OffersOverView from "../components/OffersOverView";
-import CreateOfferForm from "../components/CreateOfferForm";
+import CreateOfferDialog from "../components/CreateOfferDialog";
+import DefaultButton from "@/shared/components/DefaultButton";
+import HeaderLayout from "@/layouts/HeaderLayout";
+import { MOCK_OFFERS } from "../data";
+import BroadcastNotificationDialog from "../components/BroadcastNotificationDialog";
 
 const OffersPage = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isBroadcastDialogOpen, setIsBroadcastDialogOpen] = useState(false);
   const [editingOffer, setEditingOffer] = useState<Offer | undefined>();
-  const [offers, setOffers] = useState<Offer[]>([
-    {
-      id: 1,
-      offerStatus: true,
-      offerTitle: "Ramadan Kareem",
-      offerDescription: "20% off all orders - celebrate the holy month",
-      offerPercentage: 20,
-      discountType: "percentage" as const,
-      offerValidPeriod: "Mar 1 - Apr 10, 2026",
-      numberOfProducts: 2,
-    },
-    {
-      id: 2,
-      offerStatus: true,
-      offerTitle: "Welcome Offer",
-      offerDescription: "15% off your first order - enjoy ERB Roastery",
-      offerPercentage: 15,
-      discountType: "percentage" as const,
-      offerValidPeriod: "Mar 1 - Apr 10, 2026",
-      numberOfProducts: 2,
-    },
-    {
-      id: 3,
-      offerStatus: true,
-      offerTitle: "Weekend Brunch Deal",
-      offerDescription:
-        "50 EGP off on orders above 350 EGP every Friday & Saturday",
-      offerPercentage: 50,
-      discountType: "fixed" as const,
-      offerValidPeriod: "Mar 1 - Apr 10, 2026",
-      numberOfProducts: 2,
-    },
-    {
-      id: 4,
-      offerStatus: false,
-      offerTitle: "Ramadan Kareem",
-      offerDescription: "20% off all orders - celebrate the holy month",
-      offerPercentage: 20,
-      discountType: "percentage" as const,
-      offerValidPeriod: "Mar 1 - Apr 10, 2026",
-      numberOfProducts: 2,
-    },
-  ]);
+  const [offers, setOffers] = useState<Offer[]>(MOCK_OFFERS);
 
   const handleOpenCreateDialog = () => {
     setEditingOffer(undefined);
@@ -60,6 +22,10 @@ const OffersPage = () => {
   const handleEditOffer = (offer: Offer) => {
     setEditingOffer(offer);
     setIsDialogOpen(true);
+  };
+
+  const handleOpenBroadcastDialog = () => {
+    setIsBroadcastDialogOpen(true);
   };
 
   const handleDeleteOffer = (offerId: number) => {
@@ -92,19 +58,27 @@ const OffersPage = () => {
     <>
       {/* HEADER */}
       <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="font-bold text-[32px]">Promotional Offers</h1>
-          <p className="font-normal text-[16px">
-            Create and manage discounts for your products
-          </p>
+        <HeaderLayout
+          title="Promotional Offers"
+          description="Create and manage discounts for your products"
+        />
+        <div className="flex gap-4">
+          <DefaultButton
+            data={{
+              buttonText: "Broadcast Notification",
+              onClick: handleOpenBroadcastDialog,
+              icon: <Bell className="size-4.5" />,
+              className: "bg-[#F5F0EA] text-primary",
+            }}
+          />
+          <DefaultButton
+            data={{
+              buttonText: "Create Offer",
+              onClick: handleOpenCreateDialog,
+              icon: <Plus className="size-4.5" />,
+            }}
+          />
         </div>
-        <Button
-          onClick={handleOpenCreateDialog}
-          className="px-7.5 py-4 h-14 rounded-[5px] font-semibold text-[16px]"
-        >
-          <Plus />
-          Create Offer
-        </Button>
       </div>
 
       {/* OFFERS */}
@@ -116,11 +90,16 @@ const OffersPage = () => {
       />
 
       {/* CREATE OFFER DIALOG */}
-      <CreateOfferForm
+      <CreateOfferDialog
         isOpen={isDialogOpen}
         onOpenChange={setIsDialogOpen}
         onSaveOffer={handleSaveOffer}
         editingOffer={editingOffer}
+      />
+
+      <BroadcastNotificationDialog
+        isOpen={isBroadcastDialogOpen}
+        onOpenChange={setIsBroadcastDialogOpen}
       />
     </>
   );

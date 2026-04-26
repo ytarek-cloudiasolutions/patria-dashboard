@@ -1,8 +1,27 @@
 export interface ButtonProps {
-  type?: string;
-  variant?: string;
-  size?: string;
-  buttonText: string;
+  buttonText?: string;
+  type?: "button" | "submit" | "reset" | undefined;
+  variant?:
+    | "link"
+    | "default"
+    | "outline"
+    | "secondary"
+    | "ghost"
+    | "destructive"
+    | null
+    | undefined;
+  size?:
+    | "default"
+    | "xs"
+    | "sm"
+    | "lg"
+    | "icon"
+    | "icon-xs"
+    | "icon-sm"
+    | "icon-lg"
+    | null
+    | undefined;
   onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
   className?: string;
+  icon?: React.ReactNode;
 }
