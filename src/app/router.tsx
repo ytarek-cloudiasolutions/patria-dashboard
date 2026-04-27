@@ -19,7 +19,8 @@ import SettingsPage from "@/features/settings/SettingsPage";
 import SidebarPage from "@/features/sidebar/pages/SidebarPage";
 import TablesPage from "@/features/tables/pages/TablesPage";
 import UsersPage from "@/features/users/UsersPage";
-import WhatsAppPage from "@/features/whatsapp/WhatsAppPage";
+import WhatsAppGatewayPage from "@/features/whatsapp/pages/WhatsappGatewayPage";
+
 
 import { createBrowserRouter } from "react-router-dom";
 
@@ -48,7 +49,7 @@ export const router = createBrowserRouter([
       { path: "/requests", element: <RequestsPage /> },
       { path: "/users-permissions", element: <UsersPage /> },
       { path: "/settings", element: <SettingsPage /> },
-      { path: "/whatsapp-gateway", element: <WhatsAppPage /> },
+      { path: "/whatsapp-gateway", element: <WhatsAppGatewayPage /> },
     ],
   },
 ]);
