@@ -9,5 +9,6 @@ export interface DeleteDialogProps {
     | "reservation"
     | "category"
     | "coupon"
-    | "order";
+    | "order"
+    | "subscription";
 }
