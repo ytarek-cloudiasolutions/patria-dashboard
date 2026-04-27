@@ -9,7 +9,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import AttendanceTab from "./components/AttendanceTab";
-import AuditLogsTab from "./components/AuditlogsTab";
+
 import NotificationsTab from "./components/NotificationsTab";
 import ProfileTab from "./components/ProfileTab";
 import SecurityTab from "./components/SecurityTab";
@@ -24,6 +24,7 @@ import {
   auditLogsData,
 } from "./data";
 import type { SettingsTab } from "./types";
+import AuditLogsTab from "./components/AuditLogsTab";
 
 const tabs: { key: SettingsTab; label: string; icon: React.ReactNode }[] = [
   { key: "profile", label: "Profile", icon: <User className="size-3.5" /> },
