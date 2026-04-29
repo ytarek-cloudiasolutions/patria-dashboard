@@ -3,12 +3,7 @@ import { Plus, Search, Coffee, Wrench } from "lucide-react";
 
 import OverviewCard from "@/shared/components/OverviewCard";
 import DefaultButton from "@/shared/components/DefaultButton";
-import {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  TabsContent,
-} from "@/shared/components/ui/tabs";
+import { Button } from "@/shared/components/ui/button";
 
 import ProductionChart from "../components/ProductionChart";
 import RoastBatchesTable from "../components/RoastBatchesTable";
@@ -152,34 +147,50 @@ const ProductionPage = () => {
           )}
         </div>
 
-        {/* Tabs */}
-        <Tabs
-          value={activeTab}
-          onValueChange={(val) => setActiveTab(val as ActiveTab)}
-          className="mb-6"
-        >
-          <TabsList
-            variant="line"
-            className="w-full justify-around border-b border-[#E5E5E5] bg-transparent pb-0 rounded-none"
+        <div className="mb-6 grid grid-cols-2 gap-x-1.5 gap-y-1">
+          <Button
+            type="button"
+            variant="ghost"
+            size="default"
+            onClick={() => setActiveTab("roast")}
+            className={`relative h-auto w-full cursor-pointer rounded-none pb-3 text-center text-[16px] font-semibold transition-colors ${
+              activeTab === "roast"
+                ? "text-[#333333] font-medium"
+                : "text-[#8B8B8B] hover:text-[#8B8B8B]"
+            }`}
           >
-            <TabsTrigger
-              value="roast"
-              className="flex-1 gap-2 pb-3 text-[14px] font-medium data-[state=active]:border-b-2 data-[state=active]:border-[#5C4A0E] data-[state=active]:text-[#5C4A0E]"
-            >
-              <Coffee size={16} />
-              Roast
-            </TabsTrigger>
-            <TabsTrigger
-              value="equipment"
-              className="flex-1 gap-2 pb-3 text-[14px] font-medium data-[state=active]:border-b-2 data-[state=active]:border-[#5C4A0E] data-[state=active]:text-[#5C4A0E]"
-            >
-              <Wrench size={16} />
-              Equipment
-            </TabsTrigger>
-          </TabsList>
+            <Coffee className="size-6" />
+            Roast
+            <span
+              className={`absolute right-0 bottom-0 left-0 h-0.5 transition-all ${
+                activeTab === "roast" ? "bg-primary" : "bg-[#8B8B8B]"
+              }`}
+            />
+          </Button>
 
-          {/* ---- ROAST TAB ---- */}
-          <TabsContent value="roast" className="mt-6 space-y-6">
+          <Button
+            type="button"
+            variant="ghost"
+            size="default"
+            onClick={() => setActiveTab("equipment")}
+            className={`relative h-auto w-full cursor-pointer rounded-none pb-3 text-center text-[16px] font-semibold transition-colors ${
+              activeTab === "equipment"
+                ? "text-[#333333] font-medium"
+                : "text-[#8B8B8B] hover:text-[#8B8B8B]"
+            }`}
+          >
+            <Wrench className="size-6" />
+            Equipment
+            <span
+              className={`absolute right-0 bottom-0 left-0 h-0.5 transition-all ${
+                activeTab === "equipment" ? "bg-primary" : "bg-[#8B8B8B]"
+              }`}
+            />
+          </Button>
+        </div>
+
+        {activeTab === "roast" ? (
+          <div className="mt-6 space-y-6">
             {/* Overview Cards */}
             <div className="grid grid-cols-4 gap-4">
               <OverviewCard
@@ -301,10 +312,9 @@ const ProductionPage = () => {
                 />
               </div>
             </div>
-          </TabsContent>
-
-          {/* ---- EQUIPMENT TAB ---- */}
-          <TabsContent value="equipment" className="mt-6 space-y-5">
+          </div>
+        ) : (
+          <div className="mt-6 space-y-5">
             {/* Search + Filter */}
             <div className="flex gap-3">
               <div className="flex flex-1 items-center gap-3 rounded-[10px] border border-[#E5E5E5] bg-white px-4 py-2.5">
@@ -337,8 +347,8 @@ const ProductionPage = () => {
             </div>
 
             <EquipmentTable records={filteredEquipment} />
-          </TabsContent>
-        </Tabs>
+          </div>
+        )}
       </div>
 
       {/* Modals */}

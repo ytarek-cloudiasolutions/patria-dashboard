@@ -66,19 +66,25 @@ const SettingsPage = () => {
       </div>
 
       {/* Tabs bar */}
-      <div className="flex gap-1 border-b border-[#E5E5E5] mb-6 overflow-x-auto">
+      <div className="mb-4 grid grid-cols-7 gap-x-1.5 gap-y-1 overflow-x-auto">
         {tabs.map((tab) => (
           <button
             key={tab.key}
+            type="button"
             onClick={() => setActiveTab(tab.key)}
-            className={`flex items-center gap-1.5 px-4 py-2.5 text-[13px] font-medium transition-colors cursor-pointer whitespace-nowrap ${
+            className={`relative h-auto w-full cursor-pointer rounded-none pb-3 text-center text-[16px] font-semibold transition-colors flex items-center justify-center gap-2 whitespace-nowrap ${
               activeTab === tab.key
-                ? "border-b-2 border-[#5C4A1E] text-[#5C4A1E]"
-                : "text-[#8B8B8B] hover:text-[#28293D]"
+                ? "text-[#333333] font-medium"
+                : "text-[#8B8B8B] hover:text-[#8B8B8B]"
             }`}
           >
             {tab.icon}
             {tab.label}
+            <span
+              className={`absolute right-0 bottom-0 left-0 h-0.5 transition-all ${
+                activeTab === tab.key ? "bg-primary" : "bg-[#8B8B8B]"
+              }`}
+            />
           </button>
         ))}
       </div>

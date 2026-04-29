@@ -13,7 +13,9 @@ import {
   User,
   Car,
   TrendingUpDown,
-  SubscriptIcon, // Logout
+  SubscriptIcon,
+  Container,
+  Coins, // Logout
 } from "lucide-react";
 import {
   SidebarMenu,
@@ -40,6 +42,18 @@ const CrmAndLogisticsMenu = () => {
       icon: <User />,
       path: "/customers",
       isActive: location.pathname === "/customers",
+    },
+    {
+      label: "Suppliers",
+      icon: <Container />,
+      path: "/suppliers",
+      isActive: location.pathname === "/suppliers",
+    },
+    {
+      label: "Purchasing",
+      icon: <Coins />,
+      path: "/purchasing",
+      isActive: location.pathname === "/purchasing",
     },
     {
       label: "Subscriptions",

@@ -10,5 +10,6 @@ export interface DeleteDialogProps {
     | "category"
     | "coupon"
     | "order"
-    | "subscription";
+    | "subscription"
+    | "supplier";
 }

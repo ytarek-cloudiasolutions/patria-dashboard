@@ -5,8 +5,7 @@ import CouponsPage from "@/features/coupons/pages/CouponsPage";
 import CustomersPage from "@/features/customers/pages/CustomersPage";
 import DashboardPage from "@/features/dashboard/pages/DashboardPage";
 import FinancialHubPage from "@/features/financial/pages/FinancialHubPage";
-import InventoryKitchenPage from "@/features/inventory/pages/InventoryKitchenPage";
-import InventoryPage from "@/features/inventory/pages/InventoryPage";
+import InventoryPage from "@/features/inventory/InventoryPage";
 import KitchenDetailsPage from "@/features/kitchens/pages/KitchenDetailsPage";
 import KitchenPage from "@/features/kitchens/pages/KitchenPage";
 import LocationsPage from "@/features/locations/pages/LocationsPage";
@@ -15,15 +14,15 @@ import OffersPage from "@/features/offers/pages/OffersPage";
 import OrdersPage from "@/features/orders/pages/OrdersPage";
 import ProductionPage from "@/features/production/pages/ProductionPage";
 import ProductsPage from "@/features/products/pages/ProductsPage";
+import ProcurementPage from "@/features/purchasing/ProcurementPage";
 import RequestsPage from "@/features/requests/RequestsPage";
 import SettingsPage from "@/features/settings/SettingsPage";
 import SidebarPage from "@/features/sidebar/pages/SidebarPage";
-import SubscriptionsPage from "@/features/Subscriptions/pages/SubscriptionsPage";
+import SubscriptionsPage from "@/features/subscriptions/pages/SubscriptionsPage";
+import SuppliersPage from "@/features/suppliers/SuppliersPage";
 import TablesPage from "@/features/tables/pages/TablesPage";
 import UsersPermissionsPage from "@/features/users/pages/UsersPermissionsPage";
-import UsersPage from "@/features/users/UsersPage";
-import WhatsAppGatewayPage from "@/features/whatsapp/pages/WhatsappGatewayPage";
-
+import WhatsAppGatewayPage from "@/features/whatsapp/pages/WhatsAppGatewayPage";
 
 import { createBrowserRouter } from "react-router-dom";
 
@@ -41,11 +40,12 @@ export const router = createBrowserRouter([
       { path: "/kitchen", element: <KitchenPage /> },
       { path: "/kitchen/:kitchenId", element: <KitchenDetailsPage /> },
       { path: "/inventory", element: <InventoryPage /> },
-      { path: "/inventory/:kitchenId", element: <InventoryKitchenPage /> },
       { path: "/products", element: <ProductsPage /> },
       { path: "/offers", element: <OffersPage /> },
       { path: "/coupons", element: <CouponsPage /> },
       { path: "/customers", element: <CustomersPage /> },
+      { path: "/suppliers", element: <SuppliersPage /> },
+      { path: "/purchasing", element: <ProcurementPage /> },
       { path: "/subscriptions", element: <SubscriptionsPage /> },
       { path: "/locations", element: <LocationsPage /> },
       { path: "/logistics", element: <LogisticsPage /> },

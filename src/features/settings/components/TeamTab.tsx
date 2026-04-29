@@ -10,6 +10,7 @@ import {
 } from "@/shared/components/ui/table";
 import type { TeamMember, TeamPermission, TeamRole } from "../types";
 import InviteMemberDialog from "./InviteMemberDialog";
+import { Separator } from "@/shared/components/ui/separator";
 
 interface Props {
   initialMembers: TeamMember[];
@@ -30,45 +31,50 @@ const TeamTab = ({ initialMembers }: Props) => {
   };
 
   return (
-    <div className="bg-white rounded-[16px] border border-[#E5E5E5] overflow-hidden">
-      {/* Colored header */}
-      <div className="flex items-center justify-between px-5 py-4 bg-[#F5F0EA]">
-        <div className="flex items-center gap-3">
-          <div className="bg-white/60 p-2 rounded-[10px]">
-            <Users className="size-4 text-[#5C4A1E]" />
-          </div>
-          <div>
-            <p className="text-[14px] font-semibold text-[#28293D]">
-              Team Management
-            </p>
-            <p className="text-[12px] text-[#8B8B8B] font-normal">
-              Manage administrator roles and access levels
-            </p>
-          </div>
-        </div>
-        <button
-          onClick={() => setInviteOpen(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-[5px] bg-[#5C4A1E] text-white text-[13px] font-semibold hover:bg-[#3d3012] transition-colors cursor-pointer"
-        >
-          <Plus className="size-3.5" />
-          Invite Member
-        </button>
-      </div>
-
-      {/* Table with its own clean header */}
+    <>
       <Table>
-        <TableHeader className="bg-white">
+        <TableHeader>
+          {/* 🔶 Colored Header as table header */}
           <TableRow>
-            <TableHead className="pl-6">MEMBER</TableHead>
-            <TableHead>CONTACT</TableHead>
-            <TableHead>ROLE</TableHead>
-            <TableHead>PERFORMANCE</TableHead>
-            <TableHead>PERMISSIONS</TableHead>
+            <TableHead colSpan={5} className="p-0">
+              <div className="flex items-center justify-between px-5 py-4 bg-[#F5F0EA]">
+                <div className="flex items-center gap-3">
+                  <div className="bg-white/60 p-2 rounded-[10px]">
+                    <Users className="size-4 text-[#5C4A1E]" />
+                  </div>
+                  <div>
+                    <p className="text-[14px] font-semibold text-[#28293D]">
+                      Team Management
+                    </p>
+                    <p className="text-[12px] text-[#8B8B8B] font-normal">
+                      Manage administrator roles and access levels
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setInviteOpen(true)}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-[5px] bg-[#5C4A1E] text-white text-[13px] font-semibold hover:bg-[#3d3012]"
+                >
+                  <Plus className="size-3.5" />
+                  Invite Member
+                </button>
+              </div>
+            </TableHead>
           </TableRow>
         </TableHeader>
+
         <TableBody>
+          <TableRow className="text-[#8B8B8B] text-[12px] border-b border-[#E5E5E5]">
+            <TableCell className="pl-6 py-3">MEMBER</TableCell>
+            <TableCell>CONTACT</TableCell>
+            <TableCell>ROLE</TableCell>
+            <TableCell>PERFORMANCE</TableCell>
+            <TableCell>PERMISSIONS</TableCell>
+          </TableRow>
+
           {members.map((member) => (
-            <TableRow key={member.id} className="border-b border-[#F5F5F5]">
+            <TableRow key={member.id}>
               <TableCell className="pl-6 py-3">
                 <p className="text-[13px] font-semibold text-[#28293D]">
                   {member.name}
@@ -102,7 +108,9 @@ const TeamTab = ({ initialMembers }: Props) => {
               </TableCell>
               <TableCell>
                 <span
-                  className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold ${PERMISSION_STYLES[member.permission]}`}
+                  className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold ${
+                    PERMISSION_STYLES[member.permission]
+                  }`}
                 >
                   {member.permission}
                 </span>
@@ -117,7 +125,7 @@ const TeamTab = ({ initialMembers }: Props) => {
         onOpenChange={setInviteOpen}
         onSubmit={(data) => console.log("Invite:", data)}
       />
-    </div>
+    </>
   );
 };
 
