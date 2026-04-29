@@ -16,7 +16,8 @@ import {
   ReceiptText,
   MessageSquare,
   MessageSquareMore,
-  HandCoins, // Logout
+  HandCoins,
+  UserCheck, // Logout
 } from "lucide-react";
 import {
   SidebarMenu,
@@ -46,6 +47,12 @@ const AdministrationMenu = () => {
       icon: <HandCoins />,
       path: "/financial-hub",
       isActive: location.pathname === "/financial-hub",
+    },
+    {
+      label: "Reports",
+      icon: <UserCheck />,
+      path: "/reports",
+      isActive: location.pathname === "/reports",
     },
     {
       label: "Settings",

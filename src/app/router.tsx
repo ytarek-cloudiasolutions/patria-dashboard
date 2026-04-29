@@ -15,10 +15,11 @@ import OrdersPage from "@/features/orders/pages/OrdersPage";
 import ProductionPage from "@/features/production/pages/ProductionPage";
 import ProductsPage from "@/features/products/pages/ProductsPage";
 import ProcurementPage from "@/features/purchasing/ProcurementPage";
+import ReportsPage from "@/features/reports/ReportsPage";
 import RequestsPage from "@/features/requests/RequestsPage";
 import SettingsPage from "@/features/settings/SettingsPage";
 import SidebarPage from "@/features/sidebar/pages/SidebarPage";
-import SubscriptionsPage from "@/features/subscriptions/pages/SubscriptionsPage";
+import SubscriptionsPage from "@/features/Subscriptions/pages/SubscriptionsPage";
 import SuppliersPage from "@/features/suppliers/SuppliersPage";
 import TablesPage from "@/features/tables/pages/TablesPage";
 import UsersPermissionsPage from "@/features/users/pages/UsersPermissionsPage";
@@ -53,6 +54,7 @@ export const router = createBrowserRouter([
       { path: "/requests", element: <RequestsPage /> },
       { path: "/users-permissions", element: <UsersPermissionsPage /> },
       { path: "/financial-hub", element: <FinancialHubPage /> },
+      { path: "/reports", element: <ReportsPage /> },
       { path: "/settings", element: <SettingsPage /> },
       { path: "/whatsapp-gateway", element: <WhatsAppGatewayPage /> },
     ],
