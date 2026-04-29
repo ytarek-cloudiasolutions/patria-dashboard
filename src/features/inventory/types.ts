@@ -1,56 +1,38 @@
-export type InventoryStatus = "critical" | "low" | "normal" | "excess";
+export type StockStatus = "Out Of Stock" | "Low Stock" | "In Stock";
 
-export interface InventoryMetric {
-  id: string;
-  title: string;
-  value: number;
-  cardColor: string;
-  iconColor: string;
-  valueColor: string;
-  icon: "package" | "alert" | "triangle" | "arrow-up";
-}
+export type UrgencyLevel = "Critical" | "Good" | "Sufficient stock";
 
-export interface StockLevelIndicator {
-  status: InventoryStatus;
-  label: string;
-  bgColor: string;
-  textColor: string;
-}
+export type InventoryTab = "stock" | "shortages";
 
-export interface KitchenInventoryDistribution {
-  critical: number;
-  low: number;
-  normal: number;
-  excess: number;
-}
-
-export interface KitchenInventorySummary {
+export interface InventoryProduct {
   id: string;
   name: string;
-  icon: "main" | "barista" | "pastry";
-  accentColor: string;
-  totalTrackedItems: number;
-  distribution: KitchenInventoryDistribution;
-  status: "active";
+  image: string;
+  category: string;
+  categoryColor: string;
+  currentQuantity: number;
+  minimumQuantity: number;
+  status: StockStatus;
 }
 
-export interface InventoryItem {
+export interface ShortageProduct {
   id: string;
   name: string;
+  currentQuantity: number;
+  salesRatePerDay: number | null;
+  daysRemaining: number | null;
+  expectedExpiryDate: string | null;
+  urgencyLevel: UrgencyLevel;
+}
+
+export interface InventoryOverview {
+  totalProducts: number;
+  lowStock: number;
+  outOfStock: number;
+  inventoryValue: string;
+}
+
+export interface AdjustedQuantity {
+  productId: string;
   quantity: number;
-  unit: string;
-  status: InventoryStatus;
-}
-
-export interface KitchenInventoryDetails extends KitchenInventorySummary {
-  subtitle: string;
-  items: InventoryItem[];
-}
-
-export interface InventoryOverviewCardsProps {
-  metrics: InventoryMetric[];
-}
-
-export interface StockLevelsProps {
-  levels: StockLevelIndicator[];
 }

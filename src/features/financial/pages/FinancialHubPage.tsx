@@ -1,5 +1,12 @@
 import { useState, useMemo } from "react";
-import { TrendingUp, TrendingDown, Zap, Target, RefreshCw, Plus } from "lucide-react";
+import {
+  TrendingUp,
+  TrendingDown,
+  Zap,
+  Target,
+  RefreshCw,
+  Plus,
+} from "lucide-react";
 
 import RevenueExpensesChart from "../components/RevenueExpensesChart";
 
@@ -11,24 +18,28 @@ import RevenueBreakdown from "../components/RevenueBreakDown";
 import { transactionsData } from "../data";
 import type { Transaction, FinancialTab, NewTransactionForm } from "../types";
 
-
-
 let idCounter = 100;
 
 const FinancialHubPage = () => {
-  const [transactions, setTransactions] = useState<Transaction[]>(transactionsData);
+  const [transactions, setTransactions] =
+    useState<Transaction[]>(transactionsData);
   const [activeTab, setActiveTab] = useState<FinancialTab>("overview");
   const [dialogOpen, setDialogOpen] = useState(false);
 
   // --- Derived stats ---
   const totalRevenue = useMemo(
-    () => transactions.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0),
+    () =>
+      transactions
+        .filter((t) => t.type === "income")
+        .reduce((s, t) => s + t.amount, 0),
     [transactions]
   );
 
   const totalExpenses = useMemo(
     () =>
-      transactions.filter((t) => t.type === "expense").reduce((s, t) => s + Math.abs(t.amount), 0),
+      transactions
+        .filter((t) => t.type === "expense")
+        .reduce((s, t) => s + Math.abs(t.amount), 0),
     [transactions]
   );
 
@@ -72,7 +83,9 @@ const FinancialHubPage = () => {
       {/* Header */}
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-[28px] font-bold text-[#28293D]">Financial Hub</h1>
+          <h1 className="text-[28px] font-bold text-[#28293D]">
+            Financial Hub
+          </h1>
           <p className="text-[14px] text-[#8B8B8B] mt-1">
             Revenue, expense, and profitability management
           </p>
@@ -136,18 +149,24 @@ const FinancialHubPage = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-[#E5E5E5] mb-6">
+      <div className="mb-4 grid grid-cols-3 gap-x-1.5 gap-y-1">
         {tabs.map((tab) => (
           <button
             key={tab.key}
+            type="button"
             onClick={() => setActiveTab(tab.key)}
-            className={`px-8 py-3 text-[14px] font-medium transition-colors cursor-pointer ${
+            className={`relative h-auto w-full cursor-pointer rounded-none pb-3 text-center text-[16px] font-semibold transition-colors flex items-center justify-center gap-2 ${
               activeTab === tab.key
-                ? "border-b-2 border-[#5C4A1E] text-[#5C4A1E]"
-                : "text-[#8B8B8B] hover:text-[#28293D]"
+                ? "text-[#333333] font-medium"
+                : "text-[#8B8B8B] hover:text-[#8B8B8B]"
             }`}
           >
             {tab.label}
+            <span
+              className={`absolute right-0 bottom-0 left-0 h-0.5 transition-all ${
+                activeTab === tab.key ? "bg-primary" : "bg-[#8B8B8B]"
+              }`}
+            />
           </button>
         ))}
       </div>
@@ -155,11 +174,17 @@ const FinancialHubPage = () => {
       {/* Tab Content */}
       {activeTab === "overview" && (
         <div className="flex flex-col gap-5">
-          <RevenueExpensesChart revenue={totalRevenue} expenses={-totalExpenses} />
+          <RevenueExpensesChart
+            revenue={totalRevenue}
+            expenses={-totalExpenses}
+          />
 
           <div className="grid grid-cols-2 gap-5">
             <RevenueBreakdown transactions={transactions} />
-            <PerformanceIndicators transactions={transactions} totalOrders={20} />
+            <PerformanceIndicators
+              transactions={transactions}
+              totalOrders={20}
+            />
           </div>
 
           {/* Statement table */}
