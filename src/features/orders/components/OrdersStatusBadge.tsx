@@ -7,9 +7,9 @@ type StatusStyle = {
   borderColor: string;
 };
 
-export const STATUS_STYLES: Record<OrderStatus, StatusStyle> = {
+const STATUS_STYLES: Record<OrderStatus, StatusStyle> = {
   Pending: {
-    bg: "bg-[#FE9A001A]",
+    bg: "bg-[#FFF7E6]",
     text: "text-[#C7861E]",
     borderColor: "#C7861E",
   },
@@ -23,10 +23,10 @@ export const STATUS_STYLES: Record<OrderStatus, StatusStyle> = {
     text: "text-[#8F6900]",
     borderColor: "#624F1C",
   },
-  "Out for Delivery": {
-    bg: "bg-[#DCDCDC]",
-    text: "text-[#23252A]",
-    borderColor: "#595959",
+  "On The Way": {
+    bg: "bg-[#F4E8FF]",
+    text: "text-[#8B16FF]",
+    borderColor: "#8B16FF",
   },
   Delivered: {
     bg: "bg-[#E2F4ED]",
@@ -45,9 +45,12 @@ interface OrdersStatusBadgeProps {
 }
 
 const OrdersStatusBadge = ({ status }: OrdersStatusBadgeProps) => {
+  const style = STATUS_STYLES[status];
+
   return (
     <Badge
-      className={`h-6 w-31 justify-center whitespace-nowrap rounded-[999px] border border-current px-2 text-center font-semibold text-[12px] ${STATUS_STYLES[status].bg} ${STATUS_STYLES[status].text}`}
+      className={`h-5 min-w-21 justify-center whitespace-nowrap rounded-[999px] border px-3 text-center font-semibold text-[11px] ${style.bg} ${style.text}`}
+      style={{ borderColor: style.borderColor }}
     >
       {status}
     </Badge>

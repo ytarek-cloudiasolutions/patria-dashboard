@@ -1,4 +1,12 @@
-import { useMemo, useState } from "react";
+import { ChevronDown, Info, MessageCircle } from "lucide-react";
+
+import { Button } from "@/shared/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/shared/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -7,203 +15,212 @@ import {
   TableHeader,
   TableRow,
 } from "@/shared/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/shared/components/ui/dropdown-menu";
-import { Button } from "@/shared/components/ui/button";
-import { Eye, ChevronDown } from "lucide-react";
+import { ORDER_STATUS_OPTIONS } from "../data";
+import type { Order, OrderStatus, PaymentState } from "../types";
 import OrdersStatusBadge from "./OrdersStatusBadge";
-import OrdersFilters from "./OrdersFilters";
-import OrderDetailsDialog from "./OrderDetailsDialog";
-import { MOCK_ORDERS, ORDER_STATUS_OPTIONS } from "../data";
-import type { Order, OrderStatus, OrderStatusFilter } from "../types";
 
-const OrdersTable = () => {
-  const [orders, setOrders] = useState<Order[]>(MOCK_ORDERS);
-  const [searchValue, setSearchValue] = useState("");
-  const [selectedCategory, setSelectedCategory] =
-    useState<OrderStatusFilter>("All Categories");
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
-  const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
+interface OrdersTableProps {
+  orders: Order[];
+  onViewOrder: (order: Order) => void;
+  onUpdateStatus: (orderId: string, status: OrderStatus) => void;
+  onStatusMenuOpenChange?: (open: boolean) => void;
+}
 
-  const filteredOrders = useMemo(() => {
-    const normalizedSearch = searchValue.trim().toLowerCase();
+const paymentStateStyles: Record<Exclude<PaymentState, "None">, string> = {
+  Paid: "border-[#00A86B] bg-[#E2F4ED] text-[#00A86B]",
+  "Waiting for payment": "border-[#C7861E] bg-[#FFF7E6] text-[#C7861E]",
+};
 
-    return orders.filter((order) => {
-      const matchesSearch =
-        normalizedSearch.length === 0 ||
-        order.customerName.toLowerCase().includes(normalizedSearch) ||
-        order.location.toLowerCase().includes(normalizedSearch) ||
-        order.id.toString().includes(normalizedSearch);
-
-      const matchesCategory =
-        selectedCategory === "All Categories" ||
-        order.status === selectedCategory;
-
-      return matchesSearch && matchesCategory;
-    });
-  }, [orders, searchValue, selectedCategory]);
-
-  const updateStatus = (orderId: number, status: OrderStatus) => {
-    setOrders((previous) =>
-      previous.map((order) =>
-        order.id === orderId ? { ...order, status } : order,
-      ),
-    );
-
-    setSelectedOrder((previous) =>
-      previous && previous.id === orderId ? { ...previous, status } : previous,
-    );
-  };
-
+const OrdersTable = ({
+  orders,
+  onViewOrder,
+  onUpdateStatus,
+  onStatusMenuOpenChange,
+}: OrdersTableProps) => {
   return (
     <>
-      <OrdersFilters
-        searchValue={searchValue}
-        selectedCategory={selectedCategory}
-        onSearchChange={setSearchValue}
-        onCategoryChange={setSelectedCategory}
-        onCategoryMenuOpenChange={setIsCategoryMenuOpen}
-      />
-
-      {(isStatusMenuOpen || isCategoryMenuOpen) && (
-        <div className="pointer-events-none fixed inset-0 z-60 bg-black/15" />
-      )}
-
       <Table>
         <colgroup>
-          <col style={{ width: "55px" }} />
-          <col style={{ width: "146.5px" }} />
-          <col style={{ width: "146.5px" }} />
-          <col style={{ width: "146.5px" }} />
-          <col style={{ width: "146.5px" }} />
-          <col style={{ width: "146.5px" }} />
-          <col style={{ width: "146.5px" }} />
+          <col className="w-28.5" />
+          <col className="w-34.25" />
+          <col className="w-54.25" />
+          <col className="w-34.25" />
+          <col className="w-34.25" />
+          <col className="w-31" />
+          <col className="w-27.5" />
         </colgroup>
         <TableHeader>
           <TableRow className="h-10">
-            <TableHead className="px-4 text-[12px] font-semibold text-[#646B80]">
-              Order ID
-            </TableHead>
-            <TableHead className="text-[12px] font-semibold text-[#646B80]">
-              Customer
-            </TableHead>
-            <TableHead className="text-[12px] font-semibold text-[#646B80]">
-              Date
-            </TableHead>
-            <TableHead className="text-[12px] font-semibold text-[#646B80]">
-              Location
-            </TableHead>
-            <TableHead className="text-[12px] font-semibold text-[#646B80]">
-              Total
-            </TableHead>
-            <TableHead className="text-[12px] font-semibold text-[#646B80]">
-              Status
-            </TableHead>
-            <TableHead className="pr-4 text-center text-[12px] font-semibold text-[#646B80]">
-              Actions
-            </TableHead>
+            {[
+              "Order ID",
+              "Customer",
+              "Products",
+              "Total",
+              "Payment",
+              "Status",
+              "Date",
+            ].map((header) => (
+              <TableHead key={header} className="text-center">
+                {header}
+              </TableHead>
+            ))}
           </TableRow>
         </TableHeader>
 
-        <TableBody className="[&_tr:hover]:bg-white">
-          {filteredOrders.length === 0 ? (
+        <TableBody>
+          {orders.length === 0 ? (
             <TableRow>
               <TableCell
                 colSpan={7}
-                className="px-4 py-10 text-center text-[14px] text-[#8B8B8B]"
+                className="px-4 py-12 text-center text-[14px] text-[#5b4f4f]"
               >
                 No orders found.
               </TableCell>
             </TableRow>
           ) : (
-            filteredOrders.map((order) => (
-              <TableRow key={order.id} className="h-13">
-                <TableCell className="px-4 text-28293D-14-semibold ">
-                  #{order.id}
-                </TableCell>
+            orders.map((order, index) => {
+              const isLast = index === orders.length - 1;
+              const borderClassName = isLast ? "" : "border-b border-[#CACBD4]";
+              const edgeLineClassName = isLast
+                ? ""
+                : "after:absolute after:bottom-0 after:h-px after:bg-[#CACBD4] after:content-['']";
 
-                <TableCell className="min-w-40">
-                  <p className="text-333333-14-semibold">
-                    {order.customerName}
-                  </p>
-                  <p className="text-8B8B8B-12-medium">{order.customerPhone}</p>
-                </TableCell>
-
-                <TableCell className="text-595959-14-medium">
-                  {order.date}
-                </TableCell>
-                <TableCell className="text-28293D-14-medium">
-                  {order.location}
-                </TableCell>
-                <TableCell className="text-28293D-14-medium">
-                  <span className="text-28293D-14-normal">EGP</span>{" "}
-                  {order.total.toFixed(2)}
-                </TableCell>
-
-                <TableCell>
-                  <DropdownMenu onOpenChange={setIsStatusMenuOpen}>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        className="h-7 rounded-[6px] px-0 text-left hover:bg-transparent focus-visible:border-transparent focus-visible:ring-0 focus-visible:ring-offset-0 cursor-pointer"
-                      >
-                        <OrdersStatusBadge status={order.status} />
-                        <ChevronDown className="ml-1 size-4.5 text-[#000000] " />
-                      </Button>
-                    </DropdownMenuTrigger>
-
-                    <DropdownMenuContent
-                      align="start"
-                      className="z-70 w-[145.67px] rounded-[16px] p-2 ring-0 [&>[data-slot=dropdown-menu-item]+[data-slot=dropdown-menu-item]]:mt-2"
-                    >
-                      {ORDER_STATUS_OPTIONS.map((status) => (
-                        <DropdownMenuItem
-                          key={status}
-                          className={
-                            order.status === status
-                              ? "rounded-[16px] px-3 py-2 text-[12px] font-medium bg-primary text-primary-foreground focus:bg-primary focus:text-primary-foreground"
-                              : undefined
-                          }
-                          onSelect={() => updateStatus(order.id, status)}
-                        >
-                          {status}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-
-                <TableCell className="pr-4 text-center">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-[#000000] cursor-pointer hover:bg-transparent"
-                    onClick={() => setSelectedOrder(order)}
+              return (
+                <TableRow key={order.id}>
+                  <TableCell
+                    className={`relative text-center ${edgeLineClassName} after:left-5 after:right-0`}
                   >
-                    <Eye className="size-4.5 " />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))
+                    <button
+                      type="button"
+                      onClick={() => onViewOrder(order)}
+                      className="inline-flex items-center gap-2 text-[12px] font-bold text-[#333333] cursor-pointer"
+                    >
+                      #{order.id}
+                      <Info className="size-4.5 text-[#23252A]" />
+                    </button>
+                  </TableCell>
+
+                  <TableCell className={`text-center ${borderClassName}`}>
+                    <div className="flex flex-col items-start">
+                      <p className="text-[14px] font-semibold text-[#333333]">
+                        {order.customerName}
+                      </p>
+                      <div className="mt-1 flex items-center gap-1.5">
+                        <span className="text-[12px] text-[#8B8B8B]">
+                          {order.customerPhone}
+                        </span>
+                        <MessageCircle className="size-3.5 text-[#00A86B]" />
+                      </div>
+                    </div>
+                  </TableCell>
+
+                  <TableCell
+                    className={`py-4.25 text-center ${borderClassName}`}
+                  >
+                    <div className="flex max-w-62 flex-col gap-2.5 items-center">
+                      {order.items.map((item) => (
+                        <div
+                          key={item.id}
+                          className="inline-flex h-6.75 w-fit max-w-full items-center gap-6 rounded-[8px] bg-[#F5F0EA] px-3 py-1.5 text-[12px]"
+                        >
+                          <span className="truncate font-medium text-[#000000]">
+                            <span className="font-semibold">
+                              {item.quantity}X
+                            </span>{" "}
+                            {item.name}
+                          </span>
+                          <span className="shrink-0 font-semibold text-[#595959]">
+                            <span className="font-medium">EGP</span>{" "}
+                            {item.unitPrice}
+                          </span>
+                        </div>
+                      ))}
+                      {order.items.some((item) => item.note) && (
+                        <span className="inline-flex h-6 w-fit items-center rounded-[30px] border border-[#C7861E] bg-[#FFF7E6] px-3 py-1 text-[13px] font-semibold text-[#C7861E]">
+                          Note: {order.items.find((item) => item.note)?.note}
+                        </span>
+                      )}
+                    </div>
+                  </TableCell>
+
+                  <TableCell
+                    className={`text-center text-[14px] text-[#28293D] ${borderClassName}`}
+                  >
+                    <span className="font-semibold">
+                      <span className="font-medium">EGP</span>{" "}
+                      {order.total.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </span>
+                  </TableCell>
+
+                  <TableCell className={`text-center ${borderClassName}`}>
+                    <div className="flex flex-col items-center gap-1.5">
+                      <span className="inline-flex h-6 min-w-22 items-center justify-center rounded-full border border-current bg-[#EDF4FB] px-3 py-1 text-[13px] font-semibold text-[#004EF9]">
+                        {order.paymentMethod}
+                      </span>
+                      {order.paymentState !== "None" && (
+                        <span
+                          className={`inline-flex h-4.5 items-center justify-center rounded-full border px-1.5 py-1 text-[8px] font-semibold ${
+                            paymentStateStyles[order.paymentState]
+                          }`}
+                        >
+                          {order.paymentState}
+                        </span>
+                      )}
+                    </div>
+                  </TableCell>
+
+                  <TableCell className={`text-start ${borderClassName}`}>
+                    <DropdownMenu
+                      onOpenChange={(open) => {
+                        onStatusMenuOpenChange?.(open);
+                      }}
+                    >
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          className="h-6 border-transparent px-0 ring-0 hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 focus-visible:border-transparent focus-visible:ring-0 focus-visible:ring-offset-0 aria-expanded:bg-transparent aria-expanded:text-inherit data-[state=open]:bg-transparent cursor-pointer"
+                        >
+                          <OrdersStatusBadge status={order.status} />
+                          <ChevronDown className="ml-3 size-4.5 text-[#000000]" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent
+                        align="end"
+                        className="z-70 w-px rounded-[16px] p-2 ring-0"
+                      >
+                        {ORDER_STATUS_OPTIONS.map((status) => (
+                          <DropdownMenuItem
+                            key={status}
+                            onSelect={() => onUpdateStatus(order.id, status)}
+                            className={`rounded-[16px] px-3 py-2 text-[12px] font-medium cursor-pointer ${
+                              order.status === status
+                                ? "bg-primary text-primary-foreground pointer-events-none"
+                                : "text-[#28293D] data-highlighted:bg-[#F5F0EA]"
+                            }`}
+                          >
+                            {status}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+
+                  <TableCell
+                    className={`relative text-center text-[12px] font-medium leading-tight text-[#23252A] ${edgeLineClassName} after:left-0 after:right-8`}
+                  >
+                    <span>{order.date},</span>
+                    <br />
+                    <span>{order.time}</span>
+                  </TableCell>
+                </TableRow>
+              );
+            })
           )}
         </TableBody>
       </Table>
-
-      <OrderDetailsDialog
-        open={selectedOrder !== null}
-        order={selectedOrder}
-        onOpenChange={(open) => {
-          if (!open) {
-            setSelectedOrder(null);
-          }
-        }}
-        onUpdateStatus={updateStatus}
-      />
     </>
   );
 };

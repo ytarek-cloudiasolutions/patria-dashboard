@@ -3,7 +3,6 @@ import SignInPage from "@/features/auth/pages/SignInPage";
 import SignUpPage from "@/features/auth/pages/SignUpPage";
 import CouponsPage from "@/features/coupons/pages/CouponsPage";
 import CustomersPage from "@/features/customers/pages/CustomersPage";
-import DashboardPage from "@/features/dashboard/pages/DashboardPage";
 import FinancialHubPage from "@/features/financial/pages/FinancialHubPage";
 import InventoryPage from "@/features/inventory/InventoryPage";
 import KitchenDetailsPage from "@/features/kitchens/pages/KitchenDetailsPage";
@@ -18,14 +17,18 @@ import ProcurementPage from "@/features/purchasing/ProcurementPage";
 import ReportsPage from "@/features/reports/ReportsPage";
 import RequestsPage from "@/features/requests/RequestsPage";
 import SettingsPage from "@/features/settings/SettingsPage";
-import SidebarPage from "@/features/sidebar/pages/SidebarPage";
-import SubscriptionsPage from "@/features/Subscriptions/pages/SubscriptionsPage";
+
+import SubscriptionsPage from "@/features/subscriptions/pages/SubscriptionsPage";
 import SuppliersPage from "@/features/suppliers/SuppliersPage";
 import TablesPage from "@/features/tables/pages/TablesPage";
 import UsersPermissionsPage from "@/features/users/pages/UsersPermissionsPage";
 import WhatsAppGatewayPage from "@/features/whatsapp/pages/WhatsAppGatewayPage";
 
 import { createBrowserRouter } from "react-router-dom";
+import AppLayout from "@/features/sidebar/layouts/AppLayout";
+import DashboardPage from "@/features/dashboard/DashboardPage";
+import WarehousesPage from "@/features/warehouses/WarehousesPage";
+
 
 export const router = createBrowserRouter([
   { path: "/sign-up", element: <SignUpPage /> },
@@ -33,7 +36,7 @@ export const router = createBrowserRouter([
   { path: "/reset-password", element: <ResetPasswordPage /> },
   {
     path: "/",
-    element: <SidebarPage />,
+    element: <AppLayout />,
     children: [
       { index: true, element: <DashboardPage /> },
       { path: "/orders", element: <OrdersPage /> },
@@ -47,6 +50,7 @@ export const router = createBrowserRouter([
       { path: "/customers", element: <CustomersPage /> },
       { path: "/suppliers", element: <SuppliersPage /> },
       { path: "/purchasing", element: <ProcurementPage /> },
+      { path: "/warehouses", element: <WarehousesPage /> },
       { path: "/subscriptions", element: <SubscriptionsPage /> },
       { path: "/locations", element: <LocationsPage /> },
       { path: "/logistics", element: <LogisticsPage /> },

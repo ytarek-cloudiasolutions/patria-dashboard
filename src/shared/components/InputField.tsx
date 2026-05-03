@@ -1,4 +1,4 @@
-import type { InputFieldProps } from "../types/inputField.types";
+import type { InputFieldProps } from "../types/InputField.types";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { cn } from "@/lib/utils";

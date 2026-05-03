@@ -1,4 +1,4 @@
-import type { ActionButtonProps } from "../types/actionButton.types";
+import type { ActionButtonProps } from "../types/ActionButton.types";
 
 const ActionButton = ({ data }: { data: ActionButtonProps }) => {
   return (

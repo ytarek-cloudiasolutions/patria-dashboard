@@ -1,4 +1,4 @@
-import type { ButtonProps } from "../types/button.types";
+import type { ButtonProps } from "../types/Button.types";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
 
