@@ -38,7 +38,7 @@ const IngredientsTable = ({
             IMAGE
           </TableHead>
           <TableHead className="text-[12px] font-semibold text-[#646B80]">
-            INGREDIENT
+            Name
           </TableHead>
           <TableHead className="text-[12px] font-semibold text-[#646B80]">
             CATEGORY
@@ -112,7 +112,7 @@ const IngredientsTable = ({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="size-8 text-[#8B8B8B] hover:bg-transparent hover:text-[#333333]"
+                    className="size-8 text-[#000000] hover:bg-transparent hover:text-[#333333]"
                     onClick={() => onEdit(ingredient)}
                   >
                     <Pencil className="size-4" />

@@ -8,23 +8,21 @@ import {
 } from "@/shared/components/ui/dialog";
 import { Input } from "@/shared/components/ui/input";
 import { useFileUpload } from "@/shared/hooks/use-file-upload";
-import { INITIAL_INGREDIENT_FORM } from "../data";
-import type { Ingredient, IngredientFormData } from "../types";
+import { INITIAL_CATEGORY_FORM } from "../data";
+import type { CategoryFormData } from "../types";
 
-interface AddIngredientDialogProps {
+interface AddCategoryDialogProps {
   open: boolean;
-  ingredient: Ingredient | null;
   onOpenChange: (open: boolean) => void;
-  onSave: (payload: IngredientFormData) => void;
+  onSave: (payload: CategoryFormData) => void;
 }
 
-const AddIngredientDialog = ({
+const AddCategoryDialog = ({
   open,
-  ingredient,
   onOpenChange,
   onSave,
-}: AddIngredientDialogProps) => {
-  const [form, setForm] = useState<IngredientFormData>(INITIAL_INGREDIENT_FORM);
+}: AddCategoryDialogProps) => {
+  const [form, setForm] = useState<CategoryFormData>(INITIAL_CATEGORY_FORM);
   const [showErrors, setShowErrors] = useState(false);
 
   const [uploadState, uploadActions] = useFileUpload({
@@ -50,30 +48,11 @@ const AddIngredientDialog = ({
 
     setShowErrors(false);
     uploadActions.clearFiles();
-
-    if (ingredient) {
-      setForm({
-        name: ingredient.name,
-        description: ingredient.description,
-        price: ingredient.price.toString(),
-        initialQuantity: ingredient.initialQuantity.toString(),
-        category: "Raw Ingredient",
-        imageUrl: ingredient.imageUrl,
-      });
-      return;
-    }
-
-    setForm(INITIAL_INGREDIENT_FORM);
-  }, [ingredient, open]);
+    setForm(INITIAL_CATEGORY_FORM);
+  }, [open]);
   /* eslint-enable react-hooks/exhaustive-deps */
 
-  const requiredFields = {
-    name: form.name.trim().length > 0,
-    price: form.price.trim().length > 0,
-    initialQuantity: form.initialQuantity.trim().length > 0,
-  };
-
-  const hasErrors = Object.values(requiredFields).some((value) => !value);
+  const hasErrors = form.name.trim().length === 0;
 
   const handleClose = () => {
     onOpenChange(false);
@@ -101,7 +80,7 @@ const AddIngredientDialog = ({
       >
         <div className="relative max-h-[90vh] overflow-y-auto p-8">
           <DialogTitle className="mb-10 text-[28px] font-semibold text-[#28293D]">
-            {ingredient ? "Edit Ingredient" : "Add New Ingredient"}
+            Add New Category
           </DialogTitle>
 
           <div className="space-y-8">
@@ -125,7 +104,7 @@ const AddIngredientDialog = ({
                 <div className="relative flex size-full items-center justify-center p-2">
                   <img
                     src={uploadedImage ?? form.imageUrl}
-                    alt="Product"
+                    alt="Category"
                     className="h-22 w-auto max-w-70 rounded-[8px] object-contain"
                   />
                   <Button
@@ -136,10 +115,7 @@ const AddIngredientDialog = ({
                     onClick={(event) => {
                       event.stopPropagation();
                       uploadActions.clearFiles();
-                      setForm((previous) => ({
-                        ...previous,
-                        imageUrl: "",
-                      }));
+                      setForm((previous) => ({ ...previous, imageUrl: "" }));
                     }}
                   >
                     <X className="size-4" />
@@ -162,104 +138,30 @@ const AddIngredientDialog = ({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-7">
-              <div>
-                <p className="mb-3 text-[18px] font-medium text-[#000000]">
-                  Product Name <span className="text-[#C90000]">*</span>
-                </p>
-                <Input
-                  value={form.name}
-                  onChange={(event) =>
-                    setForm((previous) => ({
-                      ...previous,
-                      name: event.target.value,
-                    }))
-                  }
-                  placeholder="e.g. Artisanal Sourdough"
-                  className={`h-14 rounded-[12px] px-4 text-[16px] placeholder:text-[#8B8B8B] ${
-                    showErrors && !requiredFields.name
-                      ? "border-[#C90000]"
-                      : "border-[#E5E5E5]"
-                  }`}
-                />
-              </div>
-
-              <div>
-                <p className="mb-3 text-[18px] font-medium text-[#000000]">
-                  Category
-                </p>
-                <Input
-                  value={form.category}
-                  readOnly
-                  className="h-14 rounded-[12px] border-[#CACBD4] bg-[#E9EAEE] px-4 text-[16px] text-[#8B8B8B]"
-                />
-              </div>
-            </div>
-
             <div>
               <p className="mb-3 text-[18px] font-medium text-[#000000]">
-                Description{" "}
-                <span className="text-[15px] text-[#595959]">(Optional)</span>
+                Category Name <span className="text-[#C90000]">*</span>
               </p>
               <Input
-                value={form.description}
+                value={form.name}
                 onChange={(event) =>
                   setForm((previous) => ({
                     ...previous,
-                    description: event.target.value,
+                    name: event.target.value,
                   }))
                 }
-                placeholder="Describe this product..."
-                className="h-14 rounded-[12px] border-[#E5E5E5] px-4 text-[16px] placeholder:text-[#8B8B8B]"
+                placeholder="e.g. Speciality Coffee"
+                className={`h-14 rounded-[12px] px-4 text-[16px] placeholder:text-[#8B8B8B] ${
+                  showErrors && hasErrors
+                    ? "border-[#C90000]"
+                    : "border-[#E5E5E5]"
+                }`}
               />
-            </div>
-
-            <div className="grid grid-cols-2 gap-7">
-              <div>
-                <p className="mb-3 text-[18px] font-medium text-[#000000]">
-                  Price <span className="text-[#C90000]">*</span>
-                </p>
-                <Input
-                  value={form.price}
-                  onChange={(event) =>
-                    setForm((previous) => ({
-                      ...previous,
-                      price: event.target.value,
-                    }))
-                  }
-                  placeholder="0"
-                  className={`h-14 rounded-[12px] px-4 text-[16px] placeholder:text-[#8B8B8B] ${
-                    showErrors && !requiredFields.price
-                      ? "border-[#C90000]"
-                      : "border-[#E5E5E5]"
-                  }`}
-                />
-              </div>
-              <div>
-                <p className="mb-3 text-[18px] font-medium text-[#000000]">
-                  Initial Quantity <span className="text-[#C90000]">*</span>
-                </p>
-                <Input
-                  value={form.initialQuantity}
-                  onChange={(event) =>
-                    setForm((previous) => ({
-                      ...previous,
-                      initialQuantity: event.target.value,
-                    }))
-                  }
-                  placeholder="0"
-                  className={`h-14 rounded-[12px] px-4 text-[16px] placeholder:text-[#8B8B8B] ${
-                    showErrors && !requiredFields.initialQuantity
-                      ? "border-[#C90000]"
-                      : "border-[#E5E5E5]"
-                  }`}
-                />
-              </div>
             </div>
 
             {showErrors && hasErrors ? (
               <p className="text-[12px] font-medium text-[#C90000]">
-                Please fill all required fields to continue.
+                Please enter a category name.
               </p>
             ) : null}
           </div>
@@ -280,7 +182,7 @@ const AddIngredientDialog = ({
               className="h-14 rounded-[5px] px-7.5 py-4 text-[16px]"
               onClick={handleSubmit}
             >
-              Add Ingredient
+              Add category
             </Button>
           </div>
         </div>
@@ -289,4 +191,4 @@ const AddIngredientDialog = ({
   );
 };
 
-export default AddIngredientDialog;
+export default AddCategoryDialog;

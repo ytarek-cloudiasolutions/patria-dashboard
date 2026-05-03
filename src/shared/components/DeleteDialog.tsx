@@ -1,7 +1,7 @@
 import { Trash2 } from "lucide-react";
 import DefaultButton from "./DefaultButton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
-import type { DeleteDialogProps } from "../types/deleteDialog.types";
+import type { DeleteDialogProps } from "../types/DeleteDialog.types";
 import { Separator } from "./ui/separator";
 
 interface Props {

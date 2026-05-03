@@ -3,8 +3,7 @@ import { Input } from "@/shared/components/ui/input";
 import { Button } from "@/shared/components/ui/button";
 import { useState } from "react";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
-import type { InputFieldProps } from "@/shared/types/inputField.types";
-
+import type { InputFieldProps } from "@/shared/types/InputField.types";
 
 const PasswordInputField = ({
   id,

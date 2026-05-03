@@ -1,4 +1,4 @@
-import type { HeaderLayoutProps } from "@/shared/types/headerLayout.types";
+import type { HeaderLayoutProps } from "@/shared/types/HeaderLayout.types";
 
 const HeaderLayout = ({ title, description, className }: HeaderLayoutProps) => {
   return (

@@ -5,4 +5,8 @@ export interface OverviewCardProps {
   badgeColor: string;
   icon: React.ReactNode;
   iconColor: string;
+  trend?: {
+    value: React.ReactNode;
+    tone: "positive" | "negative" | "neutral";
+  };
 }

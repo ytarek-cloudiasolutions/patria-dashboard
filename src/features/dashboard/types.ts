@@ -1,14 +1,47 @@
-export interface RecentOrderProps {
-  id: number;
-  customerName: string;
-  date: string;
-  time: string;
-  amount: string;
-  status: "Confirmed" | "Preparing" | "Pending" | "Delivered" | "Cancelled";
+import type { LucideIcon } from "lucide-react";
+
+export type DashboardTrendTone = "positive" | "negative" | "neutral";
+
+export interface DashboardMetric {
+  id: string;
+  title: string;
+  value: string | number;
+  icon: LucideIcon;
+  iconColor: string;
+  badgeColor: string;
+  trend?: {
+    value: string;
+    tone: DashboardTrendTone;
+  };
 }
 
-export interface QuickActionItemProps {
-  icon: string;
+export interface RevenuePoint {
+  day: string;
+  value: number;
+}
+
+export interface PerformanceIndicator {
+  id: string;
   label: string;
-  onClick?: () => void;
+  value: string | number;
+  icon: LucideIcon;
+  tone: "gold" | "red" | "blue" | "amber";
+}
+
+export interface SoldProduct {
+  id: string;
+  rank: string;
+  name: string;
+  units: number;
+}
+
+export type OrderStatus = "Confirmed" | "Pending" | "Delivered" | "On The Way";
+
+export interface LiveOrder {
+  id: string;
+  customer: string;
+  initials: string;
+  amount: number;
+  time: string;
+  status: OrderStatus;
 }

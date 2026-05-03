@@ -1,4 +1,4 @@
-import { Pencil, Square, SquarePen, Trash2 } from "lucide-react";
+import { SquarePen, Trash2 } from "lucide-react";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { Switch } from "@/shared/components/ui/switch";
@@ -124,7 +124,6 @@ const ProductsTable = ({
                         onToggleActive(product.id, checked)
                       }
                       aria-label={`Toggle ${product.name} active status`}
-                    
                     />
                   </div>
 

@@ -12,6 +12,7 @@ interface ProductsFiltersProps {
   searchValue: string;
   selectedCategory: string;
   categories: string[];
+  searchPlaceholder?: string;
   showCategoryFilter?: boolean;
   onSearchChange: (value: string) => void;
   onCategoryChange: (value: string) => void;
@@ -21,6 +22,7 @@ const ProductsFilters = ({
   searchValue,
   selectedCategory,
   categories,
+  searchPlaceholder = "Search products...",
   showCategoryFilter = true,
   onSearchChange,
   onCategoryChange,
@@ -32,8 +34,8 @@ const ProductsFilters = ({
         <Input
           value={searchValue}
           onChange={(event) => onSearchChange(event.target.value)}
-          placeholder="Search products.."
-          className="h-11 rounded-[8px] border-[#CACBD4] bg-white pl-10 text-[14px] text-000000-16-normal placeholder:text-8B8B8B-16-normal focus-visible:ring-0"
+          placeholder={searchPlaceholder}
+          className="h-14 rounded-[8px] border-[#CACBD4] bg-white pl-12 text-[16px] text-000000-16-normal placeholder:text-8B8B8B-16-normal focus-visible:ring-0"
         />
       </div>
 
@@ -42,7 +44,7 @@ const ProductsFilters = ({
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
-              className="h-11 w-full justify-between rounded-[8px] border-[#E5E5E5] bg-white px-4.5 py-3 text-000000-16-medium cursor-pointer focus-visible:border-[#E5E5E5] focus-visible:ring-0 md:w-62.5"
+              className="h-14 w-full cursor-pointer justify-between rounded-[8px] border-[#E5E5E5] bg-white px-4.5 py-3 text-000000-16-medium focus-visible:border-[#E5E5E5] focus-visible:ring-0 md:w-[360px]"
             >
               {selectedCategory}
               <ChevronDown className="size-6 text-[#000000]" />
@@ -50,7 +52,7 @@ const ProductsFilters = ({
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"
-            className="z-70 w-62.5 rounded-[16px] p-2 ring-0"
+            className="z-70 w-[var(--radix-dropdown-menu-trigger-width)] rounded-[16px] p-2 ring-0"
           >
             {categories.map((category) => (
               <DropdownMenuItem

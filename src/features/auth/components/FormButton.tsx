@@ -1,5 +1,5 @@
 import { Button } from "@/shared/components/ui/button";
-import type { ButtonProps } from "@/shared/types/button.types";
+import type { ButtonProps } from "@/shared/types/Button.types";
 
 const FormButton = ({ buttonText }: ButtonProps) => {
   return (

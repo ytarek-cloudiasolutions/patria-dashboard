@@ -16,7 +16,7 @@ const ProductStatusBadge = ({ status }: ProductStatusBadgeProps) => {
           : "bg-[#DCDCDC] text-[#23252A] border-[#595959]"
       }`}
     >
-      {status}
+      {isAvailable ? "Available" : "Out of stock"}
     </Badge>
   );
 };

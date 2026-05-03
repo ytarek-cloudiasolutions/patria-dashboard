@@ -1,6 +1,6 @@
 export type ProductStatus = "Available" | "Out Of Stock";
 
-export type ProductTab = "products" | "ingredients";
+export type ProductTab = "products" | "ingredients" | "categories";
 
 export interface Product {
   id: number;
@@ -24,6 +24,14 @@ export interface Ingredient {
   imageUrl: string;
 }
 
+export interface ProductCategory {
+  id: number;
+  name: string;
+  imageUrl: string;
+  itemCount: number;
+  isActive: boolean;
+}
+
 export interface ProductFormData {
   name: string;
   category: string;
@@ -42,6 +50,11 @@ export interface IngredientFormData {
   price: string;
   initialQuantity: string;
   category: "Raw Ingredient";
+  imageUrl: string;
+}
+
+export interface CategoryFormData {
+  name: string;
   imageUrl: string;
 }
 
