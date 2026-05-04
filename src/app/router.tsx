@@ -5,8 +5,8 @@ import CouponsPage from "@/features/coupons/pages/CouponsPage";
 import CustomersPage from "@/features/customers/pages/CustomersPage";
 import FinancialHubPage from "@/features/financial/pages/FinancialHubPage";
 import InventoryPage from "@/features/inventory/InventoryPage";
-import KitchenDetailsPage from "@/features/kitchens/pages/KitchenDetailsPage";
-import KitchenPage from "@/features/kitchens/pages/KitchenPage";
+import KitchenDetailsPage from "@/features/kitchen/pages/KitchenDetailsPage";
+import KitchenPage from "@/features/kitchen/pages/KitchenPage";
 import LocationsPage from "@/features/locations/pages/LocationsPage";
 import LogisticsPage from "@/features/logistics/pages/LogisticsPage";
 import OffersPage from "@/features/offers/pages/OffersPage";
@@ -18,7 +18,7 @@ import ReportsPage from "@/features/reports/ReportsPage";
 import RequestsPage from "@/features/requests/RequestsPage";
 import SettingsPage from "@/features/settings/SettingsPage";
 
-import SubscriptionsPage from "@/features/subscriptions/pages/SubscriptionsPage";
+import SubscriptionsPage from "@/features/subscription/pages/SubscriptionsPage";
 import SuppliersPage from "@/features/suppliers/SuppliersPage";
 import TablesPage from "@/features/tables/pages/TablesPage";
 import UsersPermissionsPage from "@/features/users/pages/UsersPermissionsPage";
@@ -28,7 +28,7 @@ import { createBrowserRouter } from "react-router-dom";
 import AppLayout from "@/features/sidebar/layouts/AppLayout";
 import DashboardPage from "@/features/dashboard/DashboardPage";
 import WarehousesPage from "@/features/warehouses/WarehousesPage";
-
+import ReviewsPage from "@/features/reviews/ReviewsPage";
 
 export const router = createBrowserRouter([
   { path: "/sign-up", element: <SignUpPage /> },
@@ -53,12 +53,14 @@ export const router = createBrowserRouter([
       { path: "/warehouses", element: <WarehousesPage /> },
       { path: "/subscriptions", element: <SubscriptionsPage /> },
       { path: "/locations", element: <LocationsPage /> },
+      { path: "/reviews", element: <ReviewsPage /> },
       { path: "/logistics", element: <LogisticsPage /> },
       { path: "/production", element: <ProductionPage /> },
       { path: "/requests", element: <RequestsPage /> },
       { path: "/users-permissions", element: <UsersPermissionsPage /> },
       { path: "/financial-hub", element: <FinancialHubPage /> },
       { path: "/reports", element: <ReportsPage /> },
+      { path: "/pricing", element: <ReportsPage /> },
       { path: "/settings", element: <SettingsPage /> },
       { path: "/whatsapp-gateway", element: <WhatsAppGatewayPage /> },
     ],
