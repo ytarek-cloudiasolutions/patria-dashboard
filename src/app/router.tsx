@@ -29,6 +29,8 @@ import AppLayout from "@/features/sidebar/layouts/AppLayout";
 import DashboardPage from "@/features/dashboard/DashboardPage";
 import WarehousesPage from "@/features/warehouses/WarehousesPage";
 import ReviewsPage from "@/features/reviews/ReviewsPage";
+import MyAccountPage from "@/features/account/MyAccountPage";
+import PricingPage from "@/features/pricing/PricingPage";
 
 export const router = createBrowserRouter([
   { path: "/sign-up", element: <SignUpPage /> },
@@ -60,8 +62,9 @@ export const router = createBrowserRouter([
       { path: "/users-permissions", element: <UsersPermissionsPage /> },
       { path: "/financial-hub", element: <FinancialHubPage /> },
       { path: "/reports", element: <ReportsPage /> },
-      { path: "/pricing", element: <ReportsPage /> },
+      { path: "/pricing", element: <PricingPage /> },
       { path: "/settings", element: <SettingsPage /> },
+      { path: "/account", element: <MyAccountPage /> },
       { path: "/whatsapp-gateway", element: <WhatsAppGatewayPage /> },
     ],
   },
