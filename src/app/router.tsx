@@ -31,11 +31,13 @@ import WarehousesPage from "@/features/warehouses/WarehousesPage";
 import ReviewsPage from "@/features/reviews/ReviewsPage";
 import MyAccountPage from "@/features/account/MyAccountPage";
 import PricingPage from "@/features/pricing/PricingPage";
+import PosPage from "@/features/pos/pages/PosPage";
 
 export const router = createBrowserRouter([
   { path: "/sign-up", element: <SignUpPage /> },
   { path: "/sign-in", element: <SignInPage /> },
   { path: "/reset-password", element: <ResetPasswordPage /> },
+  { path: "/pos", element: <PosPage /> },
   {
     path: "/",
     element: <AppLayout />,
