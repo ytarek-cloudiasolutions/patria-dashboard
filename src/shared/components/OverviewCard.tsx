@@ -11,9 +11,9 @@ const OverviewCard = ({ data }: { data: OverviewCardProps }) => {
       : "border-[#D4D4D4] bg-[#F5F5F5] text-[#595959]";
 
   return (
-    <Card className="py-0 rounded-[16px] border border-[#E5E5E5] ring-0 shadow">
-      <CardContent className="flex flex-1 justify-between items-center px-6 py-6">
-        <div>
+    <Card className="py-0 rounded-[16px] border border-[#E5E5E5] ring-0 shadow-sm w-full">
+      <CardContent className="flex flex-1 justify-between items-center px-5 py-5 sm:px-6 sm:py-6">
+        <div className="min-w-0 flex-1 pr-3">
           {data.trend && (
             <span
               className={`${trendClassName} mb-[6.5px] inline-flex h-4 min-w-12 items-center justify-center rounded-[30px] border px-2 text-[10px] font-semibold leading-none`}
@@ -21,14 +21,16 @@ const OverviewCard = ({ data }: { data: OverviewCardProps }) => {
               {data.trend.value}
             </span>
           )}
-          <p className="mb-2 text-[#28293D] text-[10px] font-semibold ">
+          <p className="mb-2 truncate text-[#28293D] text-[10px] font-semibold">
             {data.title}
           </p>
-          <p className="text-[#28293D] text-[20px] font-semibold">
+          <p className="truncate text-[#28293D] text-[18px] font-semibold sm:text-[20px]">
             {data.value}
           </p>
         </div>
-        <Badge className={`${data.badgeColor} w-11.5 h-11.5 rounded-[11.15px]`}>
+        <Badge
+          className={`${data.badgeColor} shrink-0 w-11.5 h-11.5 rounded-[11.15px]`}
+        >
           <span className={`${data.iconColor}`}>{data.icon}</span>
         </Badge>
       </CardContent>

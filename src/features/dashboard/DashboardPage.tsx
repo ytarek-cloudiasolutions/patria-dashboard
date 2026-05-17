@@ -6,6 +6,7 @@ import {
   REVENUE_TREND,
   TOP_SOLD_PRODUCTS,
 } from "./data";
+
 import DashboardMetrics from "./components/DashboardMetrics";
 import LiveOrderStream from "./components/LiveOrderStream";
 import PerformanceIndicators from "./components/PerformanceIndicators";
@@ -15,26 +16,29 @@ import HeaderLayout from "@/layouts/HeaderLayout";
 
 const DashboardPage = () => {
   return (
-    <>
+    <div className="space-y-4 sm:space-y-6">
+      {/* Header */}
       <HeaderLayout
         title="Welcome back, Admin"
         description={`Real-time business performance metrics — ${DASHBOARD_DATE}`}
-        className="mb-7"
+        className="mb-5 sm:mb-7"
       />
-      <div className="space-y-6">
-        <DashboardMetrics metrics={DASHBOARD_METRICS} />
 
-        <div className="grid gap-7.5 xl:grid-cols-[1.55fr_1fr]">
-          <RevenueTrendChart data={REVENUE_TREND} />
-          <PerformanceIndicators indicators={PERFORMANCE_INDICATORS} />
-        </div>
+      {/* Metrics */}
+      <DashboardMetrics metrics={DASHBOARD_METRICS} />
 
-        <div className="grid gap-6 xl:grid-cols-[0.9fr_1.25fr]">
-          <TopSoldProducts products={TOP_SOLD_PRODUCTS} />
-          <LiveOrderStream orders={LIVE_ORDERS} />
-        </div>
+      {/* Row 1: Revenue Chart + Performance Indicators */}
+      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[1.6fr_1fr]">
+        <RevenueTrendChart data={REVENUE_TREND} />
+        <PerformanceIndicators indicators={PERFORMANCE_INDICATORS} />
       </div>
-    </>
+
+      {/* Row 2: Top Products + Live Orders */}
+      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[1fr_1.4fr]">
+        <TopSoldProducts products={TOP_SOLD_PRODUCTS} />
+        <LiveOrderStream orders={LIVE_ORDERS} />
+      </div>
+    </div>
   );
 };
 

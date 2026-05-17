@@ -7,13 +7,6 @@ interface AppLayoutProps {
   children?: React.ReactNode;
 }
 
-/**
- * AppLayout
- * Route layout shell with sidebar + topbar.
- *
- * Router usage:
- *   { path: "/", element: <AppLayout />, children: [...] }
- */
 const AppLayout = ({ children }: AppLayoutProps) => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -24,18 +17,13 @@ const AppLayout = ({ children }: AppLayoutProps) => {
         <AppSidebar
           activePath={pathname}
           onNavigate={(href) => navigate(href)}
-          onOpenPOS={() => {
-            navigate("/pos");
-          }}
-          onLogout={() => {
-            // TODO: call your auth logout handler
-            console.log("Logout");
-          }}
+          onOpenPOS={() => navigate("/pos")}
+          onLogout={() => console.log("Logout")}
         />
 
-        <SidebarInset className="flex flex-1 flex-col overflow-hidden">
+        <SidebarInset className="flex flex-1 flex-col overflow-hidden min-w-0">
           <AppTopbar />
-          <main className="flex-1 overflow-auto px-4.5 pt-10 pb-31 bg-[#FAFAF7]">
+          <main className="flex-1 overflow-auto px-3 pt-6 pb-20 sm:px-4.5 sm:pt-10 sm:pb-31 bg-[#FAFAF7]">
             {children ?? <Outlet />}
           </main>
         </SidebarInset>

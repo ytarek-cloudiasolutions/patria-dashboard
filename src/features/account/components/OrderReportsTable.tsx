@@ -1,12 +1,4 @@
 import { BarChart2, Download } from "lucide-react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/shared/components/ui/table";
 import type { Order } from "../types";
 import OrderStatusBadge from "./OrderStatusBadge";
 
@@ -22,58 +14,66 @@ const OrderReportsTable = ({
   onDownloadExcel,
 }: OrderReportsTableProps) => {
   return (
-    <div className="rounded-[16px] border border-[#E5E5E5] bg-white overflow-hidden shadow-sm">
-      {/* Table toolbar */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-[#E5E5E5]">
-        <div className="flex items-center gap-2 text-[#28293D] text-[13px] font-semibold">
-          <BarChart2 size={16} className="text-[#8B6914]" />
+    <div className="overflow-hidden rounded-[16px] border border-[#E1E1E5] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#EFE9E0] px-[19px] py-[14px]">
+        <div className="flex items-center gap-[13px] text-[16px] font-semibold text-[#333333]">
+          <BarChart2 size={24} className="text-[#000000]" strokeWidth={1.9} />
           <span>{totalInPeriod} applications within the specified period</span>
         </div>
         <button
+          type="button"
           onClick={onDownloadExcel}
-          className="flex items-center gap-1.5 text-[#595959] text-[12px] font-medium hover:text-[#28293D] transition-colors"
+          className="flex h-[43px] items-center gap-3 rounded-[5px] bg-[#F5F0EA] px-[27px] text-[14px] font-medium text-primary transition-colors hover:bg-[#EEE4D7]"
         >
-          <Download size={14} />
+          <Download size={16} />
           Download EXCEL
         </button>
       </div>
 
-      {/* Table */}
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="pl-5">ORDER NO.</TableHead>
-            <TableHead>CUSTOMER</TableHead>
-            <TableHead>DATE</TableHead>
-            <TableHead>STATUS</TableHead>
-            <TableHead className="pr-5 text-right">TOTAL</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {orders.map((order, index) => (
-            <TableRow
-              key={`${order.orderNo}-${index}`}
-              className="border-b border-[#F0F0F0] last:border-0"
-            >
-              <TableCell className="pl-5 text-[#28293D] text-[13px] font-medium">
-                {order.orderNo}
-              </TableCell>
-              <TableCell className="text-[#28293D] text-[13px]">
-                {order.customer}
-              </TableCell>
-              <TableCell className="text-[#595959] text-[13px]">
-                {order.date}
-              </TableCell>
-              <TableCell>
-                <OrderStatusBadge status={order.status} />
-              </TableCell>
-              <TableCell className="pr-5 text-right text-[#28293D] text-[13px] font-medium">
-                {order.total ?? "-"}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[760px] caption-bottom text-sm">
+          <thead className="bg-[#F5F0EA] text-[13px] font-semibold text-[#28293D]">
+            <tr>
+              <th className="h-[43px] pl-[29px] text-left align-middle whitespace-nowrap">
+                ORDER NO.
+              </th>
+              <th className="h-[43px] px-2 text-left align-middle whitespace-nowrap">
+                CUSTOMER
+              </th>
+              <th className="h-[43px] px-2 text-left align-middle whitespace-nowrap">
+                DATE
+              </th>
+              <th className="h-[43px] px-2 text-left align-middle whitespace-nowrap">
+                STATUS
+              </th>
+              <th className="h-[43px] pr-[63px] text-right align-middle whitespace-nowrap">
+                TOTAL
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white">
+            {orders.map((order, index) => (
+              <tr key={`${order.orderNo}-${index}`}>
+                <td className="h-[49px] pl-[29px] align-middle text-[13px] font-bold whitespace-nowrap text-[#333333]">
+                  {order.orderNo}
+                </td>
+                <td className="px-2 align-middle text-[15px] font-medium whitespace-nowrap text-[#000000]">
+                  {order.customer}
+                </td>
+                <td className="px-2 align-middle text-[15px] font-medium whitespace-nowrap text-[#000000]">
+                  {order.date}
+                </td>
+                <td className="px-2 align-middle whitespace-nowrap">
+                  <OrderStatusBadge status={order.status} />
+                </td>
+                <td className="pr-[63px] text-right align-middle text-[15px] font-semibold whitespace-nowrap text-[#000000]">
+                  {order.total ?? "-"}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };

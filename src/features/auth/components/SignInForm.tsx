@@ -7,35 +7,42 @@ import RememberMeField from "./RememberMeField";
 
 const SignInForm = () => {
   return (
-    <div>
-      <HeaderLayout
-        title="Welcome back, Admin"
-        description="Enter your credentials to access your account"
-        className="mb-22.5"
-      />
-      <form className="flex flex-col mb-4">
-        <div className="mb-16">
-          <EmailInputField className="mb-6" />
+    <div className="flex flex-col gap-12 lg:gap-22.5">
+      {/* Header */}
+      <div className="text-center lg:text-left">
+        <HeaderLayout
+          title="Welcome back, Admin"
+          description="Enter your credentials to access your account"
+        />
+      </div>
+      {/* Form */}
+      <form className="flex flex-col gap-10 lg:gap-16">
+        <div className="flex flex-col gap-5 lg:gap-6">
+          <EmailInputField />
           <PasswordInputField
             id="password"
-            label={{ htmlFor: "password", labelText: "Password" }}
+            label="Password"
             placeholder="Password"
-            className="mb-6"
           />
-          <div className="flex justify-between">
+          <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
             <RememberMeField />
-            <a href="reset-password" className="text-333333-16-medium">
+            <a
+              href="/reset-password"
+              className="text-sm sm:text-base font-medium text-[#333333]"
+            >
               Forgot your Password?
             </a>
           </div>
         </div>
-        <FormButton buttonText="Sign In" />
+        <div className="flex flex-col gap-4">
+          <FormButton buttonText="Sign In" />
+          <AuthRedirectSection
+            actionLinkHref="/sign-up"
+            promptText="Don't have an account?"
+            actionLinkText="Create account"
+          />
+        </div>
       </form>
-      <AuthRedirectSection
-        actionLinkHref="/sign-up"
-        promptText="Don't have an account?"
-        actionLinkText="Create account"
-      />
     </div>
   );
 };

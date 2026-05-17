@@ -9,7 +9,7 @@ interface DashboardMetricsProps {
 
 const DashboardMetrics = ({ metrics }: DashboardMetricsProps) => {
   return (
-    <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4 xl:gap-6">
       {metrics.map((metric) => {
         const Icon = metric.icon;
         const TrendIcon =

@@ -40,25 +40,26 @@ const DropdownSelect = ({
           variant="outline"
           className={cn(
             "h-12 w-full justify-between rounded-[12px] border-[#E5E5E5]",
-            "bg-white px-4.5 py-3 text-[15px] font-medium text-[#000000] cursor-pointer",
+            "bg-white px-4 py-3 text-[14px] font-medium text-[#000000] cursor-pointer",
             "hover:bg-white data-[state=open]:bg-white",
-            "focus-visible:border-[#E5E5E5] focus-visible:ring-0 md:w-78",
+            "focus-visible:border-[#E5E5E5] focus-visible:ring-0",
+            "sm:w-full md:w-78",
             className
           )}
         >
-          {selectedLabel}
-          <ChevronDown className="size-6 text-[#000000]" />
+          <span className="truncate">{selectedLabel}</span>
+          <ChevronDown className="ml-2 size-5 shrink-0 text-[#000000]" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align={align}
-        className="z-70 w-78 p-2 ring-0 rounded-[12px] space-y-2"
+        className="z-70 w-[var(--radix-dropdown-menu-trigger-width)] p-2 ring-0 rounded-[12px] space-y-1 md:w-78"
       >
         {normalizedOptions.map((option) => (
           <DropdownMenuItem
             key={option.value}
             className={cn(
-              "px-3 py-2 text-[16px] font-medium rounded-[12px] cursor-pointer",
+              "px-3 py-2 text-[14px] font-medium rounded-[12px] cursor-pointer",
               selected === option.value
                 ? "bg-primary text-primary-foreground pointer-events-none"
                 : "text-[#28293D] data-highlighted:bg-[#F5F0EA]"

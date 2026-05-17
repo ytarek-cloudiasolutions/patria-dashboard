@@ -5,6 +5,7 @@ import CouponsPage from "@/features/coupons/pages/CouponsPage";
 import CustomersPage from "@/features/customers/pages/CustomersPage";
 import FinancialHubPage from "@/features/financial/pages/FinancialHubPage";
 import InventoryPage from "@/features/inventory/InventoryPage";
+
 import KitchenDetailsPage from "@/features/kitchen/pages/KitchenDetailsPage";
 import KitchenPage from "@/features/kitchen/pages/KitchenPage";
 import LocationsPage from "@/features/locations/pages/LocationsPage";

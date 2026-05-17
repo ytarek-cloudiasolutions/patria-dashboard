@@ -1,12 +1,4 @@
 import { Clock, RefreshCw } from "lucide-react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/shared/components/ui/table";
 import type { AttendanceLog } from "../types";
 
 interface Props {
@@ -15,78 +7,68 @@ interface Props {
 
 const AttendanceTab = ({ logs }: Props) => {
   return (
-    <Table>
-      <TableHeader>
-        {/* 🔶 Colored Header inside table */}
-        <TableRow>
-          <TableHead colSpan={5} className="p-0">
-            <div className="flex items-center justify-between px-5 py-4 bg-[#F5F0EA]">
-              <div className="flex items-center gap-3">
-                <div className="bg-white/60 p-2 rounded-[10px]">
-                  <Clock className="size-4 text-[#5C4A1E]" />
-                </div>
-                <div>
-                  <p className="text-[14px] font-semibold text-[#28293D]">
-                    Attendance Logs
-                  </p>
-                  <p className="text-[12px] text-[#8B8B8B] font-normal">
-                    Manage your account and platform preferences
-                  </p>
-                </div>
-              </div>
+    <section className="overflow-hidden rounded-[16px] border border-[#CACBD4] bg-white shadow-[0_12px_22px_rgba(0,0,0,0.12)]">
+      <div className="flex h-[86px] items-center justify-between bg-[#F5F0EA] px-[24px]">
+        <div className="flex items-center gap-[18px]">
+          <Clock className="size-8 text-[#000000]" />
+          <div>
+            <h2 className="text-[24px] font-bold leading-none text-[#333333]">
+              Attendance Logs
+            </h2>
+            <p className="mt-[7px] text-[14px] font-medium text-[#727272]">
+              Manage your account and platform preferences
+            </p>
+          </div>
+        </div>
 
-              <button className="flex items-center justify-center w-9 h-9 rounded-[8px] bg-[#5C4A1E] hover:bg-[#3d3012] transition-colors">
-                <RefreshCw className="size-4 text-white" />
-              </button>
-            </div>
-          </TableHead>
-        </TableRow>
-      </TableHeader>
+        <button className="flex size-[52px] items-center justify-center rounded-[8px] bg-primary transition-colors hover:bg-[#7A5C10]">
+          <RefreshCw className="size-6 text-white" />
+        </button>
+      </div>
 
-      <TableBody>
-        {/* 🔹 Column titles (like TeamTab) */}
-        <TableRow className="bg-white font-semibold text-[#8B8B8B] text-[12px] border-b border-[#E5E5E5]">
-          <TableCell className="pl-6 py-3">STAFF MEMBER</TableCell>
-          <TableCell>IN-DATE/TIME</TableCell>
-          <TableCell>OUT-DATE/TIME</TableCell>
-          <TableCell>LOGGED HOURS</TableCell>
-          <TableCell>STATUS</TableCell>
-        </TableRow>
-
-        {/* 🔹 Data rows */}
-        {logs.map((log) => (
-          <TableRow key={log.id}>
-            <TableCell className="pl-6 py-3 text-[13px] font-medium text-[#28293D]">
-              {log.staffMember}
-            </TableCell>
-
-            <TableCell className="text-[12px] text-[#28293D]">
-              {log.inDateTime}
-            </TableCell>
-
-            <TableCell className="text-[12px] text-[#8B8B8B]">
-              {log.outDateTime}
-            </TableCell>
-
-            <TableCell className="text-[12px] text-[#8B8B8B]">
-              {log.loggedHours}
-            </TableCell>
-
-            <TableCell>
-              <span
-                className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-semibold border ${
-                  log.status === "Ongoing"
-                    ? "bg-[#FFF7ED] text-[#C2410C] border-[#FED7AA]"
-                    : "bg-white text-[#5C4A1E] border-[#5C4A1E]"
-                }`}
-              >
-                {log.status}
-              </span>
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+      <div className="overflow-x-auto px-[20px] pb-[31px] pt-[31px]">
+        <table className="w-full min-w-[760px]">
+          <thead>
+            <tr className="border-b border-[#E1E1E5] text-left text-[14px] font-bold text-[#28293D]">
+              <th className="pb-[15px]">STAFF MEMBER</th>
+              <th className="pb-[15px]">IN-DATE/TIME</th>
+              <th className="pb-[15px]">OUT-DATE/TIME</th>
+              <th className="pb-[15px] text-center">LOGGED HOURS</th>
+              <th className="pb-[15px] text-center">STATUS</th>
+            </tr>
+          </thead>
+          <tbody>
+            {logs.map((log) => (
+              <tr key={log.id}>
+                <td className="h-[61px] align-middle text-[16px] font-medium text-[#000000]">
+                  {log.staffMember}
+                </td>
+                <td className="align-middle text-[16px] font-medium text-[#000000]">
+                  {log.inDateTime}
+                </td>
+                <td className="align-middle text-[16px] font-medium text-[#000000]">
+                  {log.outDateTime}
+                </td>
+                <td className="text-center align-middle text-[16px] font-medium text-[#000000]">
+                  {log.loggedHours}
+                </td>
+                <td className="text-center align-middle">
+                  <span
+                    className={`inline-flex h-[27px] min-w-[97px] items-center justify-center rounded-full border px-[14px] text-[15px] font-semibold leading-none ${
+                      log.status === "Ongoing"
+                        ? "border-[#00A85A] text-[#00A85A]"
+                        : "border-[#0066FF] text-[#336DFF]"
+                    }`}
+                  >
+                    {log.status}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
   );
 };
 

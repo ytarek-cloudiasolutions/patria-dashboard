@@ -10,12 +10,24 @@ const DefaultButton = ({ data }: { data: ButtonProps }) => {
       size={data.size}
       onClick={data.onClick}
       className={cn(
-        "flex gap-3 h-14 px-7.5 rounded-[5px] text-[#FFFFFF] text-[16px] font-semibold cursor-pointer",
+        // base responsive layout
+        "flex items-center justify-center gap-2 sm:gap-3",
+        "h-12 sm:h-14",
+        "px-4 sm:px-7.5",
+        "rounded-[5px]",
+        "font-semibold",
+        "text-sm sm:text-[16px]",
+        "cursor-pointer",
+
+        // allow overrides
         data.className
       )}
     >
-      {data.icon}
-      {data.buttonText}
+      {data.icon && (
+        <span className="flex items-center justify-center">{data.icon}</span>
+      )}
+
+      <span className="whitespace-nowrap">{data.buttonText}</span>
     </Button>
   );
 };

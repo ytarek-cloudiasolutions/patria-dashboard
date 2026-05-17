@@ -25,25 +25,23 @@ const WhatsAppGatewayPage = () => {
   const isConnected = connectionStatus === "Connected";
 
   return (
-    <div className="min-h-screen bg-[#F8F7F4] p-8">
-      <div className="mx-auto max-w-[1100px]">
-        {/* Page Header */}
-        <div className="mb-7 flex items-start justify-between">
+    <div className="min-h-screen bg-[#FCFCFB] px-5 py-8 md:px-6 lg:px-8 xl:px-[22px] xl:py-[49px]">
+      <div className="w-full">
+        <div className="mb-[31px] flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-[28px] font-bold text-[#28293D]">
+            <h1 className="text-[38px] font-bold leading-[1.1] text-[#333333]">
               WhatsApp Gateway
             </h1>
-            <p className="mt-0.5 text-[13px] text-[#6B6B6B]">
+            <p className="mt-[5px] text-[19px] font-medium text-[#696969]">
               Link your device for internal OTP &amp; Notifications
             </p>
           </div>
 
-          {/* Connection status badge */}
           <span
             className={cn(
-              "rounded-full border px-4 py-1.5 text-[13px] font-semibold",
+              "mt-[18px] inline-flex h-[28px] items-center rounded-full border px-[15px] text-[16px] font-semibold leading-none",
               isConnected
-                ? "border-[#A8DFC4] bg-[#E8F5EE] text-[#1A7A45]"
+                ? "border-[#00A85A] bg-[#DDF6EB] text-[#00A85A]"
                 : "border-[#F5A8A8] bg-[#FFF0F0] text-[#C90000]"
             )}
           >
@@ -51,10 +49,8 @@ const WhatsAppGatewayPage = () => {
           </span>
         </div>
 
-        {/* Two-column layout */}
-        <div className="grid grid-cols-[1fr_300px] gap-5">
-          {/* Left column */}
-          <div className="flex flex-col gap-5">
+        <div className="grid gap-[35px] xl:grid-cols-[minmax(0,1fr)_370px]">
+          <div className="flex min-w-0 flex-col gap-[26px]">
             <ConnectionPanel
               status={connectionStatus}
               onDisconnect={handleDisconnect}
@@ -62,8 +58,7 @@ const WhatsAppGatewayPage = () => {
             <TechnicalPerformancePanel data={TECHNICAL_PERFORMANCE} />
           </div>
 
-          {/* Right column */}
-          <div className="flex flex-col gap-5">
+          <div className="flex min-w-0 flex-col gap-[26px]">
             <HowToLinkPanel steps={HOW_TO_LINK_STEPS} />
             <GatewaySecurityPanel data={GATEWAY_SECURITY} />
             <NeedHelpPanel />

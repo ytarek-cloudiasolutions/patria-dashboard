@@ -1,12 +1,4 @@
 import { Smartphone } from "lucide-react";
-import {
-  Table,
-  TableHeader,
-  TableRow,
-  TableHead,
-  TableBody,
-  TableCell,
-} from "@/shared/components/ui/table";
 import type { HowToLinkStep } from "../types";
 
 interface HowToLinkPanelProps {
@@ -15,38 +7,27 @@ interface HowToLinkPanelProps {
 
 const HowToLinkPanel = ({ steps }: HowToLinkPanelProps) => {
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead className="px-5 py-4" colSpan={2}>
-            <div className="flex items-center justify-between">
-              <span className="text-[15px] font-bold text-[#28293D]">
-                How to link?
-              </span>
-              <Smartphone size={18} className="text-[#6B6B6B]" />
-            </div>
-          </TableHead>
-        </TableRow>
-      </TableHeader>
+    <section className="overflow-hidden rounded-[16px] border border-[#E1E1E5] bg-white">
+      <div className="flex h-[55px] items-center justify-between bg-[#F5F0EA] px-[20px]">
+        <h2 className="text-[20px] font-bold text-[#333333]">How to link?</h2>
+        <Smartphone className="size-7 text-[#000000]" strokeWidth={1.8} />
+      </div>
 
-      <TableBody>
-        {steps.map(({ step, description }) => (
-          <TableRow
-            key={step}
-            className="hover:bg-transparent border-b border-[#F3F3F3] last:border-0"
-          >
-            <TableCell className="w-10 pl-5 pr-2 py-3 align-top">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#5C4A0E] text-[11px] font-bold text-white">
+      <div className="px-[15px] py-[24px]">
+        <div className="flex flex-col gap-[18px]">
+          {steps.map(({ step, description }) => (
+            <div key={step} className="flex items-center gap-[10px]">
+              <span className="flex size-[29px] shrink-0 items-center justify-center rounded-full bg-primary text-[16px] font-bold text-white">
                 {step}
               </span>
-            </TableCell>
-            <TableCell className="pr-5 py-3 text-[13px] leading-snug text-[#28293D] whitespace-normal">
-              {description}
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+              <p className="text-[13px] font-bold leading-snug text-[#000000]">
+                {description}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 };
 

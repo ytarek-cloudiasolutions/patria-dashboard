@@ -1,34 +1,34 @@
 import HeaderLayout from "@/layouts/HeaderLayout";
 import FormButton from "./FormButton";
-
 import PasswordInputField from "./PasswordInputField";
 
 const ResetPasswordForm = () => {
   return (
-    <div>
-      <HeaderLayout
-        title="Reset Password"
-        description="Enter and confirm your new password to secure your account."
-        className="mb-22.5"
-      />
-      <form className="flex flex-col mb-4">
-        <div className="mb-16">
+    <div className="flex flex-col gap-12 lg:gap-22.5">
+      {/* Header */}
+      <div className="text-center lg:text-left">
+        <HeaderLayout
+          title="Reset Password"
+          description="Enter and confirm your new password to secure your account."
+        />
+      </div>
+      {/* Form */}
+      <form className="flex flex-col gap-10 lg:gap-16">
+        {/* Fields */}
+        <div className="flex flex-col gap-5 lg:gap-6">
           <PasswordInputField
             id="password"
-            label={{ htmlFor: "password", labelText: "Password" }}
+            label="Password"
             placeholder="Password"
-            className="mb-6"
           />
           <PasswordInputField
             id="confirm-password"
-            label={{
-              htmlFor: "confirm-password",
-              labelText: "Confirm Password",
-            }}
+            label="Confirm Password"
             placeholder="Confirm Password"
           />
         </div>
-        <FormButton buttonText="Sign In" />
+        {/* Button */}
+        <FormButton buttonText="Reset Password" />
       </form>
     </div>
   );

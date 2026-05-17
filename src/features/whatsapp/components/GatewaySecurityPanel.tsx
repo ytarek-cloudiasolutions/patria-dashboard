@@ -1,12 +1,4 @@
 import { ShieldCheck } from "lucide-react";
-import {
-  Table,
-  TableHeader,
-  TableRow,
-  TableHead,
-  TableBody,
-  TableCell,
-} from "@/shared/components/ui/table";
 import type { GatewaySecurity } from "../types";
 
 interface GatewaySecurityPanelProps {
@@ -15,50 +7,32 @@ interface GatewaySecurityPanelProps {
 
 const GatewaySecurityPanel = ({ data }: GatewaySecurityPanelProps) => {
   return (
-    <div className="w-full min-w-0">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="px-5 py-4 w-full whitespace-normal">
-              <div className="flex items-center justify-between">
-                <span className="text-[15px] font-bold text-[#28293D]">
-                  Gateway Security
-                </span>
-                <ShieldCheck size={18} className="text-[#6B6B6B]" />
-              </div>
-            </TableHead>
-          </TableRow>
-        </TableHeader>
+    <section className="overflow-hidden rounded-[16px] border border-[#E1E1E5] bg-white">
+      <div className="flex h-[55px] items-center justify-between bg-[#F5F0EA] px-[20px]">
+        <h2 className="text-[20px] font-bold text-[#333333]">
+          Gateway Security
+        </h2>
+        <ShieldCheck className="size-7 text-[#000000]" strokeWidth={1.8} />
+      </div>
 
-        <TableBody>
-          {/* Session Isolation card */}
-          <TableRow className="hover:bg-transparent border-b border-[#F3F3F3]">
-            <TableCell className="px-5 py-4 whitespace-normal w-full">
-              <div className="rounded-[10px] bg-[#EDEAE4] p-4">
-                <p className="mb-1.5 text-[13px] font-semibold text-[#28293D] break-words">
-                  {data.title}
-                </p>
-                <p className="text-[12px] leading-relaxed text-[#6B6B6B] break-words">
-                  {data.description}
-                </p>
-              </div>
-            </TableCell>
-          </TableRow>
+      <div className="px-[18px] pb-[24px] pt-[29px]">
+        <div className="rounded-[10px] bg-[#E4E4E4] px-[14px] py-[17px]">
+          <h3 className="text-[15px] font-bold text-[#000000]">
+            {data.title}
+          </h3>
+          <p className="mt-[8px] text-[13px] font-medium leading-[1.18] text-[#28293D]">
+            {data.description}
+          </p>
+        </div>
 
-          {/* Compliance note */}
-          <TableRow className="hover:bg-transparent">
-            <TableCell className="px-5 py-4 whitespace-normal w-full">
-              <p className="text-center text-[11px] text-[#6B6B6B] break-words">
-                {data.complianceNote}
-              </p>
-              <p className="text-center text-[11px] font-semibold text-[#28293D]">
-                Last audit: {data.lastAudit}
-              </p>
-            </TableCell>
-          </TableRow>
-        </TableBody>
-      </Table>
-    </div>
+        <p className="mt-[13px] text-center text-[12px] font-bold leading-[1.25] text-[#000000]">
+          {data.complianceNote}
+        </p>
+        <p className="mt-[4px] text-center text-[12px] font-bold leading-none text-[#000000]">
+          Last audit: {data.lastAudit}
+        </p>
+      </div>
+    </section>
   );
 };
 

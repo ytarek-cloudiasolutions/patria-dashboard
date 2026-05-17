@@ -7,39 +7,41 @@ import HeaderLayout from "@/layouts/HeaderLayout";
 
 const SignUpForm = () => {
   return (
-    <div>
-      <HeaderLayout
-        title="Set up your admin account"
-        description="Set up your restaurant management space."
-        className="mb-22.5"
-      />
-      <form className="flex flex-col mb-4">
-        <div className="mb-16">
-          <EmailInputField className="mb-6" />
+    <div className="flex flex-col gap-12 lg:gap-22.5">
+      {/* Header */}
+      <div className="text-center lg:text-left">
+        <HeaderLayout
+          title="Set up your admin account"
+          description="Set up your restaurant management space."
+        />
+      </div>
+      <form className="flex flex-col gap-10 lg:gap-16">
+        {/* Fields */}
+        <div className="flex flex-col gap-5 lg:gap-6">
+          <EmailInputField />
           <PasswordInputField
             id="password"
-            label={{ htmlFor: "password", labelText: "Password" }}
+            label="Password"
             placeholder="Password"
-            className="mb-6"
           />
           <PasswordInputField
-            id="confirm-password"
-            label={{
-              htmlFor: "confirm-password",
-              labelText: "Confirm Password",
-            }}
+            id="confirm_password"
+            label="Confirm Password"
             placeholder="Confirm Password"
-            className="mb-6"
           />
+          {/* Keep only if required by product logic */}
           <RememberMeField />
         </div>
-        <FormButton buttonText="Sign Up" />
+        {/* Actions */}
+        <div className="flex flex-col gap-4">
+          <FormButton buttonText="Sign Up" />
+          <AuthRedirectSection
+            actionLinkHref="/sign-in"
+            promptText="Already have an account?"
+            actionLinkText="Sign In"
+          />
+        </div>
       </form>
-      <AuthRedirectSection
-        actionLinkHref="/sign-in"
-        promptText="Already have an account?"
-        actionLinkText="Sign In"
-      />
     </div>
   );
 };

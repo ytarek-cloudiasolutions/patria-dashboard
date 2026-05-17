@@ -1,12 +1,13 @@
 import { useState } from "react";
 import {
-  User,
-  Lock,
+  UserRound,
+  Shield,
   Bell,
   Users,
   Clock,
   Activity,
   ShieldCheck,
+  Info,
 } from "lucide-react";
 import AttendanceTab from "./components/AttendanceTab";
 
@@ -27,24 +28,24 @@ import type { SettingsTab } from "./types";
 import AuditLogsTab from "./components/AuditLogsTab";
 
 const tabs: { key: SettingsTab; label: string; icon: React.ReactNode }[] = [
-  { key: "profile", label: "Profile", icon: <User className="size-3.5" /> },
-  { key: "security", label: "Security", icon: <Lock className="size-3.5" /> },
+  { key: "profile", label: "Profile", icon: <UserRound className="size-6" /> },
+  { key: "security", label: "Security", icon: <Shield className="size-6" /> },
   {
     key: "notifications",
     label: "Notifications",
-    icon: <Bell className="size-3.5" />,
+    icon: <Bell className="size-6" />,
   },
-  { key: "team", label: "Team", icon: <Users className="size-3.5" /> },
+  { key: "team", label: "Team", icon: <Users className="size-6" /> },
   {
     key: "attendance",
     label: "Attendance",
-    icon: <Clock className="size-3.5" />,
+    icon: <Clock className="size-6" />,
   },
-  { key: "system", label: "System", icon: <Activity className="size-3.5" /> },
+  { key: "system", label: "System", icon: <Activity className="size-6" /> },
   {
     key: "auditLogs",
     label: "Audit Logs",
-    icon: <ShieldCheck className="size-3.5" />,
+    icon: <ShieldCheck className="size-6" />,
   },
 ];
 
@@ -56,92 +57,89 @@ const SettingsPage = () => {
   const [activeTab, setActiveTab] = useState<SettingsTab>("profile");
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] px-8 py-8">
-      {/* Page Header */}
-      <div className="mb-6">
-        <h1 className="text-[28px] font-bold text-[#28293D]">Settings</h1>
-        <p className="text-[14px] text-[#8B8B8B] mt-1">
+    <div className="min-h-screen bg-[#FCFCFB] px-5 py-8 md:px-6 lg:px-8 xl:px-[22px] xl:py-[43px]">
+      <div className="mb-[38px]">
+        <h1 className="text-[34px] font-bold leading-[1.1] text-[#333333]">
+          Settings
+        </h1>
+        <p className="mt-[5px] text-[18px] font-medium text-[#696969]">
           Manage your account and platform preferences
         </p>
       </div>
 
-      {/* Tabs bar */}
-      <div className="mb-4 grid grid-cols-7 gap-x-1.5 gap-y-1 overflow-x-auto">
+      <div className="mb-[25px] grid grid-cols-7 gap-x-1.5 overflow-x-auto">
         {tabs.map((tab) => (
           <button
             key={tab.key}
             type="button"
             onClick={() => setActiveTab(tab.key)}
-            className={`relative h-auto w-full cursor-pointer rounded-none pb-3 text-center text-[16px] font-semibold transition-colors flex items-center justify-center gap-2 whitespace-nowrap ${
+            className={`relative flex h-[44px] min-w-[150px] cursor-pointer items-start justify-center gap-3 whitespace-nowrap pb-3 text-center text-[18px] font-medium transition-colors ${
               activeTab === tab.key
-                ? "text-[#333333] font-medium"
-                : "text-[#8B8B8B] hover:text-[#8B8B8B]"
+                ? "text-[#1F1F1F]"
+                : "text-[#8F8F8F] hover:text-[#666666]"
             }`}
           >
             {tab.icon}
             {tab.label}
             <span
               className={`absolute right-0 bottom-0 left-0 h-0.5 transition-all ${
-                activeTab === tab.key ? "bg-primary" : "bg-[#8B8B8B]"
+                activeTab === tab.key ? "bg-primary" : "bg-[#9A9A9A]"
               }`}
             />
           </button>
         ))}
       </div>
 
-      {/* Two-column layout */}
-      <div className="flex gap-5 items-start">
-        {/* Left sidebar: user card */}
-        <div className="w-[160px] flex-shrink-0 flex flex-col gap-4">
-          {/* Avatar card */}
-          <div className="bg-white rounded-[16px] border border-[#E5E5E5] p-4 flex flex-col items-center gap-3">
-            <div className="w-14 h-14 rounded-full bg-[#5C4A1E] flex items-center justify-center text-white text-[20px] font-bold">
-              {USER_INITIALS}
+      <div className="grid items-start gap-[30px] xl:grid-cols-[345px_minmax(0,1fr)]">
+        <div className="flex min-w-0 flex-col gap-[24px]">
+          <section className="rounded-[16px] border border-[#E1E1E5] bg-white px-[16px] pb-[24px] pt-[14px]">
+            <div className="mx-auto flex size-[115px] items-center justify-center rounded-full bg-[#F2F0EA]">
+              <div className="flex size-[94px] items-center justify-center rounded-full bg-primary text-[46px] font-bold text-white shadow-inner">
+                {USER_INITIALS}
+              </div>
             </div>
-            <div className="text-center">
-              <p className="text-[13px] font-semibold text-[#28293D]">
+            <div className="mt-[12px] text-center">
+              <p className="text-[19px] font-bold leading-none text-[#333333]">
                 {USER_NAME}
               </p>
-              <p className="text-[10px] text-[#8B8B8B] font-medium tracking-wider uppercase">
+              <p className="mt-[8px] text-[11px] font-bold uppercase tracking-wide text-[#545454]">
                 {USER_ROLE}
               </p>
             </div>
 
-            <div className="w-full flex flex-col gap-1.5 mt-1">
+            <div className="mt-[27px] flex w-full flex-col gap-[15px] px-[2px]">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] text-[#8B8B8B]">
+                <span className="text-[12px] font-bold text-[#000000]">
                   Identity verified
                 </span>
-                <div className="w-3.5 h-3.5 rounded-full border border-[#E5E5E5] bg-white" />
+                <ShieldCheck className="size-4 text-[#00A85A]" />
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-[10px] text-[#8B8B8B]">2FA Status</span>
-                <span className="px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-[#FFF0F0] text-[#C90000] border border-[#FECACA]">
+                <span className="text-[12px] font-bold text-[#000000]">
+                  2FA Status
+                </span>
+                <span className="inline-flex h-[19px] items-center rounded-full border border-[#FF0000] px-[8px] text-[12px] font-semibold leading-none text-[#FF0000]">
                   Disabled
                 </span>
               </div>
             </div>
-          </div>
+          </section>
 
-          {/* System Notice */}
-          <div className="bg-white rounded-[16px] border border-[#E5E5E5] p-4">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-[11px] font-semibold text-[#28293D]">
+          <section className="overflow-hidden rounded-[16px] border border-[#E1E1E5] bg-white">
+            <div className="flex h-[51px] items-center justify-between bg-[#F5F0EA] px-[17px]">
+              <p className="text-[18px] font-bold text-[#333333]">
                 System Notice
               </p>
-              <div className="w-4 h-4 rounded-full border border-[#E5E5E5] flex items-center justify-center">
-                <span className="text-[8px] text-[#8B8B8B] font-bold">i</span>
-              </div>
+              <Info className="size-[22px] text-[#000000]" />
             </div>
-            <p className="text-[10px] text-[#8B8B8B] leading-relaxed">
+            <p className="px-[20px] py-[27px] text-center text-[14px] font-bold leading-[1.18] text-[#000000]">
               System-wide glassmorphism modernization is active. All
               administrative modules are now responsive and highly intuitive.
             </p>
-          </div>
+          </section>
         </div>
 
-        {/* Right panel: tab content */}
-        <div className="flex-1 min-w-0">
+        <div className="min-w-0">
           {activeTab === "profile" && <ProfileTab initialData={profileData} />}
           {activeTab === "security" && <SecurityTab />}
           {activeTab === "notifications" && (

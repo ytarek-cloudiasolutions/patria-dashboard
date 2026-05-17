@@ -6,16 +6,21 @@ const RememberMeField = () => {
   const [isChecked, setIsChecked] = useState(false);
 
   return (
-    <div className="flex gap-1.5 items-center">
-      <div className={`p-1 rounded-[10px] ${isChecked ? "bg-[#624F1C1A]" : ""}`}>
+    <div className="flex items-center gap-1.5">
+      <div
+        className={`rounded-[10px] p-1 ${isChecked ? "bg-[#624F1C1A]" : ""}`}
+      >
         <Checkbox
           id="logged_in"
           checked={isChecked}
           onCheckedChange={(checked) => setIsChecked(checked === true)}
-          className="w-[19.98px] h-[19.98px] rounded-[5.99px] border-primary"
+          className="h-5 w-5 rounded-[5.99px] border-[#8F6900] cursor-pointer"
         />
       </div>
-      <Label htmlFor="logged_in" className="text-333333-16-medium">
+      <Label
+        htmlFor="logged_in"
+        className="text-[16px] font-medium text-[#333333] cursor-pointer"
+      >
         Remember me
       </Label>
     </div>

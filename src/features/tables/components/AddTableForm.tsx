@@ -152,7 +152,6 @@ const AddTableForm = ({ onSave, onCancel }: AddTableFormProps) => {
             buttonText: "Add Table",
             type: "button",
             onClick: handleSave,
-            className: isInvalid ? "opacity-50 pointer-events-none" : undefined,
           }}
         />
       </div>

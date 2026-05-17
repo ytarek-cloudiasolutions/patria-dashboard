@@ -141,23 +141,9 @@ const DatePickerField = ({
 }: DatePickerFieldProps) => {
   const [open, setOpen] = useState(false);
   const [openUpward, setOpenUpward] = useState(false);
-  const [tempValue, setTempValue] = useState(value);
-  const [viewDate, setViewDate] = useState<Date>(
-    parseYmd(value) ?? new Date()
-  );
+  const [tempValue, setTempValue] = useState(value || toYmd(new Date()));
+  const [viewDate, setViewDate] = useState<Date>(parseYmd(value) ?? new Date());
   const wrapperRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    setTempValue(value);
-    setViewDate(parseYmd(value) ?? new Date());
-  }, [value]);
-
-  useEffect(() => {
-    if (!open || value) return;
-    const today = new Date();
-    setTempValue(toYmd(today));
-    setViewDate(today);
-  }, [open, value]);
 
   useEffect(() => {
     if (!open) return;
@@ -217,7 +203,7 @@ const DatePickerField = ({
 
       {open && (
         <div
-          className={`absolute left-0 z-[80] w-full rounded-[16px] border border-[#E5E5E5] bg-white p-4 shadow-lg ${
+          className={`absolute left-0 z-80 w-full rounded-[16px] border border-[#E5E5E5] bg-white p-4 shadow-lg ${
             openUpward ? "bottom-[calc(100%+8px)]" : "top-[calc(100%+8px)]"
           }`}
         >
@@ -279,9 +265,7 @@ const DatePickerField = ({
                       setTempValue(dayValue);
                     }}
                     className={`mx-auto inline-flex size-9 items-center justify-center rounded-[10px] text-[16px] cursor-pointer ${
-                      isPastDay
-                        ? "text-[#C7C7C7] cursor-not-allowed"
-                        : ""
+                      isPastDay ? "text-[#C7C7C7] cursor-not-allowed" : ""
                     } ${
                       isSelected
                         ? "bg-primary text-primary-foreground"
@@ -345,30 +329,27 @@ const TimePickerField = ({
   const [open, setOpen] = useState(false);
   const [openUpward, setOpenUpward] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const parsedInitial = parseTime24(value);
-  const now = new Date();
 
-  const [tempHour, setTempHour] = useState(
-    parsedInitial?.hour ?? String((now.getHours() % 12) || 12).padStart(2, "0")
-  );
-  const [tempMinute, setTempMinute] = useState(
-    parsedInitial?.minute ?? String(now.getMinutes()).padStart(2, "0")
-  );
-  const [tempPeriod, setTempPeriod] = useState<"AM" | "PM">(
-    parsedInitial?.period ?? (now.getHours() >= 12 ? "PM" : "AM")
-  );
-
-  useEffect(() => {
-    const parsed = parseTime24(value);
+  // Compute initial values once
+  const computeTimeState = (timeValue: string) => {
+    const parsed = parseTime24(timeValue);
     const current = new Date();
-    setTempHour(
-      parsed?.hour ?? String((current.getHours() % 12) || 12).padStart(2, "0")
-    );
-    setTempMinute(
-      parsed?.minute ?? String(current.getMinutes()).padStart(2, "0")
-    );
-    setTempPeriod(parsed?.period ?? (current.getHours() >= 12 ? "PM" : "AM"));
-  }, [value]);
+    return {
+      hour:
+        parsed?.hour ?? String(current.getHours() % 12 || 12).padStart(2, "0"),
+      minute: parsed?.minute ?? String(current.getMinutes()).padStart(2, "0"),
+      period: (parsed?.period ?? (current.getHours() >= 12 ? "PM" : "AM")) as
+        | "AM"
+        | "PM",
+    };
+  };
+
+  const initialState = computeTimeState(value);
+  const [tempHour, setTempHour] = useState(initialState.hour);
+  const [tempMinute, setTempMinute] = useState(initialState.minute);
+  const [tempPeriod, setTempPeriod] = useState<"AM" | "PM">(
+    initialState.period
+  );
 
   useEffect(() => {
     if (!open) return;
@@ -419,7 +400,7 @@ const TimePickerField = ({
 
       {open && (
         <div
-          className={`absolute left-0 z-[80] w-full rounded-[16px] border border-[#E5E5E5] bg-white p-4 shadow-lg ${
+          className={`absolute left-0 z-80 w-full rounded-[16px] border border-[#E5E5E5] bg-white p-4 shadow-lg ${
             openUpward ? "bottom-[calc(100%+8px)]" : "top-[calc(100%+8px)]"
           }`}
         >
@@ -510,7 +491,8 @@ const NewReservationForm = ({
   onSave,
   onCancel,
 }: NewReservationFormProps) => {
-  const [formData, setFormData] = useState<AddReservationFormData>(initialState);
+  const [formData, setFormData] =
+    useState<AddReservationFormData>(initialState);
 
   const canSubmit = useMemo(() => {
     return (
@@ -684,7 +666,6 @@ const NewReservationForm = ({
             buttonText: "Confirm Reservation",
             type: "button",
             onClick: handleSave,
-            className: !canSubmit ? "opacity-50 pointer-events-none" : undefined,
           }}
         />
       </div>

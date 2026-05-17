@@ -1,12 +1,4 @@
-import { ShieldCheck, RefreshCw } from "lucide-react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/shared/components/ui/table";
+import { RefreshCw, ShieldCheck } from "lucide-react";
 import type { AuditLog, MutationType } from "../types";
 
 interface Props {
@@ -14,83 +6,76 @@ interface Props {
 }
 
 const MUTATION_STYLES: Record<MutationType, string> = {
-  Update: "bg-[#FFF7ED] text-[#C2410C] border border-[#FED7AA]",
-  Create: "bg-[#F0FDF4] text-[#15803D] border border-[#BBF7D0]",
-  Delete: "bg-[#FFF0F0] text-[#C90000] border border-[#FECACA]",
+  Update: "border-[#E18A00] text-[#C57A00]",
+  Create: "border-[#00A85A] text-[#00A85A]",
+  Delete: "border-[#FF0000] text-[#FF0000]",
 };
 
 const AuditLogsTab = ({ logs }: Props) => {
   return (
-    <Table>
-      <TableHeader>
-        {/* 🔶 Colored Header inside table */}
-        <TableRow>
-          <TableHead colSpan={5} className="p-0">
-            <div className="flex items-center justify-between px-5 py-4 bg-[#F5F0EA]">
-              <div className="flex items-center gap-3">
-                <div className="bg-white/60 p-2 rounded-[10px]">
-                  <ShieldCheck className="size-4 text-[#5C4A1E]" />
-                </div>
-                <div>
-                  <p className="text-[14px] font-semibold text-[#28293D]">
-                    Audit Governance
-                  </p>
-                  <p className="text-[12px] text-[#8B8B8B] font-normal">
-                    Cryptographically sealed administrator activity
-                  </p>
-                </div>
-              </div>
+    <section className="overflow-hidden rounded-[16px] border border-[#CACBD4] bg-white shadow-[0_12px_22px_rgba(0,0,0,0.12)]">
+      <div className="flex h-[86px] items-center justify-between bg-[#F5F0EA] px-[24px]">
+        <div className="flex items-center gap-[18px]">
+          <ShieldCheck className="size-8 text-[#000000]" />
+          <div>
+            <h2 className="text-[24px] font-bold leading-none text-[#333333]">
+              Audit Governance
+            </h2>
+            <p className="mt-[7px] text-[14px] font-medium text-[#727272]">
+              Cryptographically sealed administrator activity
+            </p>
+          </div>
+        </div>
 
-              <button className="flex items-center justify-center w-9 h-9 rounded-[8px] bg-[#5C4A1E] hover:bg-[#3d3012] transition-colors">
-                <RefreshCw className="size-4 text-white" />
-              </button>
-            </div>
-          </TableHead>
-        </TableRow>
-      </TableHeader>
+        <button className="flex size-[52px] items-center justify-center rounded-[8px] bg-primary transition-colors hover:bg-[#7A5C10]">
+          <RefreshCw className="size-6 text-white" />
+        </button>
+      </div>
 
-      <TableBody>
-        {/* 🔹 Column labels row */}
-        <TableRow className="bg-white font-semibold text-[#8B8B8B] text-[12px] border-b border-[#E5E5E5]">
-          <TableCell className="pl-6 py-3">EVENT TIMESTAMP</TableCell>
-          <TableCell>ADMIN ENTITY</TableCell>
-          <TableCell>MUTATION TYPE</TableCell>
-          <TableCell>TARGET RESOURCE</TableCell>
-          <TableCell>ORIGIN IP</TableCell>
-        </TableRow>
-
-        {/* 🔹 Data rows */}
-        {logs.map((log) => (
-          <TableRow key={log.id}>
-            <TableCell className="pl-6 py-3 text-[12px] text-[#28293D]">
-              {log.eventTimestamp}
-            </TableCell>
-
-            <TableCell className="text-[12px] font-medium text-[#28293D]">
-              {log.adminEntity}
-            </TableCell>
-
-            <TableCell>
-              <span
-                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${
-                  MUTATION_STYLES[log.mutationType]
-                }`}
-              >
-                {log.mutationType}
-              </span>
-            </TableCell>
-
-            <TableCell className="text-[11px] text-[#8B8B8B] font-mono max-w-[180px] truncate">
-              {log.targetResource}
-            </TableCell>
-
-            <TableCell className="text-[11px] text-[#8B8B8B] font-mono">
-              {log.originIP}
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+      <div className="overflow-x-auto px-[21px] pb-[31px] pt-[38px]">
+        <table className="w-full min-w-[760px]">
+          <thead>
+            <tr className="border-b border-[#E1E1E5] text-left text-[14px] font-bold text-[#28293D]">
+              <th className="pb-[16px]">EVENT TIMESTAMP</th>
+              <th className="pb-[16px]">ADMIN ENTITY</th>
+              <th className="pb-[16px]">MUTATION TYPE</th>
+              <th className="pb-[16px]">TARGET RESOURCE</th>
+              <th className="pb-[16px]">ORIGIN IP</th>
+            </tr>
+          </thead>
+          <tbody>
+            {logs.map((log) => (
+              <tr key={log.id}>
+                <td className="h-[67px] align-middle text-center text-[16px] font-medium leading-[1.1] text-[#000000]">
+                  {log.eventTimestamp}
+                </td>
+                <td className="align-middle text-[16px] font-medium text-[#000000]">
+                  {log.adminEntity}
+                </td>
+                <td className="align-middle">
+                  <span
+                    className={`inline-flex h-[27px] min-w-[78px] items-center justify-center rounded-full border px-[13px] text-[15px] font-semibold leading-none ${
+                      MUTATION_STYLES[log.mutationType]
+                    }`}
+                  >
+                    {log.mutationType}
+                  </span>
+                </td>
+                <td className="align-middle text-[13px] font-medium leading-[1.1] text-[#696969]">
+                  <span className="mr-2 font-mono text-[16px] text-[#000000]">
+                    &gt;_
+                  </span>
+                  {log.targetResource}
+                </td>
+                <td className="align-middle text-[12px] font-medium text-[#696969]">
+                  {log.originIP}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
   );
 };
 
