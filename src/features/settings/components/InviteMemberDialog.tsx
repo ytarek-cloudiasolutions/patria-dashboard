@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { ChevronDown } from "lucide-react";
 import DefaultButton from "@/shared/components/DefaultButton";
 import {
   Dialog,
@@ -5,8 +7,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shared/components/ui/dialog";
-
-import { useState } from "react";
 import { privilegeRoleOptions } from "../data";
 import type { InviteMemberForm } from "../types";
 
@@ -24,6 +24,9 @@ const defaultForm: InviteMemberForm = {
   privilegeRole: "staff",
 };
 
+const inputClassName =
+  "h-[54px] w-full rounded-[13px] border border-[#E1E1E5] bg-white px-[14px] text-[17px] font-medium text-[#23252A] placeholder:text-[#9B9B9B] focus:outline-none focus:border-primary";
+
 const InviteMemberDialog = ({ open, onOpenChange, onSubmit }: Props) => {
   const [form, setForm] = useState<InviteMemberForm>(defaultForm);
 
@@ -37,121 +40,137 @@ const InviteMemberDialog = ({ open, onOpenChange, onSubmit }: Props) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="rounded-[13px] sm:max-w-lg"
+        className="rounded-[8px] border border-[#DADADA] p-0 shadow-[0_8px_18px_rgba(0,0,0,0.18)] sm:max-w-[735px]"
         showCloseButton={false}
       >
-        <DialogHeader>
-          <DialogTitle className="text-[18px] font-semibold text-[#28293D]">
-            Issue Professional Access Key
-          </DialogTitle>
-        </DialogHeader>
+        <div className="px-[36px] pb-[35px] pt-[28px]">
+          <DialogHeader>
+            <DialogTitle className="text-[27px] font-bold leading-none text-[#28293D]">
+              Issue Professional Access Key
+            </DialogTitle>
+          </DialogHeader>
 
-        <div className="flex flex-col gap-4 py-1">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-2">
-              <label className="text-[14px] font-medium text-[#000]">
+          <div className="mt-[45px] grid grid-cols-1 gap-x-[26px] gap-y-[32px] md:grid-cols-2">
+            <label className="flex flex-col gap-[10px] text-[18px] font-medium text-[#000000]">
+              <span>
                 Entity Official Name <span className="text-[#C90000]">*</span>
-              </label>
+              </span>
               <input
                 type="text"
                 placeholder="e.g. Staff"
                 value={form.entityName}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, entityName: e.target.value }))
+                onChange={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    entityName: event.target.value,
+                  }))
                 }
-                className="h-11 px-3 rounded-[10px] border border-[#E5E5E5] bg-white text-[14px] placeholder:text-[#8B8B8B] focus:outline-none focus:border-[#5C4A1E]"
+                className={inputClassName}
               />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="text-[14px] font-medium text-[#000]">
+            </label>
+
+            <label className="flex flex-col gap-[10px] text-[18px] font-medium text-[#000000]">
+              <span>
                 Authentication Email <span className="text-[#C90000]">*</span>
-              </label>
+              </span>
               <input
                 type="email"
                 placeholder="admin@erb.com"
                 value={form.authEmail}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, authEmail: e.target.value }))
+                onChange={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    authEmail: event.target.value,
+                  }))
                 }
-                className="h-11 px-3 rounded-[10px] border border-[#E5E5E5] bg-white text-[14px] placeholder:text-[#8B8B8B] focus:outline-none focus:border-[#5C4A1E]"
+                className={inputClassName}
               />
-            </div>
-          </div>
+            </label>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-2">
-              <label className="text-[14px] font-medium text-[#8B8B8B]">
-                Contact Phone (Optional)
-              </label>
+            <label className="flex flex-col gap-[10px] text-[18px] font-medium text-[#000000]">
+              <span>
+                Contact Phone{" "}
+                <span className="font-medium text-[#696969]">(Optional)</span>
+              </span>
               <input
                 type="tel"
-                placeholder="e.g. 01234567890"
+                placeholder="e.g. 0123456789"
                 value={form.contactPhone}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, contactPhone: e.target.value }))
+                onChange={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    contactPhone: event.target.value,
+                  }))
                 }
-                className="h-11 px-3 rounded-[10px] border border-[#E5E5E5] bg-white text-[14px] placeholder:text-[#8B8B8B] focus:outline-none focus:border-[#5C4A1E]"
+                className={inputClassName}
               />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="text-[14px] font-medium text-[#000]">
-                Initial Security Code <span className="text-[#C90000]">*</span>
-              </label>
+            </label>
+
+            <label className="flex flex-col gap-[10px] text-[18px] font-medium text-[#000000]">
+              <span>
+                Initial Security Code{" "}
+                <span className="text-[#C90000]">*</span>
+              </span>
               <input
                 type="password"
-                placeholder="••••••••••"
+                placeholder="**********"
                 value={form.securityCode}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, securityCode: e.target.value }))
+                onChange={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    securityCode: event.target.value,
+                  }))
                 }
-                className="h-11 px-3 rounded-[10px] border border-[#E5E5E5] bg-white text-[14px] placeholder:text-[#8B8B8B] focus:outline-none focus:border-[#5C4A1E]"
+                className={inputClassName}
               />
-            </div>
+            </label>
           </div>
 
-          <div className="flex flex-col gap-2">
-            <label className="text-[14px] font-medium text-[#000]">
-              Logical Privilege Role
-            </label>
+          <label className="mt-[33px] flex flex-col gap-[10px] text-[18px] font-medium text-[#000000]">
+            Logical Privilege Role
             <div className="relative">
               <select
                 value={form.privilegeRole}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, privilegeRole: e.target.value }))
+                onChange={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    privilegeRole: event.target.value,
+                  }))
                 }
-                className="w-full h-11 px-3 pr-8 rounded-[10px] border border-[#E5E5E5] bg-white text-[14px] text-[#23252A] appearance-none cursor-pointer focus:outline-none focus:border-[#5C4A1E]"
+                className={`${inputClassName} appearance-none pr-[48px]`}
               >
-                {privilegeRoleOptions.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
+                {privilegeRoleOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
                   </option>
                 ))}
               </select>
-              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#8B8B8B] text-xs">
-                ▾
-              </span>
+              <ChevronDown className="pointer-events-none absolute right-[16px] top-1/2 size-7 -translate-y-1/2 text-[#000000]" />
             </div>
-          </div>
+          </label>
 
-          <div className="flex justify-end gap-3 pt-2">
-            <DefaultButton
-              data={{
-                buttonText: "Cancel",
-                variant: "outline",
-                type: "button",
-                onClick: () => onOpenChange(false),
-                className:
-                  "text-primary border-primary hover:bg-white hover:text-primary",
-              }}
-            />
-            <DefaultButton
-              data={{
-                buttonText: "Authorize Administrative Entity",
-                type: "button",
-                className: "bg-[#5C4A1E] hover:bg-[#3d3012]",
-                onClick: handleSubmit,
-              }}
-            />
+          <div className="mt-[35px] border-t border-[#CACBD4] pt-[33px]">
+            <div className="flex justify-end gap-[16px]">
+              <DefaultButton
+                data={{
+                  buttonText: "Cancel",
+                  variant: "outline",
+                  type: "button",
+                  onClick: () => onOpenChange(false),
+                  className:
+                    "h-[59px] rounded-[5px] border-primary px-[31px] text-[18px] font-bold text-primary hover:bg-white hover:text-primary",
+                }}
+              />
+              <DefaultButton
+                data={{
+                  buttonText: "Authorize Administrative Entity",
+                  type: "button",
+                  className:
+                    "h-[59px] rounded-[5px] bg-primary px-[33px] text-[18px] font-bold hover:bg-[#7A5C10]",
+                  onClick: handleSubmit,
+                }}
+              />
+            </div>
           </div>
         </div>
       </DialogContent>

@@ -75,21 +75,9 @@ const ReservationDatePicker = ({
   onChange,
 }: ReservationDatePickerProps) => {
   const [open, setOpen] = useState(false);
-  const [tempValue, setTempValue] = useState(value);
+  const [tempValue, setTempValue] = useState(value || toYmd(new Date()));
   const [viewDate, setViewDate] = useState<Date>(parseYmd(value) ?? new Date());
   const wrapperRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    setTempValue(value);
-    setViewDate(parseYmd(value) ?? new Date());
-  }, [value]);
-
-  useEffect(() => {
-    if (!open || value) return;
-    const today = new Date();
-    setTempValue(toYmd(today));
-    setViewDate(today);
-  }, [open, value]);
 
   useEffect(() => {
     if (!open) return;
@@ -127,7 +115,7 @@ const ReservationDatePicker = ({
       </button>
 
       {open && (
-        <div className="absolute bottom-[calc(100%+8px)] right-0 z-[90] w-85.5 rounded-[16px] border border-[#E5E5E5] bg-white p-4 shadow-lg">
+        <div className="absolute bottom-[calc(100%+8px)] right-0 z-90 w-85.5 rounded-[16px] border border-[#E5E5E5] bg-white p-4 shadow-lg">
           <div className="max-h-[70vh] overflow-y-auto pr-1">
             <div className="mb-4 flex items-center justify-between">
               <div className="text-[18px] font-semibold text-[#28293D]">
@@ -361,7 +349,7 @@ const ReservationsTable = ({
                         )}
                       </div>
                     ) : (
-                      <div className="ml-9 w-[18px] h-0.5 bg-[#8B8B8B] rounded-full" />
+                      <div className="ml-9 w-4.5 h-0.5 bg-[#8B8B8B] rounded-full" />
                     )}
                   </TableCell>
                 </TableRow>

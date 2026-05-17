@@ -28,7 +28,7 @@ const chartConfig = {
 
 const RevenueTrendChart = ({ data }: RevenueTrendChartProps) => {
   return (
-    <Card className="gap-0 rounded-[16px] border-[#F5F0EA] bg-white py-0 shadow-none">
+    <Card className="gap-0 rounded-[16px] border-[#E5E5E5] bg-white py-0 shadow-none">
       <CardHeader className="min-h-14 grid-cols-[1fr_auto] items-center rounded-t-[16px] bg-[#F5F0EA] px-4 py-3">
         <div>
           <CardTitle className="text-[18px] font-bold text-[#333333] mb-1">
@@ -38,16 +38,15 @@ const RevenueTrendChart = ({ data }: RevenueTrendChartProps) => {
         </div>
         <Activity className="size-5 text-[#000000]" />
       </CardHeader>
-      <CardContent className="px-4 py-8">
+      <CardContent className="px-2 py-6 sm:px-4 sm:py-8">
         <ChartContainer
           config={chartConfig}
-          className="h-71.25 w-full aspect-auto"
-          initialDimension={{ width: 641, height: 304 }}
+          className="h-56 w-full sm:h-64 lg:h-72 aspect-auto"
         >
           <AreaChart
             accessibilityLayer
             data={data}
-            margin={{ left: 8, right: 12, top: 6, bottom: 0 }}
+            margin={{ left: 0, right: 8, top: 6, bottom: 0 }}
           >
             <defs>
               <linearGradient id="revenueFill" x1="0" y1="0" x2="0" y2="1">
@@ -67,8 +66,8 @@ const RevenueTrendChart = ({ data }: RevenueTrendChartProps) => {
             <YAxis
               axisLine={false}
               tickLine={false}
-              tickMargin={30}
-              width={78}
+              tickMargin={8}
+              width={68}
               domain={[0, 8000]}
               ticks={[0, 2000, 4000, 6000, 8000]}
               tickFormatter={(value) => `EGP ${value}`}

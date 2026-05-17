@@ -9,6 +9,7 @@ import {
 import { Separator } from "@/shared/components/ui/separator";
 import OrdersStatusBadge from "./OrdersStatusBadge";
 import type { Order } from "../types";
+import DefaultButton from "@/shared/components/DefaultButton";
 
 interface OrderDetailsDialogProps {
   open: boolean;
@@ -27,26 +28,24 @@ const OrderDetailsDialog = ({
   order,
   onOpenChange,
 }: OrderDetailsDialogProps) => {
-  if (!order) {
-    return null;
-  }
+  if (!order) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="max-h-[calc(100vh-3rem)] max-w-140 overflow-y-auto rounded-[8px] bg-white p-0 ring-0 sm:max-w-174"
+        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-y-auto rounded-[8px] bg-white p-0 ring-0 sm:max-w-140 lg:max-w-174"
       >
-        <div className="p-6">
-          <div className="mb-7 flex items-center gap-3">
-            <DialogTitle className="text-[24px] font-semibold text-[#333333]">
+        <div className="p-4 sm:p-6">
+          <div className="mb-5 flex flex-wrap items-center gap-2 sm:mb-7 sm:gap-3">
+            <DialogTitle className="text-[20px] font-semibold text-[#333333] sm:text-[24px]">
               Order #{order.id.split("-").at(-1)}
             </DialogTitle>
             <OrdersStatusBadge status={order.status} />
           </div>
 
-          <section className="rounded-[12px] border border-[#D9D9D9] bg-[#FAFAF7] p-4">
-            <div className="mb-7 flex items-start justify-between">
+          <section className="rounded-[12px] border border-[#D9D9D9] bg-[#FAFAF7] p-3 sm:p-4">
+            <div className="mb-5 flex items-start justify-between sm:mb-7">
               <p className="text-[10px] font-bold uppercase text-[#595959]">
                 Customer Details
               </p>
@@ -56,15 +55,15 @@ const OrderDetailsDialog = ({
             </div>
 
             <div className="flex items-end justify-between gap-4">
-              <div>
-                <p className="text-[15px] font-semibold text-[#333333]">
+              <div className="min-w-0">
+                <p className="truncate text-[14px] font-semibold text-[#333333] sm:text-[15px]">
                   {order.customerName}
                 </p>
                 <p className="mt-1 text-[12px] text-[#8B8B8B]">
                   {order.customerPhone}
                 </p>
               </div>
-              <div className="text-right">
+              <div className="shrink-0 text-right">
                 <p className="text-[12px] font-medium text-[#28293D]">
                   {order.date}
                 </p>
@@ -76,20 +75,20 @@ const OrderDetailsDialog = ({
             </div>
           </section>
 
-          <section className="mt-5 rounded-[12px] border border-[#D9D9D9] bg-[#FAFAF7] p-4">
+          <section className="mt-4 rounded-[12px] border border-[#D9D9D9] bg-[#FAFAF7] p-3 sm:mt-5 sm:p-4">
             <p className="mb-4 text-[10px] font-bold uppercase text-[#595959]">
               Orders
             </p>
-            <div className="space-y-3">
+            <div className="space-y-2.5 sm:space-y-3">
               {order.items.slice(0, 2).map((item) => (
                 <div
                   key={item.id}
-                  className="flex min-h-10 items-center justify-between rounded-[8px] border border-[#E5E5E5] bg-white px-3"
+                  className="flex min-h-10 items-center justify-between rounded-[8px] border border-[#E5E5E5] bg-white px-3 gap-3"
                 >
-                  <span className="text-[14px] font-medium text-[#333333]">
+                  <span className="truncate text-[13px] font-medium text-[#333333] sm:text-[14px]">
                     {item.quantity}X {item.name}
                   </span>
-                  <span className="text-[12px] font-semibold text-[#28293D]">
+                  <span className="shrink-0 text-[12px] font-semibold text-[#28293D]">
                     {formatCurrency(item.unitPrice)}
                   </span>
                 </div>
@@ -97,18 +96,18 @@ const OrderDetailsDialog = ({
             </div>
           </section>
 
-          <section className="mt-5 rounded-[12px] border border-[#D9D9D9] bg-[#FAFAF7] p-4">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between text-[14px] text-[#333333]">
+          <section className="mt-4 rounded-[12px] border border-[#D9D9D9] bg-[#FAFAF7] p-3 sm:mt-5 sm:p-4">
+            <div className="space-y-3 text-[13px] sm:space-y-4 sm:text-[14px]">
+              <div className="flex items-center justify-between text-[#333333]">
                 <span>Subtotal:</span>
                 <span>{formatCurrency(order.subtotal)}</span>
               </div>
-              <div className="flex items-center justify-between text-[14px] text-[#333333]">
+              <div className="flex items-center justify-between text-[#333333]">
                 <span>Delivery Fees:</span>
                 <span>{formatCurrency(order.deliveryFee)}</span>
               </div>
               <Separator className="bg-[#D9D9D9]" />
-              <div className="flex items-center justify-between text-[16px] font-semibold text-[#111111]">
+              <div className="flex items-center justify-between text-[15px] font-semibold text-[#111111] sm:text-[16px]">
                 <span>Total:</span>
                 <span>{formatCurrency(order.total + order.deliveryFee)}</span>
               </div>
@@ -117,25 +116,25 @@ const OrderDetailsDialog = ({
               </span>
             </div>
           </section>
-
-          <Separator className="my-7 bg-[#D9D9D9]" />
-
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Button
-              type="button"
-              variant="outline"
-              className="h-12 rounded-[5px] border-primary bg-white text-[14px] font-semibold text-primary hover:bg-white hover:text-primary"
-            >
-              <Printer className="size-4" />
-              Print Customer Receipt
-            </Button>
-            <Button
-              type="button"
-              className="h-12 rounded-[5px] bg-primary text-[14px] font-semibold text-white hover:bg-primary"
-            >
-              <Printer className="size-4" />
-              Print Kitchen Receipt
-            </Button>
+          <Separator className="my-5 bg-[#D9D9D9] sm:my-7" />
+          <div className="grid gap-2.5 sm:grid-cols-2 sm:gap-3">
+            <DefaultButton
+              data={{
+                buttonText: "Print Customer Receipt",
+                variant: "outline",
+                type: "button",
+                icon: <Printer className="size-4" />,
+                className:
+                  "border-primary bg-white text-primary hover:bg-white hover:text-primary",
+              }}
+            />
+            <DefaultButton
+              data={{
+                buttonText: "Print Kitchen Receipt",
+                type: "button",
+                icon: <Printer className="size-4" />,
+              }}
+            />
           </div>
         </div>
       </DialogContent>

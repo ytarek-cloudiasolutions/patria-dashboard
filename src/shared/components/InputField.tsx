@@ -3,25 +3,61 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { cn } from "@/lib/utils";
 
-const InputField = ({ data }: { data: InputFieldProps }) => {
+interface InputFieldComponentProps {
+  id?: string;
+  label?: string | { htmlFor: string; labelText: string };
+  type?: string;
+  placeholder?: string;
+  required?: boolean;
+  wrapperClassName?: string;
+  className?: string;
+  inputProps?: React.InputHTMLAttributes<HTMLInputElement>;
+  data?: InputFieldProps;
+}
+
+const InputField = ({
+  id: propsId,
+  label: propsLabel,
+  type: propsType = "text",
+  placeholder: propsPlaceholder,
+  required: propsRequired,
+  wrapperClassName: propsWrapperClassName,
+  className: propsClassName,
+  inputProps: propsInputProps,
+  data,
+}: InputFieldComponentProps) => {
+  // Use data prop if provided, otherwise use individual props
+  const id = data?.id ?? propsId ?? "";
+  const label = data?.label ?? propsLabel;
+  const type = data?.type ?? propsType;
+  const placeholder = data?.placeholder ?? propsPlaceholder;
+  const required = data?.required ?? propsRequired;
+  const wrapperClassName = data?.wrapperClassName ?? propsWrapperClassName;
+  const className = data?.className ?? propsClassName;
+  const inputProps = data?.inputProps ?? propsInputProps;
+
+  // Extract label text if it's an object
+  const labelText = typeof label === "string" ? label : label?.labelText;
+  const labelHtmlFor = typeof label === "string" ? id : label?.htmlFor ?? id;
+
   return (
-    <div className={cn("flex flex-col", data.wrapperClassName)}>
+    <div className={cn("flex flex-col", wrapperClassName)}>
       <Label
-        htmlFor={data.label.htmlFor}
-        className="text-[#000000] text-[16px] font-medium mb-2.5 block"
+        htmlFor={labelHtmlFor}
+        className="mb-2.5 text-[16px] font-medium text-black"
       >
-        {data.label.labelText}
-        {data.required && <span className="text-[#C90000] ml-1">*</span>}
+        {labelText}
+        {required && <span className="text-[#C90000]">*</span>}
       </Label>
       <Input
-        id={data.id}
-        type={data.type ?? "text"}
-        placeholder={data.placeholder}
-        required={data.required}
-        {...data.inputProps}
+        id={id}
+        type={type}
+        placeholder={placeholder}
+        required={required}
+        {...inputProps}
         className={cn(
-          "h-12.5 p-3 rounded-[12px] bg-white border-[#E5E5E5] focus-visible:border-primary focus-visible:ring-0 text-[#23252A] text-[16px] placeholder:text-[#8B8B8B]",
-          data.className
+          "h-12.5 px-4.5 py-3 rounded-xl border border-[#E5E5E5] bg-white text-[14px] text-[#23252A] placeholder:text-[#8B8B8B] focus-visible:border-primary focus-visible:ring-0",
+          className
         )}
       />
     </div>

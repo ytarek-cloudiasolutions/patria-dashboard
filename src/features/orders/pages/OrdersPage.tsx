@@ -77,7 +77,6 @@ const OrdersPage = () => {
         order.id === orderId ? { ...order, status } : order
       )
     );
-
     setSelectedOrder((previous) =>
       previous && previous.id === orderId ? { ...previous, status } : previous
     );
@@ -91,10 +90,10 @@ const OrdersPage = () => {
   return (
     <>
       {(isCategoryMenuOpen || isStatusMenuOpen) && (
-        <div className="pointer-events-none fixed inset-0 z-60 bg-black/15" />
+        <div className="pointer-events-none fixed inset-0 z-60 bg-black/50" />
       )}
 
-      <div className="mb-7 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+      <div className="mb-5 flex flex-col gap-3 sm:mb-7 sm:gap-4 md:flex-row md:items-end md:justify-between">
         <HeaderLayout
           title="Orders"
           description="Manage and track customer orders"
@@ -104,11 +103,12 @@ const OrdersPage = () => {
             buttonText: "New POS Order",
             icon: <Plus className="size-4.5" />,
             onClick: () => setIsCreateDialogOpen(true),
+          
           }}
         />
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <OrdersFilters
           searchValue={searchValue}
           selectedCategory={selectedCategory}
@@ -131,7 +131,7 @@ const OrdersPage = () => {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4 xl:gap-6">
           <OverviewCard
             data={{
               title: "Revenue",
@@ -182,9 +182,7 @@ const OrdersPage = () => {
         open={selectedOrder !== null}
         order={selectedOrder}
         onOpenChange={(open) => {
-          if (!open) {
-            setSelectedOrder(null);
-          }
+          if (!open) setSelectedOrder(null);
         }}
       />
 

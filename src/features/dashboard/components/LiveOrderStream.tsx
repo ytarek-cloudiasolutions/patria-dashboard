@@ -20,7 +20,7 @@ const LiveOrderStream = ({ orders }: LiveOrderStreamProps) => {
 
   return (
     <section className="overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white">
-      <div className="flex min-h-14 items-center justify-between bg-[#F3EFE8] px-4">
+      <div className="flex min-h-14 flex-wrap items-center justify-between gap-2 bg-[#F3EFE8] px-4 py-3">
         <h2 className="text-[18px] font-bold text-[#333333]">
           Live Order Stream
         </h2>
@@ -32,13 +32,13 @@ const LiveOrderStream = ({ orders }: LiveOrderStreamProps) => {
         </button>
       </div>
 
-      <div className="grid gap-x-8 gap-y-6 px-4 py-6 md:grid-cols-2">
+      <div className="grid gap-x-6 gap-y-4 px-4 py-6 sm:grid-cols-2 lg:gap-x-8 lg:gap-y-6">
         {orders.map((order) => (
           <article
             key={order.id}
-            className="flex min-h-19 items-center gap-3 rounded-[16px] border border-[#E5E5E5] bg-white px-3 py-3"
+            className="flex min-h-16 items-center gap-2.5 rounded-[16px] border border-[#E5E5E5] bg-white px-3 py-3 sm:min-h-19 sm:gap-3"
           >
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary text-[13px] font-bold text-white">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-[13px] font-bold text-white sm:size-10">
               {order.initials}
             </div>
 
@@ -46,20 +46,20 @@ const LiveOrderStream = ({ orders }: LiveOrderStreamProps) => {
               <p className="truncate text-[12px] font-semibold text-[#000000]">
                 {order.customer}
               </p>
-              <p className="mt-1 truncate text-[10px] text-[#595959]">
+              <p className="mt-0.5 truncate text-[10px] text-[#595959]">
                 #{order.id} · {order.time}
               </p>
             </div>
 
             <div className="shrink-0 text-right">
-              <p className="text-[14px] text-[#000000]">
+              <p className="whitespace-nowrap text-[13px] text-[#000000] sm:text-[14px]">
                 <span className="font-medium">EGP </span>
                 {formatAmount(order.amount)}
               </p>
               <span
                 className={`${
                   statusStyles[order.status]
-                } mt-2 inline-flex h-5 items-center justify-center rounded-full border px-2 text-[10px] font-semibold`}
+                } mt-1.5 inline-flex h-5 items-center justify-center rounded-full border px-2 text-[10px] font-semibold`}
               >
                 {order.status}
               </span>

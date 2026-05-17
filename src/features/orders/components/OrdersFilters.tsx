@@ -19,7 +19,7 @@ const OrdersFilters = ({
   onCategoryMenuOpenChange,
 }: OrdersFiltersProps) => {
   return (
-    <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-8">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4 md:gap-8">
       <SearchInputField
         value={searchValue}
         onChange={onSearchChange}

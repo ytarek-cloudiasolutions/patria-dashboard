@@ -17,26 +17,26 @@ const AppTopbar = ({
   const { toggleSidebar } = useSidebar();
 
   return (
-    <header className="flex h-21 items-center justify-between border-b border-white bg-white px-8 pt-6">
+    <header className="flex h-16 items-center justify-between border-b border-white bg-white px-4 sm:h-21 sm:px-8 sm:pt-6">
       {/* Toggle sidebar */}
       <button
         onClick={toggleSidebar}
         className="text-[#000000] transition-colors cursor-pointer"
         aria-label="Toggle sidebar"
       >
-        <PanelLeftClose size={24} />
+        <PanelLeftClose size={22} />
       </button>
 
       {/* Right section */}
-      <div className="flex items-center gap-8">
+      <div className="flex items-center gap-3 sm:gap-8">
         {/* Theme toggle */}
-        <button className="flex h-9 w-9 items-center justify-center rounded-[16px] text-[#000000] bg-[#FAFAF7] cursor-pointer">
-          <Sun size={24} />
+        <button className="flex h-8 w-8 items-center justify-center rounded-[16px] text-[#000000] bg-[#FAFAF7] cursor-pointer sm:h-9 sm:w-9">
+          <Sun size={20} />
         </button>
 
         {/* Notifications */}
-        <button className="relative flex h-9 w-9 items-center justify-center rounded-[16px] text-[#000000] bg-[#FAFAF7] cursor-pointer">
-          <Bell size={24} />
+        <button className="relative flex h-8 w-8 items-center justify-center rounded-[16px] text-[#000000] bg-[#FAFAF7] cursor-pointer sm:h-9 sm:w-9">
+          <Bell size={20} />
           {notificationCount > 0 && (
             <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#C90000] text-[8px] font-semibold text-white">
               {notificationCount}
@@ -45,11 +45,12 @@ const AppTopbar = ({
         </button>
 
         {/* Admin info */}
-        <div className="flex items-center gap-3.25">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-[13px] font-bold text-white">
+        <div className="flex items-center gap-2 sm:gap-3.25">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-[12px] font-bold text-white sm:h-9 sm:w-9 sm:text-[13px]">
             {adminInitials}
           </div>
-          <div>
+          {/* Hide name/email on very small screens */}
+          <div className="hidden sm:block">
             <p className="text-[14px] font-semibold text-[#333333]">
               {adminName}
             </p>

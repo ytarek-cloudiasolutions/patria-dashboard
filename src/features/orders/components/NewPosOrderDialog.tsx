@@ -13,10 +13,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu";
-import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Separator } from "@/shared/components/ui/separator";
+import InputField from "@/shared/components/InputField";
 import type { Order, OrderLineItem, ProductOption } from "../types";
+import DefaultButton from "@/shared/components/DefaultButton";
 
 interface NewPosOrderDialogProps {
   open: boolean;
@@ -28,9 +29,6 @@ interface NewPosOrderDialogProps {
 type PaymentMethod = "Cash" | "Visa/Card" | "Mix";
 
 const paymentMethods: PaymentMethod[] = ["Cash", "Visa/Card", "Mix"];
-
-const fieldClassName =
-  "h-10 rounded-[8px] border-[#E5E5E5] bg-white px-3 text-[13px] text-[#23252A] placeholder:text-[#B5B5B5] focus-visible:ring-0";
 
 const formatCurrency = (amount: number) =>
   `EGP ${amount.toLocaleString(undefined, {
@@ -56,12 +54,7 @@ const NewPosOrderDialog = ({
   const [deliveryFee, setDeliveryFee] = useState("27");
   const [notes, setNotes] = useState("");
   const [items, setItems] = useState<OrderLineItem[]>([
-    {
-      id: 1,
-      name: "Middle Eastern Roast Beef",
-      quantity: 2,
-      unitPrice: 120,
-    },
+    { id: 1, name: "Middle Eastern Roast Beef", quantity: 2, unitPrice: 120 },
     { id: 2, name: "Green Ranch Sandwich", quantity: 1, unitPrice: 120 },
   ]);
 
@@ -70,8 +63,10 @@ const NewPosOrderDialog = ({
       items.reduce((total, item) => total + item.quantity * item.unitPrice, 0),
     [items]
   );
+
   const discount = discountCode.trim() ? 24 : 0;
   const parsedDeliveryFee = Number(deliveryFee) || 0;
+
   const total = Math.max(subtotal - discount + parsedDeliveryFee, 0);
 
   const addProduct = (product: ProductOption) => {
@@ -81,7 +76,10 @@ const NewPosOrderDialog = ({
       if (existing) {
         return previous.map((item) =>
           item.id === existing.id
-            ? { ...item, quantity: item.quantity + 1 }
+            ? {
+                ...item,
+                quantity: item.quantity + 1,
+              }
             : item
         );
       }
@@ -155,6 +153,10 @@ const NewPosOrderDialog = ({
     setDiscountCode("");
     setDeliveryFee("27");
     setNotes("");
+    setCashAmount("");
+    setVisaAmount("");
+    setPaymentMethod("Visa/Card");
+
     onOpenChange(false);
   };
 
@@ -162,69 +164,93 @@ const NewPosOrderDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="max-h-[calc(100vh-3rem)] max-w-140 overflow-hidden rounded-[8px] bg-white p-0 ring-0 sm:max-w-174"
+        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[8px] bg-white p-0 ring-0 sm:max-w-140 lg:max-w-174"
       >
-        <div className="flex max-h-[calc(100vh-3rem)] flex-col">
-          <div className="px-6 pt-6">
-            <DialogTitle className="text-[22px] font-semibold text-[#333333]">
+        <div className="flex max-h-[calc(100vh-2rem)] flex-col">
+          {/* Header */}
+          <div className="px-4 pt-4 sm:px-6 sm:pt-6">
+            <DialogTitle className="text-[18px] font-semibold text-[#333333] sm:text-[22px]">
               New POS Order
             </DialogTitle>
           </div>
 
-          <div className="flex-1 space-y-5 overflow-y-auto px-6 py-6">
-            <section className="rounded-[12px] border border-[#D9D9D9] bg-[#FAFAF7] p-4">
-              <p className="mb-4 text-[10px] font-bold uppercase text-[#595959]">
+          {/* Scrollable Body */}
+          <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4 sm:space-y-5 sm:px-6 sm:py-6">
+            {/* Customer Information */}
+            <section className="rounded-[12px] border border-[#D9D9D9] bg-[#FAFAF7] p-4 sm:p-6">
+              <p className="mb-4 text-[10px] font-bold uppercase text-[#595959] sm:mb-6">
                 Customer Information
               </p>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field
+
+              <div className="grid gap-4 sm:grid-cols-2 sm:gap-[18px]">
+                <InputField
+                  id="customer-name"
                   label="Customer Name"
                   required
-                  value={customerName}
                   placeholder="Customer Name"
-                  onChange={setCustomerName}
+                  inputProps={{
+                    value: customerName,
+                    onChange: (e) => setCustomerName(e.target.value),
+                  }}
                 />
-                <Field
+
+                <InputField
+                  id="phone-number"
                   label="Phone Number"
                   required
-                  value={phoneNumber}
                   placeholder="01X XXXX XXXX"
-                  onChange={setPhoneNumber}
+                  inputProps={{
+                    value: phoneNumber,
+                    onChange: (e) => setPhoneNumber(e.target.value),
+                  }}
                 />
-                <Field
+
+                <InputField
+                  id="email"
                   label="Email Address"
                   required
-                  value={email}
+                  type="email"
                   placeholder="Email Address"
-                  onChange={setEmail}
+                  inputProps={{
+                    value: email,
+                    onChange: (e) => setEmail(e.target.value),
+                  }}
                 />
-                <Field
+
+                <InputField
+                  id="address"
                   label="Address"
                   required
-                  value={address}
                   placeholder="Address"
-                  onChange={setAddress}
+                  inputProps={{
+                    value: address,
+                    onChange: (e) => setAddress(e.target.value),
+                  }}
                 />
               </div>
             </section>
 
-            <section className="rounded-[12px] border border-[#D9D9D9] bg-[#FAFAF7] p-4">
-              <p className="mb-4 text-[10px] font-bold uppercase text-[#595959]">
+            {/* Products */}
+            <section className="rounded-[12px] border border-[#D9D9D9] bg-[#FAFAF7] p-4 sm:p-6">
+              <p className="mb-4 text-[10px] font-bold uppercase text-[#595959] sm:mb-6">
                 Products
               </p>
-              <Label className="mb-2 block text-[13px] font-medium text-[#000000]">
-                Product <span className="text-[#C90000]">*</span>
+
+              <Label className="mb-2.5 text-[16px] font-medium text-black">
+                Product <span className="ml-1 text-[#C90000]">*</span>
               </Label>
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="outline"
-                    className="mb-4 h-10 w-full justify-between rounded-[8px] border-[#E5E5E5] bg-white px-3 text-[13px] font-normal text-[#8B8B8B] hover:bg-white"
+                    className="mb-4 h-12.5 w-full justify-between rounded-xl border-[#E5E5E5] bg-white px-4.5 text-[14px] font-normal text-[#8B8B8B] hover:bg-white focus-visible:ring-0"
                   >
                     Add Product
                     <ChevronDown className="size-5 text-[#000000]" />
                   </Button>
                 </DropdownMenuTrigger>
+
                 <DropdownMenuContent
                   align="start"
                   className="z-70 w-[var(--radix-dropdown-menu-trigger-width)] rounded-[12px] p-2"
@@ -232,7 +258,7 @@ const NewPosOrderDialog = ({
                   {productOptions.map((product) => (
                     <DropdownMenuItem
                       key={product.id}
-                      className="rounded-[8px] px-3 py-2 text-[13px]"
+                      className="cursor-pointer rounded-[8px] px-3 py-2 text-[13px]"
                       onSelect={() => addProduct(product)}
                     >
                       {product.name}
@@ -241,167 +267,206 @@ const NewPosOrderDialog = ({
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 {items.map((item) => (
                   <div
                     key={item.id}
-                    className="grid min-h-10 grid-cols-[1fr_auto_auto] items-center gap-3 rounded-[8px] border border-[#E5E5E5] bg-white px-3"
+                    className="grid min-h-[50px] grid-cols-[1fr_auto_auto] items-center gap-3 rounded-xl border border-[#E5E5E5] bg-white px-3"
                   >
-                    <span className="truncate text-[13px] font-medium text-[#333333]">
+                    <span className="truncate text-[14px] text-black">
                       {item.name}
                     </span>
-                    <div className="flex items-center gap-2">
+
+                    <div className="flex items-center gap-2.5">
                       <button
                         type="button"
                         onClick={() => updateQuantity(item.id, "decrease")}
-                        className="flex size-5 items-center justify-center rounded-[4px] border border-[#E5E5E5] bg-[#FAFAF7]"
+                        className="flex size-[26px] items-center justify-center rounded-[5px] border border-[#E5E5E5] bg-[#FAFAF7]"
                       >
-                        <Minus className="size-3" />
+                        <Minus className="size-3.5" />
                       </button>
-                      <span className="w-4 text-center text-[12px] font-semibold">
+
+                      <span className="w-5 text-center text-[13px] font-bold text-[#28293D]">
                         {item.quantity}
                       </span>
+
                       <button
                         type="button"
                         onClick={() => updateQuantity(item.id, "increase")}
-                        className="flex size-5 items-center justify-center rounded-[4px] border border-[#E5E5E5] bg-[#FAFAF7]"
+                        className="flex size-[26px] items-center justify-center rounded-[5px] border border-[#E5E5E5] bg-[#FAFAF7]"
                       >
-                        <Plus className="size-3" />
+                        <Plus className="size-3.5" />
                       </button>
                     </div>
-                    <span className="text-right text-[12px] font-semibold text-[#28293D]">
-                      {formatCurrency(item.unitPrice)}
+
+                    {/* Updated Price */}
+                    <span className="whitespace-nowrap text-right text-[13px] font-semibold text-[#28293D]">
+                      {formatCurrency(item.unitPrice * item.quantity)}
                     </span>
                   </div>
                 ))}
               </div>
             </section>
 
-            <section className="rounded-[12px] border border-[#D9D9D9] bg-[#FAFAF7] p-4">
-              <p className="mb-4 text-[10px] font-bold uppercase text-[#595959]">
+            {/* Payment Method */}
+            <section className="rounded-[12px] border border-[#D9D9D9] bg-[#FAFAF7] p-4 sm:p-6">
+              <p className="mb-4 text-[10px] font-bold uppercase text-[#595959] sm:mb-6">
                 Payment Method
               </p>
-              <div className="grid grid-cols-3 gap-4">
+
+              <div className="grid grid-cols-3 gap-3 sm:gap-6">
                 {paymentMethods.map((method) => (
                   <button
                     key={method}
                     type="button"
                     onClick={() => setPaymentMethod(method)}
-                    className={`flex h-22 flex-col items-center justify-center gap-2 rounded-[4px] border bg-white text-[14px] font-medium text-[#111111] ${
+                    className={`flex h-16 flex-col items-center justify-center gap-2 rounded-[5px] border-2 bg-white text-[13px] font-medium text-[#111111] sm:h-[88px] sm:text-[18px] ${
                       paymentMethod === method
                         ? "border-primary bg-[#F5F0EA]"
                         : "border-[#E5E5E5]"
                     }`}
                   >
                     {method === "Visa/Card" ? (
-                      <CreditCard className="size-5" />
+                      <CreditCard className="size-4 sm:size-6" />
                     ) : (
-                      <Banknote className="size-5" />
+                      <Banknote className="size-4 sm:size-6" />
                     )}
+
                     {method}
                   </button>
                 ))}
               </div>
 
-              <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                <Field
-                  label="Cash Amount"
-                  required
-                  value={cashAmount}
-                  placeholder="0.00"
-                  onChange={setCashAmount}
-                />
-                <Field
-                  label="Visa Amount"
-                  required
-                  value={visaAmount}
-                  placeholder="0.00"
-                  onChange={setVisaAmount}
-                />
+              {/* Conditional Payment Inputs */}
+              <div
+                className={`mt-4 grid gap-4 ${
+                  paymentMethod === "Mix" ? "sm:grid-cols-2" : "grid-cols-1"
+                } sm:gap-6`}
+              >
+                {(paymentMethod === "Cash" || paymentMethod === "Mix") && (
+                  <InputField
+                    id="cash-amount"
+                    label="Cash Amount"
+                    required
+                    placeholder="0.00"
+                    inputProps={{
+                      value: cashAmount,
+                      onChange: (e) => setCashAmount(e.target.value),
+                    }}
+                  />
+                )}
+
+                {(paymentMethod === "Visa/Card" || paymentMethod === "Mix") && (
+                  <InputField
+                    id="visa-amount"
+                    label="Visa Amount"
+                    required
+                    placeholder="0.00"
+                    inputProps={{
+                      value: visaAmount,
+                      onChange: (e) => setVisaAmount(e.target.value),
+                    }}
+                  />
+                )}
               </div>
             </section>
 
+            {/* Discount / Delivery / Notes */}
             <div className="space-y-4">
-              <div>
-                <Label className="mb-2 block text-[13px] font-medium text-[#000000]">
-                  Discount Code <span className="text-[#C90000]">*</span>
-                </Label>
-                <div className="flex gap-2">
-                  <Input
-                    value={discountCode}
-                    onChange={(event) => setDiscountCode(event.target.value)}
-                    placeholder="0.00"
-                    className={fieldClassName}
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="h-10 rounded-[5px] border-primary px-5 text-[13px] font-semibold text-primary hover:bg-white hover:text-primary"
-                  >
-                    Apply
-                  </Button>
-                </div>
+              <div className="flex items-end gap-2.5">
+                <InputField
+                  id="discount-code"
+                  label="Discount Code"
+                  required
+                  placeholder="0.00"
+                  wrapperClassName="flex-1"
+                  inputProps={{
+                    value: discountCode,
+                    onChange: (e) => setDiscountCode(e.target.value),
+                  }}
+                />
+                <DefaultButton
+                  data={{
+                    buttonText: "Apply",
+                    variant: "outline",
+                    type: "button",
+                    className:
+                      "sm:h-[50px] border-primary text-primary hover:bg-white hover:text-primary",
+                  }}
+                />
               </div>
-
-              <Field
+              <InputField
+                id="delivery-fee"
                 label="Delivery Fee"
                 required
-                value={deliveryFee}
                 placeholder="0.00"
-                onChange={setDeliveryFee}
+                inputProps={{
+                  value: deliveryFee,
+                  onChange: (e) => setDeliveryFee(e.target.value),
+                }}
               />
 
-              <Field
-                label="Order Notes"
-                value={notes}
+              <InputField
+                id="order-notes"
+                label="Order Notes (Optional)"
                 placeholder="Order Notes"
-                onChange={setNotes}
-                optional
+                inputProps={{
+                  value: notes,
+                  onChange: (e) => setNotes(e.target.value),
+                }}
               />
             </div>
 
-            <section className="rounded-[12px] border border-[#D9D9D9] bg-[#FAFAF7] p-4">
-              <div className="space-y-4 text-[14px]">
+            {/* Order Summary */}
+            <section className="rounded-[12px] border border-[#D9D9D9] bg-[#FAFAF7] p-4 sm:p-6">
+              <div className="flex flex-col gap-[18px]">
                 <SummaryRow
                   label="Subtotal:"
                   value={formatCurrency(subtotal)}
                 />
+
                 <SummaryRow
                   label="Discount:"
                   value={`-EGP ${discount.toFixed(2)}`}
-                  valueClassName="text-[#00A86B]"
+                  labelClassName="text-[#059B5A]"
+                  valueClassName="text-[#059B5A]"
                 />
+
                 <SummaryRow
                   label="Delivery Fees:"
                   value={formatCurrency(parsedDeliveryFee)}
                 />
+
                 <Separator className="bg-[#D9D9D9]" />
+
                 <SummaryRow
                   label="Total:"
                   value={formatCurrency(total)}
-                  className="font-semibold text-[#111111]"
+                  className="text-[18px] font-semibold text-black"
                 />
               </div>
             </section>
           </div>
 
-          <div className="border-t border-[#D9D9D9] bg-white px-6 py-5">
+          {/* Footer */}
+          <div className="bg-white px-4 py-4 sm:px-6 sm:py-5">
+            <Separator className="mb-4 bg-[#D9D9D9] sm:mb-5" />
             <div className="flex justify-end gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-                className="h-11 min-w-24 rounded-[5px] border-primary text-[14px] font-semibold text-primary hover:bg-white hover:text-primary"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="button"
-                onClick={handleCreateOrder}
-                className="h-11 min-w-32 rounded-[5px] bg-primary text-[14px] font-semibold text-white hover:bg-primary"
-              >
-                Create Order
-              </Button>
+              <DefaultButton
+                data={{
+                  buttonText: "Cancel",
+                  variant: "outline",
+                  onClick: () => onOpenChange(false),
+                  className:
+                    "border-primary text-primary hover:bg-white hover:text-primary",
+                }}
+              />
+              <DefaultButton
+                data={{
+                  buttonText: "Create Order",
+                  onClick: handleCreateOrder,
+                }}
+              />
             </div>
           </div>
         </div>
@@ -410,45 +475,12 @@ const NewPosOrderDialog = ({
   );
 };
 
-interface FieldProps {
-  label: string;
-  value: string;
-  placeholder: string;
-  onChange: (value: string) => void;
-  required?: boolean;
-  optional?: boolean;
-}
-
-const Field = ({
-  label,
-  value,
-  placeholder,
-  onChange,
-  required,
-  optional,
-}: FieldProps) => (
-  <div>
-    <Label className="mb-2 block text-[13px] font-medium text-[#000000]">
-      {label}
-      {required && <span className="text-[#C90000]"> *</span>}
-      {optional && (
-        <span className="text-[11px] text-[#8B8B8B]"> (Optional)</span>
-      )}
-    </Label>
-    <Input
-      value={value}
-      onChange={(event) => onChange(event.target.value)}
-      placeholder={placeholder}
-      className={fieldClassName}
-    />
-  </div>
-);
-
 interface SummaryRowProps {
   label: string;
   value: string;
   className?: string;
   valueClassName?: string;
+  labelClassName?: string;
 }
 
 const SummaryRow = ({
@@ -456,9 +488,15 @@ const SummaryRow = ({
   value,
   className,
   valueClassName,
+  labelClassName,
 }: SummaryRowProps) => (
-  <div className={`flex items-center justify-between ${className ?? ""}`}>
-    <span>{label}</span>
+  <div
+    className={`flex items-center justify-between text-[16px] text-[#23252A] ${
+      className ?? ""
+    }`}
+  >
+    <span className={labelClassName}>{label}</span>
+
     <span className={valueClassName}>{value}</span>
   </div>
 );

@@ -1,35 +1,17 @@
 import { HelpCircle } from "lucide-react";
-import {
-  Table,
-  TableHeader,
-  TableRow,
-  TableHead,
-  TableBody,
-  TableCell,
-} from "@/shared/components/ui/table";
 
 const NeedHelpPanel = () => {
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead className="px-5 py-4">
-            <div className="flex items-center justify-between">
-              <span className="text-[15px] font-bold text-[#28293D]">Need help?</span>
-              <HelpCircle size={18} className="text-[#6B6B6B]" />
-            </div>
-          </TableHead>
-        </TableRow>
-      </TableHeader>
+    <section className="overflow-hidden rounded-[16px] border border-[#E1E1E5] bg-white">
+      <div className="flex h-[55px] items-center justify-between bg-[#F5F0EA] px-[20px]">
+        <h2 className="text-[20px] font-bold text-[#333333]">Need help?</h2>
+        <HelpCircle className="size-7 text-[#000000]" strokeWidth={1.8} />
+      </div>
 
-      <TableBody>
-        <TableRow className="hover:bg-transparent">
-          <TableCell className="px-5 py-5 text-center text-[13px] leading-relaxed text-[#6B6B6B] whitespace-normal">
-            Read our knowledge base for gateway troubleshooting
-          </TableCell>
-        </TableRow>
-      </TableBody>
-    </Table>
+      <div className="px-[34px] py-[29px] text-center text-[14px] font-bold leading-[1.18] text-[#000000]">
+        Read our knowledge base for gateway troubleshooting
+      </div>
+    </section>
   );
 };
 

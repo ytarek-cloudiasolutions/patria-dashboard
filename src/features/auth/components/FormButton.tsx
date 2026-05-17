@@ -1,11 +1,14 @@
-import { Button } from "@/shared/components/ui/button";
+import DefaultButton from "@/shared/components/DefaultButton";
 import type { ButtonProps } from "@/shared/types/Button.types";
 
 const FormButton = ({ buttonText }: ButtonProps) => {
   return (
-    <Button type="submit" className="h-14 px-7.5 py-4 rounded-[5px]">
-      {buttonText}
-    </Button>
+    <DefaultButton
+      data={{
+        buttonText: buttonText,
+        type: "submit",
+      }}
+    />
   );
 };
 

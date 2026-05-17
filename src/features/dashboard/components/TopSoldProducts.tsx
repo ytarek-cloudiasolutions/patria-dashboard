@@ -18,22 +18,22 @@ const TopSoldProducts = ({ products }: TopSoldProductsProps) => {
         <ProductIcon className="size-5 text-[#000000]" />
       </div>
 
-      <div className="space-y-9 px-4 py-8">
+      <div className="space-y-6 px-4 py-6 sm:space-y-9 sm:py-8">
         {products.map((product) => {
           const width = (product.units / maxUnits) * 100;
 
           return (
             <div
               key={product.id}
-              className="grid grid-cols-[minmax(170px,1fr)_minmax(120px,220px)_24px] items-center gap-2.5"
+              className="grid grid-cols-[1fr_minmax(70px,160px)_24px] items-center gap-2 sm:grid-cols-[minmax(120px,1fr)_minmax(120px,220px)_24px] sm:gap-2.5"
             >
               <p className="truncate text-[12px] font-medium text-[#000000]">
                 <span className="mr-1 font-bold">{product.rank}</span>
                 {product.name}
               </p>
-              <div className="h-4.25 overflow-hidden rounded-[6px] bg-[#E5E5E5]">
+              <div className="h-4 overflow-hidden rounded-[6px] bg-[#E5E5E5] sm:h-4.25">
                 <div
-                  className="h-full  bg-primary"
+                  className="h-full bg-primary transition-all duration-500"
                   style={{ width: `${width}%` }}
                 />
               </div>

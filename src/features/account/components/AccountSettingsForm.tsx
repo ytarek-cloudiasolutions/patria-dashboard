@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { Settings } from "lucide-react";
-import { Card, CardContent } from "@/shared/components/ui/card";
+import { Save, Settings } from "lucide-react";
 import DefaultButton from "@/shared/components/DefaultButton";
 import InputField from "@/shared/components/InputField";
 import type { AccountSettingsProps, AccountFormData } from "../types";
@@ -19,25 +18,28 @@ const AccountSettingsForm = ({ data, onSave }: AccountSettingsProps) => {
   };
 
   return (
-    <Card className="py-0 rounded-[16px] border border-[#E5E5E5] shadow-sm">
-      <CardContent className="px-6 py-6">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-[#28293D] text-[16px] font-semibold">
-            Account Settings
-          </h2>
-          <button className="text-[#8B8B8B] hover:text-[#28293D] transition-colors">
-            <Settings size={18} />
-          </button>
-        </div>
+    <section className="overflow-hidden rounded-[16px] border border-[#E1E1E5] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
+      <div className="flex h-[52px] items-center justify-between bg-[#F5F0EA] px-[18px]">
+        <h2 className="text-[18px] font-semibold text-[#333333]">
+          Account Settings
+        </h2>
+        <button
+          type="button"
+          className="inline-flex size-8 items-center justify-center rounded-[8px] text-[#000000] transition-colors hover:bg-white/70"
+        >
+          <Settings size={21} strokeWidth={2.2} />
+        </button>
+      </div>
 
-        {/* Form Fields */}
-        <div className="flex flex-col gap-5">
+      <div className="px-[17px] pb-[25px] pt-[27px]">
+        <div className="flex flex-col gap-[13px]">
           <InputField
             data={{
               id: "fullName",
               label: { htmlFor: "fullName", labelText: "Full Name" },
               placeholder: "Super Admin",
+              className:
+                "h-[53px] rounded-[12px] px-[14px] text-[16px] placeholder:text-[#9B9B9B]",
               inputProps: {
                 onChange: handleChange("fullName"),
                 value: formData.fullName,
@@ -51,6 +53,8 @@ const AccountSettingsForm = ({ data, onSave }: AccountSettingsProps) => {
               type: "email",
               label: { htmlFor: "email", labelText: "Email Address" },
               placeholder: "admin@er.com",
+              className:
+                "h-[53px] rounded-[12px] px-[14px] text-[16px] placeholder:text-[#9B9B9B]",
               inputProps: {
                 onChange: handleChange("email"),
                 value: formData.email,
@@ -64,6 +68,8 @@ const AccountSettingsForm = ({ data, onSave }: AccountSettingsProps) => {
               type: "tel",
               label: { htmlFor: "phoneNumber", labelText: "Phone Number" },
               placeholder: "01X XXXX XXXX",
+              className:
+                "h-[53px] rounded-[12px] px-[14px] text-[16px] placeholder:text-[#9B9B9B]",
               inputProps: {
                 onChange: handleChange("phoneNumber"),
                 value: formData.phoneNumber,
@@ -79,6 +85,8 @@ const AccountSettingsForm = ({ data, onSave }: AccountSettingsProps) => {
                 labelText: "Shipment Address",
               },
               placeholder: "Address in details...",
+              className:
+                "h-[53px] rounded-[12px] px-[14px] text-[16px] placeholder:text-[#9B9B9B]",
               inputProps: {
                 onChange: handleChange("shipmentAddress"),
                 value: formData.shipmentAddress,
@@ -87,34 +95,19 @@ const AccountSettingsForm = ({ data, onSave }: AccountSettingsProps) => {
           />
         </div>
 
-        {/* Save Button */}
-        <div className="mt-6">
+        <div className="mt-[25px]">
           <DefaultButton
             data={{
               buttonText: "Save Changes",
-              icon: (
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-                  <polyline points="17 21 17 13 7 13 7 21" />
-                  <polyline points="7 3 7 8 15 8" />
-                </svg>
-              ),
+              icon: <Save className="size-[18px]" />,
               onClick: handleSave,
-              className: "w-full bg-[#8B6914] hover:bg-[#7A5C10] text-white",
+              className:
+                "h-[60px] w-full rounded-[5px] bg-primary text-[17px] font-semibold text-white hover:bg-[#7A5C10]",
             }}
           />
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   );
 };
 

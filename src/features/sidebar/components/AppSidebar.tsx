@@ -30,27 +30,31 @@ const AppSidebar = ({
   onLogout,
 }: AppSidebarProps) => {
   return (
-    <Sidebar className="border-r border-white">
+    <Sidebar collapsible="offcanvas" className="border-r border-white">
       {/* Header — Brand + POS button */}
-      <SidebarHeader className="bg-white px-3 pt-8">
+      <SidebarHeader className="bg-white px-3 pt-6 sm:pt-8">
         {/* Brand */}
-        <div className="mb-4.5 flex items-center gap-4">
-          <div className="flex h-10 w-10 items-center justify-center rounded-[5px] bg-primary">
-            <Store size={24} className="text-white" />
+        <div className="mb-4 flex items-center gap-3 sm:mb-4.5 sm:gap-4">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[5px] bg-primary sm:h-10 sm:w-10">
+            <Store size={22} className="text-white" />
           </div>
-          <div>
-            <p className="text-[18px] font-semibold text-[#333333]">Patria</p>
-            <p className="text-[12px] text-[#595959]">Admin Dashboard</p>
+          <div className="min-w-0">
+            <p className="truncate text-[17px] font-semibold text-[#333333] sm:text-[18px]">
+              Patria
+            </p>
+            <p className="truncate text-[11px] text-[#595959] sm:text-[12px]">
+              Admin Dashboard
+            </p>
           </div>
         </div>
 
         {/* Open POS Button */}
         <button
           onClick={onOpenPOS}
-          className="flex w-full items-center justify-center gap-3 rounded-[5px] bg-primary px-6 py-3 text-[12px] font-semibold text-white cursor-pointer"
+          className="flex w-full items-center justify-center gap-2 rounded-[5px] bg-primary px-4 py-2.5 text-[12px] font-semibold text-white cursor-pointer sm:gap-3 sm:px-6 sm:py-3 transition-opacity hover:opacity-90"
         >
-          <ShoppingCart size={18} />
-          Open POS System
+          <ShoppingCart size={17} className="shrink-0" />
+          <span>Open POS System</span>
         </button>
       </SidebarHeader>
 
@@ -70,7 +74,7 @@ const AppSidebar = ({
                 const Icon = item.icon;
 
                 return (
-                  <SidebarMenuItem key={item.href} className="py-2">
+                  <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton
                       asChild
                       isActive={isActive}
@@ -82,13 +86,13 @@ const AppSidebar = ({
                     >
                       <button onClick={() => onNavigate?.(item.href)}>
                         <Icon
-                          size={18}
+                          size={16}
                           className={cn(
                             "shrink-0",
                             isActive ? "text-white" : "text-[#595959]"
                           )}
                         />
-                        <span>{item.label}</span>
+                        <span className="truncate">{item.label}</span>
                       </button>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -108,7 +112,7 @@ const AppSidebar = ({
               className="flex w-full items-center gap-1.5 rounded-[16px] text-[12px] text-[#595959] hover:bg-[#F5F0EA] transition-colors cursor-pointer"
             >
               <button onClick={onLogout}>
-                <LogOut size={18} className="shrink-0" />
+                <LogOut size={16} className="shrink-0" />
                 <span>Logout</span>
               </button>
             </SidebarMenuButton>
