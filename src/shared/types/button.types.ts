@@ -24,4 +24,5 @@ export interface ButtonProps {
   onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
   className?: string;
   icon?: React.ReactNode;
+  form?: string;
 }

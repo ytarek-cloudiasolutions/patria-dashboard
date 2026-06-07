@@ -22,7 +22,8 @@ function Switch({
       <SwitchPrimitive.Thumb
         className={cn(
           "h-[12.14px] w-[12.14px] rounded-full bg-white shadow transition-transform",
-          "translate-x-0 data-[state=checked]:translate-x-9.5"
+          "translate-x-0 data-[state=checked]:translate-x-9.5",
+          "rtl:data-[state=checked]:-translate-x-9.5"
         )}
       />
     </SwitchPrimitive.Root>

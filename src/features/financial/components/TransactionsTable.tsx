@@ -6,80 +6,172 @@ import {
   TableHeader,
   TableRow,
 } from "@/shared/components/ui/table";
-import type { Transaction } from "../types";
-import { categoryColorMap } from "../data";
+import { Badge } from "@/shared/components/ui/badge";
+import { cn } from "@/lib/utils";
+import type {
+  FinancialTransaction,
+  TransactionCategory,
+  TransactionStatus,
+} from "../types";
 
-interface Props {
-  transactions: Transaction[];
+interface TransactionsTableProps {
+  transactions: FinancialTransaction[];
   showStatus?: boolean;
 }
 
-const formatDate = (iso: string) => {
-  const d = new Date(iso);
-  return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
+const CATEGORY_STYLES: Record<TransactionCategory, string> = {
+  Salary: "bg-[#EDF4FB] text-[#3574FF] border-[#003BBE]",
+  Rent: "bg-[#F3E9FA] text-[#9524E4] border-[#7E00D7]",
+  Other: "bg-[#E5E5E5] text-[#23252A] border-[#595959]",
+  Sales: "bg-[#E2F4ED] text-[#059B5A] border-[#059B5A]/40",
+  Utilities: "bg-[#FFF5DC] text-[#B56C00] border-[#B56C00]/40",
+  Marketing: "bg-[#F5F0EA] text-primary border-[#624F1C]/40",
 };
 
-const TransactionsTable = ({ transactions, showStatus = false }: Props) => {
+const STATUS_STYLES: Record<TransactionStatus, string> = {
+  Registered: "bg-[#E2F4ED] text-[#059B5A] border-[#059B5A]",
+  Pending: "bg-[#FFF5DC] text-[#B56C00] border-[#B56C00]/40",
+};
+
+const CategoryBadge = ({ category }: { category: TransactionCategory }) => (
+  <Badge
+    className={cn(
+      "h-6 rounded-full border px-3 py-0 text-[11px] font-semibold",
+      CATEGORY_STYLES[category],
+    )}
+  >
+    {category}
+  </Badge>
+);
+
+const StatusBadge = ({ status }: { status: TransactionStatus }) => (
+  <Badge
+    className={cn(
+      "h-7 min-w-24 rounded-full border px-3 py-0 text-[12px] font-semibold",
+      STATUS_STYLES[status],
+    )}
+  >
+    {status}
+  </Badge>
+);
+
+const formatEgp = (value: number) => {
+  const sign = value < 0 ? "-" : "";
+  return `EGP ${sign}${Math.abs(value).toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
+};
+
+const TransactionsTable = ({
+  transactions,
+  showStatus = false,
+}: TransactionsTableProps) => {
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead className="pl-4">STATEMENT</TableHead>
-          <TableHead>CATEGORY</TableHead>
-          <TableHead>AMOUNT</TableHead>
-          <TableHead>DATE</TableHead>
-          {showStatus && <TableHead>STATUS</TableHead>}
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {transactions.map((txn) => (
-          <TableRow key={txn.id} className="border-b border-[#F0F0F0]">
-            <TableCell className="pl-4 py-4 text-[13px] font-medium text-[#28293D]">
-              {txn.statement}
-            </TableCell>
-            <TableCell>
-              <span
-                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[12px] font-medium border ${
-                  categoryColorMap[txn.category] ?? categoryColorMap.Other
-                }`}
-              >
-                {txn.category}
-              </span>
-            </TableCell>
-            <TableCell>
-              <span
-                className={`text-[13px] font-semibold ${
-                  txn.amount < 0 ? "text-[#C90000]" : "text-[#15803D]"
-                }`}
-              >
-                EGP {txn.amount < 0 ? "-" : ""}
-                {Math.abs(txn.amount).toLocaleString()}
-              </span>
-            </TableCell>
-            <TableCell className="text-[13px] text-[#28293D]">
-              {formatDate(txn.date)}
-            </TableCell>
-            {showStatus && (
-              <TableCell>
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-[12px] font-semibold bg-white text-[#5C4A1E] border border-[#5C4A1E]">
-                  {txn.status}
-                </span>
-              </TableCell>
-            )}
-          </TableRow>
+    <>
+      {/* Mobile card list */}
+      <div className="flex flex-col gap-3 md:hidden">
+        {transactions.map((tx) => (
+          <div
+            key={tx.id}
+            className="rounded-2xl border border-[#E5E5E5] bg-white px-4 py-4"
+          >
+            <div className="mb-3 flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="truncate text-[14px] font-semibold text-[#28293D]">
+                  {tx.statement}
+                </p>
+                <p className="mt-1">
+                  <CategoryBadge category={tx.category} />
+                </p>
+              </div>
+              {showStatus && <StatusBadge status={tx.status} />}
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 text-[13px]">
+              <div>
+                <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
+                  Amount
+                </p>
+                <p
+                  className={cn(
+                    "font-semibold",
+                    tx.amount < 0 ? "text-[#C90000]" : "text-[#059B5A]",
+                  )}
+                >
+                  {formatEgp(tx.amount)}
+                </p>
+              </div>
+              <div>
+                <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
+                  Date
+                </p>
+                <p className="text-[#28293D]">{tx.date}</p>
+              </div>
+            </div>
+          </div>
         ))}
+
         {transactions.length === 0 && (
-          <TableRow>
-            <TableCell
-              colSpan={showStatus ? 5 : 4}
-              className="text-center py-10 text-[#8B8B8B] text-[13px]"
-            >
-              No transactions found.
-            </TableCell>
-          </TableRow>
+          <p className="py-8 text-center text-[14px] text-[#8B8B8B]">
+            No transactions yet.
+          </p>
         )}
-      </TableBody>
-    </Table>
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden md:block">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="px-6 py-4">STATEMENT</TableHead>
+              <TableHead className="px-6 py-4">CATEGORY</TableHead>
+              <TableHead className="px-6 py-4">AMOUNT</TableHead>
+              <TableHead className="px-6 py-4">DATE</TableHead>
+              {showStatus && (
+                <TableHead className="px-6 py-4">STATUS</TableHead>
+              )}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {transactions.map((tx) => (
+              <TableRow key={tx.id} className="hover:bg-[#FAFAF8]">
+                <TableCell className="px-6 py-4 whitespace-nowrap text-[14px] font-semibold text-[#28293D]">
+                  {tx.statement}
+                </TableCell>
+                <TableCell className="px-6 py-4 whitespace-nowrap">
+                  <CategoryBadge category={tx.category} />
+                </TableCell>
+                <TableCell
+                  className={cn(
+                    "px-6 py-4 whitespace-nowrap text-[14px] font-semibold",
+                    tx.amount < 0 ? "text-[#C90000]" : "text-[#059B5A]",
+                  )}
+                >
+                  {formatEgp(tx.amount)}
+                </TableCell>
+                <TableCell className="px-6 py-4 whitespace-nowrap font-semibold text-[13px] text-[#000000]">
+                  {tx.date}
+                </TableCell>
+                {showStatus && (
+                  <TableCell className="px-6 py-4 whitespace-nowrap">
+                    <StatusBadge status={tx.status} />
+                  </TableCell>
+                )}
+              </TableRow>
+            ))}
+
+            {transactions.length === 0 && (
+              <TableRow>
+                <TableCell
+                  colSpan={showStatus ? 5 : 4}
+                  className="py-10 text-center text-[14px] text-[#8B8B8B]"
+                >
+                  No transactions yet.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </>
   );
 };
 

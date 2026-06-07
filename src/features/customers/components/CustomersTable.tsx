@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { SquarePen, Trash2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -7,102 +7,215 @@ import {
   TableHeader,
   TableRow,
 } from "@/shared/components/ui/table";
-import CustomerTableFilters from "./table/CustomerTableFilters";
-import CustomerTableRow from "./table/CustomerTableRow";
-import EditCustomerDialog from "./table/EditCustomerDialog";
-import type { Customer, TierFilter } from "../types";
-import { MOCK_CUSTOMERS } from "../data";
+import { Badge } from "@/shared/components/ui/badge";
+import ActionButton from "@/shared/components/ActionButton";
+import WhatsAppIcon from "@/assets/icons/whatsapp.svg";
+import TierBadge from "./TierBadge";
+import type { Customer } from "../types";
 
-const CustomersTable = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedTier, setSelectedTier] = useState<TierFilter>("All");
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
-    null
-  );
+interface CustomersTableProps {
+  customers: Customer[];
+  onEdit: (customer: Customer) => void;
+  onDelete: (customer: Customer) => void;
+  onWhatsApp: (customer: Customer) => void;
+}
 
-  const handleEditCustomer = (customer: Customer) => {
-    setSelectedCustomer(customer);
-    setIsEditDialogOpen(true);
-  };
+const formatEgp = (value: number) =>
+  value === 0
+    ? "EGP 0"
+    : `EGP ${value.toLocaleString("en-US", {
+        minimumFractionDigits: value % 1 === 0 ? 0 : 2,
+        maximumFractionDigits: 2,
+      })}`;
 
-  const filteredCustomers = useMemo(() => {
-    const normalizedSearchTerm = searchTerm.trim().toLowerCase();
-
-    return MOCK_CUSTOMERS.filter((customer) => {
-      const matchesSearch =
-        normalizedSearchTerm.length === 0 ||
-        customer.name.toLowerCase().includes(normalizedSearchTerm) ||
-        customer.role.toLowerCase().includes(normalizedSearchTerm) ||
-        customer.email.toLowerCase().includes(normalizedSearchTerm) ||
-        customer.phone.toLowerCase().includes(normalizedSearchTerm) ||
-        customer.date.toLowerCase().includes(normalizedSearchTerm);
-
-      const matchesTier =
-        selectedTier === "All" || customer.tier === selectedTier;
-
-      return matchesSearch && matchesTier;
-    });
-  }, [searchTerm, selectedTier]);
-
+const RoleSubLabel = ({ customer }: { customer: Customer }) => {
+  if (customer.role === "subscriber") {
+    return (
+      <div className="flex items-center gap-2">
+        <span className="text-[12px] text-[#8B8B8B]">
+          {customer.createdBy ?? customer.name}
+        </span>
+        <Badge className="h-[18px] px-2 py-0 text-[10px] font-semibold uppercase rounded-full border bg-[#E2F4ED] text-[#059B5A] border-current">
+          Subscriber
+        </Badge>
+      </div>
+    );
+  }
   return (
-    <div className="mt-7">
-      <CustomerTableFilters
-        searchTerm={searchTerm}
-        selectedTier={selectedTier}
-        onSearchChange={setSearchTerm}
-        onTierChange={setSelectedTier}
-      />
+    <span className="text-[12px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
+      {customer.role}
+    </span>
+  );
+};
 
-      <Table>
-        <TableHeader>
-          <TableRow className="h-10">
-            <TableHead className="font-semibold text-[13px] text-[#28293D]">
-              Name &amp; Role
-            </TableHead>
-            <TableHead className="font-semibold text-[13px] text-[#28293D]">
-              PEOPLE &amp; DATE
-            </TableHead>
-            <TableHead className="font-semibold text-[13px] text-[#28293D]">
-              TIER &amp; POINTS
-            </TableHead>
-            <TableHead className="font-semibold text-[13px] text-[#28293D]">
-              LTV &amp; ORDERS
-            </TableHead>
-            <TableHead className="font-semibold text-[13px] text-[#28293D]">
-              Actions
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody className="[&_tr:hover]:bg-white">
-          {filteredCustomers.length === 0 ? (
-            <TableRow>
-              <TableCell
-                colSpan={5}
-                className="px-7 py-10 text-center text-[14px] text-[#8B8B8B]"
-              >
-                No customers found.
-              </TableCell>
-            </TableRow>
-          ) : (
-            filteredCustomers.map((customer) => (
-              <CustomerTableRow
-                key={customer.id}
+const CustomerActions = ({
+  customer,
+  onEdit,
+  onDelete,
+  onWhatsApp,
+}: {
+  customer: Customer;
+  onEdit: (c: Customer) => void;
+  onDelete: (c: Customer) => void;
+  onWhatsApp: (c: Customer) => void;
+}) => (
+  <div className="flex items-center gap-3">
+    <button
+      type="button"
+      onClick={() => onWhatsApp(customer)}
+      aria-label={`Message ${customer.name} on WhatsApp`}
+      className="flex cursor-pointer items-center justify-center"
+    >
+      <img src={WhatsAppIcon} alt="" className="size-5" />
+    </button>
+    <ActionButton
+      data={{
+        icon: <SquarePen size={16} />,
+        iconColor: "text-[#000000]",
+        ariaLabel: `Edit ${customer.name}`,
+        onClick: () => onEdit(customer),
+      }}
+    />
+    <ActionButton
+      data={{
+        icon: <Trash2 size={16} />,
+        iconColor: "text-[#C90000]",
+        ariaLabel: `Delete ${customer.name}`,
+        onClick: () => onDelete(customer),
+      }}
+    />
+  </div>
+);
+
+const CustomersTable = ({
+  customers,
+  onEdit,
+  onDelete,
+  onWhatsApp,
+}: CustomersTableProps) => {
+  return (
+    <>
+      {/* Mobile card list — hidden on md+ */}
+      <div className="flex flex-col gap-3 md:hidden">
+        {customers.map((customer) => (
+          <div
+            key={customer.id}
+            className="rounded-2xl border border-[#E5E5E5] bg-white px-4 py-4"
+          >
+            <div className="mb-3 flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="truncate text-[15px] font-semibold text-[#28293D]">
+                  {customer.name}
+                </p>
+                <div className="mt-1">
+                  <RoleSubLabel customer={customer} />
+                </div>
+              </div>
+              <CustomerActions
                 customer={customer}
-                onEdit={handleEditCustomer}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                onWhatsApp={onWhatsApp}
               />
-            ))
-          )}
-        </TableBody>
-      </Table>
+            </div>
 
-      <EditCustomerDialog
-        key={selectedCustomer?.id ?? "no-customer"}
-        open={isEditDialogOpen}
-        onOpenChange={setIsEditDialogOpen}
-        customer={selectedCustomer}
-      />
-    </div>
+            <div className="mb-3">
+              <p className="text-[13px] text-[#28293D]">{customer.email}</p>
+              <p className="text-[12px] text-[#6B6B6B]" dir="ltr">{customer.phone}</p>
+            </div>
+
+            <div className="mb-3">
+              <TierBadge tier={customer.tier} />
+              <p className="mt-1 text-[12px] text-[#8B8B8B]">
+                {customer.loyaltyPoints} PTS
+              </p>
+            </div>
+
+            <div>
+              <p className="text-[14px] font-semibold text-[#059B5A]">
+                {formatEgp(customer.lifetimeValue)}
+              </p>
+              <p className="text-[12px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
+                {customer.segment}
+              </p>
+            </div>
+          </div>
+        ))}
+
+        {customers.length === 0 && (
+          <p className="py-8 text-center text-[14px] text-[#8B8B8B]">
+            No customers found.
+          </p>
+        )}
+      </div>
+
+      {/* Desktop table — hidden below md */}
+      <div className="hidden md:block">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="px-6 py-4">NAME &amp; ROLE</TableHead>
+              <TableHead className="px-6 py-4">PEOPLE &amp; DATE</TableHead>
+              <TableHead className="px-6 py-4">TIER &amp; POINTS</TableHead>
+              <TableHead className="px-6 py-4">LTV &amp; ORDERS</TableHead>
+              <TableHead className="px-6 py-4">ACTIONS</TableHead>
+            </TableRow>
+          </TableHeader>
+
+          <TableBody>
+            {customers.map((customer) => (
+              <TableRow key={customer.id} className="hover:bg-[#FAFAF8]">
+                <TableCell className="px-6 py-4 whitespace-nowrap">
+                  <p className="text-[14px] font-semibold text-[#28293D]">
+                    {customer.name}
+                  </p>
+                  <div className="mt-1">
+                    <RoleSubLabel customer={customer} />
+                  </div>
+                </TableCell>
+                <TableCell className="px-6 py-4 whitespace-nowrap">
+                  <p className="text-[13px] text-[#28293D]">{customer.email}</p>
+                  <p className="text-[12px] text-[#6B6B6B]" dir="ltr">{customer.phone}</p>
+                </TableCell>
+                <TableCell className="px-6 py-4 whitespace-nowrap">
+                  <TierBadge tier={customer.tier} />
+                  <p className="mt-1 text-[12px] text-[#8B8B8B]">
+                    {customer.loyaltyPoints} PTS
+                  </p>
+                </TableCell>
+                <TableCell className="px-6 py-4 whitespace-nowrap">
+                  <p className="text-[14px] font-semibold text-[#059B5A]">
+                    {formatEgp(customer.lifetimeValue)}
+                  </p>
+                  <p className="text-[12px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
+                    {customer.segment}
+                  </p>
+                </TableCell>
+                <TableCell className="px-6 py-4 whitespace-nowrap">
+                  <CustomerActions
+                    customer={customer}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                    onWhatsApp={onWhatsApp}
+                  />
+                </TableCell>
+              </TableRow>
+            ))}
+
+            {customers.length === 0 && (
+              <TableRow>
+                <TableCell
+                  colSpan={5}
+                  className="py-10 text-center text-[14px] text-[#8B8B8B]"
+                >
+                  No customers found.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </>
   );
 };
 

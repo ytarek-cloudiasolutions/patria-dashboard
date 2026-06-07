@@ -1,5 +1,4 @@
-import { CalendarDays, Package2 } from "lucide-react";
-import { Pencil, Trash2 } from "lucide-react";
+import { Box, Calendar, CalendarDays, SquarePen, Trash2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -8,140 +7,246 @@ import {
   TableHeader,
   TableRow,
 } from "@/shared/components/ui/table";
+import { Badge } from "@/shared/components/ui/badge";
 import ActionButton from "@/shared/components/ActionButton";
-import type { Subscription } from "../types";
+import { cn } from "@/lib/utils";
+import type { PaymentStatus, Subscription, SubscriptionStatus } from "../types";
 
-interface Props {
+interface SubscriptionsTableProps {
   subscriptions: Subscription[];
   onEdit: (subscription: Subscription) => void;
   onCancel: (subscription: Subscription) => void;
 }
 
-const PaymentBadge = ({ status }: { status: string }) => {
-  const colorMap: Record<string, string> = {
-    Pending: "bg-[#FFF3CD] text-[#856404] border border-[#FFECB5]",
-    Paid: "bg-[#D1FAE5] text-[#065F46] border border-[#A7F3D0]",
-    Failed: "bg-[#FEE2E2] text-[#991B1B] border border-[#FECACA]",
-  };
-  return (
-    <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[12px] font-medium ${colorMap[status] ?? colorMap.Pending}`}
-    >
-      {status}
-    </span>
-  );
+const PAYMENT_STYLES: Record<PaymentStatus, string> = {
+  Paid: "bg-[#E2F4ED] text-[#059B5A] border-[#059B5A]/40",
+  Pending: "bg-[#FFF5DC] text-[#C7861E] border-[#C7861E]",
+  Failed: "bg-[#FFF0F0] text-[#C90000] border-[#C90000]/40",
 };
 
-const StatusBadge = ({ status }: { status: string }) => {
-  const colorMap: Record<string, string> = {
-    Active: "bg-white text-[#5C4A1E] border border-[#5C4A1E]",
-    Paused: "bg-white text-[#856404] border border-[#856404]",
-    Cancelled: "bg-white text-[#C90000] border border-[#C90000]",
-  };
-  return (
-    <span
-      className={`inline-flex items-center px-3 py-1 rounded-full text-[12px] font-semibold ${colorMap[status] ?? colorMap.Active}`}
-    >
-      {status === "Active" ? "Approved" : status}
-    </span>
-  );
+const STATUS_STYLES: Record<SubscriptionStatus, string> = {
+  Active: "bg-[#E2F4ED] text-[#059B5A] border-[#059B5A]/40",
+  Paused: "bg-[#FFF5DC] text-[#B56C00] border-[#B56C00]/40",
+  Cancelled: "bg-[#FFF0F0] text-[#C90000] border-[#C90000]/40",
 };
 
-const TagBadge = ({ tag }: { tag: string }) => {
-  const isWhole = tag === "Whole Bean";
-  return (
-    <span
-      className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold ${
-        isWhole ? "bg-[#5C4A1E] text-white" : "bg-[#F5F0EA] text-[#5C4A1E]"
-      }`}
-    >
-      {tag}
-    </span>
-  );
+const STATUS_LABEL: Record<SubscriptionStatus, string> = {
+  Active: "Approved",
+  Paused: "Paused",
+  Cancelled: "Cancelled",
 };
 
-const SubscriptionsTable = ({ subscriptions, onEdit, onCancel }: Props) => {
+const PlanDetailsCell = ({ subscription }: { subscription: Subscription }) => (
+  <div className="flex flex-col gap-1.5">
+    <div className="inline-flex items-center gap-2 text-[14px] font-medium text-[#28293D]">
+      <Box size={14} className="text-[#000000]" />
+      {subscription.quantity}x {subscription.productName}
+    </div>
+    <div className="flex flex-wrap gap-1.5">
+      <Badge className="h-5 rounded-[30px] border border-[#624F1C] bg-[#8F6900] px-2 py-0 text-[10px] font-semibold text-white">
+        {subscription.roast}
+      </Badge>
+      <Badge className="h-5 rounded-[30px] border border-[#624F1C] bg-[#8F6900] px-2 py-0 text-[10px] font-semibold text-white">
+        {subscription.grind}
+      </Badge>
+    </div>
+  </div>
+);
+
+const NextDeliveryCell = ({ label }: { label: string }) => (
+  <Badge className="inline-flex items-center gap-1.5 px-3 py-0.5 text-[12px] text-[#28293D] font-semibold bg-white">
+    <CalendarDays size={18} />
+    {label}
+  </Badge>
+);
+
+const PaymentCell = ({ subscription }: { subscription: Subscription }) => (
+  <div className="flex flex-col justify-center items-center gap-1">
+    <Badge
+      className={cn(
+        "h-6 w-fit rounded-full border px-3 py-0 text-[11px] font-semibold",
+        PAYMENT_STYLES[subscription.paymentStatus],
+      )}
+    >
+      {subscription.paymentStatus}
+    </Badge>
+    <span className="text-[11px] text-[#8B8B8B]">{subscription.reference}</span>
+  </div>
+);
+
+const StatusBadgeCell = ({ status }: { status: SubscriptionStatus }) => (
+  <Badge
+    className={cn(
+      "h-7 min-w-24 rounded-full border px-3 py-0 text-[12px] font-semibold",
+      STATUS_STYLES[status],
+    )}
+  >
+    {STATUS_LABEL[status]}
+  </Badge>
+);
+
+const SubscriptionActions = ({
+  subscription,
+  onEdit,
+  onCancel,
+}: {
+  subscription: Subscription;
+  onEdit: (s: Subscription) => void;
+  onCancel: (s: Subscription) => void;
+}) => (
+  <div className="flex items-center gap-3">
+    <ActionButton
+      data={{
+        icon: <SquarePen size={16} />,
+        iconColor: "text-[#000000]",
+        ariaLabel: `Edit ${subscription.customerName}'s subscription`,
+        onClick: () => onEdit(subscription),
+      }}
+    />
+    <ActionButton
+      data={{
+        icon: <Trash2 size={16} />,
+        iconColor: "text-[#C90000]",
+        ariaLabel: `Cancel ${subscription.customerName}'s subscription`,
+        onClick: () => onCancel(subscription),
+      }}
+    />
+  </div>
+);
+
+const SubscriptionsTable = ({
+  subscriptions,
+  onEdit,
+  onCancel,
+}: SubscriptionsTableProps) => {
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead className="pl-4">CUSTOMER</TableHead>
-          <TableHead>PLAN DETAILS</TableHead>
-          <TableHead>FREQUENCY</TableHead>
-          <TableHead>NEXT DELIVERY</TableHead>
-          <TableHead>PAYMENT</TableHead>
-          <TableHead>STATUS</TableHead>
-          <TableHead>ACTIONS</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {subscriptions.map((sub) => (
-          <TableRow key={sub.id} className="border-b border-[#F0F0F0]">
-            <TableCell className="pl-4 py-4">
-              <p className="text-[14px] font-semibold text-[#28293D]">
-                {sub.customer.name}
+    <>
+      {/* Mobile card list */}
+      <div className="flex flex-col gap-3 md:hidden">
+        {subscriptions.map((subscription) => (
+          <div
+            key={subscription.id}
+            className="rounded-2xl border border-[#E5E5E5] bg-white px-4 py-4"
+          >
+            <div className="mb-3 flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="truncate text-[14px] font-semibold text-[#28293D]">
+                  {subscription.customerName}
+                </p>
+                <p className="text-[12px] text-[#6B6B6B]">
+                  {subscription.customerEmail}
+                </p>
+              </div>
+              <StatusBadgeCell status={subscription.status} />
+            </div>
+
+            <div className="mb-3">
+              <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
+                Plan
               </p>
-              <p className="text-[12px] text-[#8B8B8B]">{sub.customer.email}</p>
-            </TableCell>
-            <TableCell>
-              <div className="flex flex-col gap-1">
-                <div className="flex items-center gap-1.5 text-[13px] text-[#28293D]">
-                  <Package2 className="size-3.5 text-[#8B8B8B]" />
-                  <span>
-                    {sub.plan.quantity}x {sub.plan.productName}
-                  </span>
-                </div>
-                {sub.plan.tags && sub.plan.tags.length > 0 && (
-                  <div className="flex gap-1 mt-1">
-                    {sub.plan.tags.map((tag) => (
-                      <TagBadge key={tag} tag={tag} />
-                    ))}
-                  </div>
-                )}
+              <PlanDetailsCell subscription={subscription} />
+            </div>
+
+            <div className="mb-3 grid grid-cols-2 gap-3 text-[13px]">
+              <div>
+                <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
+                  Frequency
+                </p>
+                <p className="text-[#28293D]">{subscription.frequency}</p>
               </div>
-            </TableCell>
-            <TableCell>
-              <span className="text-[13px] text-[#28293D]">
-                {sub.frequency}
-              </span>
-            </TableCell>
-            <TableCell>
-              <div className="flex items-center gap-1.5 text-[13px] text-[#28293D]">
-                <CalendarDays className="size-3.5 text-[#8B8B8B]" />
-                <span>{sub.nextDelivery}</span>
+              <div>
+                <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
+                  Next Delivery
+                </p>
+                <NextDeliveryCell label={subscription.nextDelivery} />
               </div>
-            </TableCell>
-            <TableCell>
-              <div className="flex flex-col gap-1">
-                <PaymentBadge status={sub.paymentStatus} />
-                <p className="text-[11px] text-[#8B8B8B]">{sub.paymentRef}</p>
+              <div className="col-span-2">
+                <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
+                  Payment
+                </p>
+                <PaymentCell subscription={subscription} />
               </div>
-            </TableCell>
-            <TableCell>
-              <StatusBadge status={sub.status} />
-            </TableCell>
-            <TableCell>
-              <div className="flex items-center gap-2">
-                <ActionButton
-                  data={{
-                    icon: <Pencil className="size-4" />,
-                    iconColor: "text-[#5C4A1E] hover:text-[#3d3012]",
-                    onClick: () => onEdit(sub),
-                  }}
-                />
-                <ActionButton
-                  data={{
-                    icon: <Trash2 className="size-4" />,
-                    iconColor: "text-[#C90000] hover:text-[#a00000]",
-                    onClick: () => onCancel(sub),
-                  }}
-                />
-              </div>
-            </TableCell>
-          </TableRow>
+            </div>
+
+            <SubscriptionActions
+              subscription={subscription}
+              onEdit={onEdit}
+              onCancel={onCancel}
+            />
+          </div>
         ))}
-      </TableBody>
-    </Table>
+
+        {subscriptions.length === 0 && (
+          <p className="py-8 text-center text-[14px] text-[#8B8B8B]">
+            No subscriptions yet.
+          </p>
+        )}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden md:block">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="px-6 py-4">CUSTOMER</TableHead>
+              <TableHead className="px-6 py-4">PLAN DETAILS</TableHead>
+              <TableHead className="px-6 py-4">FREQUENCY</TableHead>
+              <TableHead className="px-6 py-4">NEXT DELIVERY</TableHead>
+              <TableHead className="px-6 py-4 text-center">PAYMENT</TableHead>
+              <TableHead className="px-6 py-4 text-center">STATUS</TableHead>
+              <TableHead className="px-6 py-4">ACTIONS</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {subscriptions.map((subscription) => (
+              <TableRow key={subscription.id} className="hover:bg-[#FAFAF8]">
+                <TableCell className="px-6 py-4 whitespace-nowrap">
+                  <p className="text-[14px] font-semibold text-[#28293D]">
+                    {subscription.customerName}
+                  </p>
+                  <p className="text-[12px] text-[#6B6B6B]">
+                    {subscription.customerEmail}
+                  </p>
+                </TableCell>
+                <TableCell className="px-6 py-4 whitespace-nowrap">
+                  <PlanDetailsCell subscription={subscription} />
+                </TableCell>
+                <TableCell className="px-6 py-4 whitespace-nowrap font-semibold text-[14px] text-[#28293D]">
+                  {subscription.frequency}
+                </TableCell>
+                <TableCell className="px-6 py-4 whitespace-nowrap">
+                  <NextDeliveryCell label={subscription.nextDelivery} />
+                </TableCell>
+                <TableCell className="px-6 py-4 whitespace-nowrap">
+                  <PaymentCell subscription={subscription} />
+                </TableCell>
+                <TableCell className="px-6 py-4 whitespace-nowrap">
+                  <StatusBadgeCell status={subscription.status} />
+                </TableCell>
+                <TableCell className="px-6 py-4 whitespace-nowrap">
+                  <SubscriptionActions
+                    subscription={subscription}
+                    onEdit={onEdit}
+                    onCancel={onCancel}
+                  />
+                </TableCell>
+              </TableRow>
+            ))}
+
+            {subscriptions.length === 0 && (
+              <TableRow>
+                <TableCell
+                  colSpan={7}
+                  className="py-10 text-center text-[14px] text-[#8B8B8B]"
+                >
+                  No subscriptions yet.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </>
   );
 };
 

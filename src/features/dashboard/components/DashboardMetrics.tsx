@@ -1,6 +1,7 @@
 import { TrendingDown, TrendingUp } from "lucide-react";
 
 import OverviewCard from "@/shared/components/OverviewCard";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import type { DashboardMetric } from "../types";
 
 interface DashboardMetricsProps {
@@ -8,6 +9,8 @@ interface DashboardMetricsProps {
 }
 
 const DashboardMetrics = ({ metrics }: DashboardMetricsProps) => {
+  const { t } = useTranslation();
+
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4 xl:gap-6">
       {metrics.map((metric) => {
@@ -19,7 +22,7 @@ const DashboardMetrics = ({ metrics }: DashboardMetricsProps) => {
           <OverviewCard
             key={metric.id}
             data={{
-              title: metric.title,
+              title: t(metric.title),
               value: metric.value,
               icon: <Icon className="size-5" />,
               iconColor: metric.iconColor,

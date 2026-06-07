@@ -1,13 +1,4 @@
-import { useEffect, useRef, useState } from "react";
-import {
-  Armchair,
-  CalendarDays,
-  Check,
-  ChevronLeft,
-  ChevronRight,
-  X,
-} from "lucide-react";
-import { Badge } from "@/shared/components/ui/badge";
+import { Check, Armchair, CalendarX, X } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -16,349 +7,239 @@ import {
   TableHeader,
   TableRow,
 } from "@/shared/components/ui/table";
-import ReservationStatusDropdown from "./ReservationStatusDropdown";
+import { cn } from "@/lib/utils";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import type { Reservation, ReservationStatus } from "../types";
-import DefaultButton from "@/shared/components/DefaultButton";
+import ReservationStatusBadge from "./ReservationStatusBadge";
+import ReservationStatusSelect from "./ReservationStatusSelect";
 
 interface ReservationsTableProps {
   reservations: Reservation[];
-  selectedDate: string;
-  onDateChange: (date: string) => void;
-  onStatusChange: (reservationId: string, status: ReservationStatus) => void;
-  onDeleteReservation: (reservationId: string) => void;
+  emptyMessage: string;
+  onStatusChange: (id: number, status: ReservationStatus) => void;
+  onDropdownOpenChange: (open: boolean) => void;
 }
 
-const WEEK_DAYS = ["Mon", "Tue", "Wed", "Thr", "Fri", "Sat", "Sun"];
+type ActionKey = "confirm" | "seat" | "cancel";
 
-const toYmd = (date: Date) => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+const STATUS_ACTIONS: Record<ReservationStatus, ActionKey[]> = {
+  "On Hold": ["confirm", "seat", "cancel"],
+  Sitting: ["confirm", "cancel"],
+  Confirmed: ["seat", "cancel"],
+  cancelled: [],
+  Ended: [],
 };
 
-const parseYmd = (value: string) => {
-  const [year, month, day] = value.split("-").map(Number);
-  if (!year || !month || !day) return null;
-  return new Date(year, month - 1, day);
+const ACTION_META: Record<
+  ActionKey,
+  {
+    icon: React.ComponentType<{ size?: number; className?: string }>;
+    color: string;
+    bg: string;
+    label: string;
+  }
+> = {
+  confirm: {
+    icon: Check,
+    color: "text-[#3574FF]",
+    bg: "bg-[#EDF4FB]",
+    label: "Confirm",
+  },
+  seat: {
+    icon: Armchair,
+    color: "text-[#059B5A]",
+    bg: "bg-[#E2F4ED]",
+    label: "Seat",
+  },
+  cancel: {
+    icon: X,
+    color: "text-[#C90000]",
+    bg: "bg-[#FFF0F0]",
+    label: "Cancel",
+  },
 };
 
-const formatFieldDate = (value: string) => {
-  const parsed = parseYmd(value);
-  if (!parsed) return "";
-  return parsed.toLocaleDateString("en-GB");
-};
-
-const buildCalendarDays = (viewDate: Date) => {
-  const year = viewDate.getFullYear();
-  const month = viewDate.getMonth();
-  const firstDayOffset = (new Date(year, month, 1).getDay() + 6) % 7;
-  const startDate = new Date(year, month, 1 - firstDayOffset);
-
-  return Array.from({ length: 42 }, (_, index) => {
-    const date = new Date(startDate);
-    date.setDate(startDate.getDate() + index);
-    return {
-      date,
-      inCurrentMonth: date.getMonth() === month,
-    };
-  });
-};
-
-interface ReservationDatePickerProps {
-  value: string;
-  onChange: (date: string) => void;
-}
-
-const ReservationDatePicker = ({
-  value,
-  onChange,
-}: ReservationDatePickerProps) => {
-  const [open, setOpen] = useState(false);
-  const [tempValue, setTempValue] = useState(value || toYmd(new Date()));
-  const [viewDate, setViewDate] = useState<Date>(parseYmd(value) ?? new Date());
-  const wrapperRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-
-    const handleOutsideClick = (event: MouseEvent) => {
-      if (!wrapperRef.current?.contains(event.target as Node)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleOutsideClick);
-
-    return () => {
-      document.removeEventListener("mousedown", handleOutsideClick);
-    };
-  }, [open]);
-
-  const selectedDate = parseYmd(tempValue);
-  const monthLabel = viewDate.toLocaleDateString("en-US", {
-    month: "short",
-    year: "numeric",
-  });
-  const calendarDays = buildCalendarDays(viewDate);
-
+const RowActions = ({
+  reservation,
+  onStatusChange,
+}: {
+  reservation: Reservation;
+  onStatusChange: (id: number, status: ReservationStatus) => void;
+}) => {
+  const actions = STATUS_ACTIONS[reservation.status];
+  if (actions.length === 0) {
+    return <span className="text-[14px] text-[#8B8B8B]">—</span>;
+  }
   return (
-    <div ref={wrapperRef} className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((prev) => !prev)}
-        className="h-12 w-85.5 rounded-[12px] border border-[#D1D1D8] bg-white px-4 text-left text-[14px] font-medium text-[#2D2D3D] flex items-center justify-between"
-      >
-        <span className={value ? "text-[#2D2D3D]" : "text-[#8B8B8B]"}>
-          {value ? formatFieldDate(value) : "dd/MM/YYYY"}
-        </span>
-        <CalendarDays className="size-5 text-[#000000]" />
-      </button>
-
-      {open && (
-        <div className="absolute bottom-[calc(100%+8px)] right-0 z-90 w-85.5 rounded-[16px] border border-[#E5E5E5] bg-white p-4 shadow-lg">
-          <div className="max-h-[70vh] overflow-y-auto pr-1">
-            <div className="mb-4 flex items-center justify-between">
-              <div className="text-[18px] font-semibold text-[#28293D]">
-                {monthLabel}
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() =>
-                    setViewDate(
-                      (prev) =>
-                        new Date(prev.getFullYear(), prev.getMonth() - 1, 1)
-                    )
-                  }
-                  className="inline-flex size-8 items-center justify-center rounded-md hover:bg-[#F5F0EA]"
-                >
-                  <ChevronLeft className="size-5 text-[#000000]" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setViewDate(
-                      (prev) =>
-                        new Date(prev.getFullYear(), prev.getMonth() + 1, 1)
-                    )
-                  }
-                  className="inline-flex size-8 items-center justify-center rounded-md hover:bg-[#F5F0EA]"
-                >
-                  <ChevronRight className="size-5 text-[#000000]" />
-                </button>
-              </div>
-            </div>
-
-            <div className="mb-2 grid grid-cols-7 text-center text-[14px] text-[#8B8B8B]">
-              {WEEK_DAYS.map((day) => (
-                <span key={day} className="py-1">
-                  {day}
-                </span>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-7 gap-y-1 text-center">
-              {calendarDays.map(({ date, inCurrentMonth }) => {
-                const dayValue = toYmd(date);
-                const isSelected =
-                  selectedDate && dayValue === toYmd(selectedDate);
-
-                return (
-                  <button
-                    key={dayValue}
-                    type="button"
-                    onClick={() => setTempValue(dayValue)}
-                    className={`mx-auto inline-flex size-9 items-center justify-center rounded-[10px] text-[16px] ${
-                      isSelected
-                        ? "bg-primary text-primary-foreground"
-                        : inCurrentMonth
-                        ? "text-[#23252A] hover:bg-[#F5F0EA]"
-                        : "text-[#8B8B8B] hover:bg-[#F5F0EA]"
-                    }`}
-                  >
-                    {date.getDate()}
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="mt-4 flex justify-end gap-3">
-              <DefaultButton
-                data={{
-                  buttonText: "Cancel",
-                  type: "button",
-                  variant: "outline",
-                  onClick: () => {
-                    setTempValue(value);
-                    setOpen(false);
-                  },
-                  className:
-                    "h-11 px-6 text-primary border-primary hover:bg-white hover:text-primary",
-                }}
-              />
-              <DefaultButton
-                data={{
-                  buttonText: "Select",
-                  type: "button",
-                  onClick: () => {
-                    onChange(tempValue);
-                    setOpen(false);
-                  },
-                  className: "h-11 px-6",
-                }}
-              />
-            </div>
-          </div>
-        </div>
-      )}
+    <div className="flex items-center gap-3">
+      {actions.map((key) => {
+        const { icon: Icon, color, bg, label } = ACTION_META[key];
+        return (
+          <button
+            key={key}
+            type="button"
+            aria-label={`${label} reservation for ${reservation.customer}`}
+            onClick={() =>
+              onStatusChange(
+                reservation.id,
+                key === "cancel"
+                  ? "cancelled"
+                  : key === "seat"
+                    ? "Sitting"
+                    : "Confirmed",
+              )
+            }
+            className={cn(
+              "flex size-9 cursor-pointer items-center justify-center rounded-[10px]",
+              bg,
+              color,
+            )}
+          >
+            <Icon size={18} />
+          </button>
+        );
+      })}
     </div>
   );
 };
 
-const getActionVisibility = (status: ReservationStatus) => {
-  const showConfirm = status === "On Hold" || status === "Sitting";
-  const showTableAction = status === "On Hold" || status === "Confirmed";
-  const showDelete = status !== "Ended" && status !== "cancelled";
-
-  return { showConfirm, showTableAction, showDelete };
-};
-
 const ReservationsTable = ({
   reservations,
-  selectedDate,
-  onDateChange,
+  emptyMessage,
   onStatusChange,
-  onDeleteReservation,
+  onDropdownOpenChange,
 }: ReservationsTableProps) => {
+  const { t } = useTranslation();
   return (
-    <div className="mt-8">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-[#28293D] text-[20px] font-semibold leading-none">
-          Today&apos;s Reservations
-        </h2>
-        <ReservationDatePicker value={selectedDate} onChange={onDateChange} />
+    <>
+      {/* Mobile cards */}
+      <div className="flex flex-col gap-3 md:hidden">
+        {reservations.length === 0 ? (
+          <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-[#D8D8D8] bg-white px-4 py-10 text-center">
+            <CalendarX size={22} className="text-[#8B8B8B]" />
+            <p className="text-[14px] font-medium text-[#8B8B8B]">
+              {emptyMessage}
+            </p>
+          </div>
+        ) : (
+          reservations.map((r) => (
+            <div
+              key={r.id}
+              className="rounded-2xl border border-[#E5E5E5] bg-white px-4 py-4"
+            >
+              <div className="mb-3 flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate text-[14px] font-semibold text-[#28293D]">
+                    {r.customer}
+                  </p>
+                  <p className="text-[12px] text-[#8B8B8B]" dir="ltr">
+                    {r.phone}
+                  </p>
+                </div>
+                <ReservationStatusBadge status={r.status} />
+              </div>
+              <div className="mb-3 grid grid-cols-3 gap-3 text-[12px]">
+                <div>
+                  <p className="mb-0.5 font-semibold uppercase tracking-wide text-[#8B8B8B]">
+                    {t("People")}
+                  </p>
+                  <p className="text-[#28293D]" dir="ltr">
+                    {r.people} {t("People")}
+                  </p>
+                </div>
+                <div>
+                  <p className="mb-0.5 font-semibold uppercase tracking-wide text-[#8B8B8B]">
+                    {t("Date")}
+                  </p>
+                  <p className="text-[#28293D]" dir="ltr">
+                    {r.date}
+                  </p>
+                </div>
+                <div>
+                  <p className="mb-0.5 font-semibold uppercase tracking-wide text-[#8B8B8B]">
+                    {t("TABLE")}
+                  </p>
+                  <p className="text-[#28293D]">{r.table}</p>
+                </div>
+              </div>
+              <RowActions reservation={r} onStatusChange={onStatusChange} />
+            </div>
+          ))
+        )}
       </div>
 
-      <Table>
-        <colgroup>
-          <col style={{ width: "196.4px" }} />
-          <col style={{ width: "196.4px" }} />
-          <col style={{ width: "196.4px" }} />
-          <col style={{ width: "196.4px" }} />
-          <col style={{ width: "196.4px" }} />
-        </colgroup>
-        <TableHeader>
-          <TableRow>
-            <TableHead>CUSTOMER</TableHead>
-            <TableHead>PEOPLE &amp; DATE</TableHead>
-            <TableHead>TABLE</TableHead>
-            <TableHead>STATUS</TableHead>
-            <TableHead>ACTIONS</TableHead>
-          </TableRow>
-        </TableHeader>
-
-        <TableBody>
-          {reservations.length === 0 ? (
+      {/* Desktop table */}
+      <div className="hidden md:block">
+        <Table className="min-w-175">
+          <TableHeader>
             <TableRow>
-              <TableCell colSpan={5} className="text-center text-gray-500 py-8">
-                No reservations match your current filter.
-              </TableCell>
+              <TableHead className="px-6 py-4">{t("CUSTOMER")}</TableHead>
+              <TableHead className="px-6 py-4 ">{t("PEOPLE & DATE")}</TableHead>
+              <TableHead className="px-6 py-4 ">{t("TABLE")}</TableHead>
+              <TableHead className="px-6 py-4">{t("Status")}</TableHead>
+              <TableHead className="px-6 py-4">{t("ACTIONS")}</TableHead>
             </TableRow>
-          ) : (
-            reservations.map((reservation) => {
-              const { showConfirm, showTableAction, showDelete } =
-                getActionVisibility(reservation.status);
-
-              const hasActions = showConfirm || showTableAction || showDelete;
-
-              return (
-                <TableRow key={reservation.id}>
-                  <TableCell className="py-4 text-[#28293D] text-[14px] font-medium">
-                    <p className="font-semibold text-[#292939]">
-                      {reservation.customerName}
+          </TableHeader>
+          <TableBody>
+            {reservations.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="px-6 py-12">
+                  <div className="flex flex-col items-center justify-center gap-2 text-center">
+                    <CalendarX size={24} className="text-[#8B8B8B]" />
+                    <p className="text-[14px] font-medium text-[#8B8B8B]">
+                      {emptyMessage}
                     </p>
-                    <p className="mt-1 text-[12px] text-[#8B8B8B] font-medium">
-                      {reservation.phone}
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : (
+              reservations.map((r) => (
+                <TableRow key={r.id} className="hover:bg-[#FAFAF8]">
+                  <TableCell className="px-6 py-4">
+                    <p
+                      className="text-[14px] font-semibold text-[#28293D]"
+                      dir="ltr"
+                    >
+                      {r.customer}
+                    </p>
+                    <p className="text-[12px] text-[#8B8B8B]" dir="ltr">
+                      {r.phone}
                     </p>
                   </TableCell>
-                  <TableCell className="py-4 text-[#28293D] text-[14px] font-medium">
-                    <p className="font-semibold text-[#2E2E3B]">
-                      {reservation.people} People
+                  <TableCell className="px-6 py-4">
+                    <p className="text-[14px] text-[#28293D]" dir="ltr">
+                      {r.people} {t("People")}
                     </p>
-                    <p className="mt-1 text-[12px] text-[#8B8B8B] font-medium">
-                      {reservation.displayDate}
+                    <p className="text-[12px] text-[#8B8B8B]" dir="ltr">
+                      {r.date}
                     </p>
                   </TableCell>
-                  <TableCell className="py-4 text-[#28293D] text-[14px] font-medium">
-                    {reservation.tableNumber}
+                  <TableCell
+                    className="px-6 py-4 text-[14px] text-[#28293D]"
+                    dir="ltr"
+                  >
+                    {r.table}
                   </TableCell>
-                  <TableCell className="py-4">
-                    <ReservationStatusDropdown
-                      value={reservation.status}
-                      onChange={(status) =>
-                        onStatusChange(reservation.id, status)
-                      }
+                  <TableCell className="px-6 py-4" dir="ltr">
+                    <ReservationStatusSelect
+                      status={r.status}
+                      onChange={(status) => onStatusChange(r.id, status)}
+                      onOpenChange={onDropdownOpenChange}
                     />
                   </TableCell>
-                  <TableCell className="py-4">
-                    {hasActions ? (
-                      <div className="flex items-center gap-2">
-                        {showConfirm && (
-                          <Badge
-                            asChild
-                            className="h-auto rounded-[6px] bg-[#EEF4FF] p-1 text-[#2F7BEA]"
-                          >
-                            <button
-                              type="button"
-                              aria-label={`Confirm reservation for ${reservation.customerName}`}
-                            >
-                              <Check size={13} />
-                            </button>
-                          </Badge>
-                        )}
-
-                        {showTableAction && (
-                          <Badge
-                            asChild
-                            className="h-auto rounded-[6px] bg-[#EAF9F1] p-1 text-[#22B26F]"
-                          >
-                            <button
-                              type="button"
-                              aria-label={`Assign table for ${reservation.customerName}`}
-                            >
-                              <Armchair size={13} />
-                            </button>
-                          </Badge>
-                        )}
-
-                        {showDelete && (
-                          <Badge
-                            asChild
-                            className="h-auto rounded-[6px] bg-[#FFF0F0] p-1 text-[#D23A3A]"
-                          >
-                            <button
-                              type="button"
-                              onClick={() =>
-                                onDeleteReservation(reservation.id)
-                              }
-                              aria-label={`Delete reservation for ${reservation.customerName}`}
-                            >
-                              <X size={13} />
-                            </button>
-                          </Badge>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="ml-9 w-4.5 h-0.5 bg-[#8B8B8B] rounded-full" />
-                    )}
+                  <TableCell className="px-6 py-4" dir="ltr">
+                    <RowActions
+                      reservation={r}
+                      onStatusChange={onStatusChange}
+                    />
                   </TableCell>
                 </TableRow>
-              );
-            })
-          )}
-        </TableBody>
-      </Table>
-    </div>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </>
   );
 };
 

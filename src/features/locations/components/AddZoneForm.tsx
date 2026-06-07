@@ -1,174 +1,166 @@
-import { useState } from "react";
-import { Button } from "@/shared/components/ui/button";
-import type { LocationStatus, ZoneFormProps } from "../types";
+import { useEffect, useState } from "react";
 import InputField from "@/shared/components/InputField";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/shared/components/ui/dropdown-menu";
-import { ChevronDown } from "lucide-react";
-import { Separator } from "@/shared/components/ui/separator";
-import DefaultButton from "@/shared/components/DefaultButton";
+import DropdownSelect from "@/shared/components/DropdownSelect";
 import { Label } from "@/shared/components/ui/label";
+import type { DeliveryZone, ZoneFormData, ZoneStatus } from "../types";
 
-const STATUS_OPTIONS: { label: string; value: LocationStatus }[] = [
-  { label: "Active", value: "available" },
-  { label: "Inactive", value: "inactive" },
+interface AddZoneFormProps {
+  id: string;
+  editingZone?: DeliveryZone;
+  onSubmit: (data: ZoneFormData, id?: number) => void;
+  onDropdownOpenChange?: (open: boolean) => void;
+}
+
+const STATUS_OPTIONS: { label: string; value: ZoneStatus }[] = [
+  { label: "Active", value: "Active" },
+  { label: "Inactive", value: "Inactive" },
 ];
 
-const ZoneForm = ({ initialData, onSave, onCancel }: ZoneFormProps) => {
-  const [formData, setFormData] = useState({
-    name: initialData?.name ?? "",
-    deliveryFee: initialData ? String(initialData.deliveryFee) : "",
-    minOrderAmount: initialData ? String(initialData.minOrderAmount) : "",
-    status: initialData?.status ?? ("available" as LocationStatus),
-  });
+const INITIAL_FORM: ZoneFormData = {
+  name: "",
+  deliveryFee: "",
+  minOrderAmount: "",
+  status: "Active",
+};
 
-  const [isStatusOpen, setIsStatusOpen] = useState(false);
+const AddZoneForm = ({
+  id,
+  editingZone,
+  onSubmit,
+  onDropdownOpenChange,
+}: AddZoneFormProps) => {
+  const [form, setForm] = useState<ZoneFormData>(INITIAL_FORM);
+  const [errors, setErrors] = useState<Partial<Record<keyof ZoneFormData, string>>>({});
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  useEffect(() => {
+    if (editingZone) {
+      setForm({
+        name: editingZone.name,
+        deliveryFee: String(editingZone.deliveryFee),
+        minOrderAmount: String(editingZone.minOrderAmount),
+        status: editingZone.status,
+      });
+    } else {
+      setForm(INITIAL_FORM);
+    }
+    setErrors({});
+  }, [editingZone]);
+
+  const set = <K extends keyof ZoneFormData>(key: K, value: ZoneFormData[K]) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+    if (errors[key]) setErrors((prev) => ({ ...prev, [key]: "" }));
   };
 
-  const handleSave = () => {
-    if (
-      !formData.name.trim() ||
-      !formData.deliveryFee ||
-      !formData.minOrderAmount
-    ) {
-      return;
+  const validate = () => {
+    const next: Partial<Record<keyof ZoneFormData, string>> = {};
+    if (!form.name.trim()) next.name = "Zone name is required";
+    if (!form.deliveryFee.trim()) {
+      next.deliveryFee = "Delivery fee is required";
+    } else if (isNaN(Number(form.deliveryFee)) || Number(form.deliveryFee) < 0) {
+      next.deliveryFee = "Enter a valid amount";
     }
+    if (!form.minOrderAmount.trim()) {
+      next.minOrderAmount = "Min. order is required";
+    } else if (
+      isNaN(Number(form.minOrderAmount)) ||
+      Number(form.minOrderAmount) < 0
+    ) {
+      next.minOrderAmount = "Enter a valid amount";
+    }
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  };
 
-    onSave({
-      name: formData.name,
-      deliveryFee: parseFloat(formData.deliveryFee),
-      minOrderAmount: parseFloat(formData.minOrderAmount),
-      status: formData.status,
-    });
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validate()) return;
+    onSubmit(form, editingZone?.id);
   };
 
   return (
-    <form className="flex flex-col gap-8 p-2.5">
-      <InputField
-        data={{
-          id: "name",
-          placeholder: "e.g. Kafr Abdo, Semouha",
-          required: true,
-          label: { htmlFor: "name", labelText: "Zone Name / Area" },
-          inputProps: {
-            name: "name",
-            value: formData.name,
-            onChange: handleInputChange,
-          },
-        }}
-      />
-
-      <div className="grid grid-cols-2 gap-6">
+    <form id={id} onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
+      <div>
         <InputField
           data={{
-            id: "deliveryFee",
-            type: "number",
-            placeholder: "0",
+            id: "zone-name",
+            label: { htmlFor: "zone-name", labelText: "Zone Name / Area" },
+            placeholder: "e.g. Kafr Abdo, Semouha",
             required: true,
-            label: {
-              htmlFor: "deliveryFee",
-              labelText: "Delivery Fee (EGP)",
-            },
             inputProps: {
-              name: "deliveryFee",
-              value: formData.deliveryFee,
-              onChange: handleInputChange,
-              min: "0",
-              step: "0.01",
+              value: form.name,
+              onChange: (e) => set("name", e.target.value),
             },
           }}
         />
-        <InputField
-          data={{
-            id: "minOrderAmount",
-            type: "number",
-            placeholder: "0",
-            required: true,
-            label: {
-              htmlFor: "minOrderAmount",
-              labelText: "Min. Order (EGP)",
-            },
-            inputProps: {
-              name: "minOrderAmount",
-              value: formData.minOrderAmount,
-              onChange: handleInputChange,
-              min: "0",
-              step: "0.01",
-            },
-          }}
-        />
+        {errors.name && (
+          <p className="mt-1 text-[13px] text-[#C90000]">{errors.name}</p>
+        )}
       </div>
 
-      {/* Status — outside the overlay wrapper */}
-      <div className="flex flex-col gap-2.5">
-        <Label className="text-[#000000] text-[16px] font-medium block">
-          Status <span className="text-[#C90000] ml-1">*</span>
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <div>
+          <InputField
+            data={{
+              id: "delivery-fee",
+              label: { htmlFor: "delivery-fee", labelText: "Delivery Fee (EGP)" },
+              placeholder: "0",
+              required: true,
+              inputProps: {
+                type: "number",
+                min: "0",
+                value: form.deliveryFee,
+                onChange: (e) => set("deliveryFee", e.target.value),
+              },
+            }}
+          />
+          {errors.deliveryFee && (
+            <p className="mt-1 text-[13px] text-[#C90000]">{errors.deliveryFee}</p>
+          )}
+        </div>
+
+        <div>
+          <InputField
+            data={{
+              id: "min-order",
+              label: { htmlFor: "min-order", labelText: "Min. Order (EGP)" },
+              placeholder: "0",
+              required: true,
+              inputProps: {
+                type: "number",
+                min: "0",
+                value: form.minOrderAmount,
+                onChange: (e) => set("minOrderAmount", e.target.value),
+              },
+            }}
+          />
+          {errors.minOrderAmount && (
+            <p className="mt-1 text-[13px] text-[#C90000]">
+              {errors.minOrderAmount}
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className="flex flex-col">
+        <Label
+          htmlFor="zone-status"
+          className="mb-2.5 text-[16px] font-medium text-black"
+        >
+          Status<span className="text-[#C90000]">*</span>
         </Label>
-        <DropdownMenu onOpenChange={setIsStatusOpen}>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="outline"
-              className="h-12.5 w-full justify-between rounded-lg border-input bg-white px-4 py-2 text-base font-normal cursor-pointer focus-visible:border-input focus-visible:ring-0"
-            >
-              {STATUS_OPTIONS.find((o) => o.value === formData.status)?.label}
-              <ChevronDown className="size-6 text-[#000000]" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="start"
-            style={{ width: "var(--radix-dropdown-menu-trigger-width)" }}
-            className="z-50 h-27.5 rounded-[16px] px-2 py-3 [&>[data-slot=dropdown-menu-item]+[data-slot=dropdown-menu-item]]:mt-2"
-          >
-            {STATUS_OPTIONS.map((option) => (
-              <DropdownMenuItem
-                key={option.value}
-                className={
-                  formData.status === option.value
-                    ? "rounded-[16px] px-3 py-2 text-[12px] font-medium bg-primary text-primary-foreground focus:bg-primary focus:text-primary-foreground"
-                    : "rounded-[16px] px-3 py-2 text-[12px]"
-                }
-                onSelect={() =>
-                  setFormData((prev) => ({ ...prev, status: option.value }))
-                }
-              >
-                {option.label}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-
-      <Separator className="bg-[#CACBD4]" />
-
-      <div className="flex gap-4 justify-end">
-        <DefaultButton
-          data={{
-            buttonText: "Cancel",
-            variant: "outline",
-            type: "button", 
-            onClick: onCancel,
-            className:
-              "text-primary border-primary hover:bg-white hover:text-primary",
-          }}
-        />
-        <DefaultButton
-          data={{
-            buttonText: "Save Zone",
-            type: "button", 
-            onClick: handleSave,
-          }}
+        <DropdownSelect
+          options={STATUS_OPTIONS}
+          selected={form.status}
+          onSelect={(value) => set("status", value as ZoneStatus)}
+          onOpenChange={onDropdownOpenChange}
+          placeholder="Select status"
+          align="start"
+          className="md:w-full"
+          contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
         />
       </div>
     </form>
   );
 };
 
-export default ZoneForm;
+export default AddZoneForm;

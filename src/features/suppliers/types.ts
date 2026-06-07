@@ -1,12 +1,23 @@
+export type SupplierStatus = "Documented" | "Pending" | "Inactive";
+
+export type SupplierCategory =
+  | "Arabica"
+  | "Coffee"
+  | "Beans"
+  | "Turkish"
+  | "Tea"
+  | "Dairy"
+  | "Spices";
+
 export interface Supplier {
   id: number;
   name: string;
-  status: string;
+  status: SupplierStatus;
   contactPerson: string;
-  email: string;
   phone: string;
+  email: string;
   address: string;
-  categories: string[];
+  categories: SupplierCategory[];
 }
 
 export interface SupplierFormData {
@@ -16,11 +27,4 @@ export interface SupplierFormData {
   email: string;
   address: string;
   categories: string;
-}
-
-export interface SupplierOverview {
-  totalSuppliers: number;
-  supplySpeed: string;
-  averageSupplyCycle: string;
-  qualityAssurance: string;
 }

@@ -1,45 +1,35 @@
-export type OrderStatus = "pending" | "omnia";
-
-export type VehicleType = "Motorcycle" | "Car" | "Van";
-
 export type DriverStatus = "Active" | "Inactive";
-
-export interface Order {
-  id: string;
-  customer: string;
-  status: OrderStatus;
-}
-
-export interface Zone {
-  id: number;
-  name: string;
-  totalOrders: number;
-  orders: Order[];
-}
+export type VehicleType = "Motorcycle" | "Car" | "Van";
 
 export interface Driver {
   id: number;
   name: string;
-  phone: string;
-  vehicle: VehicleType;
+  whatsappPhone: string;
+  vehicleType: VehicleType;
   zones: string[];
   status: DriverStatus;
 }
 
-export interface AddDriverFormData {
+export type OrderStatus = "Pending" | "Assigned";
+
+export interface ZoneOrder {
+  id: string;
+  reference: string;
+  customer: string;
+  status: OrderStatus;
+  assignedDriverId?: number;
+  assignedDriverName?: string;
+}
+
+export interface Zone {
+  id: string;
   name: string;
-  phone: string;
-  vehicle: VehicleType;
+  orders: ZoneOrder[];
+}
+
+export interface DriverFormData {
+  name: string;
+  whatsappPhone: string;
+  vehicleType: VehicleType;
   status: DriverStatus;
-}
-
-export interface OverviewCardData {
-  label: string;
-  value: number;
-  iconBg: string;
-}
-
-export interface DispatchPayload {
-  zone: Zone;
-  driverId: number;
 }

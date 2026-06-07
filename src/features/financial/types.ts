@@ -1,46 +1,46 @@
-export type TransactionType = "income" | "expense";
+export type FinancialTab = "overview" | "expenses" | "salaries";
+
+export type TransactionType = "Income" | "Expense";
+
 export type TransactionCategory =
   | "Salary"
   | "Rent"
-  | "Sales"
   | "Other"
-  | "Food"
+  | "Sales"
   | "Utilities"
   | "Marketing";
 
-export type FinancialTab = "overview" | "expenses" | "salaries";
+export type TransactionStatus = "Registered" | "Pending";
 
-export interface Transaction {
-  id: string;
+export interface FinancialTransaction {
+  id: number;
   statement: string;
   category: TransactionCategory;
-  amount: number; // positive = income, negative = expense
-  date: string; // ISO date string
+  amount: number;
   type: TransactionType;
-  isSalary?: boolean;
-  status: "Registered" | "Pending";
+  date: string;
+  status: TransactionStatus;
+  classifiedAsSalary?: boolean;
 }
 
-export interface FinancialStats {
-  totalRevenue: number;
-  totalExpenses: number;
-  netProfit: number;
-  profitMargin: number;
+export interface RevenueBreakdownRow {
+  id: string;
+  label: string;
+  amount: number;
 }
 
 export interface PerformanceIndicator {
+  id: string;
   label: string;
-  value: number | string;
-  prefix?: string;
-  isNegative?: boolean;
-  icon: string; // lucide icon name
+  amount: number;
+  tone: "neutral" | "positive" | "negative";
 }
 
-export interface NewTransactionForm {
+export interface TransactionFormData {
   type: TransactionType;
   statement: string;
   category: TransactionCategory | "";
-  amount: number;
+  amount: string;
   date: string;
-  isSalary: boolean;
+  classifyAsSalary: boolean;
 }

@@ -1,181 +1,267 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
 } from "@/shared/components/ui/dialog";
-import DefaultButton from "@/shared/components/DefaultButton";
-import { customerOptions, productOptions, frequencyOptions } from "../data";
-import type { NewSubscriptionForm } from "../types";
+import { Button } from "@/shared/components/ui/button";
+import { Label } from "@/shared/components/ui/label";
 import { Separator } from "@/shared/components/ui/separator";
+import DefaultButton from "@/shared/components/DefaultButton";
+import DropdownSelect from "@/shared/components/DropdownSelect";
+import InputField from "@/shared/components/InputField";
+import DatePicker from "@/shared/components/DatePicker";
+import {
+  CUSTOMER_OPTIONS,
+  SUBSCRIPTION_FREQUENCY_OPTIONS,
+  SUBSCRIPTION_PRODUCTS,
+} from "../data";
+import type {
+  NewSubscriptionFormData,
+  SubscriptionFrequency,
+} from "../types";
 
-interface Props {
+const FORM_ID = "new-subscription-form";
+
+const INITIAL_FORM: NewSubscriptionFormData = {
+  customerId: "",
+  productId: "",
+  quantity: "",
+  frequency: "Weekly",
+  firstDelivery: "",
+};
+
+const customerOptions = CUSTOMER_OPTIONS.map((c) => ({
+  value: c.id,
+  label: c.name,
+}));
+
+const productOptions = SUBSCRIPTION_PRODUCTS.map((p) => ({
+  value: p.id,
+  label: p.name,
+}));
+
+interface NewSubscriptionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: NewSubscriptionForm) => void;
+  onSave: (data: NewSubscriptionFormData) => void;
 }
 
-const SelectField = ({
-  label,
-  required,
-  options,
-  value,
-  onChange,
-  placeholder,
-}: {
-  label: string;
-  required?: boolean;
-  options: { value: string; label: string }[];
-  value: string;
-  onChange: (v: string) => void;
-  placeholder: string;
-}) => (
-  <div className="flex flex-col gap-2.5">
-    <label className="text-[#000000] text-[16px] font-medium">
-      {label}
-      {required && <span className="text-[#C90000] ml-1">*</span>}
-    </label>
-    <div className="relative">
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full h-12.5 px-3 rounded-[12px] bg-white border border-[#E5E5E5] text-[16px] text-[#23252A] appearance-none cursor-pointer focus:outline-none focus:border-primary"
-      >
-        <option value="" disabled>
-          {placeholder}
-        </option>
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
-      </select>
-      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#8B8B8B]">
-        ▾
-      </span>
-    </div>
-  </div>
-);
+const NewSubscriptionDialog = ({
+  open,
+  onOpenChange,
+  onSave,
+}: NewSubscriptionDialogProps) => {
+  const [form, setForm] = useState<NewSubscriptionFormData>(INITIAL_FORM);
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof NewSubscriptionFormData, string>>
+  >({});
+  const [openDropdown, setOpenDropdown] = useState<
+    "customer" | "product" | "frequency" | null
+  >(null);
 
-const NewSubscriptionDialog = ({ open, onOpenChange, onSubmit }: Props) => {
-  const [form, setForm] = useState<NewSubscriptionForm>({
-    customerId: "",
-    productId: "",
-    frequency: "Weekly",
-    quantity: 0,
-    firstDeliveryDate: "",
-  });
+  useEffect(() => {
+    if (open) {
+      setForm(INITIAL_FORM);
+      setErrors({});
+      setOpenDropdown(null);
+    }
+  }, [open]);
 
-  const handleSubmit = () => {
-    onSubmit(form);
+  const set = <K extends keyof NewSubscriptionFormData>(
+    key: K,
+    value: NewSubscriptionFormData[K],
+  ) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+    if (errors[key]) setErrors((prev) => ({ ...prev, [key]: "" }));
+  };
+
+  const validate = () => {
+    const next: Partial<Record<keyof NewSubscriptionFormData, string>> = {};
+    if (!form.customerId) next.customerId = "Customer is required";
+    if (!form.productId) next.productId = "Product is required";
+    if (!form.quantity.trim() || Number(form.quantity) <= 0) {
+      next.quantity = "Enter a valid quantity";
+    }
+    if (!form.firstDelivery) next.firstDelivery = "Delivery date is required";
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validate()) return;
+    onSave(form);
     onOpenChange(false);
-    setForm({
-      customerId: "",
-      productId: "",
-      frequency: "Weekly",
-      quantity: 0,
-      firstDeliveryDate: "",
-    });
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="rounded-[13px] sm:max-w-174">
-        <DialogHeader>
-          <DialogTitle className="text-[18px] font-semibold text-[#333]">
-            New Subscription
-          </DialogTitle>
-        </DialogHeader>
+      <DialogContent
+        showCloseButton={false}
+        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-140"
+      >
+        {openDropdown && (
+          <div className="pointer-events-none fixed inset-0 z-60 bg-black/40" />
+        )}
 
-        <div className="flex flex-col gap-5 py-2">
-          <SelectField
-            label="Customer"
-            required
-            options={customerOptions}
-            value={form.customerId}
-            onChange={(v) => setForm((f) => ({ ...f, customerId: v }))}
-            placeholder="Select a customer"
-          />
-
-          <SelectField
-            label="Product"
-            required
-            options={productOptions}
-            value={form.productId}
-            onChange={(v) => setForm((f) => ({ ...f, productId: v }))}
-            placeholder="Select a product"
-          />
-
-          <div className="grid grid-cols-2 gap-4">
-            <SelectField
-              label="Frequency"
-              required
-              options={frequencyOptions}
-              value={form.frequency}
-              onChange={(v) =>
-                setForm((f) => ({
-                  ...f,
-                  frequency: v as NewSubscriptionForm["frequency"],
-                }))
-              }
-              placeholder="Weekly"
-            />
-            <div className="flex flex-col gap-2.5">
-              <label className="text-[#000000] text-[16px] font-medium">
-                Quantity <span className="text-[#C90000]">*</span>
-              </label>
-              <input
-                type="number"
-                min={0}
-                value={form.quantity || ""}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, quantity: Number(e.target.value) }))
-                }
-                placeholder="0"
-                className="h-12.5 px-3 rounded-[12px] bg-white border border-[#E5E5E5] text-[16px] text-[#23252A] focus:outline-none focus:border-primary placeholder:text-[#8B8B8B]"
-              />
-            </div>
+        <div className="flex max-h-[calc(100vh-2rem)] flex-col">
+          {/* Header */}
+          <div className="px-5 pt-5 sm:px-7 sm:pt-7">
+            <DialogTitle className="text-[20px] font-semibold text-[#28293D] sm:text-[22px]">
+              New Subscription
+            </DialogTitle>
           </div>
 
-          <div className="flex flex-col gap-2.5">
-            <label className="text-[#000000] text-[16px] font-medium">
-              First Delivery Date <span className="text-[#C90000]">*</span>
-            </label>
-            <div className="relative">
-              <input
-                type="date"
-                value={form.firstDeliveryDate}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, firstDeliveryDate: e.target.value }))
-                }
-                placeholder="DD/MM/YYYY"
-                className="w-full h-12.5 px-3 rounded-[12px] bg-white border border-[#E5E5E5] text-[16px] text-[#23252A] focus:outline-none focus:border-primary placeholder:text-[#8B8B8B]"
-              />
+          {/* Body */}
+          <form
+            id={FORM_ID}
+            onSubmit={handleSubmit}
+            noValidate
+            className="flex-1 overflow-y-auto px-5 py-5 sm:px-7 sm:py-6"
+          >
+            <div className="flex flex-col gap-5">
+              <div className="flex flex-col">
+                <Label
+                  htmlFor="customer"
+                  className="mb-2.5 text-[16px] font-medium text-black"
+                >
+                  Customer<span className="text-[#C90000]">*</span>
+                </Label>
+                <DropdownSelect
+                  options={customerOptions}
+                  selected={form.customerId}
+                  onSelect={(value) => set("customerId", value)}
+                  onOpenChange={(o) =>
+                    setOpenDropdown(o ? "customer" : null)
+                  }
+                  placeholder="Select a customer"
+                  align="start"
+                  className="md:w-full"
+                  contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
+                />
+                {errors.customerId && (
+                  <p className="mt-1 text-[13px] text-[#C90000]">
+                    {errors.customerId}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex flex-col">
+                <Label
+                  htmlFor="product"
+                  className="mb-2.5 text-[16px] font-medium text-black"
+                >
+                  Product<span className="text-[#C90000]">*</span>
+                </Label>
+                <DropdownSelect
+                  options={productOptions}
+                  selected={form.productId}
+                  onSelect={(value) => set("productId", value)}
+                  onOpenChange={(o) =>
+                    setOpenDropdown(o ? "product" : null)
+                  }
+                  placeholder="Select a product"
+                  align="start"
+                  className="md:w-full"
+                  contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
+                />
+                {errors.productId && (
+                  <p className="mt-1 text-[13px] text-[#C90000]">
+                    {errors.productId}
+                  </p>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:items-end">
+                <div className="flex flex-col">
+                  <Label
+                    htmlFor="frequency"
+                    className="mb-2.5 text-[16px] font-medium text-black"
+                  >
+                    Frequency<span className="text-[#C90000]">*</span>
+                  </Label>
+                  <DropdownSelect
+                    options={SUBSCRIPTION_FREQUENCY_OPTIONS}
+                    selected={form.frequency}
+                    onSelect={(value) =>
+                      set("frequency", value as SubscriptionFrequency)
+                    }
+                    onOpenChange={(o) =>
+                      setOpenDropdown(o ? "frequency" : null)
+                    }
+                    placeholder="Frequency"
+                    align="start"
+                    className="md:w-full"
+                    contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
+                  />
+                </div>
+
+                <div>
+                  <InputField
+                    data={{
+                      id: "quantity",
+                      label: { htmlFor: "quantity", labelText: "Quantity" },
+                      placeholder: "0",
+                      required: true,
+                      inputProps: {
+                        type: "number",
+                        min: "0",
+                        value: form.quantity,
+                        onChange: (e) => set("quantity", e.target.value),
+                      },
+                    }}
+                  />
+                  {errors.quantity && (
+                    <p className="mt-1 text-[13px] text-[#C90000]">
+                      {errors.quantity}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex flex-col">
+                <Label className="mb-2.5 text-[16px] font-medium text-black">
+                  First Delivery Date<span className="text-[#C90000]">*</span>
+                </Label>
+                <DatePicker
+                  value={form.firstDelivery}
+                  onChange={(date) => set("firstDelivery", date)}
+                  placeholder="DD/MM/YYYY"
+                  withBackdrop
+                  minDate={new Date().toISOString().slice(0, 10)}
+                />
+                {errors.firstDelivery && (
+                  <p className="mt-1 text-[13px] text-[#C90000]">
+                    {errors.firstDelivery}
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
+          </form>
 
-          <Separator className="bg-[#CACBD4]" />
-
-          <div className="flex justify-end gap-4">
-            <DefaultButton
-              data={{
-                buttonText: "Cancel",
-                variant: "outline",
-                type: "button",
-                onClick: () => onOpenChange(false),
-                className:
-                  "text-primary border-primary hover:bg-white hover:text-primary",
-              }}
-            />
-            <DefaultButton
-              data={{
-                buttonText: "Create Subscription",
-                type: "button",
-                className: "bg-[#5C4A1E]",
-                onClick: handleSubmit,
-              }}
-            />
+          {/* Sticky footer */}
+          <div className="bg-white px-5 pb-5 sm:px-7 sm:pb-6">
+            <Separator className="mb-4 bg-[#CACBD4] sm:mb-5" />
+            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <DefaultButton
+                data={{
+                  buttonText: "Cancel",
+                  variant: "outline",
+                  type: "button",
+                  onClick: () => onOpenChange(false),
+                  className:
+                    "w-full sm:w-auto border-primary text-primary hover:bg-white hover:text-primary",
+                }}
+              />
+              <Button
+                form={FORM_ID}
+                type="submit"
+                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
+              >
+                Create Subscription
+              </Button>
+            </div>
           </div>
         </div>
       </DialogContent>

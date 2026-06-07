@@ -1,3 +1,4 @@
+import { Box } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -6,81 +7,124 @@ import {
   TableHeader,
   TableRow,
 } from "@/shared/components/ui/table";
-import { Package } from "lucide-react";
-
-import { cn } from "@/lib/utils";
-import type { Transfer } from "../types";
+import TransferStatusBadge from "./TransferStatusBadge";
+import type { InternalTransfer } from "../types";
 
 interface TransfersTableProps {
-  transfers: Transfer[];
+  transfers: InternalTransfer[];
 }
 
-const statusStyles: Record<Transfer["status"], string> = {
-  Pending: "border border-[#F5D8A8] bg-white text-[#B56C00]",
-  Approved: "border border-[#A8DFC4] bg-white text-[#1A7A45]",
-  Rejected: "border border-[#F5A8A8] bg-white text-[#C90000]",
-};
+const ItemsCount = ({ count }: { count: number }) => (
+  <div className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#28293D]">
+    <Box size={14} className="text-[#595959]" />
+    {count} {count === 1 ? "Item" : "Items"}
+  </div>
+);
 
 const TransfersTable = ({ transfers }: TransfersTableProps) => {
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead className="px-5 py-3">ID</TableHead>
-          <TableHead className="px-5 py-3">FROM</TableHead>
-          <TableHead className="px-5 py-3">TO</TableHead>
-          <TableHead className="px-5 py-3">ITEMS</TableHead>
-          <TableHead className="px-5 py-3">DATE</TableHead>
-          <TableHead className="px-5 py-3">STATUS</TableHead>
-        </TableRow>
-      </TableHeader>
+    <>
+      {/* Mobile card list — hidden on md+ */}
+      <div className="flex flex-col gap-3 md:hidden">
+        {transfers.map((transfer) => (
+          <div
+            key={transfer.id}
+            className="rounded-2xl border border-[#E5E5E5] bg-white px-4 py-4"
+          >
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <p className="text-[14px] font-semibold text-[#28293D]">
+                {transfer.reference}
+              </p>
+              <TransferStatusBadge status={transfer.status} />
+            </div>
 
-      <TableBody>
-        {transfers.length === 0 ? (
-          <TableRow>
-            <TableCell
-              colSpan={6}
-              className="px-5 py-10 text-center text-[14px] text-[#8B8B8B]"
-            >
-              No transfers found.
-            </TableCell>
-          </TableRow>
-        ) : (
-          transfers.map((transfer) => (
-            <TableRow key={transfer.id} className="hover:bg-[#FAFAF8]">
-              <TableCell className="px-5 py-4 font-semibold text-[#28293D]">
-                {transfer.id}
-              </TableCell>
-              <TableCell className="px-5 py-4 font-semibold text-[#28293D]">
-                {transfer.from}
-              </TableCell>
-              <TableCell className="px-5 py-4 font-semibold text-[#28293D]">
-                {transfer.to}
-              </TableCell>
-              <TableCell className="px-5 py-4">
-                <div className="flex items-center gap-1.5 text-[14px] text-[#28293D]">
-                  <Package size={14} className="text-[#6B6B6B]" />
-                  {transfer.items} Items
-                </div>
-              </TableCell>
-              <TableCell className="px-5 py-4 text-[14px] font-semibold text-[#28293D]">
-                {transfer.date}
-              </TableCell>
-              <TableCell className="px-5 py-4">
-                <span
-                  className={cn(
-                    "rounded-full px-4 py-1.5 text-[12px] font-semibold",
-                    statusStyles[transfer.status]
-                  )}
-                >
-                  {transfer.status}
-                </span>
-              </TableCell>
-            </TableRow>
-          ))
+            <div className="grid grid-cols-2 gap-3 text-[13px]">
+              <div>
+                <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
+                  From
+                </p>
+                <p className="text-[#28293D]">{transfer.fromName}</p>
+              </div>
+              <div>
+                <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
+                  To
+                </p>
+                <p className="text-[#28293D]">{transfer.toName}</p>
+              </div>
+              <div>
+                <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
+                  Items
+                </p>
+                <ItemsCount count={transfer.items.length} />
+              </div>
+              <div>
+                <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
+                  Date
+                </p>
+                <p className="text-[#28293D]">{transfer.createdAt}</p>
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {transfers.length === 0 && (
+          <p className="py-8 text-center text-[14px] text-[#8B8B8B]">
+            No transfers yet.
+          </p>
         )}
-      </TableBody>
-    </Table>
+      </div>
+
+      {/* Desktop table — hidden below md */}
+      <div className="hidden md:block">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="px-6 py-4">ID</TableHead>
+              <TableHead className="px-6 py-4">FROM</TableHead>
+              <TableHead className="px-6 py-4">TO</TableHead>
+              <TableHead className="px-6 py-4">ITEMS</TableHead>
+              <TableHead className="px-6 py-4">DATE</TableHead>
+              <TableHead className="px-6 py-4">STATUS</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {transfers.map((transfer) => (
+              <TableRow key={transfer.id} className="hover:bg-[#FAFAF8]">
+                <TableCell className="px-6 py-4 whitespace-nowrap text-[14px] font-semibold text-[#28293D]">
+                  {transfer.reference}
+                </TableCell>
+                <TableCell className="px-6 py-4 whitespace-nowrap text-[14px] text-[#28293D]">
+                  {transfer.fromName}
+                </TableCell>
+                <TableCell className="px-6 py-4 whitespace-nowrap text-[14px] text-[#28293D]">
+                  {transfer.toName}
+                </TableCell>
+                <TableCell className="px-6 py-4 whitespace-nowrap">
+                  <ItemsCount count={transfer.items.length} />
+                </TableCell>
+                <TableCell className="px-6 py-4 whitespace-nowrap text-[13px] text-[#5A5A66]">
+                  {transfer.createdAt}
+                </TableCell>
+                <TableCell className="px-6 py-4 whitespace-nowrap">
+                  <TransferStatusBadge status={transfer.status} />
+                </TableCell>
+              </TableRow>
+            ))}
+
+            {transfers.length === 0 && (
+              <TableRow>
+                <TableCell
+                  colSpan={6}
+                  className="py-10 text-center text-[14px] text-[#8B8B8B]"
+                >
+                  No transfers yet.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </>
   );
 };
 

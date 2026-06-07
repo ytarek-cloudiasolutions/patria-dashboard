@@ -1,26 +1,43 @@
-import { useState, useMemo } from "react";
-import { Plus, Search, Truck, Zap, Users, Star } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Plus } from "lucide-react";
 
-import OverviewCard from "@/shared/components/OverviewCard";
+import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
+import SearchInputField from "@/shared/components/SearchInputField";
 import DeleteDialog from "@/shared/components/DeleteDialog";
-import SupplierFormModal from "./components/SupplierFormModal";
+
+import SuppliersOverview from "./components/SuppliersOverview";
 import SuppliersTable from "./components/SuppliersTable";
-import { INITIAL_SUPPLIERS, SUPPLIER_OVERVIEW } from "./data";
-import type { Supplier, SupplierFormData } from "./types";
+import SupplierFormModal from "./components/SupplierFormModal";
+import { INITIAL_SUPPLIERS } from "./data";
+import type {
+  Supplier,
+  SupplierCategory,
+  SupplierFormData,
+} from "./types";
+
+const parseCategories = (raw: string): SupplierCategory[] =>
+  raw
+    .split(",")
+    .map((c) => c.trim())
+    .filter(Boolean)
+    .map(
+      (c) =>
+        (c.charAt(0).toUpperCase() +
+          c.slice(1).toLowerCase()) as SupplierCategory,
+    );
 
 const SuppliersPage = () => {
   const [suppliers, setSuppliers] = useState<Supplier[]>(INITIAL_SUPPLIERS);
   const [search, setSearch] = useState("");
 
-  const [showForm, setShowForm] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
 
   const [deletingSupplier, setDeletingSupplier] = useState<Supplier | null>(
-    null
+    null,
   );
 
-  // ---- Derived ----
   const filteredSuppliers = useMemo(() => {
     const q = search.toLowerCase().trim();
     if (!q) return suppliers;
@@ -28,54 +45,50 @@ const SuppliersPage = () => {
       (s) =>
         s.name.toLowerCase().includes(q) ||
         s.contactPerson.toLowerCase().includes(q) ||
-        s.categories.some((c) => c.toLowerCase().includes(q))
+        s.email.toLowerCase().includes(q) ||
+        s.phone.includes(q) ||
+        s.categories.some((c) => c.toLowerCase().includes(q)),
     );
   }, [suppliers, search]);
 
-  // ---- Handlers ----
   const handleOpenAdd = () => {
     setEditingSupplier(null);
-    setShowForm(true);
+    setIsFormOpen(true);
   };
 
   const handleOpenEdit = (supplier: Supplier) => {
     setEditingSupplier(supplier);
-    setShowForm(true);
+    setIsFormOpen(true);
   };
 
   const handleSave = (data: SupplierFormData, id?: number) => {
-    const categories = data.categories
-      .split(",")
-      .map((c) => c.trim().toUpperCase())
-      .filter(Boolean);
+    const categories = parseCategories(data.categories);
 
     if (id !== undefined) {
-      // Edit
       setSuppliers((prev) =>
         prev.map((s) =>
           s.id === id
             ? {
                 ...s,
-                name: data.supplierName,
-                contactPerson: data.contactName,
-                phone: data.phone,
-                email: data.email,
-                address: data.address,
+                name: data.supplierName.trim(),
+                contactPerson: data.contactName.trim(),
+                phone: data.phone.trim(),
+                email: data.email.trim(),
+                address: data.address.trim(),
                 categories,
               }
-            : s
-        )
+            : s,
+        ),
       );
     } else {
-      // Add
       const newSupplier: Supplier = {
         id: Date.now(),
-        name: data.supplierName,
+        name: data.supplierName.trim(),
         status: "Documented",
-        contactPerson: data.contactName,
-        phone: data.phone,
-        email: data.email,
-        address: data.address,
+        contactPerson: data.contactName.trim(),
+        phone: data.phone.trim(),
+        email: data.email.trim(),
+        address: data.address.trim(),
         categories,
       };
       setSuppliers((prev) => [newSupplier, ...prev]);
@@ -89,95 +102,44 @@ const SuppliersPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F7F4] p-8">
-      <div className="mx-auto max-w-[1100px]">
-        {/* Page Header */}
-        <div className="mb-7 flex items-start justify-between">
-          <div>
-            <h1 className="text-[28px] font-bold text-[#28293D]">Suppliers</h1>
-            <p className="mt-0.5 text-[13px] text-[#6B6B6B]">
-              Manage your wholesale partners and vendors
-            </p>
-          </div>
-          <DefaultButton
-            data={{
-              buttonText: "Add New Supplier",
-              icon: <Plus size={16} />,
-              className: "bg-[#5C4A0E] hover:bg-[#4A3A08]",
-              onClick: handleOpenAdd,
-            }}
-          />
-        </div>
-
-        {/* Overview Cards */}
-        <div className="mb-6 grid grid-cols-4 gap-4">
-          <OverviewCard
-            data={{
-              title: "Total suppliers",
-              value: suppliers.length,
-              icon: <Truck size={18} />,
-              iconColor: "text-[#B56C00]",
-              badgeColor: "bg-[#FFF5DC]",
-            }}
-          />
-          <OverviewCard
-            data={{
-              title: "Supply speed",
-              value: SUPPLIER_OVERVIEW.supplySpeed as unknown as number,
-              icon: <Zap size={18} />,
-              iconColor: "text-[#1A7A45]",
-              badgeColor: "bg-[#E0F5EC]",
-            }}
-          />
-          <OverviewCard
-            data={{
-              title: "Average supply cycle",
-              value: SUPPLIER_OVERVIEW.averageSupplyCycle as unknown as number,
-              icon: <Users size={18} />,
-              iconColor: "text-[#5C6EAE]",
-              badgeColor: "bg-[#E0E8F5]",
-            }}
-          />
-          <OverviewCard
-            data={{
-              title: "quality assurance",
-              value: SUPPLIER_OVERVIEW.qualityAssurance as unknown as number,
-              icon: <Star size={18} />,
-              iconColor: "text-[#7A1A7A]",
-              badgeColor: "bg-[#F5E0F5]",
-            }}
-          />
-        </div>
-
-        {/* Search */}
-        <div className="mb-5 flex items-center gap-3 rounded-[10px] border border-[#E5E5E5] bg-white px-4 py-3">
-          <Search size={16} className="shrink-0 text-[#AAAAAA]" />
-          <input
-            type="text"
-            placeholder="Search suppliers..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-transparent text-[14px] text-[#28293D] placeholder:text-[#AAAAAA] outline-none"
-          />
-        </div>
-
-        {/* Table */}
-        <SuppliersTable
-          suppliers={filteredSuppliers}
-          onEdit={handleOpenEdit}
-          onDelete={setDeletingSupplier}
+    <>
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <HeaderLayout
+          title="Suppliers"
+          description="Manage your wholesale partners and vendors"
+        />
+        <DefaultButton
+          data={{
+            buttonText: "Add New Supplier",
+            icon: <Plus className="size-4.5" />,
+            onClick: handleOpenAdd,
+          }}
         />
       </div>
 
-      {/* Add / Edit Modal */}
+      <SuppliersOverview totalSuppliers={suppliers.length} />
+
+      <div className="mb-5">
+        <SearchInputField
+          value={search}
+          onChange={setSearch}
+          placeholder="Search suppliers..."
+        />
+      </div>
+
+      <SuppliersTable
+        suppliers={filteredSuppliers}
+        onEdit={handleOpenEdit}
+        onDelete={setDeletingSupplier}
+      />
+
       <SupplierFormModal
-        open={showForm}
+        open={isFormOpen}
         supplier={editingSupplier}
-        onClose={() => setShowForm(false)}
+        onClose={() => setIsFormOpen(false)}
         onSave={handleSave}
       />
 
-      {/* Delete Confirmation */}
       <DeleteDialog
         open={!!deletingSupplier}
         onOpenChange={(open) => !open && setDeletingSupplier(null)}
@@ -187,7 +149,7 @@ const SuppliersPage = () => {
         }}
         onConfirm={handleConfirmDelete}
       />
-    </div>
+    </>
   );
 };
 

@@ -1,6 +1,6 @@
-export type UserRole = "Staff" | "Admin" | "User" | "Manager";
+export type UserRole = "Staff" | "Manager" | "Admin" | "User";
 
-export type PagePermission =
+export type PermissionPage =
   | "Home"
   | "Order Management"
   | "Product Catalog"
@@ -11,24 +11,25 @@ export type PagePermission =
   | "Users & Permissions"
   | "Branches & Locations";
 
-export interface User {
-  id: string;
+export interface UserAccount {
+  id: number;
   name: string;
   email: string;
+  phone: string;
   role: UserRole;
-  availablePages: PagePermission[];
+  pages: PermissionPage[];
 }
 
-export interface NewUserForm {
+export interface UserFormData {
   fullName: string;
   email: string;
   phone: string;
   password: string;
-  role: UserRole;
-  pages: PagePermission[];
+  role: UserRole | "";
 }
 
-export interface EditPermissionsForm {
-  role: UserRole;
-  pages: PagePermission[];
+export interface UserOverviewCounts {
+  totalUsers: number;
+  administrators: number;
+  managers: number;
 }

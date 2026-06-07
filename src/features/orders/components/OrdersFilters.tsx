@@ -2,6 +2,7 @@ import DropdownSelect from "@/shared/components/DropdownSelect";
 import { ORDER_CATEGORY_OPTIONS } from "../data";
 import type { OrderCategory } from "../types";
 import SearchInputField from "@/shared/components/SearchInputField";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 
 interface OrdersFiltersProps {
   searchValue: string;
@@ -18,12 +19,14 @@ const OrdersFilters = ({
   onCategoryChange,
   onCategoryMenuOpenChange,
 }: OrdersFiltersProps) => {
+  const { t } = useTranslation();
+
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4 md:gap-8">
       <SearchInputField
         value={searchValue}
         onChange={onSearchChange}
-        placeholder="Search products..."
+        placeholder={t("Search products...")}
       />
       <DropdownSelect
         options={ORDER_CATEGORY_OPTIONS}

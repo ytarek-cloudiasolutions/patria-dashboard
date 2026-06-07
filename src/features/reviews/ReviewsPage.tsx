@@ -1,143 +1,201 @@
-import { useState, useMemo } from "react";
-import { Rating } from "@/shared/components/ui/rating";
+import { useMemo, useState } from "react";
+import HeaderLayout from "@/layouts/HeaderLayout";
 import SearchInputField from "@/shared/components/SearchInputField";
 import DropdownSelect from "@/shared/components/DropdownSelect";
-import HighestRatedPanel from "./components/HighestRatedPanel";
-import RatingDistributionPanel from "./components/RatingDistributionPanel";
+import DeleteDialog from "@/shared/components/DeleteDialog";
+
+import OverallRatingCard from "./components/OverallRatingCard";
+import RatingDistributionCard from "./components/RatingDistributionCard";
+import HighestRatedCard from "./components/HighestRatedCard";
 import ReviewCard from "./components/ReviewCard";
 import {
   INITIAL_REVIEWS,
-  RATING_FILTERS,
-  CATEGORY_FILTERS,
-  RATING_DISTRIBUTION,
-  HIGHEST_RATED_CATEGORIES,
+  REVIEW_CATEGORY_FILTERS,
+  REVIEW_RATING_FILTERS,
 } from "./data";
-import type { Review, RatingFilter, CategoryFilter } from "./types";
+import type {
+  HighestRatedItem,
+  RatingDistributionRow,
+  Review,
+  ReviewCategory,
+} from "./types";
 
 const ReviewsPage = () => {
   const [reviews, setReviews] = useState<Review[]>(INITIAL_REVIEWS);
   const [search, setSearch] = useState("");
-  const [ratingFilter, setRatingFilter] = useState<RatingFilter>("All Ratings");
-  const [categoryFilter, setCategoryFilter] =
-    useState<CategoryFilter>("All Categories");
+  const [ratingFilter, setRatingFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [isAnyDropdownOpen, setIsAnyDropdownOpen] = useState({
+    rating: false,
+    category: false,
+  });
 
-  // ---- Derived ----
-  const overallRating = useMemo(() => {
+  const [deletingReview, setDeletingReview] = useState<Review | null>(null);
+
+  const isScrimActive =
+    isAnyDropdownOpen.rating || isAnyDropdownOpen.category;
+
+  const averageRating = useMemo(() => {
     if (reviews.length === 0) return 0;
-    return reviews.reduce((s, r) => s + r.rating, 0) / reviews.length;
+    const total = reviews.reduce((sum, r) => sum + r.rating, 0);
+    return total / reviews.length;
+  }, [reviews]);
+
+  const distribution = useMemo<RatingDistributionRow[]>(() => {
+    return [5, 4, 3, 2, 1].map((stars) => ({
+      stars,
+      count: reviews.filter((r) => r.rating === stars).length,
+    }));
+  }, [reviews]);
+
+  const highestRated = useMemo<HighestRatedItem[]>(() => {
+    const counts = new Map<ReviewCategory, number>();
+    reviews.forEach((review) => {
+      review.categories.forEach((category) => {
+        counts.set(category, (counts.get(category) ?? 0) + 1);
+      });
+    });
+    const fixedOrder: ReviewCategory[] = [
+      "Driver friendliness",
+      "Service speed",
+      "Value for money",
+      "Food quality",
+      "Packaging",
+    ];
+    return fixedOrder
+      .filter((label) => (counts.get(label) ?? 0) > 0)
+      .slice(0, 3)
+      .map((label) => ({ label, count: counts.get(label) ?? 0 }));
   }, [reviews]);
 
   const filteredReviews = useMemo(() => {
     const q = search.toLowerCase().trim();
-    return reviews.filter((r) => {
-      const matchSearch =
-        !q ||
-        r.customerName.toLowerCase().includes(q) ||
-        r.orderId.toLowerCase().includes(q) ||
-        r.comment.toLowerCase().includes(q);
-
-      const matchRating =
-        ratingFilter === "All Ratings" ||
-        Math.round(r.rating) === Number(ratingFilter);
-
-      const matchCategory =
-        categoryFilter === "All Categories" || r.orderType === categoryFilter;
-
-      return matchSearch && matchRating && matchCategory;
+    return reviews.filter((review) => {
+      if (
+        ratingFilter !== "all" &&
+        review.rating !== Number(ratingFilter)
+      ) {
+        return false;
+      }
+      if (
+        categoryFilter !== "all" &&
+        !review.categories.includes(categoryFilter as ReviewCategory)
+      ) {
+        return false;
+      }
+      if (!q) return true;
+      return (
+        review.customerName.toLowerCase().includes(q) ||
+        review.customerCode.includes(q) ||
+        review.orderId.toLowerCase().includes(q) ||
+        review.comment.toLowerCase().includes(q)
+      );
     });
   }, [reviews, search, ratingFilter, categoryFilter]);
 
-  // ---- Handlers ----
-  const handleHide = (id: string) => {
+  const handleToggleVisibility = (review: Review) => {
     setReviews((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, isHidden: !r.isHidden } : r))
+      prev.map((r) =>
+        r.id === review.id ? { ...r, isHidden: !r.isHidden } : r,
+      ),
     );
   };
 
-  const handleDelete = (id: string) => {
-    setReviews((prev) => prev.filter((r) => r.id !== id));
+  const handleConfirmDelete = () => {
+    if (!deletingReview) return;
+    setReviews((prev) => prev.filter((r) => r.id !== deletingReview.id));
+    setDeletingReview(null);
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F7F4] p-8">
-      <div className="mx-auto max-w-[1100px]">
-        {/* Page Header */}
-        <div className="mb-6 flex items-start justify-between">
-          <div>
-            <h1 className="text-[28px] font-bold text-[#28293D]">
-              Customer reviews
-            </h1>
-            <p className="mt-0.5 text-[13px] text-[#6B6B6B]">
-              Customer feedback on completed orders
-            </p>
-          </div>
+    <>
+      {isScrimActive && (
+        <div className="pointer-events-none fixed inset-0 z-40 bg-black/40" />
+      )}
 
-          {/* Overall rating badge */}
-          <div className="flex flex-col items-center rounded-[12px] border border-[#E5E5E5] bg-white px-5 py-3 shadow-sm">
-            <span className="text-[22px] font-bold text-[#F5A623]">
-              {overallRating.toFixed(1)}
-            </span>
-            <Rating rating={overallRating} size="sm" />
-            <span className="mt-0.5 text-[11px] text-[#6B6B6B]">
-              {reviews.length} ratings
-            </span>
-          </div>
-        </div>
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <HeaderLayout
+          title="Customer reviews"
+          description="Customer feedback on completed orders"
+        />
+        <OverallRatingCard
+          averageRating={averageRating}
+          totalRatings={reviews.length}
+        />
+      </div>
 
-        {/* Filters */}
-        <div className="mb-6 flex gap-3">
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="flex-1">
           <SearchInputField
             value={search}
             onChange={setSearch}
             placeholder="Search customer..."
-            className="flex-1"
-          />
-          <DropdownSelect
-            options={RATING_FILTERS}
-            selected={ratingFilter}
-            placeholder="All Ratings"
-            align="end"
-            className="w-[160px] md:w-[160px]"
-            onSelect={(v) => setRatingFilter(v as RatingFilter)}
-          />
-          <DropdownSelect
-            options={CATEGORY_FILTERS}
-            selected={categoryFilter}
-            placeholder="All Categories"
-            align="end"
-            className="w-[180px] md:w-[180px]"
-            onSelect={(v) => setCategoryFilter(v as CategoryFilter)}
           />
         </div>
-
-        {/* Analytics panels */}
-        <div className="mb-6 grid grid-cols-2 gap-5">
-          <RatingDistributionPanel
-            distribution={RATING_DISTRIBUTION}
-            totalReviews={reviews.length}
-          />
-          <HighestRatedPanel categories={HIGHEST_RATED_CATEGORIES} />
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-3">
+          <div className="sm:w-56">
+            <DropdownSelect
+              options={REVIEW_RATING_FILTERS}
+              selected={ratingFilter}
+              onSelect={setRatingFilter}
+              onOpenChange={(open) =>
+                setIsAnyDropdownOpen((prev) => ({ ...prev, rating: open }))
+              }
+              placeholder="All Ratings"
+              align="end"
+              className="md:w-full"
+              contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
+            />
+          </div>
+          <div className="sm:w-56">
+            <DropdownSelect
+              options={REVIEW_CATEGORY_FILTERS}
+              selected={categoryFilter}
+              onSelect={setCategoryFilter}
+              onOpenChange={(open) =>
+                setIsAnyDropdownOpen((prev) => ({ ...prev, category: open }))
+              }
+              placeholder="All Categories"
+              align="end"
+              className="md:w-full"
+              contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
+            />
+          </div>
         </div>
-
-        {/* Reviews grid */}
-        {filteredReviews.length === 0 ? (
-          <div className="flex h-40 items-center justify-center rounded-[16px] border border-[#E5E5E5] bg-white text-[14px] text-[#6B6B6B]">
-            No reviews found.
-          </div>
-        ) : (
-          <div className="grid grid-cols-3 gap-5">
-            {filteredReviews.map((review) => (
-              <ReviewCard
-                key={review.id}
-                review={review}
-                onHide={handleHide}
-                onDelete={handleDelete}
-              />
-            ))}
-          </div>
-        )}
       </div>
-    </div>
+
+      <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <RatingDistributionCard rows={distribution} />
+        <HighestRatedCard items={highestRated} />
+      </div>
+
+      {filteredReviews.length === 0 ? (
+        <div className="rounded-[16px] border border-[#E5E5E5] bg-white px-6 py-10 text-center text-[14px] text-[#8B8B8B]">
+          No reviews match your filters.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {filteredReviews.map((review) => (
+            <ReviewCard
+              key={review.id}
+              review={review}
+              onToggleVisibility={handleToggleVisibility}
+              onDelete={setDeletingReview}
+            />
+          ))}
+        </div>
+      )}
+
+      <DeleteDialog
+        open={!!deletingReview}
+        onOpenChange={(open) => !open && setDeletingReview(null)}
+        data={{
+          item: deletingReview?.customerName ?? "",
+          type: "review",
+        }}
+        onConfirm={handleConfirmDelete}
+      />
+    </>
   );
 };
 

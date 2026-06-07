@@ -1,33 +1,21 @@
-export type CustomerTier = "Gold" | "Silver" | "Bronze";
-
-export type TierFilter = "All" | CustomerTier;
+export type CustomerTier = "Bronze" | "Silver" | "Gold";
+export type CustomerRole = "user" | "admin" | "manager" | "subscriber";
+export type CustomerSegment = "STAFF" | "VIP" | "WHOLESALE" | "RETAIL";
 
 export interface Customer {
   id: number;
   name: string;
-  role: string;
-  nameSubtitle: string;
-  isSubscriber?: boolean;
+  role: CustomerRole;
   email: string;
   phone: string;
-  date: string;
   tier: CustomerTier;
-  tierLabel: string;
-  points: number;
-  ltv: number;
-  ltvLabel: string;
+  loyaltyPoints: number;
+  lifetimeValue: number;
+  segment: CustomerSegment;
+  createdBy?: string;
 }
 
-export interface CustomerTableRowProps {
-  customer: Customer;
-  onEdit: (customer: Customer) => void;
-}
-
-export interface CustomerTierBadgeProps {
+export interface CustomerFormData {
   tier: CustomerTier;
-  label: string;
-}
-
-export interface CustomerActionsProps {
-  onEdit: () => void;
+  loyaltyPoints: string;
 }

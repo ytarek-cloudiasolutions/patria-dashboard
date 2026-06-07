@@ -1,240 +1,254 @@
-import { useState } from "react";
-import {
-  BadgeCheck,
-  ChevronDown,
-  Gift,
-  Home,
-  MapPin,
-  Settings,
-  ShoppingBag,
-  Store,
-  UserRound,
-  Users,
-} from "lucide-react";
-import type { ReactNode } from "react";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
 } from "@/shared/components/ui/dialog";
+import { Button } from "@/shared/components/ui/button";
+import { Label } from "@/shared/components/ui/label";
+import { Separator } from "@/shared/components/ui/separator";
 import DefaultButton from "@/shared/components/DefaultButton";
-import { ROLE_DEFAULT_PAGES, roleOptions, ALL_PAGES } from "../data";
-import type { NewUserForm, UserRole, PagePermission } from "../types";
+import DropdownSelect from "@/shared/components/DropdownSelect";
+import InputField from "@/shared/components/InputField";
+import { ROLE_DEFAULT_PAGES, ROLE_OPTIONS } from "../data";
+import type { UserFormData, UserRole } from "../types";
+import PageChip from "./PageChip";
 
-interface Props {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSubmit: (data: NewUserForm) => void;
-}
+const FORM_ID = "create-user-form";
 
-const defaultForm: NewUserForm = {
+const INITIAL_FORM: UserFormData = {
   fullName: "",
   email: "",
   phone: "",
   password: "",
   role: "Staff",
-  pages: ROLE_DEFAULT_PAGES["Staff"],
 };
 
-const inputClassName =
-  "h-[61px] w-full rounded-[13px] border border-[#E1E1E5] bg-white px-[16px] text-[20px] font-medium text-[#23252A] placeholder:text-[#9B9B9B] focus:outline-none focus:border-primary";
+interface CreateUserDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSave: (data: UserFormData) => void;
+}
 
-const PAGE_ICON_MAP: Record<PagePermission, ReactNode> = {
-  Home: <Home className="size-[13px]" />,
-  "Order Management": <ShoppingBag className="size-[13px]" />,
-  "Product Catalog": <Store className="size-[13px]" />,
-  "Customer Base": <Users className="size-[13px]" />,
-  "Offers & Discounts": <BadgeCheck className="size-[13px]" />,
-  Profile: <UserRound className="size-[13px]" />,
-  "General Settings": <Settings className="size-[13px]" />,
-  "Users & Permissions": <Gift className="size-[13px]" />,
-  "Branches & Locations": <MapPin className="size-[13px]" />,
-};
+const CreateUserDialog = ({
+  open,
+  onOpenChange,
+  onSave,
+}: CreateUserDialogProps) => {
+  const [form, setForm] = useState<UserFormData>(INITIAL_FORM);
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof UserFormData, string>>
+  >({});
+  const [isRoleOpen, setIsRoleOpen] = useState(false);
 
-const PAGE_COLOR_MAP: Record<PagePermission, string> = {
-  Home: "text-[#C57A00]",
-  "Order Management": "text-[#E18A00]",
-  "Product Catalog": "text-[#0066FF]",
-  "Customer Base": "text-[#A000FF]",
-  "Offers & Discounts": "text-[#00A85A]",
-  Profile: "text-[#7A7A43]",
-  "General Settings": "text-[#696969]",
-  "Users & Permissions": "text-[#FF0000]",
-  "Branches & Locations": "text-[#000000]",
-};
+  useEffect(() => {
+    if (open) {
+      setForm(INITIAL_FORM);
+      setErrors({});
+      setIsRoleOpen(false);
+    }
+  }, [open]);
 
-const CreateUserDialog = ({ open, onOpenChange, onSubmit }: Props) => {
-  const [form, setForm] = useState<NewUserForm>(defaultForm);
-
-  const handleRoleChange = (role: UserRole) => {
-    setForm((current) => ({
-      ...current,
-      role,
-      pages: ROLE_DEFAULT_PAGES[role],
-    }));
+  const set = <K extends keyof UserFormData>(
+    key: K,
+    value: UserFormData[K],
+  ) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+    if (errors[key]) setErrors((prev) => ({ ...prev, [key]: "" }));
   };
 
-  const togglePage = (page: PagePermission) => {
-    setForm((current) => ({
-      ...current,
-      pages: current.pages.includes(page)
-        ? current.pages.filter((item) => item !== page)
-        : [...current.pages, page],
-    }));
+  const validate = () => {
+    const next: Partial<Record<keyof UserFormData, string>> = {};
+    if (!form.fullName.trim()) next.fullName = "Full name is required";
+    if (!form.email.trim()) next.email = "Email is required";
+    if (!form.phone.trim()) next.phone = "Phone is required";
+    if (!form.password.trim() || form.password.length < 6)
+      next.password = "Password must be at least 6 characters";
+    if (!form.role) next.role = "Role is required";
+    setErrors(next);
+    return Object.keys(next).length === 0;
   };
 
-  const handleSubmit = () => {
-    if (!form.fullName || !form.email) return;
-    onSubmit(form);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validate()) return;
+    onSave(form);
     onOpenChange(false);
-    setForm(defaultForm);
   };
+
+  const previewPages =
+    form.role && form.role in ROLE_DEFAULT_PAGES
+      ? ROLE_DEFAULT_PAGES[form.role as UserRole]
+      : [];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="rounded-[8px] border border-[#DADADA] p-0 shadow-[0_8px_18px_rgba(0,0,0,0.18)] sm:max-w-[860px] sm:max-h-[729px] overflow-auto"
         showCloseButton={false}
+        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-150"
       >
-        <div className="px-[42px] pb-[40px] pt-[34px]">
-          <DialogHeader>
-            <DialogTitle className="text-[32px] font-bold leading-none text-[#28293D]">
+        {isRoleOpen && (
+          <div className="pointer-events-none fixed inset-0 z-60 bg-black/40" />
+        )}
+
+        <div className="flex max-h-[calc(100vh-2rem)] flex-col">
+          {/* Header */}
+          <div className="px-5 pt-5 sm:px-7 sm:pt-7">
+            <DialogTitle className="text-[20px] font-semibold text-[#28293D] sm:text-[22px]">
               Create New User Account
             </DialogTitle>
-          </DialogHeader>
-
-          <div className="mt-[56px]">
-            <label className="flex flex-col gap-[13px] text-[21px] font-medium text-[#000000]">
-              <span>
-                Full Name <span className="text-[#C90000]">*</span>
-              </span>
-              <input
-                type="text"
-                placeholder="Full Name"
-                value={form.fullName}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    fullName: event.target.value,
-                  }))
-                }
-                className={inputClassName}
-              />
-            </label>
           </div>
 
-          <div className="mt-[38px] grid grid-cols-1 gap-[30px] md:grid-cols-2">
-            <label className="flex flex-col gap-[13px] text-[21px] font-medium text-[#000000]">
-              <span>
-                Email Address <span className="text-[#C90000]">*</span>
-              </span>
-              <input
-                type="email"
-                placeholder="user@erb.com"
-                value={form.email}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    email: event.target.value,
-                  }))
-                }
-                className={inputClassName}
-              />
-            </label>
-
-            <label className="flex flex-col gap-[13px] text-[21px] font-medium text-[#000000]">
-              <span>
-                Phone Number <span className="text-[#C90000]">*</span>
-              </span>
-              <input
-                type="tel"
-                placeholder="+20..."
-                value={form.phone}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    phone: event.target.value,
-                  }))
-                }
-                className={inputClassName}
-              />
-            </label>
-          </div>
-
-          <div className="mt-[38px] grid grid-cols-1 gap-[30px] md:grid-cols-2">
-            <label className="flex flex-col gap-[13px] text-[21px] font-medium text-[#000000]">
-              <span>
-                Password <span className="text-[#C90000]">*</span>
-              </span>
-              <input
-                type="password"
-                placeholder="**********"
-                value={form.password}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    password: event.target.value,
-                  }))
-                }
-                className={inputClassName}
-              />
-            </label>
-
-            <label className="flex flex-col gap-[13px] text-[21px] font-medium text-[#000000]">
-              <span>
-                Role and Permission <span className="text-[#C90000]">*</span>
-              </span>
-              <div className="relative">
-                <select
-                  value={form.role}
-                  onChange={(event) =>
-                    handleRoleChange(event.target.value as UserRole)
-                  }
-                  className={`${inputClassName} appearance-none pr-[52px]`}
-                >
-                  {roleOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="pointer-events-none absolute right-[16px] top-1/2 size-8 -translate-y-1/2 text-[#000000]" />
+          {/* Body */}
+          <form
+            id={FORM_ID}
+            onSubmit={handleSubmit}
+            noValidate
+            className="flex-1 overflow-y-auto px-5 py-5 sm:px-7 sm:py-6"
+          >
+            <div className="flex flex-col gap-5">
+              <div>
+                <InputField
+                  data={{
+                    id: "full-name",
+                    label: {
+                      htmlFor: "full-name",
+                      labelText: "Full Name",
+                    },
+                    placeholder: "Full Name",
+                    required: true,
+                    inputProps: {
+                      value: form.fullName,
+                      onChange: (e) => set("fullName", e.target.value),
+                    },
+                  }}
+                />
+                {errors.fullName && (
+                  <p className="mt-1 text-[13px] text-[#C90000]">
+                    {errors.fullName}
+                  </p>
+                )}
               </div>
-            </label>
-          </div>
 
-          <div className="mt-[40px] rounded-[16px] border border-[#CACBD4] bg-white px-[28px] py-[28px]">
-            <div className="flex flex-wrap gap-x-[9px] gap-y-[15px]">
-              {ALL_PAGES.map((page) => {
-                const active = form.pages.includes(page);
-                return (
-                  <button
-                    key={page}
-                    type="button"
-                    onClick={() => togglePage(page)}
-                    className={`inline-flex h-[29px] items-center gap-[6px] rounded-full border px-[10px] text-[16px] font-bold leading-none transition-colors ${
-                      active
-                        ? "border-[#DADADA] bg-white text-[#000000]"
-                        : "border-[#E1E1E5] bg-[#F7F7F7] text-[#8F8F8F]"
-                    }`}
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:items-end">
+                <div>
+                  <InputField
+                    data={{
+                      id: "email",
+                      label: {
+                        htmlFor: "email",
+                        labelText: "Email Address",
+                      },
+                      placeholder: "user@erb.com",
+                      required: true,
+                      inputProps: {
+                        type: "email",
+                        value: form.email,
+                        onChange: (e) => set("email", e.target.value),
+                      },
+                    }}
+                  />
+                  {errors.email && (
+                    <p className="mt-1 text-[13px] text-[#C90000]">
+                      {errors.email}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <InputField
+                    data={{
+                      id: "phone",
+                      label: {
+                        htmlFor: "phone",
+                        labelText: "Phone Number",
+                      },
+                      placeholder: "+20...",
+                      required: true,
+                      inputProps: {
+                        value: form.phone,
+                        onChange: (e) => set("phone", e.target.value),
+                      },
+                    }}
+                  />
+                  {errors.phone && (
+                    <p className="mt-1 text-[13px] text-[#C90000]">
+                      {errors.phone}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:items-end">
+                <div>
+                  <InputField
+                    data={{
+                      id: "password",
+                      label: {
+                        htmlFor: "password",
+                        labelText: "Password",
+                      },
+                      placeholder: "••••••••",
+                      required: true,
+                      inputProps: {
+                        type: "password",
+                        value: form.password,
+                        onChange: (e) => set("password", e.target.value),
+                      },
+                    }}
+                  />
+                  {errors.password && (
+                    <p className="mt-1 text-[13px] text-[#C90000]">
+                      {errors.password}
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex flex-col">
+                  <Label
+                    htmlFor="role"
+                    className="mb-2.5 text-[16px] font-medium text-black"
                   >
-                    <span
-                      className={
-                        active ? PAGE_COLOR_MAP[page] : "text-[#8F8F8F]"
-                      }
-                    >
-                      {PAGE_ICON_MAP[page]}
-                    </span>
-                    {page}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+                    Role and Permission
+                    <span className="text-[#C90000]">*</span>
+                  </Label>
+                  <DropdownSelect
+                    options={ROLE_OPTIONS}
+                    selected={form.role}
+                    onSelect={(value) => set("role", value as UserRole)}
+                    onOpenChange={setIsRoleOpen}
+                    placeholder="Select role"
+                    align="start"
+                    className="md:w-full"
+                    contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
+                  />
+                  {errors.role && (
+                    <p className="mt-1 text-[13px] text-[#C90000]">
+                      {errors.role}
+                    </p>
+                  )}
+                </div>
+              </div>
 
-          <div className="mt-[40px] border-t border-[#CACBD4] pt-[40px]">
-            <div className="flex justify-end gap-[20px]">
+              {previewPages.length > 0 && (
+                <div className="rounded-[12px] bg-[#FAFAF7] px-4 py-4 border  border-[#CACBD4]">
+                  <p className="mb-3 text-[12px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
+                    Available pages
+                  </p>
+                  <div className="flex flex-wrap gap-x-4 gap-y-2">
+                    {previewPages.map((page) => (
+                      <PageChip key={page} page={page} />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </form>
+
+          {/* Sticky footer */}
+          <div className="bg-white px-5 pb-5 sm:px-7 sm:pb-6">
+            <Separator className="mb-4 bg-[#CACBD4] sm:mb-5" />
+            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <DefaultButton
                 data={{
                   buttonText: "Cancel",
@@ -242,18 +256,16 @@ const CreateUserDialog = ({ open, onOpenChange, onSubmit }: Props) => {
                   type: "button",
                   onClick: () => onOpenChange(false),
                   className:
-                    "h-[70px] rounded-[5px] border-primary px-[37px] text-[21px] font-bold text-primary hover:bg-white hover:text-primary",
+                    "w-full sm:w-auto border-primary text-primary hover:bg-white hover:text-primary",
                 }}
               />
-              <DefaultButton
-                data={{
-                  buttonText: "Create Account",
-                  type: "button",
-                  className:
-                    "h-[70px] rounded-[5px] bg-primary px-[37px] text-[21px] font-bold hover:bg-[#7A5C10]",
-                  onClick: handleSubmit,
-                }}
-              />
+              <Button
+                form={FORM_ID}
+                type="submit"
+                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
+              >
+                Create Account
+              </Button>
             </div>
           </div>
         </div>

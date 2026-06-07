@@ -1,49 +1,44 @@
 export type TableSection = "Main Hall" | "Terrace" | "VIP" | "Counter";
 
-export type TableAvailability = "Available" | "Unavailable";
+export type TableStatus = "Available" | "Unavailable";
+
+export interface RestaurantTable {
+  id: number;
+  number: number;
+  capacity: number;
+  section: TableSection;
+  status: TableStatus;
+}
 
 export type ReservationStatus =
   | "On Hold"
   | "Sitting"
-  | "cancelled"
   | "Confirmed"
+  | "cancelled"
   | "Ended";
 
-export interface DiningTable {
-  id: string;
-  tableNumber: number;
-  section: TableSection;
-  capacity: number;
-  status: TableAvailability;
-}
-
 export interface Reservation {
-  id: string;
-  customerName: string;
+  id: number;
+  customer: string;
   phone: string;
   people: number;
-  reservationDate: string;
-  displayDate: string;
-  tableNumber: number;
+  date: string;
+  table: number;
   status: ReservationStatus;
 }
 
 export interface AddTableFormData {
-  tableNumber: string;
+  number: string;
   capacity: string;
   section: TableSection;
 }
 
-export interface AddReservationFormData {
-  customerName: string;
+export interface ReservationFormData {
+  name: string;
+  email: string;
   phone: string;
   people: string;
   date: string;
   time: string;
-  tableId: string;
-}
-
-export interface SectionTabsProps {
-  activeSection: TableSection;
-  onSectionChange: (section: TableSection) => void;
+  table: string;
 }

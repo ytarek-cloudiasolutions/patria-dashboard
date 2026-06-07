@@ -1,23 +1,3 @@
-export interface AccountFormData {
-  fullName: string;
-  email: string;
-  phoneNumber: string;
-  shipmentAddress: string;
-}
-
-export interface AccountSettingsProps {
-  data: AccountFormData;
-  onSave: (data: AccountFormData) => void;
-}
-
-export interface OrderStat {
-  label: string;
-  value: string | number;
-  icon: React.ReactNode;
-  badgeColor: string;
-  iconColor: string;
-}
-
 export type OrderStatus =
   | "Pending"
   | "Confirmed"
@@ -25,18 +5,23 @@ export type OrderStatus =
   | "On the Way"
   | "Cancelled";
 
-export interface Order {
+export interface OrderReport {
+  id: number;
   orderNo: string;
   customer: string;
   date: string;
   status: OrderStatus;
-  total: string | null;
+  total: number | null;
 }
 
-export interface OrderReportsData {
-  dateFrom: string;
-  dateTo: string;
-  stats: OrderStat[];
-  orders: Order[];
-  totalInPeriod: number;
+export interface AccountFormData {
+  fullName: string;
+  email: string;
+  phone: string;
+  shipmentAddress: string;
+}
+
+export interface AccountDateRange {
+  from: string;
+  to: string;
 }

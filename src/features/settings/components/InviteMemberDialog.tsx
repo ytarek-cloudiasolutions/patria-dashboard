@@ -1,156 +1,217 @@
-import { useState } from "react";
-import { ChevronDown } from "lucide-react";
-import DefaultButton from "@/shared/components/DefaultButton";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
 } from "@/shared/components/ui/dialog";
-import { privilegeRoleOptions } from "../data";
-import type { InviteMemberForm } from "../types";
+import { Button } from "@/shared/components/ui/button";
+import { Label } from "@/shared/components/ui/label";
+import { Separator } from "@/shared/components/ui/separator";
+import DefaultButton from "@/shared/components/DefaultButton";
+import DropdownSelect from "@/shared/components/DropdownSelect";
+import InputField from "@/shared/components/InputField";
+import { PRIVILEGE_ROLE_OPTIONS } from "../data";
+import type { InviteFormData, TeamRole } from "../types";
 
-interface Props {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSubmit: (data: InviteMemberForm) => void;
-}
+const FORM_ID = "invite-member-form";
 
-const defaultForm: InviteMemberForm = {
-  entityName: "",
-  authEmail: "",
-  contactPhone: "",
+const INITIAL_FORM: InviteFormData = {
+  name: "",
+  email: "",
+  phone: "",
   securityCode: "",
-  privilegeRole: "staff",
+  role: "Staff",
 };
 
-const inputClassName =
-  "h-[54px] w-full rounded-[13px] border border-[#E1E1E5] bg-white px-[14px] text-[17px] font-medium text-[#23252A] placeholder:text-[#9B9B9B] focus:outline-none focus:border-primary";
+interface InviteMemberDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSave: (data: InviteFormData) => void;
+}
 
-const InviteMemberDialog = ({ open, onOpenChange, onSubmit }: Props) => {
-  const [form, setForm] = useState<InviteMemberForm>(defaultForm);
+const InviteMemberDialog = ({
+  open,
+  onOpenChange,
+  onSave,
+}: InviteMemberDialogProps) => {
+  const [form, setForm] = useState<InviteFormData>(INITIAL_FORM);
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof InviteFormData, string>>
+  >({});
+  const [isRoleOpen, setIsRoleOpen] = useState(false);
 
-  const handleSubmit = () => {
-    if (!form.entityName || !form.authEmail) return;
-    onSubmit(form);
+  useEffect(() => {
+    if (open) {
+      setForm(INITIAL_FORM);
+      setErrors({});
+      setIsRoleOpen(false);
+    }
+  }, [open]);
+
+  const set = <K extends keyof InviteFormData>(
+    key: K,
+    value: InviteFormData[K],
+  ) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+    if (errors[key]) setErrors((prev) => ({ ...prev, [key]: "" }));
+  };
+
+  const validate = () => {
+    const next: Partial<Record<keyof InviteFormData, string>> = {};
+    if (!form.name.trim()) next.name = "Entity name is required";
+    if (!form.email.trim()) next.email = "Email is required";
+    if (!form.securityCode.trim() || form.securityCode.length < 6) {
+      next.securityCode = "Minimum 6 characters";
+    }
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validate()) return;
+    onSave(form);
     onOpenChange(false);
-    setForm(defaultForm);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="rounded-[8px] border border-[#DADADA] p-0 shadow-[0_8px_18px_rgba(0,0,0,0.18)] sm:max-w-[735px]"
         showCloseButton={false}
+        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-150"
       >
-        <div className="px-[36px] pb-[35px] pt-[28px]">
-          <DialogHeader>
-            <DialogTitle className="text-[27px] font-bold leading-none text-[#28293D]">
+        {isRoleOpen && (
+          <div className="pointer-events-none fixed inset-0 z-60 bg-black/40" />
+        )}
+
+        <div className="flex max-h-[calc(100vh-2rem)] flex-col">
+          {/* Header */}
+          <div className="px-5 pt-5 sm:px-7 sm:pt-7">
+            <DialogTitle className="text-[20px] font-semibold text-[#28293D] sm:text-[22px]">
               Issue Professional Access Key
             </DialogTitle>
-          </DialogHeader>
-
-          <div className="mt-[45px] grid grid-cols-1 gap-x-[26px] gap-y-[32px] md:grid-cols-2">
-            <label className="flex flex-col gap-[10px] text-[18px] font-medium text-[#000000]">
-              <span>
-                Entity Official Name <span className="text-[#C90000]">*</span>
-              </span>
-              <input
-                type="text"
-                placeholder="e.g. Staff"
-                value={form.entityName}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    entityName: event.target.value,
-                  }))
-                }
-                className={inputClassName}
-              />
-            </label>
-
-            <label className="flex flex-col gap-[10px] text-[18px] font-medium text-[#000000]">
-              <span>
-                Authentication Email <span className="text-[#C90000]">*</span>
-              </span>
-              <input
-                type="email"
-                placeholder="admin@erb.com"
-                value={form.authEmail}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    authEmail: event.target.value,
-                  }))
-                }
-                className={inputClassName}
-              />
-            </label>
-
-            <label className="flex flex-col gap-[10px] text-[18px] font-medium text-[#000000]">
-              <span>
-                Contact Phone{" "}
-                <span className="font-medium text-[#696969]">(Optional)</span>
-              </span>
-              <input
-                type="tel"
-                placeholder="e.g. 0123456789"
-                value={form.contactPhone}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    contactPhone: event.target.value,
-                  }))
-                }
-                className={inputClassName}
-              />
-            </label>
-
-            <label className="flex flex-col gap-[10px] text-[18px] font-medium text-[#000000]">
-              <span>
-                Initial Security Code{" "}
-                <span className="text-[#C90000]">*</span>
-              </span>
-              <input
-                type="password"
-                placeholder="**********"
-                value={form.securityCode}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    securityCode: event.target.value,
-                  }))
-                }
-                className={inputClassName}
-              />
-            </label>
           </div>
 
-          <label className="mt-[33px] flex flex-col gap-[10px] text-[18px] font-medium text-[#000000]">
-            Logical Privilege Role
-            <div className="relative">
-              <select
-                value={form.privilegeRole}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    privilegeRole: event.target.value,
-                  }))
-                }
-                className={`${inputClassName} appearance-none pr-[48px]`}
-              >
-                {privilegeRoleOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-[16px] top-1/2 size-7 -translate-y-1/2 text-[#000000]" />
-            </div>
-          </label>
+          {/* Body */}
+          <form
+            id={FORM_ID}
+            onSubmit={handleSubmit}
+            noValidate
+            className="flex-1 overflow-y-auto px-5 py-5 sm:px-7 sm:py-6"
+          >
+            <div className="flex flex-col gap-5">
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <div>
+                  <InputField
+                    data={{
+                      id: "entity-name",
+                      label: {
+                        htmlFor: "entity-name",
+                        labelText: "Entity Official Name",
+                      },
+                      placeholder: "e.g. Staff",
+                      required: true,
+                      inputProps: {
+                        value: form.name,
+                        onChange: (e) => set("name", e.target.value),
+                      },
+                    }}
+                  />
+                  {errors.name && (
+                    <p className="mt-1 text-[13px] text-[#C90000]">
+                      {errors.name}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <InputField
+                    data={{
+                      id: "auth-email",
+                      label: {
+                        htmlFor: "auth-email",
+                        labelText: "Authentication Email",
+                      },
+                      placeholder: "admin@erb.com",
+                      required: true,
+                      inputProps: {
+                        type: "email",
+                        value: form.email,
+                        onChange: (e) => set("email", e.target.value),
+                      },
+                    }}
+                  />
+                  {errors.email && (
+                    <p className="mt-1 text-[13px] text-[#C90000]">
+                      {errors.email}
+                    </p>
+                  )}
+                </div>
+              </div>
 
-          <div className="mt-[35px] border-t border-[#CACBD4] pt-[33px]">
-            <div className="flex justify-end gap-[16px]">
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <InputField
+                  data={{
+                    id: "contact-phone",
+                    label: {
+                      htmlFor: "contact-phone",
+                      labelText: "Contact Phone (Optional)",
+                    },
+                    placeholder: "e.g. 0123456789",
+                    inputProps: {
+                      value: form.phone,
+                      onChange: (e) => set("phone", e.target.value),
+                    },
+                  }}
+                />
+                <div>
+                  <InputField
+                    data={{
+                      id: "security-code",
+                      label: {
+                        htmlFor: "security-code",
+                        labelText: "Initial Security Code",
+                      },
+                      placeholder: "••••••••••",
+                      required: true,
+                      inputProps: {
+                        type: "password",
+                        value: form.securityCode,
+                        onChange: (e) => set("securityCode", e.target.value),
+                      },
+                    }}
+                  />
+                  {errors.securityCode && (
+                    <p className="mt-1 text-[13px] text-[#C90000]">
+                      {errors.securityCode}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex flex-col">
+                <Label
+                  htmlFor="privilege-role"
+                  className="mb-2.5 text-[16px] font-medium text-black"
+                >
+                  Logical Privilege Role
+                </Label>
+                <DropdownSelect
+                  options={PRIVILEGE_ROLE_OPTIONS}
+                  selected={form.role}
+                  onSelect={(value) => set("role", value as TeamRole)}
+                  onOpenChange={setIsRoleOpen}
+                  align="start"
+                  className="md:w-full"
+                  contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
+                />
+              </div>
+            </div>
+          </form>
+
+          {/* Sticky footer */}
+          <div className="bg-white px-5 pb-5 sm:px-7 sm:pb-6">
+            <Separator className="mb-4 bg-[#CACBD4] sm:mb-5" />
+            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <DefaultButton
                 data={{
                   buttonText: "Cancel",
@@ -158,18 +219,16 @@ const InviteMemberDialog = ({ open, onOpenChange, onSubmit }: Props) => {
                   type: "button",
                   onClick: () => onOpenChange(false),
                   className:
-                    "h-[59px] rounded-[5px] border-primary px-[31px] text-[18px] font-bold text-primary hover:bg-white hover:text-primary",
+                    "w-full sm:w-auto border-primary text-primary hover:bg-white hover:text-primary",
                 }}
               />
-              <DefaultButton
-                data={{
-                  buttonText: "Authorize Administrative Entity",
-                  type: "button",
-                  className:
-                    "h-[59px] rounded-[5px] bg-primary px-[33px] text-[18px] font-bold hover:bg-[#7A5C10]",
-                  onClick: handleSubmit,
-                }}
-              />
+              <Button
+                form={FORM_ID}
+                type="submit"
+                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
+              >
+                Authorize Administrative Entity
+              </Button>
             </div>
           </div>
         </div>

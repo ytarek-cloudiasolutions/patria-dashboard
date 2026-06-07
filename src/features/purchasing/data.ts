@@ -1,53 +1,69 @@
-// data.ts
-import type { ProcurementOverview, PurchaseOrder } from "./types";
+import type {
+  ProductOption,
+  PurchaseOrder,
+  SupplierOption,
+  WarehouseOption,
+} from "./types";
 
-export const PROCUREMENT_OVERVIEW: ProcurementOverview = {
-  totalPurchases: "EGP 12,000",
-  pendingRequests: 1,
-  requestsReceived: 3,
-  cancelled: 0,
-};
+export const SUPPLIER_OPTIONS: SupplierOption[] = [
+  { id: "bean", label: "Bean's supplier", email: "smohamed@gmail.com" },
+  { id: "coffee", label: "Coffee's supplier", email: "mnabil@gmail.com" },
+  { id: "dairy", label: "Dairy depot", email: "orders@dairydepot.com" },
+];
+
+export const WAREHOUSE_OPTIONS: WarehouseOption[] = [
+  { id: "main", label: "Main Warehouses" },
+  { id: "north", label: "North Branch" },
+  { id: "south", label: "South Branch" },
+];
+
+export const PRODUCT_OPTIONS: ProductOption[] = [
+  { id: "arabica", label: "Arabica beans", defaultCost: 95 },
+  { id: "robusta", label: "Robusta beans", defaultCost: 70 },
+  { id: "milk", label: "Whole milk 1L", defaultCost: 25 },
+  { id: "sugar", label: "Sugar 1kg", defaultCost: 18 },
+];
 
 export const INITIAL_PURCHASE_ORDERS: PurchaseOrder[] = [
   {
-    id: "1",
+    id: 1,
     poNumber: "PO-202604-0001",
-    type: "purchase order",
-    supplier: "Bean's supplier",
+    kind: "purchase order",
+    supplierId: "bean",
+    supplierName: "Bean's supplier",
     contactEmail: "smohamed@gmail.com",
-    destination: "Main Warehouses",
+    warehouseId: "main",
+    warehouseName: "Main Warehouses",
     totalAmount: 1250,
     paid: 250,
     status: "Unpaid",
+    expectedDeliveryDate: "2026-04-15",
+    items: [
+      { id: "li-1", productId: "arabica", quantity: 10, unitCost: 95 },
+      { id: "li-2", productId: "sugar", quantity: 20, unitCost: 18 },
+    ],
   },
   {
-    id: "2",
+    id: 2,
     poNumber: "PO-202605-0002",
-    type: "purchase order",
-    supplier: "Coffee's supplier",
+    kind: "purchase order",
+    supplierId: "coffee",
+    supplierName: "Coffee's supplier",
     contactEmail: "mnabil@gmail.com",
-    destination: "Main Warehouses",
+    warehouseId: "main",
+    warehouseName: "Main Warehouses",
     totalAmount: 700,
     paid: 700,
     status: "Paid",
+    expectedDeliveryDate: "2026-04-20",
+    items: [{ id: "li-3", productId: "robusta", quantity: 10, unitCost: 70 }],
   },
 ];
 
-export const SUPPLIER_OPTIONS = [
-  { id: "1", name: "Bean's supplier" },
-  { id: "2", name: "Coffee's supplier" },
-  { id: "3", name: "Turkish supplier" },
-];
-
-export const WAREHOUSE_OPTIONS = [
-  "Main Warehouses",
-  "Secondary Warehouse",
-  "Kitchen Storage",
-];
-
-export const PRODUCT_SKU_OPTIONS = [
-  "SKU-001 - Arabica Beans",
-  "SKU-002 - Turkish Coffee",
-  "SKU-003 - Barista Blend",
-  "SKU-004 - Espresso Roast",
+export const PURCHASING_STATUS_FILTERS = [
+  { label: "All Statuses", value: "all" },
+  { label: "Paid", value: "Paid" },
+  { label: "Unpaid", value: "Unpaid" },
+  { label: "Pending", value: "Pending" },
+  { label: "Canceled", value: "Canceled" },
 ];

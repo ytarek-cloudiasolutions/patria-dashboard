@@ -25,6 +25,7 @@ import OrdersFilters from "../components/OrdersFilters";
 import OrdersTable from "../components/OrdersTable";
 import type { Order, OrderCategory, OrderSource, OrderStatus } from "../types";
 import TabItem from "@/shared/components/TabItem";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 
 const SOURCE_ICONS: Record<OrderSource, LucideIcon> = {
   application: Smartphone,
@@ -37,6 +38,7 @@ const sourceCounts: Record<OrderSource, number> = {
 };
 
 const OrdersPage = () => {
+  const { t } = useTranslation();
   const [orders, setOrders] = useState<Order[]>(MOCK_ORDERS);
   const [searchValue, setSearchValue] = useState("");
   const [selectedCategory, setSelectedCategory] =
@@ -95,12 +97,12 @@ const OrdersPage = () => {
 
       <div className="mb-5 flex flex-col gap-3 sm:mb-7 sm:gap-4 md:flex-row md:items-end md:justify-between">
         <HeaderLayout
-          title="Orders"
-          description="Manage and track customer orders"
+          title={t("Orders")}
+          description={t("Manage and track customer orders")}
         />
         <DefaultButton
           data={{
-            buttonText: "New POS Order",
+            buttonText: t("New POS Order"),
             icon: <Plus className="size-4.5" />,
             onClick: () => setIsCreateDialogOpen(true),
           
@@ -122,7 +124,7 @@ const OrdersPage = () => {
             <TabItem
               key={source}
               value={source}
-              label={ORDER_SOURCE_LABELS[source]}
+              label={t(ORDER_SOURCE_LABELS[source])}
               icon={SOURCE_ICONS[source]}
               count={sourceCounts[source]}
               isActive={source === activeSource}
@@ -134,7 +136,7 @@ const OrdersPage = () => {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4 xl:gap-6">
           <OverviewCard
             data={{
-              title: "Revenue",
+              title: t("Revenue"),
               value: `EGP ${summary.revenue.toLocaleString()}`,
               icon: <TrendingUp className="size-5" />,
               iconColor: "text-primary",
@@ -143,7 +145,7 @@ const OrdersPage = () => {
           />
           <OverviewCard
             data={{
-              title: "Total Orders",
+              title: t("Total Orders"),
               value: summary.totalOrders,
               icon: <ClipboardList className="size-5" />,
               iconColor: "text-[#3574FF]",
@@ -152,7 +154,7 @@ const OrdersPage = () => {
           />
           <OverviewCard
             data={{
-              title: "Pending",
+              title: t("Pending"),
               value: summary.pending,
               icon: <Hourglass className="size-5" />,
               iconColor: "text-[#C7861E]",
@@ -161,7 +163,7 @@ const OrdersPage = () => {
           />
           <OverviewCard
             data={{
-              title: "Delivered",
+              title: t("Delivered"),
               value: summary.delivered,
               icon: <CheckCheck className="size-5" />,
               iconColor: "text-[#059B5A]",

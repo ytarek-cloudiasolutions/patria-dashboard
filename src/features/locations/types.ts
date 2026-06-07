@@ -1,20 +1,16 @@
-export type LocationStatus = "available" | "inactive";
+export type ZoneStatus = "Active" | "Inactive";
 
-export interface LocationProps {
-  id: string;
+export interface DeliveryZone {
+  id: number;
   name: string;
   deliveryFee: number;
   minOrderAmount: number;
-  status: LocationStatus;
+  status: ZoneStatus;
 }
 
-export interface AddZoneFormProps {
-  onSave: (location: Omit<LocationProps, "id">) => void;
-  onCancel: () => void;
-}
-
-export interface ZoneFormProps {
-  initialData?: LocationProps;
-  onSave: (location: Omit<LocationProps, "id">) => void;
-  onCancel: () => void;
+export interface ZoneFormData {
+  name: string;
+  deliveryFee: string;
+  minOrderAmount: string;
+  status: ZoneStatus;
 }

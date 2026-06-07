@@ -6,6 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shared/components/ui/card";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import type { PerformanceIndicator } from "../types";
 
 interface PerformanceIndicatorsProps {
@@ -20,11 +21,13 @@ const toneStyles: Record<PerformanceIndicator["tone"], { bg: string; text: strin
 };
 
 const PerformanceIndicators = ({ indicators }: PerformanceIndicatorsProps) => {
+  const { t } = useTranslation();
+
   return (
     <Card className="gap-0 rounded-[16px] border-[#E5E5E5] bg-white py-0 shadow-none">
       <CardHeader className="min-h-14 grid-cols-[1fr_auto] items-center rounded-t-[16px] bg-[#F5F0EA] px-4 py-3">
         <CardTitle className="text-[18px] font-bold text-[#333333]">
-          Performance Indicators
+          {t("Performance Indicators")}
         </CardTitle>
         <TrendingUp className="size-5 text-[#000000]" />
       </CardHeader>
@@ -45,7 +48,7 @@ const PerformanceIndicators = ({ indicators }: PerformanceIndicatorsProps) => {
                   <Icon className="size-4" />
                 </span>
                 <span className="truncate text-[13px] font-medium">
-                  {indicator.label}
+                  {t(indicator.label)}
                 </span>
               </div>
               <span
@@ -62,13 +65,13 @@ const PerformanceIndicators = ({ indicators }: PerformanceIndicatorsProps) => {
         <div className="mt-1 flex min-h-16 flex-wrap items-center justify-between gap-3 rounded-[16px] bg-primary px-5 py-4 text-white ring-2 ring-[#E5E5E5] sm:min-h-17 sm:px-7.5">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-wide">
-              POS vs Mobile
+              {t("POS vs Mobile")}
             </p>
-            <p className="mt-1 text-[13px] sm:text-[14px]">Revenue Mix</p>
+            <p className="mt-1 text-[13px] sm:text-[14px]">{t("Revenue Mix")}</p>
           </div>
           <div className="text-right">
             <p className="text-[13px] font-bold sm:text-[14px]">63% POS</p>
-            <p className="text-[10px]">Physical Stores</p>
+            <p className="text-[10px]">{t("Physical Stores")}</p>
           </div>
         </div>
       </CardContent>

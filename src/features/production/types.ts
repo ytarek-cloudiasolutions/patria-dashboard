@@ -1,61 +1,44 @@
+export type ProductionTab = "roast" | "equipment";
+
 export type RoastingDegree = "Light" | "Medium" | "Dark";
 
-export type BatchStatus = "Verify Quality" | "IN-QC" | "Certified";
-
-export type EquipmentTask = "Calibration" | "Repair" | "Routine Sterilization" | "Inspection";
-
-export type EquipmentStatus = "Poor" | "Healthy";
-
-export type TaskTaxonomy =
-  | "Routine Sterilization"
-  | "Calibration"
-  | "Repair"
-  | "Inspection";
-
-// ---- Roast Tab ----
+export type BatchStatus = "Verify Quality" | "IN-QC" | "Released" | "Failed";
 
 export interface RoastBatch {
-  id: string;
-  batch: string;
+  id: number;
+  batchNumber: string;
   product: string;
   degree: RoastingDegree;
-  massIn: number;
-  massOut: number;
+  weightBefore: number;
+  weightAfter: number;
   status: BatchStatus;
   date: string;
 }
 
-export interface NewRoastBatchForm {
+export interface BatchFormData {
   batchNumber: string;
   rawCoffeeType: string;
-  weightBefore: number;
-  weightAfter: number;
+  weightBefore: string;
+  weightAfter: string;
   degree: RoastingDegree;
 }
 
-export interface QualityCheckForm {
-  certifiedOutputMass: number;
-  atmosphericMoisture?: number;
-  agtronSpecularIndex?: string;
-  totalCuppingScore?: number;
+export interface QualityCheckFormData {
+  outputMass: string;
+  atmosphericMoisture: string;
+  agtronIndex: string;
+  cuppingScore: string;
 }
 
-export interface OverviewStats {
-  activeBatches: number;
-  qualityIndex: number;
-  productionEfficiency: number;
-  averageLossRate: number;
-}
-
-export interface ChartDataPoint {
-  batch: string;
-  efficiency: number;
-}
-
-// ---- Equipment Tab ----
+export type EquipmentStatus = "Healthy" | "Poor" | "Maintenance";
+export type EquipmentTask =
+  | "Calibration"
+  | "Repair"
+  | "Routine Sterilization"
+  | "Inspection";
 
 export interface EquipmentRecord {
-  id: string;
+  id: number;
   machine: string;
   task: EquipmentTask;
   operator: string;
@@ -64,9 +47,9 @@ export interface EquipmentRecord {
   status: EquipmentStatus;
 }
 
-export interface ServiceLogForm {
-  machineDesignation: string;
-  taskTaxonomy: TaskTaxonomy;
-  financialOutlay?: number;
-  nextRecalibrationDeadline: string;
+export interface ServiceLogFormData {
+  machine: string;
+  task: EquipmentTask;
+  cost: string;
+  deadline: string;
 }

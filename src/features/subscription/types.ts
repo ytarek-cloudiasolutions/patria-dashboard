@@ -1,40 +1,51 @@
+export type SubscriptionFrequency = "Weekly" | "bi-weekly" | "Monthly";
 export type SubscriptionStatus = "Active" | "Paused" | "Cancelled";
-export type PaymentStatus = "Pending" | "Paid" | "Failed";
-export type Frequency = "Weekly" | "bi-weekly" | "Monthly";
+export type PaymentStatus = "Paid" | "Pending" | "Failed";
 
-export interface SubscriptionCustomer {
+export type ProductGrind = "Whole Bean" | "Ground" | "Espresso";
+export type RoastLevel = "Light" | "Medium" | "Dark";
+
+export interface SubscriptionProduct {
+  id: string;
+  name: string;
+  roast: RoastLevel;
+  grind: ProductGrind;
+}
+
+export interface CustomerOption {
+  id: string;
   name: string;
   email: string;
 }
 
-export interface SubscriptionPlan {
-  quantity: number;
-  productName: string;
-  tags?: string[];
-}
-
 export interface Subscription {
-  id: string;
-  customer: SubscriptionCustomer;
-  plan: SubscriptionPlan;
-  frequency: Frequency;
+  id: number;
+  reference: string;
+  customerId: string;
+  customerName: string;
+  customerEmail: string;
+  productId: string;
+  productName: string;
+  roast: RoastLevel;
+  grind: ProductGrind;
+  quantity: number;
+  frequency: SubscriptionFrequency;
   nextDelivery: string;
   paymentStatus: PaymentStatus;
-  paymentRef: string;
   status: SubscriptionStatus;
 }
 
-export interface NewSubscriptionForm {
+export interface NewSubscriptionFormData {
   customerId: string;
   productId: string;
-  frequency: Frequency;
-  quantity: number;
-  firstDeliveryDate: string;
+  quantity: string;
+  frequency: SubscriptionFrequency;
+  firstDelivery: string;
 }
 
-export interface EditSubscriptionForm {
+export interface ManageSubscriptionFormData {
   status: SubscriptionStatus;
-  frequency: Frequency;
-  quantity: number;
-  nextDeliveryDate: string;
+  frequency: SubscriptionFrequency;
+  quantity: string;
+  nextDelivery: string;
 }

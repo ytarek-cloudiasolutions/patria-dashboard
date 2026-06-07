@@ -1,22 +1,13 @@
-import type { ReactNode } from "react";
+export type DiscountType = "percentage" | "fixed";
 
-export interface CouponCardProps {
-  id: number;
-  title: string;
-  value: number;
-  badgeColor: string;
-  icon: ReactNode;
-  iconColor: string;
-}
-
-export interface CouponProps {
+export interface Coupon {
   id: number;
   code: string;
-  discountType: "Fixed" | "Percentage";
+  discountType: DiscountType;
   discountValue: number;
-  minOrderFee?: number; // optional (because sometimes it's "-")
-  usageCount: number;
-  usageLimit?: number; // undefined = ∞
+  minOrderAmount: number;
+  usageLimit: number;
+  usedCount: number;
   startDate: string;
   endDate: string;
   isActive: boolean;
