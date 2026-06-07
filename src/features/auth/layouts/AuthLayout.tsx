@@ -5,7 +5,7 @@ const AuthLayout = ({ form }: AuthLayoutProps) => {
   return (
     <div className="min-h-screen bg-[#FAFAF7] grid grid-cols-1 lg:grid-cols-2">
       {/* Left Branding Side - Desktop Only */}
-      <div className="hidden lg:flex relative items-center justify-center bg-[#F6CB58] overflow-hidden">
+      <div className="hidden lg:flex relative items-center justify-center bg-white border border-[#E5E5E5] overflow-hidden">
         <img
           src={patriaLogo}
           alt="Patria Logo"

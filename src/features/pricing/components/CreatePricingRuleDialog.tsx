@@ -1,52 +1,87 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
 } from "@/shared/components/ui/dialog";
+import { Button } from "@/shared/components/ui/button";
+import { Label } from "@/shared/components/ui/label";
 import { Separator } from "@/shared/components/ui/separator";
 import DefaultButton from "@/shared/components/DefaultButton";
 import DropdownSelect from "@/shared/components/DropdownSelect";
 import InputField from "@/shared/components/InputField";
-import {
-  defaultCreateFormData,
-  PRICING_RULE_TYPES,
-  ADJUSTMENT_TYPES,
-} from "../data";
+import { ADJUSTMENT_TYPE_OPTIONS, RULE_TYPE_OPTIONS } from "../data";
 import type {
-  CreatePricingRuleDialogProps,
-  CreatePricingRuleFormData,
+  AdjustmentType,
+  PricingRuleFormData,
+  PricingRuleType,
 } from "../types";
+
+const FORM_ID = "create-pricing-rule-form";
+
+const INITIAL_FORM: PricingRuleFormData = {
+  name: "",
+  type: "Bulk Discount",
+  adjustmentType: "Percentage %",
+  value: "",
+  minimumQuantity: "",
+};
+
+interface CreatePricingRuleDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSave: (data: PricingRuleFormData) => void;
+}
 
 const CreatePricingRuleDialog = ({
   open,
   onOpenChange,
-  onSubmit,
+  onSave,
 }: CreatePricingRuleDialogProps) => {
-  const [formData, setFormData] = useState<CreatePricingRuleFormData>(
-    defaultCreateFormData,
-  );
+  const [form, setForm] = useState<PricingRuleFormData>(INITIAL_FORM);
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof PricingRuleFormData, string>>
+  >({});
+  const [openDropdown, setOpenDropdown] = useState<
+    "type" | "adjustment" | null
+  >(null);
 
-  const handleInputChange =
-    (field: keyof CreatePricingRuleFormData) =>
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setFormData((prev) => ({ ...prev, [field]: e.target.value }));
-    };
+  useEffect(() => {
+    if (open) {
+      setForm(INITIAL_FORM);
+      setErrors({});
+      setOpenDropdown(null);
+    }
+  }, [open]);
 
-  const handleSelectChange =
-    (field: keyof CreatePricingRuleFormData) => (value: string) => {
-      setFormData((prev) => ({ ...prev, [field]: value }));
-    };
-
-  const handleSubmit = () => {
-    onSubmit(formData);
-    setFormData(defaultCreateFormData);
-    onOpenChange(false);
+  const set = <K extends keyof PricingRuleFormData>(
+    key: K,
+    value: PricingRuleFormData[K],
+  ) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+    if (errors[key]) setErrors((prev) => ({ ...prev, [key]: "" }));
   };
 
-  const handleCancel = () => {
-    setFormData(defaultCreateFormData);
+  const validate = () => {
+    const next: Partial<Record<keyof PricingRuleFormData, string>> = {};
+    if (!form.name.trim()) next.name = "Rule name is required";
+    if (!form.type) next.type = "Type is required";
+    if (!form.adjustmentType) next.adjustmentType = "Adjustment type is required";
+    if (!form.value.trim()) next.value = "Value is required";
+    if (
+      !form.minimumQuantity.trim() ||
+      Number(form.minimumQuantity) < 0
+    ) {
+      next.minimumQuantity = "Enter a valid quantity";
+    }
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validate()) return;
+    onSave(form);
     onOpenChange(false);
   };
 
@@ -54,118 +89,186 @@ const CreatePricingRuleDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="max-w-[520px] rounded-[16px] p-0 gap-0 overflow-hidden sm:max-w-174"
+        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-150"
       >
-        {/* Header */}
-        <DialogHeader className="px-7 pt-7 pb-5">
-          <DialogTitle className="text-[#28293D] text-[20px] font-semibold">
-            Create Pricing Rule
-          </DialogTitle>
-        </DialogHeader>
+        {openDropdown && (
+          <div className="pointer-events-none fixed inset-0 z-60 bg-black/40" />
+        )}
 
-        {/* Form Body */}
-        <div className="px-7 py-6 flex flex-col gap-5">
-          {/* Row 1: Rule Name + Type */}
-          <div className="grid grid-cols-2 gap-4">
-            <InputField
-              data={{
-                id: "ruleName",
-                label: { htmlFor: "ruleName", labelText: "Rule Name" },
-                placeholder: "e.g. Q4 Executive Discount",
-                required: true,
-                inputProps: {
-                  onChange: handleInputChange("ruleName"),
-                  value: formData.ruleName,
-                },
-              }}
-            />
-
-            <div className="flex flex-col">
-              <label className="text-[#000000] text-[16px] font-medium mb-2.5 block">
-                Type <span className="text-[#C90000]">*</span>
-              </label>
-              <DropdownSelect
-                options={PRICING_RULE_TYPES}
-                selected={formData.type}
-                onSelect={handleSelectChange("type")}
-                align="start"
-                className="w-full md:w-full"
-              />
-            </div>
+        <div className="flex max-h-[calc(100vh-2rem)] flex-col">
+          {/* Header */}
+          <div className="px-5 pt-5 sm:px-7 sm:pt-7">
+            <DialogTitle className="text-[20px] font-semibold text-[#28293D] sm:text-[22px]">
+              Create Pricing Rule
+            </DialogTitle>
           </div>
 
-          {/* Row 2: Adjustment Type + Value */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col">
-              <label className="text-[#000000] text-[16px] font-medium mb-2.5 block">
-                Adjustment Type <span className="text-[#C90000]">*</span>
-              </label>
-              <DropdownSelect
-                options={ADJUSTMENT_TYPES}
-                selected={formData.adjustmentType}
-                onSelect={handleSelectChange("adjustmentType")}
-                align="start"
-                className="w-full md:w-full"
-              />
+          {/* Body */}
+          <form
+            id={FORM_ID}
+            onSubmit={handleSubmit}
+            noValidate
+            className="flex-1 overflow-y-auto px-5 py-5 sm:px-7 sm:py-6"
+          >
+            <div className="flex flex-col gap-5">
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:items-end">
+                <div>
+                  <InputField
+                    data={{
+                      id: "rule-name",
+                      label: {
+                        htmlFor: "rule-name",
+                        labelText: "Rule Name",
+                      },
+                      placeholder: "e.g. Q4 Executive Discount",
+                      required: true,
+                      inputProps: {
+                        value: form.name,
+                        onChange: (e) => set("name", e.target.value),
+                      },
+                    }}
+                  />
+                  {errors.name && (
+                    <p className="mt-1 text-[13px] text-[#C90000]">
+                      {errors.name}
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex flex-col">
+                  <Label
+                    htmlFor="rule-type"
+                    className="mb-2.5 text-[16px] font-medium text-black"
+                  >
+                    Type<span className="text-[#C90000]">*</span>
+                  </Label>
+                  <DropdownSelect
+                    options={RULE_TYPE_OPTIONS}
+                    selected={form.type}
+                    onSelect={(value) =>
+                      set("type", value as PricingRuleType)
+                    }
+                    onOpenChange={(open) =>
+                      setOpenDropdown(open ? "type" : null)
+                    }
+                    placeholder="Select type"
+                    align="start"
+                    className="md:w-full"
+                    contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
+                  />
+                  {errors.type && (
+                    <p className="mt-1 text-[13px] text-[#C90000]">
+                      {errors.type}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:items-end">
+                <div className="flex flex-col">
+                  <Label
+                    htmlFor="adjustment-type"
+                    className="mb-2.5 text-[16px] font-medium text-black"
+                  >
+                    Adjustment Type<span className="text-[#C90000]">*</span>
+                  </Label>
+                  <DropdownSelect
+                    options={ADJUSTMENT_TYPE_OPTIONS}
+                    selected={form.adjustmentType}
+                    onSelect={(value) =>
+                      set("adjustmentType", value as AdjustmentType)
+                    }
+                    onOpenChange={(open) =>
+                      setOpenDropdown(open ? "adjustment" : null)
+                    }
+                    placeholder="Select adjustment"
+                    align="start"
+                    className="md:w-full"
+                    contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
+                  />
+                  {errors.adjustmentType && (
+                    <p className="mt-1 text-[13px] text-[#C90000]">
+                      {errors.adjustmentType}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <InputField
+                    data={{
+                      id: "value",
+                      label: {
+                        htmlFor: "value",
+                        labelText: "Value (Negative for Discount)",
+                      },
+                      placeholder: "0",
+                      required: true,
+                      inputProps: {
+                        type: "number",
+                        step: "0.01",
+                        value: form.value,
+                        onChange: (e) => set("value", e.target.value),
+                      },
+                    }}
+                  />
+                  {errors.value && (
+                    <p className="mt-1 text-[13px] text-[#C90000]">
+                      {errors.value}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <InputField
+                  data={{
+                    id: "minimum-quantity",
+                    label: {
+                      htmlFor: "minimum-quantity",
+                      labelText: "Minimum Quantity",
+                    },
+                    placeholder: "0",
+                    required: true,
+                    inputProps: {
+                      type: "number",
+                      min: "0",
+                      value: form.minimumQuantity,
+                      onChange: (e) =>
+                        set("minimumQuantity", e.target.value),
+                    },
+                  }}
+                />
+                {errors.minimumQuantity && (
+                  <p className="mt-1 text-[13px] text-[#C90000]">
+                    {errors.minimumQuantity}
+                  </p>
+                )}
+              </div>
             </div>
+          </form>
 
-            <InputField
-              data={{
-                id: "value",
-                type: "number",
-                label: {
-                  htmlFor: "value",
-                  labelText: "Value (Negative for Discount)",
-                },
-                placeholder: "••••••••••",
-                required: true,
-                inputProps: {
-                  onChange: handleInputChange("value"),
-                  value: formData.value,
-                },
-              }}
-            />
-          </div>
-
-          {/* Row 3: Minimum Quantity — full width */}
-          <InputField
-            data={{
-              id: "minimumQuantity",
-              type: "number",
-              label: {
-                htmlFor: "minimumQuantity",
-                labelText: "Minimum Quantity",
-              },
-              placeholder: "0",
-              required: true,
-              inputProps: {
-                onChange: handleInputChange("minimumQuantity"),
-                value: formData.minimumQuantity,
-              },
-            }}
-          />
-          <Separator className="bg-[#CACBD4]" />
-
-          {/* Footer Actions */}
-          <div className="flex justify-end gap-4">
-            <DefaultButton
-              data={{
-                buttonText: "Cancel",
-                variant: "outline",
-                type: "button",
-                onClick: handleCancel,
-                className:
-                  "text-primary border-primary hover:bg-white hover:text-primary",
-              }}
-            />
-            <DefaultButton
-              data={{
-                buttonText: "Create Strategy Rule",
-                type: "button",
-                className: "bg-[#5C4A1E]",
-                onClick: handleSubmit,
-              }}
-            />
+          {/* Sticky footer */}
+          <div className="bg-white px-5 pb-5 sm:px-7 sm:pb-6">
+            <Separator className="mb-4 bg-[#CACBD4] sm:mb-5" />
+            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <DefaultButton
+                data={{
+                  buttonText: "Cancel",
+                  variant: "outline",
+                  type: "button",
+                  onClick: () => onOpenChange(false),
+                  className:
+                    "w-full sm:w-auto border-primary text-primary hover:bg-white hover:text-primary",
+                }}
+              />
+              <Button
+                form={FORM_ID}
+                type="submit"
+                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
+              >
+                Create Strategy Rule
+              </Button>
+            </div>
           </div>
         </div>
       </DialogContent>

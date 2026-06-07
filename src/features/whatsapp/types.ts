@@ -1,24 +1,15 @@
-export type ConnectionStatus = "Connected" | "Disconnected";
+export type GatewayConnectionStatus = "connected" | "disconnected";
 
-export type QueueStatus = "Empty (Nominal)" | "Processing" | "Backlogged";
-
-export type EncryptionMode = "End-to-End" | "Transport" | "None";
-
-export interface TechnicalPerformance {
-  responseTime: string;
-  queueStatus: QueueStatus;
-  operator: string;
-  encryptionMode: EncryptionMode;
+export interface LinkStep {
+  id: number;
+  text: string;
 }
 
-export interface GatewaySecurity {
-  title: string;
-  description: string;
-  complianceNote: string;
-  lastAudit: string;
-}
+export type PerformanceTone = "neutral" | "positive" | "highlight";
 
-export interface HowToLinkStep {
-  step: number;
-  description: string;
+export interface PerformanceMetric {
+  id: string;
+  label: string;
+  value: string;
+  tone: PerformanceTone;
 }

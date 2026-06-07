@@ -1,60 +1,76 @@
-import type { WarehouseType, Warehouse, Transfer } from "./types";
-
-export const WAREHOUSE_TYPES: WarehouseType[] = [
-  "Main Warehouse",
-  "Sub Warehouse",
-];
-
-export const PRODUCT_SKU_OPTIONS = [
-  { label: "SKU-001 - Arabica Beans", value: "SKU-001" },
-  { label: "SKU-002 - Turkish Coffee", value: "SKU-002" },
-  { label: "SKU-003 - Barista Blend", value: "SKU-003" },
-  { label: "SKU-004 - Espresso Roast", value: "SKU-004" },
-  { label: "SKU-005 - Pastry Mix", value: "SKU-005" },
-];
+import type { InternalTransfer, Warehouse } from "./types";
 
 export const INITIAL_WAREHOUSES: Warehouse[] = [
   {
     id: "wh-1",
+    shortId: "1O9DEE6",
     name: "Main Kitchen",
     address: "123 Roastery St, Alex",
-    type: "Main Warehouse",
+    kind: "Main Warehouse",
   },
   {
     id: "wh-2",
+    shortId: "1O9DEE6",
     name: "Main Kitchen",
     address: "123 Roastery St, Alex",
-    type: "Main Warehouse",
+    kind: "Main Warehouse",
   },
   {
     id: "wh-3",
+    shortId: "1O9DEE6",
     name: "Barista Kitchen",
     address: "123 Roastery St, Alex",
-    type: "Sub Warehouse",
+    kind: "Sub Warehouse",
   },
   {
     id: "wh-4",
+    shortId: "1O9DEE6",
     name: "Pastry Kitchen",
     address: "123 Roastery St, Alex",
-    type: "Sub Warehouse",
+    kind: "Sub Warehouse",
   },
 ];
 
-export const INITIAL_TRANSFERS: Transfer[] = [
+export const INITIAL_TRANSFERS: InternalTransfer[] = [
   {
-    id: "#TRF-445581",
-    from: "Main Kitchen",
-    to: "Bakery Kitchen",
-    items: 2,
-    date: "4/14/2026",
+    id: 1,
+    reference: "#TRF-44581",
+    fromId: "wh-1",
+    fromName: "Main Kitchen",
+    toId: "bakery",
+    toName: "Bakery Kitchen",
+    items: [
+      { id: "ti-1", productId: "arabica", quantity: 1 },
+      { id: "ti-2", productId: "sugar", quantity: 1 },
+    ],
+    createdAt: "4/14/2026",
     status: "Pending",
   },
   {
-    id: "#TRF-552890",
-    from: "Main Kitchen",
-    to: "Pastry Kitchen",
-    items: 2,
-    date: "4/14/2026",
+    id: 2,
+    reference: "#TRF-552890",
+    fromId: "wh-1",
+    fromName: "Main Kitchen",
+    toId: "wh-4",
+    toName: "Pastry Kitchen",
+    items: [
+      { id: "ti-3", productId: "milk", quantity: 1 },
+      { id: "ti-4", productId: "sugar", quantity: 1 },
+    ],
+    createdAt: "4/14/2026",
     status: "Approved",
   },
+];
+
+export const TRANSFER_PRODUCT_OPTIONS = [
+  { id: "arabica", label: "Arabica beans" },
+  { id: "robusta", label: "Robusta beans" },
+  { id: "milk", label: "Whole milk 1L" },
+  { id: "sugar", label: "Sugar 1kg" },
+  { id: "flour", label: "Flour 1kg" },
+];
+
+export const WAREHOUSE_TYPE_OPTIONS = [
+  { value: "Main Warehouse", label: "Main Warehouse" },
+  { value: "Sub Warehouse", label: "Sub Warehouse" },
 ];

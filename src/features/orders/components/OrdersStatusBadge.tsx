@@ -1,4 +1,5 @@
 import { Badge } from "@/shared/components/ui/badge";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import type { OrderStatus } from "../types";
 
 type StatusStyle = {
@@ -45,14 +46,15 @@ interface OrdersStatusBadgeProps {
 }
 
 const OrdersStatusBadge = ({ status }: OrdersStatusBadgeProps) => {
+  const { t } = useTranslation();
   const style = STATUS_STYLES[status];
 
   return (
     <Badge
-      className={`h-5 min-w-21 justify-center whitespace-nowrap rounded-[999px] border px-3 text-center font-semibold text-[11px] ${style.bg} ${style.text}`}
+      className={`h-5 w-28 justify-center whitespace-nowrap rounded-[999px] border px-3 text-center font-semibold text-[11px] ${style.bg} ${style.text}`}
       style={{ borderColor: style.borderColor }}
     >
-      {status}
+      {t(status)}
     </Badge>
   );
 };

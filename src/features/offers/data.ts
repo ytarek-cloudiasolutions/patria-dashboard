@@ -1,4 +1,18 @@
-import type { Offer } from "./types";
+import type { DiscountType, Offer, OfferProduct } from "./types";
+
+export const DISCOUNT_TYPE_OPTIONS: { value: DiscountType; label: string }[] = [
+  { value: "percentage", label: "Percentage %" },
+  { value: "fixed", label: "Fixed amount (EGP)" },
+];
+
+export const OFFER_PRODUCTS: OfferProduct[] = [
+  { id: 1, name: "Kunafa Tiramsu", price: 85.2 },
+  { id: 2, name: "Eish el Saraya", price: 85.2 },
+  { id: 3, name: "Middle Eastern Roast Beef", price: 85.2 },
+  { id: 4, name: "Baklava Cheesecake", price: 85.2 },
+  { id: 5, name: "Umm Ali", price: 85.2 },
+  { id: 6, name: "Mahalabia", price: 85.2 },
+];
 
 export const MOCK_OFFERS: Offer[] = [
   {

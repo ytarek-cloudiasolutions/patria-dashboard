@@ -1,168 +1,102 @@
-import { useState } from "react";
-import { Plus, ShoppingBag, Tag, Heart, TrendingUp } from "lucide-react";
-
-import {
-  initialPricingRules,
-  initialWholesalePriceLists,
-  pricingStats,
-} from "./data";
-import type { PricingRule, CreatePricingRuleFormData } from "./types";
+import { useMemo, useState } from "react";
+import { Plus, Users, WalletCards } from "lucide-react";
+import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
-import OverviewCard from "@/shared/components/OverviewCard";
-import DateRangeFilter from "../account/components/DateRangeFilter";
-import ActivePricingRulesSection from "./components/ActivePricingRulesSection";
-import CreatePricingRuleDialog from "./components/CreatePricingRuleDialog";
-import WholesalePriceListsSection from "./components/WholesalePriceListsSection";
 
-const overviewCards = [
-  {
-    title: "Active Pricing Rules",
-    key: "activePricingRules" as const,
-    icon: <ShoppingBag size={20} />,
-    badgeColor: "bg-[#FFF5EC]",
-    iconColor: "text-[#FF8A00]",
-  },
-  {
-    title: "Wholesale Price Lists",
-    key: "wholesalePriceLists" as const,
-    icon: <Tag size={20} />,
-    badgeColor: "bg-[#F3EEFF]",
-    iconColor: "text-[#6B3FD4]",
-  },
-  {
-    title: "Average Discount Rate",
-    key: "averageDiscountRate" as const,
-    icon: <Heart size={20} />,
-    badgeColor: "bg-[#FFF0F5]",
-    iconColor: "text-[#E0006A]",
-  },
-  {
-    title: "Impact on Revenue",
-    key: "impactOnRevenue" as const,
-    icon: <TrendingUp size={20} />,
-    badgeColor: "bg-[#E2F4ED]",
-    iconColor: "text-[#059B5A]",
-  },
-];
+import CreatePricingRuleDialog from "./components/CreatePricingRuleDialog";
+import PricingDateRange from "./components/PricingDateRange";
+import PricingOverview from "./components/PricingOverview";
+import PricingRulesCard from "./components/PricingRulesCard";
+import WholesalePriceListsCard from "./components/WholesalePriceListsCard";
+
+import { INITIAL_PRICING_RULES, INITIAL_WHOLESALE_LISTS } from "./data";
+import type {
+  AdjustmentType,
+  PricingDateRange as PricingDateRangeType,
+  PricingRule,
+  PricingRuleFormData,
+  PricingRuleType,
+} from "./types";
 
 const PricingPage = () => {
-  const [rules, setRules] = useState<PricingRule[]>(initialPricingRules);
-  const [priceLists] = useState(initialWholesalePriceLists);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
+  const [dateRange, setDateRange] = useState<PricingDateRangeType>({
+    from: "",
+    to: "",
+  });
+  const [rules, setRules] = useState<PricingRule[]>(INITIAL_PRICING_RULES);
+  const [wholesaleLists] = useState(INITIAL_WHOLESALE_LISTS);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
-  // Derived stats — keep in sync with actual data
-  const liveStats = {
-    activePricingRules: rules.length,
-    wholesalePriceLists: priceLists.length,
-    averageDiscountRate: pricingStats.averageDiscountRate,
-    impactOnRevenue: pricingStats.impactOnRevenue,
-  };
+  const averageDiscountRate = useMemo(() => {
+    if (rules.length === 0) return 12.4;
+    const discounts = rules.map((r) => Math.abs(r.value)).filter((v) => v > 0);
+    if (discounts.length === 0) return 12.4;
+    return discounts.reduce((sum, v) => sum + v, 0) / discounts.length;
+  }, [rules]);
 
-  const handleCreateRule = (formData: CreatePricingRuleFormData) => {
+  const handleCreateRule = (data: PricingRuleFormData) => {
     const newRule: PricingRule = {
-      id: Date.now().toString(),
-      name: formData.ruleName,
-      type: formData.type,
-      adjustmentType: formData.adjustmentType,
-      value: parseFloat(formData.value) || 0,
-      minimumQuantity: parseInt(formData.minimumQuantity) || 0,
+      id: Date.now(),
+      name: data.name.trim(),
+      type: data.type as PricingRuleType,
+      adjustmentType: data.adjustmentType as AdjustmentType,
+      value: Number(data.value) || 0,
+      minimumQuantity: Number(data.minimumQuantity) || 0,
     };
-    setRules((prev) => [...prev, newRule]);
+    setRules((prev) => [newRule, ...prev]);
   };
 
-  const handleEditRule = (rule: PricingRule) => {
-    // TODO: open edit dialog pre-filled with rule data
-    console.log("Edit rule:", rule);
-  };
-
-  const handleDeleteRule = (id: string) => {
-    setRules((prev) => prev.filter((r) => r.id !== id));
-  };
-
-  const handleManagePricelists = () => {
-    // TODO: navigate to pricelists management
-    console.log("Manage pricelists");
+  const handleDeleteRule = (rule: PricingRule) => {
+    setRules((prev) => prev.filter((r) => r.id !== rule.id));
   };
 
   return (
-    <div className="p-6 max-w-full">
-      {/* Page Header */}
-      <div className="flex items-start justify-between mb-6">
-        <div>
-          <h1 className="text-[#28293D] text-[24px] font-semibold">
-            Pricing Strategy
-          </h1>
-          <p className="text-[#8B8B8B] text-[14px] mt-1">
-            Manage bulk discounts, wholesale tiers, and dynamic surcharges.
-          </p>
-        </div>
-
-        {/* Header Actions */}
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleManagePricelists}
-            className="flex items-center gap-2 h-11 px-5 rounded-[8px] border border-[#E5D5B8] bg-[#FFF8EE] text-[#8B6914] text-[14px] font-semibold hover:bg-[#F5EDDC] transition-colors"
-          >
-            <ShoppingBag size={16} />
-            Manage Pricelists
-          </button>
+    <>
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <HeaderLayout
+          title="Pricing Strategy"
+          description="Manage bulk discounts, wholesale tiers, and dynamic surcharges."
+        />
+        <div className="flex flex-wrap items-center gap-3">
+          <DefaultButton
+            data={{
+              buttonText: "Manage Pricelists",
+              variant: "outline",
+              icon: <WalletCards className="size-4.5" />,
+              className:
+                "border-transparent bg-[#F5F0EA] text-primary hover:bg-[#EFE7DA] hover:text-primary",
+            }}
+          />
           <DefaultButton
             data={{
               buttonText: "New Pricing Rule",
-              icon: <Plus size={16} />,
-              onClick: () => setIsDialogOpen(true),
-              className:
-                "h-11 px-5 bg-[#8B6914] hover:bg-[#7A5C10] text-white text-[14px]",
+              icon: <Plus className="size-4.5" />,
+              onClick: () => setIsCreateOpen(true),
             }}
           />
         </div>
       </div>
 
-      {/* Date Range Filter */}
-      <div className="mb-6">
-        <DateRangeFilter
-          from={dateFrom}
-          to={dateTo}
-          onFromChange={setDateFrom}
-          onToChange={setDateTo}
-        />
-      </div>
+      <PricingDateRange value={dateRange} onChange={setDateRange} />
 
-      {/* Overview Stats */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
-        {overviewCards.map((card) => (
-          <OverviewCard
-            key={card.title}
-            data={{
-              title: card.title,
-              value: liveStats[card.key],
-              icon: card.icon,
-              badgeColor: card.badgeColor,
-              iconColor: card.iconColor,
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Main Content: two side-by-side panels */}
-      <div className="grid grid-cols-2 gap-5">
-        <ActivePricingRulesSection
-          rules={rules}
-          onEdit={handleEditRule}
-          onDelete={handleDeleteRule}
-        />
-        <WholesalePriceListsSection priceLists={priceLists} />
-      </div>
-
-      {/* Create Pricing Rule Dialog */}
-      <CreatePricingRuleDialog
-        open={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
-        onSubmit={handleCreateRule}
+      <PricingOverview
+        activeRules={rules.length}
+        wholesaleLists={wholesaleLists.length}
+        averageDiscountRate={averageDiscountRate}
+        revenueImpact="Monthly +18%"
       />
-    </div>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <PricingRulesCard rules={rules} onDelete={handleDeleteRule} />
+        <WholesalePriceListsCard lists={wholesaleLists} />
+      </div>
+
+      <CreatePricingRuleDialog
+        open={isCreateOpen}
+        onOpenChange={setIsCreateOpen}
+        onSave={handleCreateRule}
+      />
+    </>
   );
 };
 

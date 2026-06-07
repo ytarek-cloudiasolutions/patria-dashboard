@@ -26,6 +26,7 @@ const DropdownSelect = ({
   onOpenChange,
   placeholder = "Select...",
   className,
+  contentClassName,
   align = "end",
 }: DropdownSelectProps) => {
   const normalizedOptions = normalizeOptions(options);
@@ -48,18 +49,21 @@ const DropdownSelect = ({
           )}
         >
           <span className="truncate">{selectedLabel}</span>
-          <ChevronDown className="ml-2 size-5 shrink-0 text-[#000000]" />
+          <ChevronDown className="ml-2 size-6 shrink-0 text-[#000000]" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align={align}
-        className="z-70 w-[var(--radix-dropdown-menu-trigger-width)] p-2 ring-0 rounded-[12px] space-y-1 md:w-78"
+        className={cn(
+          "z-70 w-[var(--radix-dropdown-menu-trigger-width)] p-2 ring-0 rounded-[16px] space-y-1 md:w-78",
+          contentClassName
+        )}
       >
         {normalizedOptions.map((option) => (
           <DropdownMenuItem
             key={option.value}
             className={cn(
-              "px-3 py-2 text-[14px] font-medium rounded-[12px] cursor-pointer",
+              "px-3 py-2 text-[14px] font-medium rounded-[16px] cursor-pointer",
               selected === option.value
                 ? "bg-primary text-primary-foreground pointer-events-none"
                 : "text-[#28293D] data-highlighted:bg-[#F5F0EA]"

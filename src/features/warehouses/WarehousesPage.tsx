@@ -1,153 +1,135 @@
-import { useState } from "react";
-import { Plus, ArrowLeftRight } from "lucide-react";
+import { useMemo, useState } from "react";
+import { ArrowLeftRight, Plus } from "lucide-react";
+import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
+
+import WarehouseSection from "./components/WarehouseSection";
+import TransfersTable from "./components/TransfersTable";
 import AddWarehouseModal from "./components/AddWarehouseModal";
 import InternalTransferModal from "./components/InternalTransferModal";
-import WarehouseCard from "./components/WarehouseCard";
-import TransfersTable from "./components/TransfersTable";
-import { INITIAL_WAREHOUSES, INITIAL_TRANSFERS } from "./data";
+
+import { INITIAL_TRANSFERS, INITIAL_WAREHOUSES } from "./data";
 import type {
+  InternalTransfer,
+  TransferFormState,
   Warehouse,
-  Transfer,
-  AddWarehouseFormData,
-  InternalTransferFormData,
+  WarehouseFormData,
 } from "./types";
 
-const WarehousesPage = () => {
-  const [warehouses, setWarehouses] = useState<Warehouse[]>(INITIAL_WAREHOUSES);
-  const [transfers, setTransfers] = useState<Transfer[]>(INITIAL_TRANSFERS);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+const generateShortId = () =>
+  Math.random().toString(36).slice(2, 9).toUpperCase();
 
-  const handleAddWarehouse = (data: AddWarehouseFormData) => {
-    const newWarehouse: Warehouse = {
-      id: `wh-${warehouses.length + 1}`,
-      ...data,
+const generateReference = (count: number) =>
+  `#TRF-${String(count + 1).padStart(6, "0")}`;
+
+const formatDate = (date: Date) =>
+  `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
+
+const WarehousesPage = () => {
+  const [warehouses, setWarehouses] =
+    useState<Warehouse[]>(INITIAL_WAREHOUSES);
+  const [transfers, setTransfers] =
+    useState<InternalTransfer[]>(INITIAL_TRANSFERS);
+
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isTransferOpen, setIsTransferOpen] = useState(false);
+
+  const { mainWarehouses, subWarehouses } = useMemo(() => {
+    return {
+      mainWarehouses: warehouses.filter((w) => w.kind === "Main Warehouse"),
+      subWarehouses: warehouses.filter((w) => w.kind === "Sub Warehouse"),
     };
-    setWarehouses([...warehouses, newWarehouse]);
+  }, [warehouses]);
+
+  const handleAddWarehouse = (data: WarehouseFormData) => {
+    const newWarehouse: Warehouse = {
+      id: `wh-${Date.now()}`,
+      shortId: generateShortId(),
+      name: data.name.trim(),
+      address: data.address.trim(),
+      kind: data.kind,
+    };
+    setWarehouses((prev) => [...prev, newWarehouse]);
   };
 
-  const handleInternalTransfer = (data: InternalTransferFormData) => {
-    const sourceWarehouse = warehouses.find(
-      (w) => w.id === data.sourceWarehouseId
-    );
-    const destinationWarehouse = warehouses.find(
-      (w) => w.id === data.destinationWarehouseId
-    );
+  const handleCreateTransfer = (form: TransferFormState) => {
+    const from = warehouses.find((w) => w.id === form.fromId);
+    const to = warehouses.find((w) => w.id === form.toId);
+    if (!from || !to) return;
 
-    if (!sourceWarehouse || !destinationWarehouse) return;
+    const items = form.items.filter(
+      (item) => item.productId && item.quantity > 0,
+    );
+    if (items.length === 0) return;
 
-    const newTransfer: Transfer = {
-      id: `#TRF-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
-      from: sourceWarehouse.name,
-      to: destinationWarehouse.name,
-      items: data.items.length,
-      date: new Date().toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "numeric",
-        day: "numeric",
-      }),
+    const newTransfer: InternalTransfer = {
+      id: Date.now(),
+      reference: generateReference(transfers.length),
+      fromId: from.id,
+      fromName: from.name,
+      toId: to.id,
+      toName: to.name,
+      items,
+      createdAt: formatDate(new Date()),
       status: "Pending",
     };
-
-    setTransfers([newTransfer, ...transfers]);
+    setTransfers((prev) => [newTransfer, ...prev]);
   };
 
-  // Group warehouses by type
-  const mainWarehouses = warehouses.filter((w) => w.type === "Main Warehouse");
-  const subWarehouses = warehouses.filter((w) => w.type === "Sub Warehouse");
-
   return (
-    <div className="flex flex-col gap-6 p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-[32px] font-bold text-[#28293D]">Warehouses</h1>
-          <p className="text-[14px] text-[#8B8B8B]">
-            Manage physical storage and internal stock movements.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
+    <>
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <HeaderLayout
+          title="Warehouses"
+          description="Manage physical storage and internal stock movements."
+        />
+        <div className="flex flex-wrap gap-3">
           <DefaultButton
             data={{
               buttonText: "Internal Transfer",
-              variant: "outline",
+              icon: <ArrowLeftRight className="size-4.5" />,
+              onClick: () => setIsTransferOpen(true),
               className:
-                "border-primary text-primary hover:bg-white hover:text-primary flex items-center gap-2",
-              onClick: () => setIsTransferModalOpen(true),
-              icon: <ArrowLeftRight size={18} />,
+                "bg-[#F5F0EA] text-primary",
             }}
           />
           <DefaultButton
             data={{
               buttonText: "Add Warehouse",
-              className:
-                "bg-[#9B8C14] hover:bg-[#7A6C10] flex items-center gap-2",
-              onClick: () => setIsAddModalOpen(true),
-              icon: <Plus size={18} />,
+              icon: <Plus className="size-4.5" />,
+              onClick: () => setIsAddOpen(true),
             }}
           />
         </div>
       </div>
 
-      {/* Main Warehouses Section */}
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center gap-2">
-          <span className="text-[18px] font-bold text-[#9B8C14]">🏢</span>
-          <h2 className="text-[18px] font-bold text-[#28293D]">
-            Main Warehouses
-          </h2>
-        </div>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {mainWarehouses.map((warehouse) => (
-            <WarehouseCard key={warehouse.id} warehouse={warehouse} />
-          ))}
-        </div>
-      </div>
+      <WarehouseSection
+        title="Main Warehouses"
+        kind="Main Warehouse"
+        warehouses={mainWarehouses}
+      />
 
-      {/* Sub Warehouses Section */}
-      {subWarehouses.length > 0 && (
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-2">
-            <span className="text-[18px] font-bold text-[#1A7A45]">📦</span>
-            <h2 className="text-[18px] font-bold text-[#28293D]">
-              Sub Warehouses
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {subWarehouses.map((warehouse) => (
-              <WarehouseCard key={warehouse.id} warehouse={warehouse} />
-            ))}
-          </div>
-        </div>
-      )}
+      <WarehouseSection
+        title="Sub Warehouses"
+        kind="Sub Warehouse"
+        warehouses={subWarehouses}
+      />
 
-      {/* Transfers Section */}
-      <div className="mt-6 flex flex-col gap-4">
-        <h2 className="text-[18px] font-bold text-[#28293D]">
-          Recent Transfers
-        </h2>
-        <div className="overflow-x-auto rounded-[12px] border border-[#E5E5E5] bg-white">
-          <TransfersTable transfers={transfers} />
-        </div>
-      </div>
+      <TransfersTable transfers={transfers} />
 
-      {/* Add Warehouse Modal */}
       <AddWarehouseModal
-        open={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
+        open={isAddOpen}
+        onOpenChange={setIsAddOpen}
         onSave={handleAddWarehouse}
       />
 
-      {/* Internal Transfer Modal */}
       <InternalTransferModal
-        open={isTransferModalOpen}
-        onClose={() => setIsTransferModalOpen(false)}
-        onSave={handleInternalTransfer}
+        open={isTransferOpen}
         warehouses={warehouses}
+        onOpenChange={setIsTransferOpen}
+        onSave={handleCreateTransfer}
       />
-    </div>
+    </>
   );
 };
 

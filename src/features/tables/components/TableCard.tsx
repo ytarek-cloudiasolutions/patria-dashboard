@@ -1,64 +1,52 @@
 import { Armchair, Trash2, Users } from "lucide-react";
 import { Badge } from "@/shared/components/ui/badge";
-import { Card, CardContent } from "@/shared/components/ui/card";
-import type { DiningTable } from "../types";
+import { cn } from "@/lib/utils";
+import { useTranslation } from "@/shared/i18n/useTranslation";
+import type { RestaurantTable } from "../types";
 
 interface TableCardProps {
-  table: DiningTable;
-  onDelete: (tableId: string) => void;
-  onStatusToggle: (tableId: string) => void;
+  table: RestaurantTable;
+  onDelete: (table: RestaurantTable) => void;
 }
 
-const TableCard = ({ table, onDelete, onStatusToggle }: TableCardProps) => {
+const TableCard = ({ table, onDelete }: TableCardProps) => {
+  const { t } = useTranslation();
   const isAvailable = table.status === "Available";
 
   return (
-    <Card className="rounded-[16px]">
-      <CardContent className="px-7.5 py-6">
-        <div className="mb-3 flex justify-center">
-          <Armchair
-            size={24}
-            className={isAvailable ? "text-[#059B5A]" : "text-[#C90000]"}
-          />
-        </div>
-
-        <div className="flex flex-col items-center gap-2 mb-3">
-          <p className=" text-[24px] font-semibold ">{table.tableNumber}</p>
-          <p className="flex items-center gap-1 text-[12px] font-medium text-[#595959]">
-            <Users size={14} className="text-[#595959]" />
-            {table.capacity} People
-          </p>
-        </div>
-
-        <div className="flex items-center justify-center gap-2">
-          <Badge
-            asChild
-            className={`h-auto cursor-pointer rounded-[5px] px-2 py-1 text-[10px] font-semibold transition-colors ${
-              isAvailable
-                ? "bg-[#E2F4ED] text-[#059B5A]"
-                : "bg-[#FFF0F0] text-[#C90000]"
-            }`}
-          >
-            <button type="button" onClick={() => onStatusToggle(table.id)}>
-              {table.status}
-            </button>
-          </Badge>
-
-          <Badge
-            asChild
-            className="h-auto cursor-pointer rounded-[5px] bg-[#FFF0F0] px-2 py-1 text-[#C90000] transition-colors hover:bg-[#FFE7E7]"
-          >
-            <button
-              type="button"
-              onClick={() => onDelete(table.id)}
-              aria-label={`Delete table ${table.tableNumber}`}
-            >
-              <Trash2 size={14} />
-            </button>
-          </Badge>
-        </div>
-      </CardContent>
-    </Card>
+    <div className="flex flex-col items-center gap-3 rounded-[16px] border border-[#E5E5E5] bg-white px-4 py-6 text-center">
+      <Armchair
+        size={28}
+        className={isAvailable ? "text-[#059B5A]" : "text-[#C90000]"}
+      />
+      <p className="text-[30px] font-bold leading-none text-[#28293D]">
+        {table.number}
+      </p>
+      <span className="flex items-center gap-1.5 text-[14px] text-[#8B8B8B]">
+        <Users size={16} />
+        {table.capacity} {t("People")}
+      </span>
+      <div className="mt-1 flex items-center gap-2">
+        <Badge
+          className={cn(
+            "h-8 rounded-[8px] px-3 py-0 text-[13px] font-semibold",
+            isAvailable
+              ? "bg-[#E2F4ED] text-[#059B5A]"
+              : "bg-[#FFF0F0] text-[#C90000]",
+          )}
+        >
+          {t(table.status)}
+        </Badge>
+        <button
+          type="button"
+          aria-label={`Delete table ${table.number}`}
+          onClick={() => onDelete(table)}
+          className="flex size-8 cursor-pointer items-center justify-center rounded-[8px] bg-[#FFF0F0] text-[#C90000]"
+        >
+          <Trash2 size={16} />
+        </button>
+      </div>
+    </div>
   );
 };
 

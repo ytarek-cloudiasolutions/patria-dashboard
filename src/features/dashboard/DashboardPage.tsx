@@ -13,14 +13,17 @@ import PerformanceIndicators from "./components/PerformanceIndicators";
 import RevenueTrendChart from "./components/RevenueTrendChart";
 import TopSoldProducts from "./components/TopSoldProducts";
 import HeaderLayout from "@/layouts/HeaderLayout";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 
 const DashboardPage = () => {
+  const { t } = useTranslation();
+
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
       <HeaderLayout
-        title="Welcome back, Admin"
-        description={`Real-time business performance metrics — ${DASHBOARD_DATE}`}
+        title={`${t("Welcome back")}, ${t("Admin")}`}
+        description={`${t("Real-time business performance metrics")} — ${DASHBOARD_DATE}`}
         className="mb-5 sm:mb-7"
       />
 

@@ -1,4 +1,4 @@
-import type { ButtonProps } from "../types/Button.types";
+import type { ButtonProps } from "../types/button.types";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
 
@@ -9,18 +9,21 @@ const DefaultButton = ({ data }: { data: ButtonProps }) => {
       variant={data.variant}
       size={data.size}
       onClick={data.onClick}
+      form={data.form}
       className={cn(
         // base responsive layout
         "flex items-center justify-center gap-2 sm:gap-3",
         "h-12 sm:h-14",
-        "px-4 sm:px-7.5",
+        !data.className?.includes("p-") &&
+          !data.className?.includes("px-") &&
+          "px-4 sm:px-7.5",
         "rounded-[5px]",
         "font-semibold",
         "text-sm sm:text-[16px]",
         "cursor-pointer",
 
         // allow overrides
-        data.className
+        data.className,
       )}
     >
       {data.icon && (

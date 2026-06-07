@@ -1,37 +1,41 @@
-export type WarehouseType = "Main Warehouse" | "Sub Warehouse";
-
-export type TransferStatus = "Pending" | "Approved" | "Rejected";
+export type WarehouseKind = "Main Warehouse" | "Sub Warehouse";
 
 export interface Warehouse {
   id: string;
+  shortId: string;
   name: string;
   address: string;
-  type: WarehouseType;
+  kind: WarehouseKind;
 }
 
-export interface TransferItem {
+export type TransferStatus = "Pending" | "Approved" | "Rejected" | "Completed";
+
+export interface TransferLineItem {
   id: string;
-  productSku: string;
+  productId: string;
   quantity: number;
 }
 
-export interface Transfer {
-  id: string;
-  from: string;
-  to: string;
-  items: number;
-  date: string;
+export interface InternalTransfer {
+  id: number;
+  reference: string;
+  fromId: string;
+  fromName: string;
+  toId: string;
+  toName: string;
+  items: TransferLineItem[];
+  createdAt: string;
   status: TransferStatus;
 }
 
-export interface AddWarehouseFormData {
+export interface WarehouseFormData {
   name: string;
-  type: WarehouseType;
+  kind: WarehouseKind;
   address: string;
 }
 
-export interface InternalTransferFormData {
-  sourceWarehouseId: string;
-  destinationWarehouseId: string;
-  items: TransferItem[];
+export interface TransferFormState {
+  fromId: string;
+  toId: string;
+  items: TransferLineItem[];
 }

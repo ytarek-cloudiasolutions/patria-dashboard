@@ -1,79 +1,65 @@
-import type { Driver, DriverStatus, VehicleType, Zone } from "./types";
+import type { Driver, Zone } from "./types";
 
+const makeOrders = (n: number, prefix: string, assignedTo?: string) =>
+  Array.from({ length: n }, (_, idx) => ({
+    id: `${prefix}-${idx + 1}`,
+    reference: "#ORD-085205",
+    customer: "Walk-in Customer",
+    status: assignedTo ? ("Assigned" as const) : ("Pending" as const),
+    assignedDriverName: assignedTo,
+  }));
 
-export const VEHICLE_TYPES: VehicleType[] = ["Motorcycle", "Car", "Van"];
-
-export const STATUS_OPTIONS: DriverStatus[] = ["Active", "Inactive"];
-
-export const VISIBLE_ORDERS_COUNT = 4;
+export const INITIAL_ZONES: Zone[] = [
+  {
+    id: "kafr-abdo",
+    name: "Kafr Abdo",
+    orders: makeOrders(7, "kafr-abdo"),
+  },
+  {
+    id: "semouha",
+    name: "Semouha",
+    orders: [
+      ...makeOrders(4, "semouha", "Omnia"),
+    ],
+  },
+  {
+    id: "fleeming",
+    name: "Fleeming",
+    orders: makeOrders(2, "fleeming", "Omnia"),
+  },
+  {
+    id: "el-hadra",
+    name: "El Hadra",
+    orders: makeOrders(8, "el-hadra"),
+  },
+];
 
 export const INITIAL_DRIVERS: Driver[] = [
   {
     id: 1,
     name: "Omnia Maher",
-    phone: "+0123456789",
-    vehicle: "Car",
+    whatsappPhone: "+0123456789",
+    vehicleType: "Car",
     zones: ["Kafr Abdo", "Semouha"],
     status: "Active",
   },
   {
     id: 2,
     name: "Kareem Nabil",
-    phone: "+0123456789",
-    vehicle: "Motorcycle",
+    whatsappPhone: "+0123456789",
+    vehicleType: "Motorcycle",
     zones: ["El Hadra"],
     status: "Active",
   },
 ];
 
-export const ZONES_DATA: Zone[] = [
-  {
-    id: 1,
-    name: "Kafr Abdo",
-    totalOrders: 7,
-    orders: [
-      { id: "#ORD-085205", customer: "Walk-in Customer", status: "pending" },
-      { id: "#ORD-085206", customer: "Walk-in Customer", status: "pending" },
-      { id: "#ORD-085207", customer: "Walk-in Customer", status: "pending" },
-      { id: "#ORD-085208", customer: "Walk-in Customer", status: "pending" },
-      { id: "#ORD-085209", customer: "Walk-in Customer", status: "pending" },
-      { id: "#ORD-085210", customer: "Walk-in Customer", status: "pending" },
-      { id: "#ORD-085211", customer: "Walk-in Customer", status: "pending" },
-    ],
-  },
-  {
-    id: 2,
-    name: "Semouha",
-    totalOrders: 4,
-    orders: [
-      { id: "#ORD-085205", customer: "Walk-in Customer", status: "omnia" },
-      { id: "#ORD-085206", customer: "Walk-in Customer", status: "omnia" },
-      { id: "#ORD-085207", customer: "Walk-in Customer", status: "omnia" },
-      { id: "#ORD-085208", customer: "Walk-in Customer", status: "omnia" },
-    ],
-  },
-  {
-    id: 3,
-    name: "Fleeming",
-    totalOrders: 2,
-    orders: [
-      { id: "#ORD-085205", customer: "Walk-in Customer", status: "omnia" },
-      { id: "#ORD-085206", customer: "Walk-in Customer", status: "omnia" },
-    ],
-  },
-  {
-    id: 4,
-    name: "El Hadra",
-    totalOrders: 8,
-    orders: [
-      { id: "#ORD-085205", customer: "Walk-in Customer", status: "pending" },
-      { id: "#ORD-085206", customer: "Walk-in Customer", status: "pending" },
-      { id: "#ORD-085207", customer: "Walk-in Customer", status: "pending" },
-      { id: "#ORD-085208", customer: "Walk-in Customer", status: "pending" },
-      { id: "#ORD-085209", customer: "Walk-in Customer", status: "pending" },
-      { id: "#ORD-085210", customer: "Walk-in Customer", status: "pending" },
-      { id: "#ORD-085211", customer: "Walk-in Customer", status: "pending" },
-      { id: "#ORD-085212", customer: "Walk-in Customer", status: "pending" },
-    ],
-  },
+export const VEHICLE_TYPE_OPTIONS = [
+  { value: "Motorcycle", label: "Motorcycle" },
+  { value: "Car", label: "Car" },
+  { value: "Van", label: "Van" },
+];
+
+export const DRIVER_STATUS_OPTIONS = [
+  { value: "Active", label: "Active" },
+  { value: "Inactive", label: "Inactive" },
 ];

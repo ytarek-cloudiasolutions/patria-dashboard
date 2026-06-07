@@ -1,38 +1,43 @@
 import ResetPasswordPage from "@/features/auth/pages/ResetPasswordPage";
 import SignInPage from "@/features/auth/pages/SignInPage";
 import SignUpPage from "@/features/auth/pages/SignUpPage";
-import CouponsPage from "@/features/coupons/pages/CouponsPage";
-import CustomersPage from "@/features/customers/pages/CustomersPage";
-import FinancialHubPage from "@/features/financial/pages/FinancialHubPage";
-import InventoryPage from "@/features/inventory/InventoryPage";
 
 import KitchenDetailsPage from "@/features/kitchen/pages/KitchenDetailsPage";
 import KitchenPage from "@/features/kitchen/pages/KitchenPage";
-import LocationsPage from "@/features/locations/pages/LocationsPage";
-import LogisticsPage from "@/features/logistics/pages/LogisticsPage";
-import OffersPage from "@/features/offers/pages/OffersPage";
+
 import OrdersPage from "@/features/orders/pages/OrdersPage";
-import ProductionPage from "@/features/production/pages/ProductionPage";
+
 import ProductsPage from "@/features/products/pages/ProductsPage";
-import ProcurementPage from "@/features/purchasing/ProcurementPage";
+
 import ReportsPage from "@/features/reports/ReportsPage";
 import RequestsPage from "@/features/requests/RequestsPage";
-import SettingsPage from "@/features/settings/SettingsPage";
-
-import SubscriptionsPage from "@/features/subscription/pages/SubscriptionsPage";
-import SuppliersPage from "@/features/suppliers/SuppliersPage";
-import TablesPage from "@/features/tables/pages/TablesPage";
-import UsersPermissionsPage from "@/features/users/pages/UsersPermissionsPage";
-import WhatsAppGatewayPage from "@/features/whatsapp/pages/WhatsAppGatewayPage";
 
 import { createBrowserRouter } from "react-router-dom";
 import AppLayout from "@/features/sidebar/layouts/AppLayout";
 import DashboardPage from "@/features/dashboard/DashboardPage";
-import WarehousesPage from "@/features/warehouses/WarehousesPage";
-import ReviewsPage from "@/features/reviews/ReviewsPage";
-import MyAccountPage from "@/features/account/MyAccountPage";
-import PricingPage from "@/features/pricing/PricingPage";
+
 import PosPage from "@/features/pos/pages/PosPage";
+import OffersPage from "@/features/offers/OffersPage";
+import CouponsPage from "@/features/coupons/CouponsPage";
+import InventoryPage from "@/features/inventory/InventoryPage";
+
+
+import LocationsPage from "@/features/locations/LocationsPage";
+import CustomersPage from "@/features/customers/CustomersPage";
+import SuppliersPage from "@/features/suppliers/SuppliersPage";
+import ReviewsPage from "@/features/reviews/ReviewsPage";
+import ProcurementPage from "@/features/purchasing/ProcurementPage";
+import WarehousesPage from "@/features/warehouses/WarehousesPage";
+import LogisticsPage from "@/features/logistics/LogisticsPage";
+import ProductionPage from "@/features/production/ProductionPage";
+import SubscriptionPage from "@/features/subscription/SubscriptionPage";
+import FinancialHubPage from "@/features/financial/FinancialHubPage";
+import PricingPage from "@/features/pricing/PricingPage";
+import UsersPermissionsPage from "@/features/users/UsersPermissionsPage";
+import WhatsAppGatewayPage from "@/features/whatsapp/WhatsAppGatewayPage";
+import SettingsPage from "@/features/settings/SettingsPage";
+import MyAccountPage from "@/features/account/MyAccountPage";
+import TablesPage from "@/features/tables/TablesPage";
 
 export const router = createBrowserRouter([
   { path: "/sign-up", element: <SignUpPage /> },
@@ -56,7 +61,7 @@ export const router = createBrowserRouter([
       { path: "/suppliers", element: <SuppliersPage /> },
       { path: "/purchasing", element: <ProcurementPage /> },
       { path: "/warehouses", element: <WarehousesPage /> },
-      { path: "/subscriptions", element: <SubscriptionsPage /> },
+      { path: "/subscriptions", element: <SubscriptionPage /> },
       { path: "/locations", element: <LocationsPage /> },
       { path: "/reviews", element: <ReviewsPage /> },
       { path: "/logistics", element: <LogisticsPage /> },

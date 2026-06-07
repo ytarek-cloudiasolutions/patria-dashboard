@@ -1,22 +1,24 @@
 import { Badge } from "@/shared/components/ui/badge";
-import type { LocationStatus } from "../types";
+import { cn } from "@/lib/utils";
+import type { ZoneStatus } from "../types";
 
 interface StatusBadgeProps {
-  status: LocationStatus;
+  status: ZoneStatus;
 }
 
 const StatusBadge = ({ status }: StatusBadgeProps) => {
-  const isAvailable = status === "available";
+  const isActive = status === "Active";
 
   return (
     <Badge
-      className={`text-[13px] border-current ${
-        isAvailable
-          ? "bg-[#E2F4ED] text-[#059B5A]"
-          : "bg-[#DCDCDC] text-[#23252A] border-[#595959]"
-      }`}
+      className={cn(
+        "h-7 px-3 py-1 text-[13px] font-semibold border rounded-full",
+        isActive
+          ? "bg-[#E2F4ED] text-[#059B5A] border-current"
+          : "bg-[#DCDCDC] text-[#23252A] border-[#595959]",
+      )}
     >
-      {isAvailable ? "Available" : "Inactive"}
+      {isActive ? "Available" : "Inactive"}
     </Badge>
   );
 };

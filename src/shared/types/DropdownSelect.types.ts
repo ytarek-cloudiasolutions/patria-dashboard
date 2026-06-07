@@ -10,5 +10,6 @@ export interface DropdownSelectProps {
   onOpenChange?: (open: boolean) => void;
   placeholder?: string;
   className?: string;
+  contentClassName?: string;
   align?: "start" | "center" | "end";
 }

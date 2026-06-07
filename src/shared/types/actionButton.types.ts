@@ -2,5 +2,6 @@ export interface ActionButtonProps {
   icon: React.ReactNode;
   iconColor: string;
   ariaLabel?: string;
-  onClick: () => void;
+  onClick?: () => void;
+  className?: string;
 }

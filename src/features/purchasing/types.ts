@@ -1,35 +1,48 @@
-// types.ts
-export type POStatus = "Paid" | "Unpaid" | "Pending" | "Cancelled";
+export type PoStatus = "Paid" | "Unpaid" | "Pending" | "Canceled";
 
-export interface LineItem {
+export interface PoLineItem {
   id: string;
-  productSku: string;
+  productId: string;
   quantity: number;
   unitCost: number;
 }
 
 export interface PurchaseOrder {
-  id: string;
+  id: number;
   poNumber: string;
-  type: string;
-  supplier: string;
+  kind: "purchase order";
+  supplierId: string;
+  supplierName: string;
   contactEmail: string;
-  destination: string;
+  warehouseId: string;
+  warehouseName: string;
   totalAmount: number;
   paid: number;
-  status: POStatus;
-}
-
-export interface POFormData {
-  supplierId: string;
-  warehouse: string;
+  status: PoStatus;
   expectedDeliveryDate: string;
-  lineItems: LineItem[];
+  items: PoLineItem[];
 }
 
-export interface ProcurementOverview {
-  totalPurchases: string;
-  pendingRequests: number;
-  requestsReceived: number;
-  cancelled: number;
+export interface SupplierOption {
+  id: string;
+  label: string;
+  email: string;
+}
+
+export interface WarehouseOption {
+  id: string;
+  label: string;
+}
+
+export interface ProductOption {
+  id: string;
+  label: string;
+  defaultCost: number;
+}
+
+export interface PoFormState {
+  supplierId: string;
+  warehouseId: string;
+  expectedDeliveryDate: string;
+  items: PoLineItem[];
 }

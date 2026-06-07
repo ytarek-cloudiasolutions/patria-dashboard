@@ -1,4 +1,5 @@
 import { ORDER_STREAM_ICON } from "../data";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import type { LiveOrder, OrderStatus } from "../types";
 
 interface LiveOrderStreamProps {
@@ -16,19 +17,20 @@ const formatAmount = (amount: number) =>
   Number.isInteger(amount) ? amount.toLocaleString() : amount.toFixed(2);
 
 const LiveOrderStream = ({ orders }: LiveOrderStreamProps) => {
+  const { t } = useTranslation();
   const StreamIcon = ORDER_STREAM_ICON;
 
   return (
     <section className="overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white">
       <div className="flex min-h-14 flex-wrap items-center justify-between gap-2 bg-[#F3EFE8] px-4 py-3">
         <h2 className="text-[18px] font-bold text-[#333333]">
-          Live Order Stream
+          {t("Live Order Stream")}
         </h2>
         <button
           type="button"
           className="text-[16px] font-semibold text-primary cursor-pointer"
         >
-          View History
+          {t("View History")}
         </button>
       </div>
 
@@ -61,7 +63,7 @@ const LiveOrderStream = ({ orders }: LiveOrderStreamProps) => {
                   statusStyles[order.status]
                 } mt-1.5 inline-flex h-5 items-center justify-center rounded-full border px-2 text-[10px] font-semibold`}
               >
-                {order.status}
+                {t(order.status)}
               </span>
             </div>
           </article>
@@ -70,7 +72,7 @@ const LiveOrderStream = ({ orders }: LiveOrderStreamProps) => {
         {orders.length === 0 && (
           <div className="col-span-full flex min-h-28 items-center justify-center rounded-[16px] border border-dashed border-[#D9D9D9] text-[#8B8B8B]">
             <StreamIcon className="mr-2 size-4" />
-            No live orders yet
+            {t("No live orders yet")}
           </div>
         )}
       </div>

@@ -14,6 +14,7 @@ import {
 } from "@/shared/components/ui/sidebar";
 
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import { NAV_SECTIONS } from "../data";
 
 interface AppSidebarProps {
@@ -29,8 +30,14 @@ const AppSidebar = ({
   onOpenPOS,
   onLogout,
 }: AppSidebarProps) => {
+  const { t, dir } = useTranslation();
+
   return (
-    <Sidebar collapsible="offcanvas" className="border-r border-white">
+    <Sidebar
+      collapsible="offcanvas"
+      side={dir === "rtl" ? "right" : "left"}
+      className="border-e border-white"
+    >
       {/* Header — Brand + POS button */}
       <SidebarHeader className="bg-white px-3 pt-6 sm:pt-8">
         {/* Brand */}
@@ -43,7 +50,7 @@ const AppSidebar = ({
               Patria
             </p>
             <p className="truncate text-[11px] text-[#595959] sm:text-[12px]">
-              Admin Dashboard
+              {t("Admin Dashboard")}
             </p>
           </div>
         </div>
@@ -54,7 +61,7 @@ const AppSidebar = ({
           className="flex w-full items-center justify-center gap-2 rounded-[5px] bg-primary px-4 py-2.5 text-[12px] font-semibold text-white cursor-pointer sm:gap-3 sm:px-6 sm:py-3 transition-opacity hover:opacity-90"
         >
           <ShoppingCart size={17} className="shrink-0" />
-          <span>Open POS System</span>
+          <span>{t("Open POS System")}</span>
         </button>
       </SidebarHeader>
 
@@ -64,7 +71,7 @@ const AppSidebar = ({
           <SidebarGroup key={section.title}>
             {section.title && (
               <SidebarGroupLabel className="text-[10px] tracking-widest font-bold text-[#595959]">
-                {section.title}
+                {t(section.title)}
               </SidebarGroupLabel>
             )}
 
@@ -92,7 +99,7 @@ const AppSidebar = ({
                             isActive ? "text-white" : "text-[#595959]"
                           )}
                         />
-                        <span className="truncate">{item.label}</span>
+                        <span className="truncate">{t(item.label)}</span>
                       </button>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -113,7 +120,7 @@ const AppSidebar = ({
             >
               <button onClick={onLogout}>
                 <LogOut size={16} className="shrink-0" />
-                <span>Logout</span>
+                <span>{t("Logout")}</span>
               </button>
             </SidebarMenuButton>
           </SidebarMenuItem>

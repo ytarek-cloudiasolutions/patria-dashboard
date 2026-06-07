@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:www.figma.com)",
+      "Bash(powershell -Command \"Get-Content 'C:\\\\Users\\\\Youssef Tarek\\\\.claude\\\\projects\\\\c--Users-Youssef-Tarek-Desktop-patria-admin-dashboard\\\\7138986b-7d9b-4bfb-aca6-30bc4cf2ff10\\\\tool-results\\\\bhta358f9.txt' | ConvertFrom-Json | ConvertTo-Json -Depth 3\")",
+      "WebFetch(domain:api.figma.com)"
+    ]
+  }
+}

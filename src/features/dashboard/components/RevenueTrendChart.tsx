@@ -13,6 +13,7 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/shared/components/ui/chart";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import type { RevenuePoint } from "../types";
 
 interface RevenueTrendChartProps {
@@ -27,14 +28,16 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 const RevenueTrendChart = ({ data }: RevenueTrendChartProps) => {
+  const { t } = useTranslation();
+
   return (
     <Card className="gap-0 rounded-[16px] border-[#E5E5E5] bg-white py-0 shadow-none">
       <CardHeader className="min-h-14 grid-cols-[1fr_auto] items-center rounded-t-[16px] bg-[#F5F0EA] px-4 py-3">
         <div>
           <CardTitle className="text-[18px] font-bold text-[#333333] mb-1">
-            Revenue trend
+            {t("Revenue trend")}
           </CardTitle>
-          <p className="text-[12px] text-[#595959]">Last 7 days</p>
+          <p className="text-[12px] text-[#595959]">{t("Last 7 days")}</p>
         </div>
         <Activity className="size-5 text-[#000000]" />
       </CardHeader>

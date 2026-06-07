@@ -18,6 +18,7 @@ import { Separator } from "@/shared/components/ui/separator";
 import InputField from "@/shared/components/InputField";
 import type { Order, OrderLineItem, ProductOption } from "../types";
 import DefaultButton from "@/shared/components/DefaultButton";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 
 interface NewPosOrderDialogProps {
   open: boolean;
@@ -42,6 +43,7 @@ const NewPosOrderDialog = ({
   onOpenChange,
   onCreateOrder,
 }: NewPosOrderDialogProps) => {
+  const { t } = useTranslation();
   const [customerName, setCustomerName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [email, setEmail] = useState("");
@@ -61,7 +63,7 @@ const NewPosOrderDialog = ({
   const subtotal = useMemo(
     () =>
       items.reduce((total, item) => total + item.quantity * item.unitPrice, 0),
-    [items]
+    [items],
   );
 
   const discount = discountCode.trim() ? 24 : 0;
@@ -80,7 +82,7 @@ const NewPosOrderDialog = ({
                 ...item,
                 quantity: item.quantity + 1,
               }
-            : item
+            : item,
         );
       }
 
@@ -98,7 +100,7 @@ const NewPosOrderDialog = ({
 
   const updateQuantity = (
     itemId: number,
-    direction: "increase" | "decrease"
+    direction: "increase" | "decrease",
   ) => {
     setItems((previous) =>
       previous
@@ -111,9 +113,9 @@ const NewPosOrderDialog = ({
                     ? item.quantity + 1
                     : Math.max(item.quantity - 1, 0),
               }
-            : item
+            : item,
         )
-        .filter((item) => item.quantity > 0)
+        .filter((item) => item.quantity > 0),
     );
   };
 
@@ -170,7 +172,7 @@ const NewPosOrderDialog = ({
           {/* Header */}
           <div className="px-4 pt-4 sm:px-6 sm:pt-6">
             <DialogTitle className="text-[18px] font-semibold text-[#333333] sm:text-[22px]">
-              New POS Order
+              {t("New POS Order")}
             </DialogTitle>
           </div>
 
@@ -179,15 +181,15 @@ const NewPosOrderDialog = ({
             {/* Customer Information */}
             <section className="rounded-[12px] border border-[#D9D9D9] bg-[#FAFAF7] p-4 sm:p-6">
               <p className="mb-4 text-[10px] font-bold uppercase text-[#595959] sm:mb-6">
-                Customer Information
+                {t("Customer Information")}
               </p>
 
               <div className="grid gap-4 sm:grid-cols-2 sm:gap-[18px]">
                 <InputField
                   id="customer-name"
-                  label="Customer Name"
+                  label={t("Customer Name")}
                   required
-                  placeholder="Customer Name"
+                  placeholder={t("Customer Name")}
                   inputProps={{
                     value: customerName,
                     onChange: (e) => setCustomerName(e.target.value),
@@ -196,7 +198,7 @@ const NewPosOrderDialog = ({
 
                 <InputField
                   id="phone-number"
-                  label="Phone Number"
+                  label={t("Phone Number")}
                   required
                   placeholder="01X XXXX XXXX"
                   inputProps={{
@@ -207,10 +209,10 @@ const NewPosOrderDialog = ({
 
                 <InputField
                   id="email"
-                  label="Email Address"
+                  label={t("Email Address")}
                   required
                   type="email"
-                  placeholder="Email Address"
+                  placeholder={t("Email Address")}
                   inputProps={{
                     value: email,
                     onChange: (e) => setEmail(e.target.value),
@@ -219,9 +221,9 @@ const NewPosOrderDialog = ({
 
                 <InputField
                   id="address"
-                  label="Address"
+                  label={t("Address")}
                   required
-                  placeholder="Address"
+                  placeholder={t("Address")}
                   inputProps={{
                     value: address,
                     onChange: (e) => setAddress(e.target.value),
@@ -233,11 +235,11 @@ const NewPosOrderDialog = ({
             {/* Products */}
             <section className="rounded-[12px] border border-[#D9D9D9] bg-[#FAFAF7] p-4 sm:p-6">
               <p className="mb-4 text-[10px] font-bold uppercase text-[#595959] sm:mb-6">
-                Products
+                {t("Products")}
               </p>
 
               <Label className="mb-2.5 text-[16px] font-medium text-black">
-                Product <span className="ml-1 text-[#C90000]">*</span>
+                {t("Product")} <span className="ml-1 text-[#C90000]">*</span>
               </Label>
 
               <DropdownMenu>
@@ -246,7 +248,7 @@ const NewPosOrderDialog = ({
                     variant="outline"
                     className="mb-4 h-12.5 w-full justify-between rounded-xl border-[#E5E5E5] bg-white px-4.5 text-[14px] font-normal text-[#8B8B8B] hover:bg-white focus-visible:ring-0"
                   >
-                    Add Product
+                    {t("Add Product")}
                     <ChevronDown className="size-5 text-[#000000]" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -311,7 +313,7 @@ const NewPosOrderDialog = ({
             {/* Payment Method */}
             <section className="rounded-[12px] border border-[#D9D9D9] bg-[#FAFAF7] p-4 sm:p-6">
               <p className="mb-4 text-[10px] font-bold uppercase text-[#595959] sm:mb-6">
-                Payment Method
+                {t("Payment Method")}
               </p>
 
               <div className="grid grid-cols-3 gap-3 sm:gap-6">
@@ -332,7 +334,7 @@ const NewPosOrderDialog = ({
                       <Banknote className="size-4 sm:size-6" />
                     )}
 
-                    {method}
+                    {t(method)}
                   </button>
                 ))}
               </div>
@@ -346,7 +348,7 @@ const NewPosOrderDialog = ({
                 {(paymentMethod === "Cash" || paymentMethod === "Mix") && (
                   <InputField
                     id="cash-amount"
-                    label="Cash Amount"
+                    label={t("Cash Amount")}
                     required
                     placeholder="0.00"
                     inputProps={{
@@ -359,7 +361,7 @@ const NewPosOrderDialog = ({
                 {(paymentMethod === "Visa/Card" || paymentMethod === "Mix") && (
                   <InputField
                     id="visa-amount"
-                    label="Visa Amount"
+                    label={t("Visa Amount")}
                     required
                     placeholder="0.00"
                     inputProps={{
@@ -376,7 +378,7 @@ const NewPosOrderDialog = ({
               <div className="flex items-end gap-2.5">
                 <InputField
                   id="discount-code"
-                  label="Discount Code"
+                  label={t("Discount Code")}
                   required
                   placeholder="0.00"
                   wrapperClassName="flex-1"
@@ -387,7 +389,7 @@ const NewPosOrderDialog = ({
                 />
                 <DefaultButton
                   data={{
-                    buttonText: "Apply",
+                    buttonText: t("Apply"),
                     variant: "outline",
                     type: "button",
                     className:
@@ -397,7 +399,7 @@ const NewPosOrderDialog = ({
               </div>
               <InputField
                 id="delivery-fee"
-                label="Delivery Fee"
+                label={t("Delivery Fee")}
                 required
                 placeholder="0.00"
                 inputProps={{
@@ -408,8 +410,8 @@ const NewPosOrderDialog = ({
 
               <InputField
                 id="order-notes"
-                label="Order Notes (Optional)"
-                placeholder="Order Notes"
+                label={t("Order Notes (Optional)")}
+                placeholder={t("Order Notes")}
                 inputProps={{
                   value: notes,
                   onChange: (e) => setNotes(e.target.value),
@@ -421,26 +423,26 @@ const NewPosOrderDialog = ({
             <section className="rounded-[12px] border border-[#D9D9D9] bg-[#FAFAF7] p-4 sm:p-6">
               <div className="flex flex-col gap-[18px]">
                 <SummaryRow
-                  label="Subtotal:"
+                  label={`${t("Subtotal")}:`}
                   value={formatCurrency(subtotal)}
                 />
 
                 <SummaryRow
-                  label="Discount:"
+                  label={`${t("Discount")}:`}
                   value={`-EGP ${discount.toFixed(2)}`}
                   labelClassName="text-[#059B5A]"
                   valueClassName="text-[#059B5A]"
                 />
 
                 <SummaryRow
-                  label="Delivery Fees:"
+                  label={`${t("Delivery Fees")}:`}
                   value={formatCurrency(parsedDeliveryFee)}
                 />
 
                 <Separator className="bg-[#D9D9D9]" />
 
                 <SummaryRow
-                  label="Total:"
+                  label={`${t("Total")}:`}
                   value={formatCurrency(total)}
                   className="text-[18px] font-semibold text-black"
                 />
@@ -454,7 +456,7 @@ const NewPosOrderDialog = ({
             <div className="flex justify-end gap-3">
               <DefaultButton
                 data={{
-                  buttonText: "Cancel",
+                  buttonText: t("Cancel"),
                   variant: "outline",
                   onClick: () => onOpenChange(false),
                   className:
@@ -463,7 +465,7 @@ const NewPosOrderDialog = ({
               />
               <DefaultButton
                 data={{
-                  buttonText: "Create Order",
+                  buttonText: t("Create Order"),
                   onClick: handleCreateOrder,
                 }}
               />

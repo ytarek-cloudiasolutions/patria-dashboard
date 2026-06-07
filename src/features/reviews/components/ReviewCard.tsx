@@ -1,126 +1,127 @@
-import { EyeOff, Trash2 } from "lucide-react";
+import { Eye, EyeOff, Trash2 } from "lucide-react";
+import { Card, CardContent } from "@/shared/components/ui/card";
+import { Badge } from "@/shared/components/ui/badge";
 import { Rating } from "@/shared/components/ui/rating";
-import ActionButton from "@/shared/components/ActionButton";
-
-import { cn } from "@/lib/utils";
 import { Separator } from "@/shared/components/ui/separator";
+import ActionButton from "@/shared/components/ActionButton";
+import { cn } from "@/lib/utils";
 import type { Review } from "../types";
 
 interface ReviewCardProps {
   review: Review;
-  onHide: (id: string) => void;
-  onDelete: (id: string) => void;
+  onToggleVisibility: (review: Review) => void;
+  onDelete: (review: Review) => void;
 }
 
-const orderTypeBadgeStyle: Record<Review["orderType"], string> = {
-  Delivery: "border border-[#93C5FD] bg-[#EFF6FF] text-[#2563EB]",
-  "Dine-in": "border border-[#A8DFC4] bg-[#E8F5EE] text-[#1A7A45]",
-  Pickup: "border border-[#F5D8A8] bg-[#FFF5DC] text-[#B56C00]",
+const ratingAccent = (rating: number) => {
+  if (rating >= 4) return { stripe: "bg-[#059B5A]", text: "text-[#059B5A]" };
+  if (rating >= 3) return { stripe: "bg-[#F6B73C]", text: "text-[#F6B73C]" };
+  return { stripe: "bg-[#C90000]", text: "text-[#C90000]" };
 };
 
-const getRatingColor = (rating: number) => {
-  if (rating >= 4) return "text-[#059B5A]";
-  if (rating >= 3) return "text-[#F5A623]";
-  return "text-[#C90000]";
-};
+const ReviewCard = ({
+  review,
+  onToggleVisibility,
+  onDelete,
+}: ReviewCardProps) => {
+  const accent = ratingAccent(review.rating);
 
-const borderColor = (rating: number) => {
-  if (rating < 2.5) return "border-l-4 border-l-[#C90000]";
-  if (rating < 3.5) return "border-l-4 border-l-[#F5A623]";
-  return "border-l-4 border-l-[#059B5A]";
-};
-
-const ReviewCard = ({ review, onHide, onDelete }: ReviewCardProps) => {
   return (
-    <div
-      className={cn(
-        "flex h-full flex-col gap-4 rounded-[16px] border border-[#E5E5E5] bg-white p-4 shadow-sm",
-        borderColor(review.rating)
-      )}
-    >
-      {/* Header — name, rating */}
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-[14px] font-bold text-[#28293D]">
-            {review.customerName}
-          </p>
-          <p className="text-[11px] text-[#6B6B6B]">{review.phone}</p>
-        </div>
-        <div className="flex flex-col items-end gap-0.5">
-          <Rating rating={review.rating} size="sm" />
-          <span
-            className={cn(
-              "text-[11px] font-semibold",
-              getRatingColor(review.rating)
-            )}
-          >
-            {review.rating.toFixed(1)} / {review.maxRating.toFixed(1)}
-          </span>
-        </div>
-      </div>
+    <Card className="relative h-full overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white py-0 ring-0 shadow-sm">
+      <span
+        aria-hidden="true"
+        className={cn("absolute inset-y-0 left-0 w-1", accent.stripe)}
+      />
 
-      {/* Main Content - Takes remaining space */}
-      <div className="flex flex-1 flex-col gap-4">
-        {/* Order info */}
-        <div className="flex items-center gap-2">
-          <span className="text-[12px] font-semibold text-[#28293D]">
+      <CardContent className="flex h-full flex-col gap-3 px-5 py-4 sm:px-6 sm:py-5">
+        {/* Customer + rating */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="truncate text-[14px] font-semibold text-[#28293D]">
+              {review.customerName}
+            </p>
+            <p className="text-[12px] text-[#8B8B8B]">{review.customerCode}</p>
+          </div>
+          <div className="flex flex-col items-end gap-1">
+            <Rating
+              rating={review.rating}
+              maxRating={review.maxRating}
+              size="sm"
+              className="**:data-[slot=rating-star-empty]:text-[#FDA900]"
+            />
+            <span className={cn("text-[11px] font-semibold", accent.text)}>
+              {review.rating.toFixed(1)} / {review.maxRating.toFixed(1)}
+            </span>
+          </div>
+        </div>
+
+        {/* Order id + type */}
+        <div className="flex items-center gap-3">
+          <span className="text-[13px] font-semibold text-[#28293D]">
             {review.orderId}
           </span>
-          <span className="text-[#6B6B6B]">·</span>
           <span
-            className={cn(
-              "rounded-full px-2.5 py-0.5 text-[11px] font-semibold",
-              orderTypeBadgeStyle[review.orderType]
-            )}
-          >
+            aria-hidden="true"
+            className="inline-block size-0.5 rounded-full bg-[#595959]"
+          />
+          <Badge className="h-5 rounded-full border border-current bg-[#EDF4FB] px-2 text-[10px] font-semibold tracking-wide text-[#004EF9]">
             {review.orderType}
-          </span>
+          </Badge>
         </div>
 
         {/* Comment */}
-        <div className="rounded-[10px] border border-[#E5E5E5] bg-[#FAFAF8] px-3 py-2.5">
-          <p className="text-[13px] text-[#28293D]">{review.comment}</p>
+        <div className="rounded-[10px] bg-white border border-[#E5E5E5] p-3 text-[13px] text-[#000000]">
+          "{review.comment}"
         </div>
 
-        {/* Tags */}
-        {review.tags.length > 0 && (
+        {/* Categories */}
+        {review.categories.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
-            {review.tags.map((tag) => (
-              <span
-                key={tag}
-                className="rounded-full border border-[#E5E5E5] bg-white px-3 py-1 text-[11px] font-medium text-[#6B6B6B]"
+            {review.categories.map((category) => (
+              <Badge
+                key={category}
+                className="h-9.75 rounded-[4px] border-2 border-[#CACBD4] bg-[#F5F0EA] px-2 py-3.5 text-[11px] font-medium text-[#333333]"
               >
-                {tag}
-              </span>
+                {category}
+              </Badge>
             ))}
           </div>
         )}
-      </div>
 
-      {/* Separator + Footer - Always at the bottom */}
-      <div className="mt-auto">
-        <Separator className="bg-[#E5E5E5]" />
-        <div className="flex items-center justify-between pt-3">
-          <span className="text-[11px] text-[#6B6B6B]">{review.date}</span>
-          <div className="flex items-center gap-2">
+        <Separator className="mt-auto bg-[#CACBD4]" />
+
+        {/* Footer */}
+        <div className="flex items-center justify-between">
+          <p className="text-[12px] font-medium text-[#595959]">
+            {review.createdAt}
+          </p>
+          <div className="flex items-center gap-3">
             <ActionButton
               data={{
-                icon: <EyeOff size={15} />,
-                iconColor: "text-[#6B6B6B] hover:text-[#28293D]",
-                onClick: () => onHide(review.id),
+                icon: review.isHidden ? (
+                  <Eye size={16} />
+                ) : (
+                  <EyeOff size={16} />
+                ),
+                iconColor: "text-[#000000]",
+                ariaLabel: review.isHidden
+                  ? `Show review from ${review.customerName}`
+                  : `Hide review from ${review.customerName}`,
+                onClick: () => onToggleVisibility(review),
               }}
             />
             <ActionButton
               data={{
-                icon: <Trash2 size={15} />,
-                iconColor: "text-[#C90000] hover:text-[#A00000]",
-                onClick: () => onDelete(review.id),
+                icon: <Trash2 size={16} />,
+                iconColor: "text-[#C90000]",
+                ariaLabel: `Delete review from ${review.customerName}`,
+                onClick: () => onDelete(review),
               }}
             />
           </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 

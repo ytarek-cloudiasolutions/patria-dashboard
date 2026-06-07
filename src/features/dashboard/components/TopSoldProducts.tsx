@@ -1,4 +1,5 @@
 import { PRODUCT_PANEL_ICON } from "../data";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import type { SoldProduct } from "../types";
 
 interface TopSoldProductsProps {
@@ -6,6 +7,7 @@ interface TopSoldProductsProps {
 }
 
 const TopSoldProducts = ({ products }: TopSoldProductsProps) => {
+  const { t } = useTranslation();
   const maxUnits = Math.max(...products.map((product) => product.units));
   const ProductIcon = PRODUCT_PANEL_ICON;
 
@@ -13,7 +15,7 @@ const TopSoldProducts = ({ products }: TopSoldProductsProps) => {
     <section className="overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white">
       <div className="flex min-h-14 items-center justify-between bg-[#F3EFE8] px-4 py-3">
         <h2 className="text-[18px] font-bold text-[#333333]">
-          Top Sold Products
+          {t("Top Sold Products")}
         </h2>
         <ProductIcon className="size-5 text-[#000000]" />
       </div>
@@ -27,9 +29,9 @@ const TopSoldProducts = ({ products }: TopSoldProductsProps) => {
               key={product.id}
               className="grid grid-cols-[1fr_minmax(70px,160px)_24px] items-center gap-2 sm:grid-cols-[minmax(120px,1fr)_minmax(120px,220px)_24px] sm:gap-2.5"
             >
-              <p className="truncate text-[12px] font-medium text-[#000000]">
-                <span className="mr-1 font-bold">{product.rank}</span>
-                {product.name}
+              <p className="flex items-center gap-2 text-[12px] font-medium text-[#000000]">
+                <span className="font-bold">{product.rank}</span>
+                <span className="truncate">{product.name}</span>
               </p>
               <div className="h-4 overflow-hidden rounded-[6px] bg-[#E5E5E5] sm:h-4.25">
                 <div

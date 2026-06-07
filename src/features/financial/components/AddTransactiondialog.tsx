@@ -1,192 +1,268 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
 } from "@/shared/components/ui/dialog";
+import { Button } from "@/shared/components/ui/button";
+import { Label } from "@/shared/components/ui/label";
+import { Separator } from "@/shared/components/ui/separator";
+import { Switch } from "@/shared/components/ui/switch";
 import DefaultButton from "@/shared/components/DefaultButton";
-import { categoryOptions } from "../data";
-import type { NewTransactionForm, TransactionCategory } from "../types";
+import DropdownSelect from "@/shared/components/DropdownSelect";
+import InputField from "@/shared/components/InputField";
+import DatePicker from "@/shared/components/DatePicker";
+import TabItem from "@/shared/components/TabItem";
+import { TRANSACTION_CATEGORY_OPTIONS } from "../data";
+import type {
+  TransactionCategory,
+  TransactionFormData,
+  TransactionType,
+} from "../types";
 
-interface Props {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSubmit: (data: NewTransactionForm) => void;
-}
+const FORM_ID = "add-transaction-form";
 
-const defaultForm: NewTransactionForm = {
-  type: "income",
+const INITIAL_FORM: TransactionFormData = {
+  type: "Income",
   statement: "",
   category: "",
-  amount: 0,
+  amount: "",
   date: "",
-  isSalary: false,
+  classifyAsSalary: false,
 };
 
-const AddTransactionDialog = ({ open, onOpenChange, onSubmit }: Props) => {
-  const [form, setForm] = useState<NewTransactionForm>(defaultForm);
+interface AddTransactionDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSave: (data: TransactionFormData) => void;
+}
 
-  const handleSubmit = () => {
-    if (!form.statement || !form.category || !form.amount || !form.date) return;
-    onSubmit(form);
-    onOpenChange(false);
-    setForm(defaultForm);
+const AddTransactionDialog = ({
+  open,
+  onOpenChange,
+  onSave,
+}: AddTransactionDialogProps) => {
+  const [form, setForm] = useState<TransactionFormData>(INITIAL_FORM);
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof TransactionFormData, string>>
+  >({});
+  const [isCategoryOpen, setIsCategoryOpen] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      setForm(INITIAL_FORM);
+      setErrors({});
+      setIsCategoryOpen(false);
+    }
+  }, [open]);
+
+  const set = <K extends keyof TransactionFormData>(
+    key: K,
+    value: TransactionFormData[K],
+  ) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+    if (errors[key]) setErrors((prev) => ({ ...prev, [key]: "" }));
   };
+
+  const validate = () => {
+    const next: Partial<Record<keyof TransactionFormData, string>> = {};
+    if (!form.statement.trim()) next.statement = "Statement is required";
+    if (!form.category) next.category = "Category is required";
+    if (!form.amount.trim() || Number(form.amount) <= 0) {
+      next.amount = "Enter a valid amount";
+    }
+    if (!form.date) next.date = "Date is required";
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validate()) return;
+    onSave(form);
+    onOpenChange(false);
+  };
+
+  const isExpense = form.type === "Expense";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="rounded-[13px] sm:max-w-174"
         showCloseButton={false}
+        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-180"
       >
-        <DialogHeader>
-          <DialogTitle className="text-[18px] font-semibold text-[#28293D]">
-            Add a Financial Transaction
-          </DialogTitle>
-        </DialogHeader>
+        {isCategoryOpen && (
+          <div className="pointer-events-none fixed inset-0 z-60 bg-black/40" />
+        )}
 
-        <div className="flex flex-col gap-5 py-1">
-          {/* Income / Expense Tabs */}
-          <div className="grid grid-cols-2 border-b border-[#E5E5E5]">
-            {(["income", "expense"] as const).map((t) => (
-              <button
-                key={t}
-                onClick={() =>
-                  setForm((f) => ({ ...f, type: t, isSalary: false }))
-                }
-                className={`py-2.5 text-[14px] font-medium capitalize transition-colors cursor-pointer ${
-                  form.type === t
-                    ? "border-b-2 border-[#5C4A1E] text-[#5C4A1E]"
-                    : "text-[#8B8B8B] hover:text-[#28293D]"
-                }`}
-              >
-                {t.charAt(0).toUpperCase() + t.slice(1)}
-              </button>
-            ))}
+        <div className="flex max-h-[calc(100vh-2rem)] flex-col">
+          {/* Header */}
+          <div className="px-5 pt-5 sm:px-7 sm:pt-7">
+            <DialogTitle className="text-[20px] font-semibold text-[#28293D] sm:text-[22px]">
+              Add a Financial Transaction
+            </DialogTitle>
           </div>
 
-          {/* Statement */}
-          <div className="flex flex-col gap-2">
-            <label className="text-[14px] font-medium text-[#000]">
-              Statement/reason <span className="text-[#C90000]">*</span>
-            </label>
-            <input
-              type="text"
-              placeholder="e.g. Selling old equipment"
-              value={form.statement}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, statement: e.target.value }))
-              }
-              className="w-full h-11 px-3 rounded-[10px] border border-[#E5E5E5] bg-white text-[14px] text-[#23252A] placeholder:text-[#8B8B8B] focus:outline-none focus:border-[#5C4A1E]"
-            />
-          </div>
-
-          {/* Category + Amount + Date */}
-          <div className="grid grid-cols-3 gap-3">
-            <div className="flex flex-col gap-2">
-              <label className="text-[14px] font-medium text-[#000]">
-                Category <span className="text-[#C90000]">*</span>
-              </label>
-              <div className="relative">
-                <select
-                  value={form.category}
-                  onChange={(e) =>
-                    setForm((f) => ({
-                      ...f,
-                      category: e.target.value as TransactionCategory,
-                    }))
-                  }
-                  className="w-full h-11 px-3 pr-8 rounded-[10px] border border-[#E5E5E5] bg-white text-[14px] text-[#23252A] appearance-none cursor-pointer focus:outline-none focus:border-[#5C4A1E]"
-                >
-                  <option value="" disabled>
-                    Select category
-                  </option>
-                  {categoryOptions.map((o) => (
-                    <option key={o.value} value={o.value}>
-                      {o.label}
-                    </option>
-                  ))}
-                </select>
-                <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[#8B8B8B] text-xs">
-                  ▾
-                </span>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <label className="text-[14px] font-medium text-[#000]">
-                Amount (EGP) <span className="text-[#C90000]">*</span>
-              </label>
-              <input
-                type="number"
-                placeholder="0.00"
-                min={0}
-                value={form.amount || ""}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, amount: Number(e.target.value) }))
-                }
-                className="h-11 px-3 rounded-[10px] border border-[#E5E5E5] bg-white text-[14px] text-[#23252A] placeholder:text-[#8B8B8B] focus:outline-none focus:border-[#5C4A1E]"
+          {/* Type tabs */}
+          <div className="px-5 pt-4 sm:px-7">
+            <div className="grid grid-cols-2 gap-1.5">
+              <TabItem
+                value="Income"
+                label="Income"
+                isActive={form.type === "Income"}
+                onClick={(value) => set("type", value as TransactionType)}
               />
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <label className="text-[14px] font-medium text-[#000]">
-                Date <span className="text-[#C90000]">*</span>
-              </label>
-              <input
-                type="date"
-                value={form.date}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, date: e.target.value }))
-                }
-                className="h-11 px-3 rounded-[10px] border border-[#E5E5E5] bg-white text-[14px] text-[#23252A] focus:outline-none focus:border-[#5C4A1E]"
+              <TabItem
+                value="Expense"
+                label="Expense"
+                isActive={form.type === "Expense"}
+                onClick={(value) => set("type", value as TransactionType)}
               />
             </div>
           </div>
 
-          {/* Classify as salary (expense only) */}
-          {form.type === "expense" && (
-            <div className="flex items-center justify-between bg-[#FAFAFA] rounded-[10px] px-4 py-3 border border-[#E5E5E5]">
-              <span className="text-[14px] text-[#28293D]">
-                Classify as salary
-              </span>
-              <button
-                onClick={() =>
-                  setForm((f) => ({ ...f, isSalary: !f.isSalary }))
-                }
-                className={`relative w-11 h-6 rounded-full transition-colors cursor-pointer ${
-                  form.isSalary ? "bg-[#5C4A1E]" : "bg-[#D1D5DB]"
-                }`}
-              >
-                <span
-                  className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
-                    form.isSalary ? "translate-x-5" : "translate-x-0"
-                  }`}
+          {/* Body */}
+          <form
+            id={FORM_ID}
+            onSubmit={handleSubmit}
+            noValidate
+            className="flex-1 overflow-y-auto px-5 py-5 sm:px-7 sm:py-6"
+          >
+            <div className="flex flex-col gap-5">
+              <div>
+                <InputField
+                  data={{
+                    id: "statement",
+                    label: {
+                      htmlFor: "statement",
+                      labelText: "Statement/reason",
+                    },
+                    placeholder: "e.g. Selling old equipment",
+                    required: true,
+                    inputProps: {
+                      value: form.statement,
+                      onChange: (e) => set("statement", e.target.value),
+                    },
+                  }}
                 />
-              </button>
-            </div>
-          )}
+                {errors.statement && (
+                  <p className="mt-1 text-[13px] text-[#C90000]">
+                    {errors.statement}
+                  </p>
+                )}
+              </div>
 
-          <div className="flex justify-end gap-3 pt-1">
-            <DefaultButton
-              data={{
-                buttonText: "Cancel",
-                variant: "outline",
-                type: "button",
-                onClick: () => onOpenChange(false),
-                className:
-                  "text-primary border-primary hover:bg-white hover:text-primary",
-              }}
-            />
-            <DefaultButton
-              data={{
-                buttonText: "Add Transaction",
-                type: "button",
-                className: "bg-[#5C4A1E] hover:bg-[#3d3012]",
-                onClick: handleSubmit,
-              }}
-            />
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-3 sm:items-end">
+                <div className="flex flex-col">
+                  <Label
+                    htmlFor="category"
+                    className="mb-2.5 text-[16px] font-medium text-black"
+                  >
+                    Category<span className="text-[#C90000]">*</span>
+                  </Label>
+                  <DropdownSelect
+                    options={TRANSACTION_CATEGORY_OPTIONS}
+                    selected={form.category}
+                    onSelect={(value) =>
+                      set("category", value as TransactionCategory)
+                    }
+                    onOpenChange={setIsCategoryOpen}
+                    placeholder="Select category"
+                    align="start"
+                    className="md:w-full"
+                    contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
+                  />
+                  {errors.category && (
+                    <p className="mt-1 text-[13px] text-[#C90000]">
+                      {errors.category}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <InputField
+                    data={{
+                      id: "amount",
+                      label: {
+                        htmlFor: "amount",
+                        labelText: "Amount (EGP)",
+                      },
+                      placeholder: "0.00",
+                      required: true,
+                      inputProps: {
+                        type: "number",
+                        min: "0",
+                        step: "0.01",
+                        value: form.amount,
+                        onChange: (e) => set("amount", e.target.value),
+                      },
+                    }}
+                  />
+                  {errors.amount && (
+                    <p className="mt-1 text-[13px] text-[#C90000]">
+                      {errors.amount}
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex flex-col">
+                  <Label className="mb-2.5 text-[16px] font-medium text-black">
+                    Date<span className="text-[#C90000]">*</span>
+                  </Label>
+                  <DatePicker
+                    value={form.date}
+                    onChange={(date) => set("date", date)}
+                    placeholder="DD/MM/YYYY"
+                    withBackdrop
+                    popoverPlacement="bottom-right"
+                  />
+                  {errors.date && (
+                    <p className="mt-1 text-[13px] text-[#C90000]">
+                      {errors.date}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {isExpense && (
+                <label className="flex items-center justify-between rounded-[16px] border border-[#E5E5E5] bg-[#FAFAF7] px-4 py-3 cursor-pointer">
+                  <span className="text-[14px] font-medium text-[#28293D]">
+                    Classify as salary
+                  </span>
+                  <Switch
+                    checked={form.classifyAsSalary}
+                    onCheckedChange={(checked) =>
+                      set("classifyAsSalary", checked)
+                    }
+                    aria-label="Classify as salary"
+                  />
+                </label>
+              )}
+            </div>
+          </form>
+
+          {/* Sticky footer */}
+          <div className="bg-white px-5 pb-5 sm:px-7 sm:pb-6">
+            <Separator className="mb-4 bg-[#CACBD4] sm:mb-5" />
+            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <DefaultButton
+                data={{
+                  buttonText: "Cancel",
+                  variant: "outline",
+                  type: "button",
+                  onClick: () => onOpenChange(false),
+                  className:
+                    "w-full sm:w-auto border-primary text-primary hover:bg-white hover:text-primary",
+                }}
+              />
+              <Button
+                form={FORM_ID}
+                type="submit"
+                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
+              >
+                Add Transaction
+              </Button>
+            </div>
           </div>
         </div>
       </DialogContent>

@@ -1,11 +1,16 @@
-import type { ActionButtonProps } from "../types/ActionButton.types";
+import { cn } from "@/lib/utils";
+import type { ActionButtonProps } from "../types/actionButton.types";
 
 const ActionButton = ({ data }: { data: ActionButtonProps }) => {
   return (
     <button
       onClick={data.onClick}
-      className={`${data.iconColor} cursor-pointer rounded-lg`}
-      aria-label="Edit location"
+      className={cn(
+        "flex justify-center items-center cursor-pointer rounded-lg",
+        data.iconColor,
+        data.className,
+      )}
+      aria-label={data.ariaLabel ?? "Action"}
     >
       {data.icon}
     </button>

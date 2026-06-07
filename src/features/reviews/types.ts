@@ -1,36 +1,32 @@
-export type OrderType = "Delivery" | "Dine-in" | "Pickup";
-
-export type ReviewTag =
+export type ReviewCategory =
   | "Service speed"
   | "Driver friendliness"
-  | "Value for money";
+  | "Value for money"
+  | "Food quality"
+  | "Packaging";
 
-export type RatingFilter = "All Ratings" | "5" | "4" | "3" | "2" | "1";
-
-export type CategoryFilter = "All Categories" | OrderType;
+export type OrderType = "Delivery" | "Pickup" | "Dine-in";
 
 export interface Review {
-  id: string;
+  id: number;
   customerName: string;
-  phone: string;
+  customerCode: string;
   orderId: string;
   orderType: OrderType;
   rating: number;
   maxRating: number;
   comment: string;
-  tags: ReviewTag[];
-  date: string;
-  isHidden: boolean;
+  categories: ReviewCategory[];
+  createdAt: string;
+  isHidden?: boolean;
 }
 
-export interface RatingDistribution {
-  star: number;
+export interface RatingDistributionRow {
+  stars: number;
   count: number;
 }
 
-export interface HighestRatedCategory {
-  id: string;
+export interface HighestRatedItem {
   label: string;
-  icon: string;
-  score: number;
+  count: number;
 }

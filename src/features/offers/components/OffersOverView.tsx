@@ -6,6 +6,7 @@ interface OffersOverViewProps {
   onStatusChange?: (offerId: number, newStatus: boolean) => void;
   onEdit?: (offer: Offer) => void;
   onDelete?: (offerId: number) => void;
+  onBroadcast?: (offer: Offer) => void;
 }
 
 const OffersOverView = ({
@@ -13,9 +14,10 @@ const OffersOverView = ({
   onStatusChange,
   onEdit,
   onDelete,
+  onBroadcast,
 }: OffersOverViewProps) => {
   return (
-    <div className="grid grid-cols-3 gap-x-5.5 gap-y-6">
+    <div className="grid grid-cols-1 gap-x-5.5 gap-y-6 sm:grid-cols-2 lg:grid-cols-3">
       {offers.map((offer) => (
         <OfferCard
           key={offer.id}
@@ -23,6 +25,7 @@ const OffersOverView = ({
           onStatusChange={onStatusChange}
           onEdit={onEdit}
           onDelete={onDelete}
+          onBroadcast={onBroadcast}
         />
       ))}
     </div>

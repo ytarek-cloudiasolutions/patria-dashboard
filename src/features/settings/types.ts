@@ -5,82 +5,85 @@ export type SettingsTab =
   | "team"
   | "attendance"
   | "system"
-  | "auditLogs";
+  | "audit";
 
-// Profile
-export interface ProfileForm {
+export type TeamRole = "Staff" | "Manager" | "Admin";
+
+export type PermissionLevel = "View Only" | "Edit Only";
+
+export interface TeamMember {
+  id: number;
+  name: string;
+  roleLabel: string;
+  email: string;
+  phone: string;
+  role: TeamRole;
+  performance: string;
+  permission: PermissionLevel;
+}
+
+export type AttendanceStatus = "Ongoing" | "Completed";
+
+export interface AttendanceRecord {
+  id: number;
+  staff: string;
+  inTime: string;
+  outTime: string;
+  loggedHours: string;
+  status: AttendanceStatus;
+}
+
+export type MutationType = "Update" | "Create" | "Delete";
+
+export interface AuditLog {
+  id: number;
+  timestamp: string;
+  admin: string;
+  mutation: MutationType;
+  resource: string;
+  originIp: string;
+}
+
+export interface NotificationSetting {
+  id: string;
+  title: string;
+  description: string;
+  enabled: boolean;
+}
+
+export type SystemMetricTone = "primary" | "green" | "amber" | "blue";
+
+export interface SystemMetric {
+  id: string;
+  label: string;
+  value: string;
+  sublabel: string;
+  tone: SystemMetricTone;
+}
+
+export interface SystemStat {
+  id: string;
+  label: string;
+  value: string;
+  caption: string;
+  tone: "green" | "neutral";
+}
+
+export interface ProfileFormData {
   displayName: string;
   email: string;
   phone: string;
 }
 
-// Security
-export interface SecurityForm {
+export interface PasswordFormData {
   currentPassword: string;
   newPassword: string;
 }
 
-// Notifications
-export interface NotificationSettings {
-  orderNotifications: boolean;
-  systemUpdates: boolean;
-  teamCollaboration: boolean;
-}
-
-// Team
-export type TeamRole = "Staff" | "Admin" | "Manager";
-export type TeamPermission = "View Only" | "Edit Only" | "Full Access";
-
-export interface TeamMember {
-  id: string;
+export interface InviteFormData {
   name: string;
-  subRole: string;
   email: string;
   phone: string;
-  role: TeamRole;
-  performance: string;
-  permission: TeamPermission;
-}
-
-export interface InviteMemberForm {
-  entityName: string;
-  authEmail: string;
-  contactPhone: string;
   securityCode: string;
-  privilegeRole: string;
-}
-
-// Attendance
-export type AttendanceStatus = "Ongoing" | "Completed";
-
-export interface AttendanceLog {
-  id: string;
-  staffMember: string;
-  inDateTime: string;
-  outDateTime: string;
-  loggedHours: string;
-  status: AttendanceStatus;
-}
-
-// System
-export interface SystemStatus {
-  storageCore: string;
-  socketSync: number;
-  databaseLayer: string;
-  environment: string;
-  systemUptime: string;
-  backupsIntegrity: string;
-  latencyIndex: string;
-}
-
-// Audit Logs
-export type MutationType = "Update" | "Create" | "Delete";
-
-export interface AuditLog {
-  id: string;
-  eventTimestamp: string;
-  adminEntity: string;
-  mutationType: MutationType;
-  targetResource: string;
-  originIP: string;
+  role: TeamRole;
 }
