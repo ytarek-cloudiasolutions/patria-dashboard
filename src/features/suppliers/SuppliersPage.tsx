@@ -5,6 +5,7 @@ import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
 import SearchInputField from "@/shared/components/SearchInputField";
 import DeleteDialog from "@/shared/components/DeleteDialog";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 
 import SuppliersOverview from "./components/SuppliersOverview";
 import SuppliersTable from "./components/SuppliersTable";
@@ -28,6 +29,7 @@ const parseCategories = (raw: string): SupplierCategory[] =>
     );
 
 const SuppliersPage = () => {
+  const { t } = useTranslation();
   const [suppliers, setSuppliers] = useState<Supplier[]>(INITIAL_SUPPLIERS);
   const [search, setSearch] = useState("");
 
@@ -105,12 +107,12 @@ const SuppliersPage = () => {
     <>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <HeaderLayout
-          title="Suppliers"
-          description="Manage your wholesale partners and vendors"
+          title={t("Suppliers")}
+          description={t("Manage your wholesale partners and vendors")}
         />
         <DefaultButton
           data={{
-            buttonText: "Add New Supplier",
+            buttonText: t("Add New Supplier"),
             icon: <Plus className="size-4.5" />,
             onClick: handleOpenAdd,
           }}
@@ -123,7 +125,7 @@ const SuppliersPage = () => {
         <SearchInputField
           value={search}
           onChange={setSearch}
-          placeholder="Search suppliers..."
+          placeholder={t("Search suppliers...")}
         />
       </div>
 

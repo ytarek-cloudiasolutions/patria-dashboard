@@ -7,6 +7,7 @@ import {
   TableRow,
 } from "@/shared/components/ui/table";
 import { Badge } from "@/shared/components/ui/badge";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import { cn } from "@/lib/utils";
 import type {
   FinancialTransaction,
@@ -33,27 +34,33 @@ const STATUS_STYLES: Record<TransactionStatus, string> = {
   Pending: "bg-[#FFF5DC] text-[#B56C00] border-[#B56C00]/40",
 };
 
-const CategoryBadge = ({ category }: { category: TransactionCategory }) => (
-  <Badge
-    className={cn(
-      "h-6 rounded-full border px-3 py-0 text-[11px] font-semibold",
-      CATEGORY_STYLES[category],
-    )}
-  >
-    {category}
-  </Badge>
-);
+const CategoryBadge = ({ category }: { category: TransactionCategory }) => {
+  const { t } = useTranslation();
+  return (
+    <Badge
+      className={cn(
+        "h-6 rounded-full border px-3 py-0 text-[11px] font-semibold",
+        CATEGORY_STYLES[category],
+      )}
+    >
+      {t(category)}
+    </Badge>
+  );
+};
 
-const StatusBadge = ({ status }: { status: TransactionStatus }) => (
-  <Badge
-    className={cn(
-      "h-7 min-w-24 rounded-full border px-3 py-0 text-[12px] font-semibold",
-      STATUS_STYLES[status],
-    )}
-  >
-    {status}
-  </Badge>
-);
+const StatusBadge = ({ status }: { status: TransactionStatus }) => {
+  const { t } = useTranslation();
+  return (
+    <Badge
+      className={cn(
+        "h-7 min-w-24 rounded-full border px-3 py-0 text-[12px] font-semibold",
+        STATUS_STYLES[status],
+      )}
+    >
+      {t(status)}
+    </Badge>
+  );
+};
 
 const formatEgp = (value: number) => {
   const sign = value < 0 ? "-" : "";
@@ -64,6 +71,7 @@ const TransactionsTable = ({
   transactions,
   showStatus = false,
 }: TransactionsTableProps) => {
+  const { t } = useTranslation();
   return (
     <>
       {/* Mobile card list */}
@@ -76,7 +84,7 @@ const TransactionsTable = ({
             <div className="mb-3 flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="truncate text-[14px] font-semibold text-[#28293D]">
-                  {tx.statement}
+                  {t(tx.statement)}
                 </p>
                 <p className="mt-1">
                   <CategoryBadge category={tx.category} />
@@ -88,9 +96,10 @@ const TransactionsTable = ({
             <div className="grid grid-cols-2 gap-3 text-[13px]">
               <div>
                 <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
-                  Amount
+                  {t("Amount")}
                 </p>
                 <p
+                  dir="ltr"
                   className={cn(
                     "font-semibold",
                     tx.amount < 0 ? "text-[#C90000]" : "text-[#059B5A]",
@@ -101,9 +110,9 @@ const TransactionsTable = ({
               </div>
               <div>
                 <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
-                  Date
+                  {t("Date")}
                 </p>
-                <p className="text-[#28293D]">{tx.date}</p>
+                <p className="text-[#28293D]" dir="ltr">{tx.date}</p>
               </div>
             </div>
           </div>
@@ -111,7 +120,7 @@ const TransactionsTable = ({
 
         {transactions.length === 0 && (
           <p className="py-8 text-center text-[14px] text-[#8B8B8B]">
-            No transactions yet.
+            {t("No transactions yet.")}
           </p>
         )}
       </div>
@@ -121,25 +130,26 @@ const TransactionsTable = ({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="px-6 py-4">STATEMENT</TableHead>
-              <TableHead className="px-6 py-4">CATEGORY</TableHead>
-              <TableHead className="px-6 py-4">AMOUNT</TableHead>
-              <TableHead className="px-6 py-4">DATE</TableHead>
+              <TableHead className="ps-6 py-4 text-start">{t("STATEMENT")}</TableHead>
+              <TableHead className="px-6 py-4 text-start">{t("CATEGORY")}</TableHead>
+              <TableHead className="px-6 py-4 text-start">{t("AMOUNT")}</TableHead>
+              <TableHead className={`${showStatus ? "px-6" : "pe-6"} py-4 ${showStatus ? "text-start" : "text-end"}`}>{t("DATE")}</TableHead>
               {showStatus && (
-                <TableHead className="px-6 py-4">STATUS</TableHead>
+                <TableHead className="pe-6 py-4 text-end">{t("STATUS")}</TableHead>
               )}
             </TableRow>
           </TableHeader>
           <TableBody>
             {transactions.map((tx) => (
               <TableRow key={tx.id} className="hover:bg-[#FAFAF8]">
-                <TableCell className="px-6 py-4 whitespace-nowrap text-[14px] font-semibold text-[#28293D]">
-                  {tx.statement}
+                <TableCell className="ps-6 py-4 whitespace-nowrap text-[14px] font-semibold text-[#28293D]">
+                  {t(tx.statement)}
                 </TableCell>
                 <TableCell className="px-6 py-4 whitespace-nowrap">
                   <CategoryBadge category={tx.category} />
                 </TableCell>
                 <TableCell
+              
                   className={cn(
                     "px-6 py-4 whitespace-nowrap text-[14px] font-semibold",
                     tx.amount < 0 ? "text-[#C90000]" : "text-[#059B5A]",
@@ -147,12 +157,14 @@ const TransactionsTable = ({
                 >
                   {formatEgp(tx.amount)}
                 </TableCell>
-                <TableCell className="px-6 py-4 whitespace-nowrap font-semibold text-[13px] text-[#000000]">
+                <TableCell className={`${showStatus ? "px-6" : "pe-6"} py-4 whitespace-nowrap font-semibold text-[13px] text-[#000000]`} >
                   {tx.date}
                 </TableCell>
                 {showStatus && (
-                  <TableCell className="px-6 py-4 whitespace-nowrap">
-                    <StatusBadge status={tx.status} />
+                  <TableCell className="pe-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center justify-end">
+                      <StatusBadge status={tx.status} />
+                    </div>
                   </TableCell>
                 )}
               </TableRow>
@@ -164,7 +176,7 @@ const TransactionsTable = ({
                   colSpan={showStatus ? 5 : 4}
                   className="py-10 text-center text-[14px] text-[#8B8B8B]"
                 >
-                  No transactions yet.
+                  {t("No transactions yet.")}
                 </TableCell>
               </TableRow>
             )}

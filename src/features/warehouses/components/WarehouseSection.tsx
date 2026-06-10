@@ -1,4 +1,5 @@
 import { Box, Store } from "lucide-react";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import WarehouseCard from "./WarehouseCard";
 import type { Warehouse, WarehouseKind } from "../types";
 
@@ -8,11 +9,17 @@ interface WarehouseSectionProps {
   warehouses: Warehouse[];
 }
 
+const EMPTY_STATE: Record<WarehouseKind, string> = {
+  "Main Warehouse": "No main warehouses yet.",
+  "Sub Warehouse": "No sub warehouses yet.",
+};
+
 const WarehouseSection = ({
   title,
   kind,
   warehouses,
 }: WarehouseSectionProps) => {
+  const { t } = useTranslation();
   const isMain = kind === "Main Warehouse";
   const Icon = isMain ? Store : Box;
   const titleColor = isMain ? "text-primary" : "text-[#444A18]";
@@ -28,7 +35,7 @@ const WarehouseSection = ({
 
       {warehouses.length === 0 ? (
         <p className="rounded-[12px] border border-dashed border-[#E5E5E5] bg-white px-4 py-6 text-center text-[13px] text-[#8B8B8B]">
-          No {title.toLowerCase()} yet.
+          {t(EMPTY_STATE[kind])}
         </p>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

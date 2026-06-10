@@ -13,6 +13,7 @@ import DropdownSelect from "@/shared/components/DropdownSelect";
 import InputField from "@/shared/components/InputField";
 import DatePicker from "@/shared/components/DatePicker";
 import TabItem from "@/shared/components/TabItem";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import { TRANSACTION_CATEGORY_OPTIONS } from "../data";
 import type {
   TransactionCategory,
@@ -42,6 +43,7 @@ const AddTransactionDialog = ({
   onOpenChange,
   onSave,
 }: AddTransactionDialogProps) => {
+  const { t } = useTranslation();
   const [form, setForm] = useState<TransactionFormData>(INITIAL_FORM);
   const [errors, setErrors] = useState<
     Partial<Record<keyof TransactionFormData, string>>
@@ -66,12 +68,12 @@ const AddTransactionDialog = ({
 
   const validate = () => {
     const next: Partial<Record<keyof TransactionFormData, string>> = {};
-    if (!form.statement.trim()) next.statement = "Statement is required";
-    if (!form.category) next.category = "Category is required";
+    if (!form.statement.trim()) next.statement = t("Statement is required");
+    if (!form.category) next.category = t("Category is required");
     if (!form.amount.trim() || Number(form.amount) <= 0) {
-      next.amount = "Enter a valid amount";
+      next.amount = t("Enter a valid amount");
     }
-    if (!form.date) next.date = "Date is required";
+    if (!form.date) next.date = t("Date is required");
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -99,7 +101,7 @@ const AddTransactionDialog = ({
           {/* Header */}
           <div className="px-5 pt-5 sm:px-7 sm:pt-7">
             <DialogTitle className="text-[20px] font-semibold text-[#28293D] sm:text-[22px]">
-              Add a Financial Transaction
+              {t("Add a Financial Transaction")}
             </DialogTitle>
           </div>
 
@@ -108,13 +110,13 @@ const AddTransactionDialog = ({
             <div className="grid grid-cols-2 gap-1.5">
               <TabItem
                 value="Income"
-                label="Income"
+                label={t("Income")}
                 isActive={form.type === "Income"}
                 onClick={(value) => set("type", value as TransactionType)}
               />
               <TabItem
                 value="Expense"
-                label="Expense"
+                label={t("Expense")}
                 isActive={form.type === "Expense"}
                 onClick={(value) => set("type", value as TransactionType)}
               />
@@ -135,9 +137,9 @@ const AddTransactionDialog = ({
                     id: "statement",
                     label: {
                       htmlFor: "statement",
-                      labelText: "Statement/reason",
+                      labelText: t("Statement/reason"),
                     },
-                    placeholder: "e.g. Selling old equipment",
+                    placeholder: t("e.g. Selling old equipment"),
                     required: true,
                     inputProps: {
                       value: form.statement,
@@ -158,16 +160,16 @@ const AddTransactionDialog = ({
                     htmlFor="category"
                     className="mb-2.5 text-[16px] font-medium text-black"
                   >
-                    Category<span className="text-[#C90000]">*</span>
+                    {t("Category")}<span className="text-[#C90000]">*</span>
                   </Label>
                   <DropdownSelect
-                    options={TRANSACTION_CATEGORY_OPTIONS}
+                    options={TRANSACTION_CATEGORY_OPTIONS.map((o) => ({ ...o, label: t(o.label) }))}
                     selected={form.category}
                     onSelect={(value) =>
                       set("category", value as TransactionCategory)
                     }
                     onOpenChange={setIsCategoryOpen}
-                    placeholder="Select category"
+                    placeholder={t("Select category")}
                     align="start"
                     className="md:w-full"
                     contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
@@ -185,7 +187,7 @@ const AddTransactionDialog = ({
                       id: "amount",
                       label: {
                         htmlFor: "amount",
-                        labelText: "Amount (EGP)",
+                        labelText: t("Amount (EGP)"),
                       },
                       placeholder: "0.00",
                       required: true,
@@ -207,7 +209,7 @@ const AddTransactionDialog = ({
 
                 <div className="flex flex-col">
                   <Label className="mb-2.5 text-[16px] font-medium text-black">
-                    Date<span className="text-[#C90000]">*</span>
+                    {t("Date")}<span className="text-[#C90000]">*</span>
                   </Label>
                   <DatePicker
                     value={form.date}
@@ -227,7 +229,7 @@ const AddTransactionDialog = ({
               {isExpense && (
                 <label className="flex items-center justify-between rounded-[16px] border border-[#E5E5E5] bg-[#FAFAF7] px-4 py-3 cursor-pointer">
                   <span className="text-[14px] font-medium text-[#28293D]">
-                    Classify as salary
+                    {t("Classify as salary")}
                   </span>
                   <Switch
                     checked={form.classifyAsSalary}
@@ -247,7 +249,7 @@ const AddTransactionDialog = ({
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <DefaultButton
                 data={{
-                  buttonText: "Cancel",
+                  buttonText: t("Cancel"),
                   variant: "outline",
                   type: "button",
                   onClick: () => onOpenChange(false),
@@ -260,7 +262,7 @@ const AddTransactionDialog = ({
                 type="submit"
                 className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
               >
-                Add Transaction
+                {t("Add Transaction")}
               </Button>
             </div>
           </div>

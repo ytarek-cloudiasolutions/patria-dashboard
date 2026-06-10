@@ -9,6 +9,7 @@ import {
 } from "@/shared/components/ui/table";
 import { Badge } from "@/shared/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import SectionCard from "./SectionCard";
 import { AUDIT_LOGS } from "../data";
 import type { AuditLog, MutationType } from "../types";
@@ -32,16 +33,19 @@ const Timestamp = ({ value }: { value: string }) => {
   );
 };
 
-const MutationBadge = ({ mutation }: { mutation: MutationType }) => (
-  <Badge
-    className={cn(
-      "h-6 min-w-20 rounded-full border px-3 py-0 text-[11px] font-semibold",
-      MUTATION_STYLES[mutation],
-    )}
-  >
-    {mutation}
-  </Badge>
-);
+const MutationBadge = ({ mutation }: { mutation: MutationType }) => {
+  const { t } = useTranslation();
+  return (
+    <Badge
+      className={cn(
+        "h-6 min-w-20 rounded-full border px-3 py-0 text-[11px] font-semibold",
+        MUTATION_STYLES[mutation],
+      )}
+    >
+      {t(mutation)}
+    </Badge>
+  );
+};
 
 const RefreshButton = () => (
   <button
@@ -69,57 +73,60 @@ const AuditCardRow = ({ log }: { log: AuditLog }) => (
   </div>
 );
 
-const AuditLogsSection = () => (
-  <SectionCard
-    icon={<ShieldCheck size={32} />}
-    title="Audit Governance"
-    subtitle="Cryptographically sealed administrator activity"
-    contentClassName="px-0 py-0 sm:px-0 sm:py-0"
-    action={<RefreshButton />}
-  >
-    {/* Mobile cards */}
-    <div className="flex flex-col gap-3 p-4 md:hidden">
-      {AUDIT_LOGS.map((log) => (
-        <AuditCardRow key={log.id} log={log} />
-      ))}
-    </div>
+const AuditLogsSection = () => {
+  const { t } = useTranslation();
+  return (
+    <SectionCard
+      icon={<ShieldCheck size={32} />}
+      title={t("Audit Governance")}
+      subtitle={t("Cryptographically sealed administrator activity")}
+      contentClassName="px-0 py-0 sm:px-0 sm:py-0"
+      action={<RefreshButton />}
+    >
+      {/* Mobile cards */}
+      <div className="flex flex-col gap-3 p-4 md:hidden">
+        {AUDIT_LOGS.map((log) => (
+          <AuditCardRow key={log.id} log={log} />
+        ))}
+      </div>
 
-    {/* Desktop table */}
-    <div className="hidden md:block **:data-[slot=table-container]:rounded-none **:data-[slot=table-container]:border-0">
-      <Table className="border-0">
-        <TableHeader className="bg-white [&_tr:hover]:bg-white">
-          <TableRow className="relative after:absolute after:inset-x-2 after:bottom-0 after:h-px after:bg-[#E5E5E5]">
-            <TableHead className="px-6 py-4">EVENT TIMESTAMP</TableHead>
-            <TableHead className="px-6 py-4">ADMIN ENTITY</TableHead>
-            <TableHead className="px-6 py-4">MUTATION TYPE</TableHead>
-            <TableHead className="px-6 py-4">TARGET RESOURCE</TableHead>
-            <TableHead className="px-6 py-4">ORIGIN IP</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {AUDIT_LOGS.map((log) => (
-            <TableRow key={log.id} className="hover:bg-[#FAFAF8]">
-              <TableCell className="px-6 py-4 text-[13px] font-medium text-[#000000] text-center">
-                <Timestamp value={log.timestamp} />
-              </TableCell>
-              <TableCell className="px-6 py-4 text-[14px] font-semibold text-[#333333]">
-                {log.admin}
-              </TableCell>
-              <TableCell className="px-6 py-4">
-                <MutationBadge mutation={log.mutation} />
-              </TableCell>
-              <TableCell className="px-6 py-4 font-mono text-[12px] text-[#28293D]">
-                {log.resource}
-              </TableCell>
-              <TableCell className="px-6 py-4 font-mono text-[12px] text-[#8B8B8B]">
-                {log.originIp}
-              </TableCell>
+      {/* Desktop table */}
+      <div className="hidden md:block **:data-[slot=table-container]:rounded-none **:data-[slot=table-container]:border-0">
+        <Table className="border-0">
+          <TableHeader className="bg-white [&_tr:hover]:bg-white">
+            <TableRow className="relative after:absolute after:inset-x-2 after:bottom-0 after:h-px after:bg-[#E5E5E5]">
+              <TableHead className="ps-6 py-4 text-start">{t("EVENT TIMESTAMP")}</TableHead>
+              <TableHead className="px-6 py-4">{t("ADMIN ENTITY")}</TableHead>
+              <TableHead className="px-6 py-4">{t("MUTATION TYPE")}</TableHead>
+              <TableHead className="px-6 py-4">{t("TARGET RESOURCE")}</TableHead>
+              <TableHead className="pe-6 py-4 text-end">{t("ORIGIN IP")}</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
-  </SectionCard>
-);
+          </TableHeader>
+          <TableBody>
+            {AUDIT_LOGS.map((log) => (
+              <TableRow key={log.id} className="hover:bg-[#FAFAF8]">
+                <TableCell className="ps-6 py-4 text-[13px] font-medium text-[#000000]" dir="ltr">
+                  <Timestamp value={log.timestamp} />
+                </TableCell>
+                <TableCell className="px-6 py-4 text-[14px] font-semibold text-[#333333]">
+                  {log.admin}
+                </TableCell>
+                <TableCell className="px-6 py-4">
+                  <MutationBadge mutation={log.mutation} />
+                </TableCell>
+                <TableCell className="px-6 py-4 font-mono text-[12px] text-[#28293D]" dir="ltr">
+                  {log.resource}
+                </TableCell>
+                <TableCell className="pe-6 py-4 font-mono text-[12px] text-[#8B8B8B] text-end" dir="ltr">
+                  {log.originIp}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </SectionCard>
+  );
+};
 
 export default AuditLogsSection;

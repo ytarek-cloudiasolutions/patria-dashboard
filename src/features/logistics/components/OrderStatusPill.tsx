@@ -1,6 +1,7 @@
-import { Clock, Truck, User } from "lucide-react";
+import { Truck } from "lucide-react";
 import { Badge } from "@/shared/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import type { ZoneOrder } from "../types";
 
 interface OrderStatusPillProps {
@@ -8,6 +9,7 @@ interface OrderStatusPillProps {
 }
 
 const OrderStatusPill = ({ order }: OrderStatusPillProps) => {
+  const { t } = useTranslation();
   if (order.status === "Assigned" && order.assignedDriverName) {
     return (
       <Badge
@@ -26,7 +28,7 @@ const OrderStatusPill = ({ order }: OrderStatusPillProps) => {
         "h-6 gap-1 rounded-full border border-[#B56C00]/40 bg-[#FFF5DC] px-2 py-0 text-[11px] font-semibold text-[#B56C00]",
       )}
     >
-      Pending
+      {t("Pending")}
     </Badge>
   );
 };

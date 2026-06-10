@@ -1,5 +1,6 @@
 import { Badge } from "@/shared/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import type { CustomerTier } from "../types";
 
 interface TierBadgeProps {
@@ -19,16 +20,19 @@ const TIER_LABEL: Record<CustomerTier, string> = {
   Bronze: "BRONZE (STANDARD)",
 };
 
-const TierBadge = ({ tier, className }: TierBadgeProps) => (
-  <Badge
-    className={cn(
-      "h-6 px-3 py-0.5 text-[11px] font-semibold border rounded-full tracking-wide uppercase",
-      TIER_STYLES[tier],
-      className,
-    )}
-  >
-    {TIER_LABEL[tier]}
-  </Badge>
-);
+const TierBadge = ({ tier, className }: TierBadgeProps) => {
+  const { t } = useTranslation();
+  return (
+    <Badge
+      className={cn(
+        "h-6 px-3 py-0.5 text-[11px] font-semibold border rounded-full tracking-wide uppercase",
+        TIER_STYLES[tier],
+        className,
+      )}
+    >
+      {t(TIER_LABEL[tier])}
+    </Badge>
+  );
+};
 
 export default TierBadge;

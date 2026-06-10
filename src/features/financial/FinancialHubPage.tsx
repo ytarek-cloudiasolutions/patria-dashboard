@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Plus, RefreshCw } from "lucide-react";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 
 import FinancialOverview from "./components/FinancialOverview";
 import FinancialTabs from "./components/FinancialTabs";
@@ -27,6 +28,7 @@ const formatPercent = (value: number) =>
   `${value.toFixed(1)}%`;
 
 const FinancialHubPage = () => {
+  const { t } = useTranslation();
   const [tab, setTab] = useState<FinancialTab>("overview");
   const [transactions, setTransactions] = useState<FinancialTransaction[]>(
     INITIAL_TRANSACTIONS,
@@ -85,8 +87,8 @@ const FinancialHubPage = () => {
     <>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <HeaderLayout
-          title="Financial Hub"
-          description="Revenue, expense, and profitability management"
+          title={t("Financial Hub")}
+          description={t("Revenue, expense, and profitability management")}
         />
         <div className="flex flex-wrap items-center gap-3">
           <button
@@ -98,7 +100,7 @@ const FinancialHubPage = () => {
           </button>
           <DefaultButton
             data={{
-              buttonText: "New Transaction",
+              buttonText: t("New Transaction"),
               icon: <Plus className="size-4.5" />,
               onClick: () => setIsAddOpen(true),
             }}

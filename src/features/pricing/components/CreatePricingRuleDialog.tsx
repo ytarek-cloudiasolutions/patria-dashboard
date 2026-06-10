@@ -10,6 +10,7 @@ import { Separator } from "@/shared/components/ui/separator";
 import DefaultButton from "@/shared/components/DefaultButton";
 import DropdownSelect from "@/shared/components/DropdownSelect";
 import InputField from "@/shared/components/InputField";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import { ADJUSTMENT_TYPE_OPTIONS, RULE_TYPE_OPTIONS } from "../data";
 import type {
   AdjustmentType,
@@ -38,6 +39,7 @@ const CreatePricingRuleDialog = ({
   onOpenChange,
   onSave,
 }: CreatePricingRuleDialogProps) => {
+  const { t } = useTranslation();
   const [form, setForm] = useState<PricingRuleFormData>(INITIAL_FORM);
   const [errors, setErrors] = useState<
     Partial<Record<keyof PricingRuleFormData, string>>
@@ -64,15 +66,15 @@ const CreatePricingRuleDialog = ({
 
   const validate = () => {
     const next: Partial<Record<keyof PricingRuleFormData, string>> = {};
-    if (!form.name.trim()) next.name = "Rule name is required";
-    if (!form.type) next.type = "Type is required";
-    if (!form.adjustmentType) next.adjustmentType = "Adjustment type is required";
-    if (!form.value.trim()) next.value = "Value is required";
+    if (!form.name.trim()) next.name = t("Rule name is required");
+    if (!form.type) next.type = t("Type is required");
+    if (!form.adjustmentType) next.adjustmentType = t("Adjustment type is required");
+    if (!form.value.trim()) next.value = t("Value is required");
     if (
       !form.minimumQuantity.trim() ||
       Number(form.minimumQuantity) < 0
     ) {
-      next.minimumQuantity = "Enter a valid quantity";
+      next.minimumQuantity = t("Enter a valid quantity");
     }
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -99,7 +101,7 @@ const CreatePricingRuleDialog = ({
           {/* Header */}
           <div className="px-5 pt-5 sm:px-7 sm:pt-7">
             <DialogTitle className="text-[20px] font-semibold text-[#28293D] sm:text-[22px]">
-              Create Pricing Rule
+              {t("Create Pricing Rule")}
             </DialogTitle>
           </div>
 
@@ -118,9 +120,9 @@ const CreatePricingRuleDialog = ({
                       id: "rule-name",
                       label: {
                         htmlFor: "rule-name",
-                        labelText: "Rule Name",
+                        labelText: t("Rule Name"),
                       },
-                      placeholder: "e.g. Q4 Executive Discount",
+                      placeholder: t("e.g. Q4 Executive Discount"),
                       required: true,
                       inputProps: {
                         value: form.name,
@@ -140,10 +142,10 @@ const CreatePricingRuleDialog = ({
                     htmlFor="rule-type"
                     className="mb-2.5 text-[16px] font-medium text-black"
                   >
-                    Type<span className="text-[#C90000]">*</span>
+                    {t("Type")}<span className="text-[#C90000]">*</span>
                   </Label>
                   <DropdownSelect
-                    options={RULE_TYPE_OPTIONS}
+                    options={RULE_TYPE_OPTIONS.map((o) => ({ ...o, label: t(o.label) }))}
                     selected={form.type}
                     onSelect={(value) =>
                       set("type", value as PricingRuleType)
@@ -151,7 +153,7 @@ const CreatePricingRuleDialog = ({
                     onOpenChange={(open) =>
                       setOpenDropdown(open ? "type" : null)
                     }
-                    placeholder="Select type"
+                    placeholder={t("Select type")}
                     align="start"
                     className="md:w-full"
                     contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
@@ -170,10 +172,10 @@ const CreatePricingRuleDialog = ({
                     htmlFor="adjustment-type"
                     className="mb-2.5 text-[16px] font-medium text-black"
                   >
-                    Adjustment Type<span className="text-[#C90000]">*</span>
+                    {t("Adjustment Type")}<span className="text-[#C90000]">*</span>
                   </Label>
                   <DropdownSelect
-                    options={ADJUSTMENT_TYPE_OPTIONS}
+                    options={ADJUSTMENT_TYPE_OPTIONS.map((o) => ({ ...o, label: t(o.label) }))}
                     selected={form.adjustmentType}
                     onSelect={(value) =>
                       set("adjustmentType", value as AdjustmentType)
@@ -181,7 +183,7 @@ const CreatePricingRuleDialog = ({
                     onOpenChange={(open) =>
                       setOpenDropdown(open ? "adjustment" : null)
                     }
-                    placeholder="Select adjustment"
+                    placeholder={t("Select adjustment")}
                     align="start"
                     className="md:w-full"
                     contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
@@ -199,7 +201,7 @@ const CreatePricingRuleDialog = ({
                       id: "value",
                       label: {
                         htmlFor: "value",
-                        labelText: "Value (Negative for Discount)",
+                        labelText: t("Value (Negative for Discount)"),
                       },
                       placeholder: "0",
                       required: true,
@@ -225,7 +227,7 @@ const CreatePricingRuleDialog = ({
                     id: "minimum-quantity",
                     label: {
                       htmlFor: "minimum-quantity",
-                      labelText: "Minimum Quantity",
+                      labelText: t("Minimum Quantity"),
                     },
                     placeholder: "0",
                     required: true,
@@ -253,7 +255,7 @@ const CreatePricingRuleDialog = ({
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <DefaultButton
                 data={{
-                  buttonText: "Cancel",
+                  buttonText: t("Cancel"),
                   variant: "outline",
                   type: "button",
                   onClick: () => onOpenChange(false),
@@ -266,7 +268,7 @@ const CreatePricingRuleDialog = ({
                 type="submit"
                 className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
               >
-                Create Strategy Rule
+                {t("Create Strategy Rule")}
               </Button>
             </div>
           </div>

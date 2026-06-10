@@ -1,5 +1,6 @@
 import { Info } from "lucide-react";
 import { Card, CardContent } from "@/shared/components/ui/card";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import type { RevenueBreakdownRow } from "../types";
 
 interface RevenueBreakdownCardProps {
@@ -10,6 +11,7 @@ const formatEgp = (value: number) =>
   `EGP ${value.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
 
 const RevenueBreakdownCard = ({ rows }: RevenueBreakdownCardProps) => {
+  const { t } = useTranslation();
   const max = Math.max(...rows.map((r) => r.amount), 1);
 
   return (
@@ -18,7 +20,7 @@ const RevenueBreakdownCard = ({ rows }: RevenueBreakdownCardProps) => {
         <div className="flex items-center gap-2">
           <Info size={25} className="text-[#000000]" />
           <h3 className="text-[18px] font-semibold text-[#333333] sm:text-[16px]">
-            Revenues versus expenses
+            {t("Revenues versus expenses")}
           </h3>
         </div>
 
@@ -29,9 +31,9 @@ const RevenueBreakdownCard = ({ rows }: RevenueBreakdownCardProps) => {
               <div key={row.id} className="flex flex-col gap-1.5">
                 <div className="flex items-center justify-between text-[13px]">
                   <span className="font-medium text-[#28293D]">
-                    {row.label}
+                    {t(row.label)}
                   </span>
-                  <span className="font-semibold text-[#28293D]">
+                  <span className="font-semibold text-[#28293D]" dir="ltr">
                     {formatEgp(row.amount)}
                   </span>
                 </div>

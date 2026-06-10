@@ -1,893 +1,589 @@
-import {
-  Box,
-  Check,
-  ChevronDown,
-  FileUp,
-  Plus,
-  Trash2,
-  X,
-} from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import { Button } from "@/shared/components/ui/button";
+import { useEffect, useState } from "react";
+import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogTitle,
 } from "@/shared/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/shared/components/ui/dropdown-menu";
+import { Button } from "@/shared/components/ui/button";
+import { Checkbox } from "@/shared/components/ui/checkbox";
 import { Input } from "@/shared/components/ui/input";
-import { useFileUpload } from "@/shared/hooks/use-file-upload";
-import {
-  INITIAL_PRODUCT_FORM,
-  PRODUCT_CATEGORY_OPTIONS,
-  PRODUCT_STATUS_OPTIONS,
-} from "../data";
+import { Label } from "@/shared/components/ui/label";
+import { Separator } from "@/shared/components/ui/separator";
+import { Textarea } from "@/shared/components/ui/textarea";
+import DefaultButton from "@/shared/components/DefaultButton";
+import DropdownSelect from "@/shared/components/DropdownSelect";
+import InputField from "@/shared/components/InputField";
+import { useTranslation } from "@/shared/i18n/useTranslation";
+import { PRODUCT_CATEGORIES } from "../data";
 import type {
   Ingredient,
   Product,
   ProductFormData,
-  ProductStatus,
-  RecipeSelection,
+  VariantGroup,
+  VariantOption,
 } from "../types";
+import UploadDropzone from "./UploadDropzone";
+
+const FORM_ID = "add-product-form";
+
+let uid = 0;
+const nextId = () => `v${++uid}`;
+
+const emptyOption = (): VariantOption => ({
+  id: nextId(),
+  name: "",
+  price: 0,
+});
+
+const emptyGroup = (): VariantGroup => ({
+  id: nextId(),
+  name: "",
+  required: false,
+  options: [emptyOption()],
+});
+
+const INITIAL_FORM: ProductFormData = {
+  name: "",
+  category: "",
+  description: "",
+  barcode: "",
+  price: "",
+  quantity: "",
+  imageUrl: undefined,
+  variantGroups: [],
+  ingredients: [],
+};
 
 interface AddProductDialogProps {
   open: boolean;
-  product: Product | null;
-  ingredientOptions: Ingredient[];
   onOpenChange: (open: boolean) => void;
-  onSave: (
-    payload: ProductFormData,
-    selectedRecipes: RecipeSelection[],
-  ) => void;
+  ingredients: Ingredient[];
+  /** When provided, the dialog edits this product instead of creating one. */
+  editingProduct?: Product | null;
+  onSave: (data: ProductFormData) => void;
 }
-
-interface VariantOption {
-  id: number;
-  name: string;
-  priceDelta: string;
-}
-
-interface VariantGroup {
-  id: number;
-  name: string;
-  required: boolean;
-  options: VariantOption[];
-}
-
-const createVariantGroup = (id: number): VariantGroup => ({
-  id,
-  name: "",
-  required: false,
-  options: [
-    {
-      id: 1,
-      name: "",
-      priceDelta: "0",
-    },
-  ],
-});
 
 const AddProductDialog = ({
   open,
-  product,
-  ingredientOptions,
   onOpenChange,
+  ingredients,
+  editingProduct,
   onSave,
 }: AddProductDialogProps) => {
-  const [step, setStep] = useState<1 | 2>(1);
-  const [form, setForm] = useState<ProductFormData>(INITIAL_PRODUCT_FORM);
-  const [selectedRecipes, setSelectedRecipes] = useState<RecipeSelection[]>([]);
-  const [variantGroups, setVariantGroups] = useState<VariantGroup[]>([]);
-  const [showStepOneErrors, setShowStepOneErrors] = useState(false);
+  const { t } = useTranslation();
+  const [form, setForm] = useState<ProductFormData>(INITIAL_FORM);
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof ProductFormData, string>>
+  >({});
+  const [isCategoryOpen, setIsCategoryOpen] = useState(false);
+  const [isRecipeOpen, setIsRecipeOpen] = useState(false);
 
-  const [uploadState, uploadActions] = useFileUpload({
-    accept: "image/*",
-    multiple: false,
-    maxFiles: 1,
-    onFilesChange: (files) => {
-      const first = files[0];
-      setForm((previous) => ({ ...previous, imageUrl: first?.preview ?? "" }));
-    },
-  });
-
-  const uploadedImage = useMemo(
-    () => uploadState.files[0]?.preview,
-    [uploadState.files],
-  );
-
-  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
-    if (!open) {
-      return;
-    }
+    if (!open) return;
+    setForm(
+      editingProduct
+        ? {
+            ...INITIAL_FORM,
+            name: editingProduct.name,
+            category: editingProduct.category,
+            description: editingProduct.description,
+            price: String(editingProduct.price),
+            imageUrl: editingProduct.imageUrl,
+          }
+        : INITIAL_FORM,
+    );
+    setErrors({});
+    setIsCategoryOpen(false);
+    setIsRecipeOpen(false);
+  }, [open, editingProduct]);
 
-    setStep(1);
-    setShowStepOneErrors(false);
-    setVariantGroups([]);
-    uploadActions.clearFiles();
-
-    if (product) {
-      setForm({
-        name: product.name,
-        category: product.category,
-        description: product.description,
-        price: product.price.toString(),
-        status: product.status,
-        discountType: "",
-        discountValue: "",
-        imageUrl: product.imageUrl,
-        isActive: product.isActive,
-      });
-      setSelectedRecipes([]);
-      return;
-    }
-
-    setForm(INITIAL_PRODUCT_FORM);
-    setSelectedRecipes([]);
-  }, [open, product]);
-  /* eslint-enable react-hooks/exhaustive-deps */
-
-  const requiredFields = {
-    name: form.name.trim().length > 0,
-    category: form.category.trim().length > 0,
-    description: form.description.trim().length > 0,
-    price: form.price.trim().length > 0,
-    status: form.status.trim().length > 0,
+  const set = <K extends keyof ProductFormData>(
+    key: K,
+    value: ProductFormData[K],
+  ) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+    if (errors[key]) setErrors((prev) => ({ ...prev, [key]: "" }));
   };
 
-  const hasStepOneErrors = Object.values(requiredFields).some(
-    (value) => !value,
-  );
+  // --- Variant groups -------------------------------------------------------
 
-  const productCategories = PRODUCT_CATEGORY_OPTIONS.filter(
-    (category) => category !== "All Categories",
-  );
+  const addGroup = () =>
+    set("variantGroups", [...form.variantGroups, emptyGroup()]);
 
-  const setStatus = (status: ProductStatus) => {
-    setForm((previous) => ({ ...previous, status }));
-  };
+  const removeGroup = (groupId: string) =>
+    set(
+      "variantGroups",
+      form.variantGroups.filter((g) => g.id !== groupId),
+    );
 
-  const goToStepTwo = () => {
-    if (hasStepOneErrors) {
-      setShowStepOneErrors(true);
-      return;
-    }
-
-    setShowStepOneErrors(false);
-    setStep(2);
-  };
-
-  const addRecipe = (ingredient: Ingredient) => {
-    setSelectedRecipes((previous) => {
-      if (previous.some((entry) => entry.id === ingredient.id)) {
-        return previous;
-      }
-
-      return [
-        ...previous,
-        {
-          id: ingredient.id,
-          name: ingredient.name,
-          quantityLabel:
-            ingredient.name === "Tomatoes"
-              ? "2 Gram(s)"
-              : ingredient.name === "Lettuce"
-                ? "1 Gram(s)"
-                : "1 Gram(s)",
-        },
-      ];
-    });
-  };
-
-  const updateRecipeQuantity = (recipeId: number, quantityLabel: string) => {
-    setSelectedRecipes((previous) =>
-      previous.map((recipe) =>
-        recipe.id === recipeId ? { ...recipe, quantityLabel } : recipe,
+  const updateGroup = (groupId: string, patch: Partial<VariantGroup>) =>
+    set(
+      "variantGroups",
+      form.variantGroups.map((g) =>
+        g.id === groupId ? { ...g, ...patch } : g,
       ),
     );
-  };
 
-  const removeRecipe = (recipeId: number) => {
-    setSelectedRecipes((previous) =>
-      previous.filter((recipe) => recipe.id !== recipeId),
+  const addOption = (groupId: string) =>
+    set(
+      "variantGroups",
+      form.variantGroups.map((g) =>
+        g.id === groupId ? { ...g, options: [...g.options, emptyOption()] } : g,
+      ),
     );
-  };
 
-  const addVariantGroup = () => {
-    setVariantGroups((previous) => [
-      ...previous,
-      createVariantGroup((previous.at(-1)?.id ?? 0) + 1),
+  const updateOption = (
+    groupId: string,
+    optionId: string,
+    patch: Partial<VariantOption>,
+  ) =>
+    set(
+      "variantGroups",
+      form.variantGroups.map((g) =>
+        g.id === groupId
+          ? {
+              ...g,
+              options: g.options.map((o) =>
+                o.id === optionId ? { ...o, ...patch } : o,
+              ),
+            }
+          : g,
+      ),
+    );
+
+  const removeOption = (groupId: string, optionId: string) =>
+    set(
+      "variantGroups",
+      form.variantGroups.map((g) =>
+        g.id === groupId
+          ? { ...g, options: g.options.filter((o) => o.id !== optionId) }
+          : g,
+      ),
+    );
+
+  // --- Recipe ingredients ---------------------------------------------------
+
+  const addIngredient = (value: string) => {
+    const ingredient = ingredients.find((i) => String(i.id) === value);
+    if (!ingredient || form.ingredients.some((i) => i.ingredientId === ingredient.id))
+      return;
+    set("ingredients", [
+      ...form.ingredients,
+      {
+        ingredientId: ingredient.id,
+        name: ingredient.name,
+        amount: 1,
+        unit: "Gram(s)",
+      },
     ]);
   };
 
-  const updateVariantGroup = (
-    groupId: number,
-    updates: Partial<Pick<VariantGroup, "name" | "required">>,
-  ) => {
-    setVariantGroups((previous) =>
-      previous.map((group) =>
-        group.id === groupId ? { ...group, ...updates } : group,
+  const updateIngredientAmount = (ingredientId: number, amount: number) =>
+    set(
+      "ingredients",
+      form.ingredients.map((i) =>
+        i.ingredientId === ingredientId ? { ...i, amount } : i,
       ),
     );
-  };
 
-  const removeVariantGroup = (groupId: number) => {
-    setVariantGroups((previous) =>
-      previous.filter((group) => group.id !== groupId),
+  const removeIngredient = (ingredientId: number) =>
+    set(
+      "ingredients",
+      form.ingredients.filter((i) => i.ingredientId !== ingredientId),
     );
-  };
 
-  const addVariantOption = (groupId: number) => {
-    setVariantGroups((previous) =>
-      previous.map((group) =>
-        group.id === groupId
-          ? {
-              ...group,
-              options: [
-                ...group.options,
-                {
-                  id: (group.options.at(-1)?.id ?? 0) + 1,
-                  name: "",
-                  priceDelta: "0",
-                },
-              ],
-            }
-          : group,
-      ),
-    );
-  };
+  // --- Submit ---------------------------------------------------------------
 
-  const updateVariantOption = (
-    groupId: number,
-    optionId: number,
-    updates: Partial<VariantOption>,
-  ) => {
-    setVariantGroups((previous) =>
-      previous.map((group) =>
-        group.id === groupId
-          ? {
-              ...group,
-              options: group.options.map((option) =>
-                option.id === optionId ? { ...option, ...updates } : option,
-              ),
-            }
-          : group,
-      ),
-    );
-  };
-
-  const removeVariantOption = (groupId: number, optionId: number) => {
-    setVariantGroups((previous) =>
-      previous.map((group) =>
-        group.id === groupId
-          ? {
-              ...group,
-              options: group.options.filter((option) => option.id !== optionId),
-            }
-          : group,
-      ),
-    );
-  };
-
-  const handleClose = () => {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const next: Partial<Record<keyof ProductFormData, string>> = {};
+    if (!form.name.trim()) next.name = t("Product name is required");
+    if (!form.category) next.category = t("Category is required");
+    if (!form.description.trim()) next.description = t("Description is required");
+    if (!form.price.trim() || Number(form.price) <= 0)
+      next.price = t("Enter a valid price");
+    setErrors(next);
+    if (Object.keys(next).length > 0) return;
+    onSave(form);
     onOpenChange(false);
   };
 
-  const handleSave = () => {
-    onSave(form, selectedRecipes);
-    handleClose();
-  };
-
-  const uploadZoneClass = uploadState.isDragging
-    ? "border-primary bg-primary/5"
-    : "border-[#7A5900] bg-white";
+  const ingredientOptions = ingredients.map((i) => ({
+    label: i.name,
+    value: String(i.id),
+  }));
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="max-w-[820px] rounded-[12px] bg-white p-0 ring-0 sm:max-w-174"
+        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-160"
       >
-        <div className="relative max-h-[92vh] overflow-y-auto p-8">
-          <DialogTitle className="mb-10 text-[28px] font-semibold text-[#28293D]">
-            {product ? "Edit Product" : "Add New Product"}
-          </DialogTitle>
+        {(isCategoryOpen || isRecipeOpen) && (
+          <div className="pointer-events-none fixed inset-0 z-60 bg-black/40" />
+        )}
 
-          <div className="mx-6 mb-9">
-            <div className="relative mb-4">
-              <div
-                className={`absolute top-4 right-4 left-4 h-0.5 ${
-                  step === 2 ? "bg-primary" : "bg-[#CACBD4]"
-                }`}
-              />
-
-              <div className="relative flex items-start justify-between">
-                <button
-                  type="button"
-                  onClick={() => setStep(1)}
-                  className="flex flex-col items-start gap-1 text-left"
-                >
-                  <span
-                    className={`flex size-8 items-center justify-center rounded-full border-[3px] text-[14px] font-semibold ${
-                      step === 2
-                        ? "border-[#F5F0EA] bg-primary text-white"
-                        : "border-primary bg-white text-[#28293D]"
-                    }`}
-                  >
-                    {step === 2 ? <Check className="size-4" /> : "1"}
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={goToStepTwo}
-                  className="flex flex-col items-end gap-1 text-right"
-                >
-                  <span
-                    className={`flex size-8 items-center justify-center rounded-full border-[3px] text-[14px] font-semibold ${
-                      step === 2
-                        ? "border-primary bg-white text-[#28293D]"
-                        : "border-[#8B8B8B] bg-[#CACBD4] text-[#8B8B8B]"
-                    }`}
-                  >
-                    2
-                  </span>
-                </button>
-              </div>
-            </div>
-
-            <div className="flex items-start justify-between text-[12px] leading-tight font-semibold">
-              <div className="flex flex-col items-center">
-                <span className="text-[#28293D]">Product Description</span>
-                {step === 2 ? (
-                  <span className="text-[10px] text-[#059B5A]">Complete</span>
-                ) : null}
-              </div>
-              <span
-                className={step === 2 ? "text-[#28293D]" : "text-[#8B8B8B]"}
-              >
-                Recipes included
-              </span>
-            </div>
+        <div className="flex max-h-[calc(100vh-2rem)] flex-col">
+          <div className="px-5 pt-5 sm:px-7 sm:pt-7">
+            <DialogTitle className="text-[20px] font-semibold text-[#28293D] sm:text-[22px]">
+              {editingProduct ? t("Edit Product") : t("Add New Product")}
+            </DialogTitle>
           </div>
 
-          {step === 1 ? (
-            <div className="space-y-8">
-              <div
-                className={`flex h-40 cursor-pointer items-center justify-center rounded-[16px] border border-dashed transition-colors [border-width:2px] [border-dasharray:6,4] ${uploadZoneClass}`}
-                onDragEnter={uploadActions.handleDragEnter}
-                onDragLeave={uploadActions.handleDragLeave}
-                onDragOver={uploadActions.handleDragOver}
-                onDrop={uploadActions.handleDrop}
-                onClick={uploadActions.openFileDialog}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault();
-                    uploadActions.openFileDialog();
-                  }
-                }}
-              >
-                {uploadedImage || form.imageUrl ? (
-                  <div className="relative flex size-full items-center justify-center p-2">
-                    <img
-                      src={uploadedImage ?? form.imageUrl}
-                      alt="Product"
-                      className="h-22 w-auto max-w-70 rounded-[8px] object-contain"
-                    />
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="icon"
-                      className="absolute top-2 right-2 size-7 rounded-full"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        uploadActions.clearFiles();
-                        setForm((previous) => ({
-                          ...previous,
-                          imageUrl: "",
-                        }));
-                      }}
-                    >
-                      <X className="size-4" />
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center text-center">
-                    <FileUp className="mb-6 size-6 text-[#000000]" />
-                    <p className="mb-1 text-[16px] font-semibold text-[#333333]">
-                      Click to upload image
-                    </p>
-                    <p className="text-[14px] text-[#8B8B8B]">
-                      PNG, JPG up to 5MB
-                    </p>
-                  </div>
-                )}
+          <form
+            id={FORM_ID}
+            onSubmit={handleSubmit}
+            noValidate
+            className="flex flex-1 flex-col gap-5 overflow-y-auto px-5 py-5 sm:px-7 sm:py-6"
+          >
+            <UploadDropzone
+              value={form.imageUrl}
+              onSelect={(_, url) => set("imageUrl", url)}
+              title="Click to upload image"
+              hint="PNG, JPG up to 5MB"
+            />
 
-                <input
-                  {...uploadActions.getInputProps({ className: "hidden" })}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-7">
-                <div>
-                  <p className="mb-3 text-[18px] font-medium text-[#000000]">
-                    Product Name <span className="text-[#C90000]">*</span>
-                  </p>
-                  <Input
-                    value={form.name}
-                    onChange={(event) =>
-                      setForm((previous) => ({
-                        ...previous,
-                        name: event.target.value,
-                      }))
-                    }
-                    placeholder="e.g. Artisanal Sourdough"
-                    className={`h-14 rounded-[12px] px-4 text-[16px] placeholder:text-[#8B8B8B] ${
-                      showStepOneErrors && !requiredFields.name
-                        ? "border-[#C90000]"
-                        : "border-[#E5E5E5]"
-                    }`}
-                  />
-                </div>
-
-                <div>
-                  <p className="mb-3 text-[18px] font-medium text-[#000000]">
-                    Category <span className="text-[#C90000]">*</span>
-                  </p>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={`h-14 w-full justify-between rounded-[12px] px-4 text-left text-[16px] font-normal hover:bg-white ${
-                          form.category ? "text-[#333333]" : "text-[#8B8B8B]"
-                        } ${
-                          showStepOneErrors && !requiredFields.category
-                            ? "border-[#C90000]"
-                            : "border-[#E5E5E5]"
-                        }`}
-                      >
-                        {form.category || "e.g. Breads, Pastries, Coffee"}
-                        <ChevronDown className="size-5 text-[#8B8B8B]" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent
-                      align="start"
-                      className="z-70 w-[var(--radix-dropdown-menu-trigger-width)] rounded-[16px] p-2 ring-0"
-                    >
-                      {productCategories.map((category) => (
-                        <DropdownMenuItem
-                          key={category}
-                          className={`rounded-[17px] px-3 py-2 text-[16px] font-medium ${
-                            category === form.category
-                              ? "bg-primary text-primary-foreground focus:bg-primary focus:text-primary-foreground"
-                              : "text-[#28293D]"
-                          }`}
-                          onSelect={() =>
-                            setForm((previous) => ({
-                              ...previous,
-                              category,
-                            }))
-                          }
-                        >
-                          {category}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </div>
-
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
               <div>
-                <p className="mb-3 text-[18px] font-medium text-[#000000]">
-                  Description <span className="text-[#C90000]">*</span>
-                </p>
-                <Input
-                  value={form.description}
-                  onChange={(event) =>
-                    setForm((previous) => ({
-                      ...previous,
-                      description: event.target.value,
-                    }))
-                  }
-                  placeholder="Describe this product..."
-                  className={`h-14 rounded-[12px] px-4 text-[16px] placeholder:text-[#8B8B8B] ${
-                    showStepOneErrors && !requiredFields.description
-                      ? "border-[#C90000]"
-                      : "border-[#E5E5E5]"
-                  }`}
+                <InputField
+                  data={{
+                    id: "product-name",
+                    label: {
+                      htmlFor: "product-name",
+                      labelText: t("Product Name"),
+                    },
+                    placeholder: t("e.g. Artisanal Sourdough"),
+                    required: true,
+                    inputProps: {
+                      value: form.name,
+                      onChange: (e) => set("name", e.target.value),
+                    },
+                  }}
                 />
+                {errors.name && (
+                  <p className="mt-1 text-[13px] text-[#C90000]">
+                    {errors.name}
+                  </p>
+                )}
               </div>
 
-              <div className="grid grid-cols-2 gap-7">
-                <div>
-                  <p className="mb-3 text-[18px] font-medium text-[#000000]">
-                    Price <span className="text-[#C90000]">*</span>
+              <div className="flex flex-col">
+                <Label className="mb-2.5 text-[16px] font-medium text-black">
+                  {t("Category")}<span className="text-[#C90000]">*</span>
+                </Label>
+                <DropdownSelect
+                  options={PRODUCT_CATEGORIES.map((c) => ({
+                    label: t(c),
+                    value: c,
+                  }))}
+                  selected={form.category}
+                  onSelect={(value) => set("category", value)}
+                  onOpenChange={setIsCategoryOpen}
+                  placeholder={t("e.g. Breads, Pastries, Coffee")}
+                  align="start"
+                  className="md:w-full"
+                  contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
+                />
+                {errors.category && (
+                  <p className="mt-1 text-[13px] text-[#C90000]">
+                    {errors.category}
                   </p>
-                  <Input
-                    value={form.price}
-                    onChange={(event) =>
-                      setForm((previous) => ({
-                        ...previous,
-                        price: event.target.value,
-                      }))
-                    }
-                    placeholder="Price"
-                    className={`h-14 rounded-[12px] px-4 text-[16px] placeholder:text-[#8B8B8B] ${
-                      showStepOneErrors && !requiredFields.price
-                        ? "border-[#C90000]"
-                        : "border-[#E5E5E5]"
-                    }`}
-                  />
-                </div>
-
-                <div>
-                  <p className="mb-3 text-[18px] font-medium text-[#000000]">
-                    Status <span className="text-[#C90000]">*</span>
-                  </p>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={`h-14 w-full justify-between rounded-[12px] px-4 text-[16px] font-normal text-[#333333] hover:bg-white ${
-                          showStepOneErrors && !requiredFields.status
-                            ? "border-[#C90000]"
-                            : "border-[#E5E5E5]"
-                        }`}
-                      >
-                        {form.status}
-                        <ChevronDown className="size-5 text-[#000000]" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-55 rounded-[12px] p-1.5">
-                      {PRODUCT_STATUS_OPTIONS.map((status) => (
-                        <DropdownMenuItem
-                          key={status}
-                          onSelect={() => setStatus(status)}
-                          className={`rounded-[8px] px-3 py-2 text-[14px] ${
-                            status === form.status
-                              ? "bg-primary text-primary-foreground focus:bg-primary focus:text-primary-foreground"
-                              : "text-[#333333]"
-                          }`}
-                        >
-                          {status}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
+                )}
               </div>
-
-              <div className="grid grid-cols-2 gap-7">
-                <div>
-                  <p className="mb-3 text-[18px] font-medium text-[#000000]">
-                    Discount Type{" "}
-                    <span className="text-[15px] text-[#595959]">
-                      (Optional)
-                    </span>
-                  </p>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="h-14 w-full justify-between rounded-[12px] border-[#E9EAEE] px-4 text-[16px] font-normal text-[#8B8B8B] hover:bg-white"
-                      >
-                        {form.discountType || "Select type"}
-                        <ChevronDown className="size-5 text-[#000000]" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-55 rounded-[12px] p-1.5">
-                      {["Percentage", "Fixed", "None"].map((discountType) => (
-                        <DropdownMenuItem
-                          key={discountType}
-                          onSelect={() =>
-                            setForm((previous) => ({
-                              ...previous,
-                              discountType,
-                            }))
-                          }
-                          className={`rounded-[8px] px-3 py-2 text-[14px] ${
-                            form.discountType === discountType
-                              ? "bg-primary text-primary-foreground focus:bg-primary focus:text-primary-foreground"
-                              : "text-[#333333]"
-                          }`}
-                        >
-                          {discountType}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-
-                <div>
-                  <p className="mb-3 text-[18px] font-medium text-[#000000]">
-                    Discount %{" "}
-                    <span className="text-[15px] text-[#595959]">
-                      (Optional)
-                    </span>
-                  </p>
-                  <Input
-                    value={form.discountValue}
-                    onChange={(event) =>
-                      setForm((previous) => ({
-                        ...previous,
-                        discountValue: event.target.value,
-                      }))
-                    }
-                    placeholder="e.g. 20"
-                    className="h-14 rounded-[12px] border-[#E9EAEE] px-4 text-[16px] placeholder:text-[#8B8B8B]"
-                  />
-                </div>
-              </div>
-
-              {showStepOneErrors && hasStepOneErrors ? (
-                <p className="text-[12px] font-medium text-[#C90000]">
-                  Please fill all required fields to continue.
-                </p>
-              ) : null}
             </div>
-          ) : (
-            <div className="space-y-9">
-              <div className="rounded-[16px] border border-[#CACBD4] p-7">
-                <div className="mb-5 flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-[14px] font-semibold text-[#333333]">
-                    <Box className="size-5 text-[#000000]" />
-                    Variants
-                  </div>
 
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="h-10 rounded-[5px] border-primary px-5 text-[14px] font-semibold text-primary hover:bg-white hover:text-primary"
-                    onClick={addVariantGroup}
-                  >
-                    <Plus className="mr-3 size-4" />
-                    Add Group
-                  </Button>
+            <div className="flex flex-col">
+              <Label
+                htmlFor="product-description"
+                className="mb-2.5 text-[16px] font-medium text-black"
+              >
+                {t("Description")}<span className="text-[#C90000]">*</span>
+              </Label>
+              <Textarea
+                id="product-description"
+                value={form.description}
+                onChange={(e) => set("description", e.target.value)}
+                placeholder={t("Describe this product...")}
+                className="min-h-20 rounded-xl border-[#E5E5E5] px-4.5 py-3 text-[14px] text-[#23252A] placeholder:text-[#8B8B8B] focus-visible:border-primary focus-visible:ring-0"
+              />
+              {errors.description && (
+                <p className="mt-1 text-[13px] text-[#C90000]">
+                  {errors.description}
+                </p>
+              )}
+            </div>
+
+            <InputField
+              data={{
+                id: "product-barcode",
+                label: {
+                  htmlFor: "product-barcode",
+                  labelText: `${t("Barcode")} ${t("(Optional)")}`,
+                },
+                placeholder: t("Manually enter barcode"),
+                inputProps: {
+                  value: form.barcode,
+                  onChange: (e) => set("barcode", e.target.value),
+                },
+              }}
+            />
+
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+              <div>
+                <InputField
+                  data={{
+                    id: "product-price",
+                    label: {
+                      htmlFor: "product-price",
+                      labelText: t("Price"),
+                    },
+                    placeholder: t("Price"),
+                    required: true,
+                    inputProps: {
+                      type: "number",
+                      min: "0",
+                      step: "0.01",
+                      value: form.price,
+                      onChange: (e) => set("price", e.target.value),
+                    },
+                  }}
+                />
+                {errors.price && (
+                  <p className="mt-1 text-[13px] text-[#C90000]">
+                    {errors.price}
+                  </p>
+                )}
+              </div>
+              <InputField
+                data={{
+                  id: "product-quantity",
+                  label: {
+                    htmlFor: "product-quantity",
+                    labelText: t("Initial quantity"),
+                  },
+                  placeholder: "0",
+                  inputProps: {
+                    type: "number",
+                    min: "0",
+                    value: form.quantity,
+                    onChange: (e) => set("quantity", e.target.value),
+                  },
+                }}
+              />
+            </div>
+
+            {/* Variants */}
+            <div className="rounded-[12px] border border-[#E5E5E5] p-4">
+              <div className="mb-3 flex items-center justify-between">
+                <span className="text-[15px] font-semibold text-[#28293D]">
+                  {t("Variants")}
+                </span>
+                <button
+                  type="button"
+                  onClick={addGroup}
+                  className="flex h-9 cursor-pointer items-center gap-1.5 rounded-[8px] border border-primary px-3 text-[13px] font-semibold text-primary hover:bg-[#FBF6EE]"
+                >
+                  <Plus className="size-4" />
+                  {t("Add Group")}
+                </button>
+              </div>
+
+              {form.variantGroups.length === 0 ? (
+                <div className="rounded-[10px] border border-dashed border-[#CACBD4] bg-[#FAFAF7] py-5 text-center text-[13px] text-[#8B8B8B]">
+                  {t("There are no option sets currently available.")}
                 </div>
-
-                {variantGroups.length === 0 ? (
-                  <div className="rounded-[12px] border border-dashed border-primary py-4 text-center text-[14px] font-semibold text-primary [border-width:2px] [border-dasharray:7,6]">
-                    There are no option sets currently available.
-                  </div>
-                ) : (
-                  <div className="space-y-5">
-                    {variantGroups.map((group, groupIndex) => (
-                      <div
-                        key={group.id}
-                        className="rounded-[12px] border border-dashed border-primary p-3 [border-width:2px] [border-dasharray:7,6]"
-                      >
-                        <div className="mb-3 grid grid-cols-[1fr_auto_auto] items-center gap-3">
-                          <Input
-                            value={group.name}
-                            onChange={(event) =>
-                              updateVariantGroup(group.id, {
-                                name: event.target.value,
-                              })
+              ) : (
+                <div className="space-y-4">
+                  {form.variantGroups.map((group) => (
+                    <div
+                      key={group.id}
+                      className="rounded-[10px] border border-dashed border-[#624F1C] bg-[#F5F0EA4D] p-3"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Input
+                          value={group.name}
+                          onChange={(e) =>
+                            updateGroup(group.id, { name: e.target.value })
+                          }
+                          placeholder={t("Group Name(e.g. Bread Type)")}
+                          className="h-10 flex-1 rounded-[8px] border-[#E5E5E5] bg-white px-3 text-[13px] focus-visible:border-primary focus-visible:ring-0"
+                        />
+                        <label className="flex cursor-pointer items-center gap-1.5 text-[12px] font-medium text-[#28293D]">
+                          <Checkbox
+                            checked={group.required}
+                            onCheckedChange={(val) =>
+                              updateGroup(group.id, { required: Boolean(val) })
                             }
-                            placeholder={
-                              groupIndex === 0
-                                ? "Group Name(e.g. Bread Type)"
-                                : "Group Name (e.g. Toppings)"
-                            }
-                            className="h-14 rounded-[12px] border-[#E5E5E5] px-4 text-[16px] placeholder:text-[#8B8B8B]"
+                            className="size-4.5 rounded-[5px] border-[#8F6900]"
                           />
+                          {t("Required")}
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => removeGroup(group.id)}
+                          aria-label={t("Remove group")}
+                          className="cursor-pointer p-1 text-[#C90000]"
+                        >
+                          <Trash2 className="size-4" />
+                        </button>
+                      </div>
 
-                          <label className="flex items-center gap-2 text-[14px] font-medium text-[#333333]">
-                            <input
-                              type="checkbox"
-                              checked={group.required}
-                              onChange={(event) =>
-                                updateVariantGroup(group.id, {
-                                  required: event.target.checked,
+                      <div className="mt-3 space-y-2">
+                        {group.options.map((option) => (
+                          <div
+                            key={option.id}
+                            className="flex items-center gap-2"
+                          >
+                            <Input
+                              value={option.name}
+                              onChange={(e) =>
+                                updateOption(group.id, option.id, {
+                                  name: e.target.value,
                                 })
                               }
-                              className="size-6 rounded-[6px] accent-primary"
+                              placeholder={t("Option name")}
+                              className="h-10 flex-1 rounded-[8px] border-[#E5E5E5] bg-white px-3 text-[13px] focus-visible:border-primary focus-visible:ring-0"
                             />
-                            Required
-                          </label>
-
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="size-8 text-[#C90000] hover:bg-transparent hover:text-[#C90000]"
-                            onClick={() => removeVariantGroup(group.id)}
-                          >
-                            <Trash2 className="size-4.5" />
-                          </Button>
-                        </div>
-
-                        <div className="border-l-4 border-primary pl-2">
-                          <div className="space-y-3">
-                            {group.options.map((option, optionIndex) => (
-                              <div
-                                key={option.id}
-                                className="grid grid-cols-[1fr_88px_auto] items-center gap-3"
-                              >
-                                <Input
-                                  value={option.name}
-                                  onChange={(event) =>
-                                    updateVariantOption(
-                                      group.id,
-                                      option.id,
-                                      {
-                                        name: event.target.value,
-                                      },
-                                    )
-                                  }
-                                  placeholder={`Option ${String(
-                                    optionIndex + 1,
-                                  ).padStart(2, "0")} ${
-                                    groupIndex === 0
-                                      ? optionIndex === 0
-                                        ? "(White Toast)"
-                                        : "(Brown Toast)"
-                                      : "(Avocado)"
-                                  }`}
-                                  className="h-14 rounded-[12px] border-[#E5E5E5] px-4 text-[16px] placeholder:text-[#8B8B8B]"
-                                />
-
-                                <Input
-                                  type="number"
-                                  value={option.priceDelta}
-                                  onChange={(event) =>
-                                    updateVariantOption(
-                                      group.id,
-                                      option.id,
-                                      {
-                                        priceDelta: event.target.value,
-                                      },
-                                    )
-                                  }
-                                  className="h-14 rounded-[12px] border-[#E5E5E5] px-4 text-center text-[16px]"
-                                />
-
-                                <Button
+                            <div className="flex h-10 items-center gap-2 rounded-[8px] border border-[#E5E5E5] bg-white px-2">
+                              <span className="min-w-6 text-center text-[13px] font-semibold text-[#28293D]">
+                                {option.price}
+                              </span>
+                              <div className="flex flex-col">
+                                <button
                                   type="button"
-                                  variant="ghost"
-                                  size="icon"
-                                  className="size-8 text-[#C90000] hover:bg-transparent hover:text-[#C90000]"
+                                  aria-label={t("Increase")}
                                   onClick={() =>
-                                    removeVariantOption(group.id, option.id)
+                                    updateOption(group.id, option.id, {
+                                      price: option.price + 1,
+                                    })
                                   }
+                                  className="cursor-pointer text-[#8B8B8B] hover:text-[#28293D]"
                                 >
-                                  <Trash2 className="size-4.5" />
-                                </Button>
+                                  <ChevronUp className="size-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  aria-label={t("Decrease")}
+                                  onClick={() =>
+                                    updateOption(group.id, option.id, {
+                                      price: Math.max(0, option.price - 1),
+                                    })
+                                  }
+                                  className="cursor-pointer text-[#8B8B8B] hover:text-[#28293D]"
+                                >
+                                  <ChevronDown className="size-3.5" />
+                                </button>
                               </div>
-                            ))}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => removeOption(group.id, option.id)}
+                              aria-label={t("Remove option")}
+                              className="cursor-pointer p-1 text-[#C90000]"
+                            >
+                              <Trash2 className="size-4" />
+                            </button>
                           </div>
-
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            className="mt-4 h-9 w-full gap-3 rounded-[8px] text-[14px] font-semibold text-primary hover:bg-transparent hover:text-primary"
-                            onClick={() => addVariantOption(group.id)}
-                          >
-                            <Plus className="size-4" />
-                            New Option
-                          </Button>
-                        </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
 
-              <div>
-                <p className="mb-3 text-[18px] font-medium text-[#000000]">
-                  Recipe/Ingredients <span className="text-[#C90000]">*</span>
-                </p>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="h-14 w-full justify-between rounded-[12px] border-[#E9EAEE] px-4 text-[16px] font-normal text-[#8B8B8B] hover:bg-white"
-                    >
-                      Select a reciepe
-                      <ChevronDown className="size-6 text-[#000000]" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    align="start"
-                    className="z-70 max-h-82 w-[var(--radix-dropdown-menu-trigger-width)] overflow-y-auto rounded-[16px] p-2 ring-0"
-                  >
-                    {ingredientOptions.map((ingredient) => {
-                      const isSelected = selectedRecipes.some(
-                        (recipe) => recipe.id === ingredient.id,
-                      );
-
-                      return (
-                        <DropdownMenuItem
-                          key={ingredient.id}
-                          className={`rounded-[17px] px-4 py-3 text-[15px] font-medium ${
-                            isSelected
-                              ? "bg-primary text-primary-foreground focus:bg-primary focus:text-primary-foreground"
-                              : "text-[#28293D]"
-                          }`}
-                          onSelect={() => addRecipe(ingredient)}
-                        >
-                          {ingredient.name}
-                        </DropdownMenuItem>
-                      );
-                    })}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
-              {selectedRecipes.length > 0 ? (
-                <div className="rounded-[16px] border border-[#CACBD4] p-4">
-                  <div className="space-y-3">
-                    {selectedRecipes.map((recipe) => (
-                      <div
-                        key={recipe.id}
-                        className="grid grid-cols-[1fr_132px_64px] items-center gap-3"
+                      <button
+                        type="button"
+                        onClick={() => addOption(group.id)}
+                        className="mt-2.5 flex cursor-pointer items-center gap-1.5 text-[12px] font-semibold text-primary"
                       >
-                        <Input
-                          value={recipe.name}
-                          readOnly
-                          className="h-14 rounded-[12px] border-[#E5E5E5] px-4 text-[16px] text-[#333333]"
-                        />
-
-                        <Input
-                          value={recipe.quantityLabel}
-                          onChange={(event) =>
-                            updateRecipeQuantity(recipe.id, event.target.value)
-                          }
-                          className="h-14 rounded-[12px] border-[#E5E5E5] px-4 text-center text-[16px] text-[#000000]"
-                        />
-
-                        <Button
-                          type="button"
-                          size="icon"
-                          className="size-14 rounded-[8px] bg-[#C90000] text-white hover:bg-[#C90000]"
-                          onClick={() => removeRecipe(recipe.id)}
-                        >
-                          <Trash2 className="size-6" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
+                        <Plus className="size-3.5" />
+                        {t("New Option")}
+                      </button>
+                    </div>
+                  ))}
                 </div>
-              ) : null}
+              )}
             </div>
-          )}
 
-          <div className="my-9 border-t border-[#CACBD4]" />
+            {/* Recipe / Ingredients */}
+            <div className="flex flex-col">
+              <Label className="mb-2.5 text-[16px] font-medium text-black">
+                {t("Recipe/Ingredients")}{" "}
+                <span className="text-[13px] font-normal text-[#8B8B8B]">
+                  {t("(Optional)")}
+                </span>
+              </Label>
+              <DropdownSelect
+                options={ingredientOptions}
+                selected=""
+                onSelect={addIngredient}
+                onOpenChange={setIsRecipeOpen}
+                placeholder={t("Select a recipe")}
+                align="start"
+                className="md:w-full"
+                contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
+              />
 
-          <div className="flex items-center justify-end gap-4">
-            <Button
-              type="button"
-              variant="outline"
-              className="h-14 rounded-[5px] border-primary px-7.5 py-4 text-[16px] text-primary hover:bg-white hover:text-primary"
-              onClick={handleClose}
-            >
-              Cancel
-            </Button>
+              {form.ingredients.length > 0 && (
+                <div className="mt-3 space-y-2">
+                  {form.ingredients.map((ingredient) => (
+                    <div
+                      key={ingredient.ingredientId}
+                      className="flex items-center gap-2 rounded-[10px] border border-[#E5E5E5] bg-white px-3 py-2"
+                    >
+                      <span className="flex-1 text-[14px] font-medium text-[#28293D]">
+                        {ingredient.name}
+                      </span>
+                      <Input
+                        type="number"
+                        min="0"
+                        value={ingredient.amount}
+                        onChange={(e) =>
+                          updateIngredientAmount(
+                            ingredient.ingredientId,
+                            Number(e.target.value) || 0,
+                          )
+                        }
+                        className="h-9 w-16 rounded-[8px] border-[#E5E5E5] px-2 text-center text-[13px] focus-visible:border-primary focus-visible:ring-0"
+                      />
+                      <span className="text-[12px] text-[#8B8B8B]">
+                        {t("Gram(s)")}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          removeIngredient(ingredient.ingredientId)
+                        }
+                        aria-label={`${t("Remove")} ${ingredient.name}`}
+                        className="cursor-pointer p-1 text-[#C90000]"
+                      >
+                        <Trash2 className="size-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </form>
 
-            {step === 1 ? (
+          <div className="bg-white px-5 pb-5 sm:px-7 sm:pb-6">
+            <Separator className="mb-4 bg-[#CACBD4] sm:mb-5" />
+            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <DefaultButton
+                data={{
+                  buttonText: t("Cancel"),
+                  variant: "outline",
+                  type: "button",
+                  onClick: () => onOpenChange(false),
+                  className:
+                    "w-full sm:w-auto border-primary text-primary hover:bg-white hover:text-primary",
+                }}
+              />
               <Button
-                type="button"
-                className="h-14 rounded-[5px] px-7.5 py-4 text-[16px]"
-                onClick={goToStepTwo}
+                form={FORM_ID}
+                type="submit"
+                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
               >
-                Next
+                {editingProduct ? t("Update Product") : t("Add Product")}
               </Button>
-            ) : (
-              <Button
-                type="button"
-                className="h-14 rounded-[5px] px-7.5 py-4 text-[16px]"
-                onClick={handleSave}
-              >
-                Add Product
-              </Button>
-            )}
+            </div>
           </div>
         </div>
       </DialogContent>

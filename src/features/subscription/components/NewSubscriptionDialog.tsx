@@ -11,6 +11,7 @@ import DefaultButton from "@/shared/components/DefaultButton";
 import DropdownSelect from "@/shared/components/DropdownSelect";
 import InputField from "@/shared/components/InputField";
 import DatePicker from "@/shared/components/DatePicker";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import {
   CUSTOMER_OPTIONS,
   SUBSCRIPTION_FREQUENCY_OPTIONS,
@@ -52,6 +53,7 @@ const NewSubscriptionDialog = ({
   onOpenChange,
   onSave,
 }: NewSubscriptionDialogProps) => {
+  const { t } = useTranslation();
   const [form, setForm] = useState<NewSubscriptionFormData>(INITIAL_FORM);
   const [errors, setErrors] = useState<
     Partial<Record<keyof NewSubscriptionFormData, string>>
@@ -78,12 +80,12 @@ const NewSubscriptionDialog = ({
 
   const validate = () => {
     const next: Partial<Record<keyof NewSubscriptionFormData, string>> = {};
-    if (!form.customerId) next.customerId = "Customer is required";
-    if (!form.productId) next.productId = "Product is required";
+    if (!form.customerId) next.customerId = t("Customer is required");
+    if (!form.productId) next.productId = t("Product is required");
     if (!form.quantity.trim() || Number(form.quantity) <= 0) {
-      next.quantity = "Enter a valid quantity";
+      next.quantity = t("Enter a valid quantity");
     }
-    if (!form.firstDelivery) next.firstDelivery = "Delivery date is required";
+    if (!form.firstDelivery) next.firstDelivery = t("Delivery date is required");
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -109,7 +111,7 @@ const NewSubscriptionDialog = ({
           {/* Header */}
           <div className="px-5 pt-5 sm:px-7 sm:pt-7">
             <DialogTitle className="text-[20px] font-semibold text-[#28293D] sm:text-[22px]">
-              New Subscription
+              {t("New Subscription")}
             </DialogTitle>
           </div>
 
@@ -126,7 +128,7 @@ const NewSubscriptionDialog = ({
                   htmlFor="customer"
                   className="mb-2.5 text-[16px] font-medium text-black"
                 >
-                  Customer<span className="text-[#C90000]">*</span>
+                  {t("Customer")}<span className="text-[#C90000]">*</span>
                 </Label>
                 <DropdownSelect
                   options={customerOptions}
@@ -135,7 +137,7 @@ const NewSubscriptionDialog = ({
                   onOpenChange={(o) =>
                     setOpenDropdown(o ? "customer" : null)
                   }
-                  placeholder="Select a customer"
+                  placeholder={t("Select a customer")}
                   align="start"
                   className="md:w-full"
                   contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
@@ -152,7 +154,7 @@ const NewSubscriptionDialog = ({
                   htmlFor="product"
                   className="mb-2.5 text-[16px] font-medium text-black"
                 >
-                  Product<span className="text-[#C90000]">*</span>
+                  {t("Product")}<span className="text-[#C90000]">*</span>
                 </Label>
                 <DropdownSelect
                   options={productOptions}
@@ -161,7 +163,7 @@ const NewSubscriptionDialog = ({
                   onOpenChange={(o) =>
                     setOpenDropdown(o ? "product" : null)
                   }
-                  placeholder="Select a product"
+                  placeholder={t("Select a product")}
                   align="start"
                   className="md:w-full"
                   contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
@@ -179,10 +181,10 @@ const NewSubscriptionDialog = ({
                     htmlFor="frequency"
                     className="mb-2.5 text-[16px] font-medium text-black"
                   >
-                    Frequency<span className="text-[#C90000]">*</span>
+                    {t("Frequency")}<span className="text-[#C90000]">*</span>
                   </Label>
                   <DropdownSelect
-                    options={SUBSCRIPTION_FREQUENCY_OPTIONS}
+                    options={SUBSCRIPTION_FREQUENCY_OPTIONS.map((o) => ({ ...o, label: t(o.label) }))}
                     selected={form.frequency}
                     onSelect={(value) =>
                       set("frequency", value as SubscriptionFrequency)
@@ -190,7 +192,7 @@ const NewSubscriptionDialog = ({
                     onOpenChange={(o) =>
                       setOpenDropdown(o ? "frequency" : null)
                     }
-                    placeholder="Frequency"
+                    placeholder={t("Frequency")}
                     align="start"
                     className="md:w-full"
                     contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
@@ -201,7 +203,7 @@ const NewSubscriptionDialog = ({
                   <InputField
                     data={{
                       id: "quantity",
-                      label: { htmlFor: "quantity", labelText: "Quantity" },
+                      label: { htmlFor: "quantity", labelText: t("Quantity") },
                       placeholder: "0",
                       required: true,
                       inputProps: {
@@ -222,7 +224,7 @@ const NewSubscriptionDialog = ({
 
               <div className="flex flex-col">
                 <Label className="mb-2.5 text-[16px] font-medium text-black">
-                  First Delivery Date<span className="text-[#C90000]">*</span>
+                  {t("First Delivery Date")}<span className="text-[#C90000]">*</span>
                 </Label>
                 <DatePicker
                   value={form.firstDelivery}
@@ -246,7 +248,7 @@ const NewSubscriptionDialog = ({
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <DefaultButton
                 data={{
-                  buttonText: "Cancel",
+                  buttonText: t("Cancel"),
                   variant: "outline",
                   type: "button",
                   onClick: () => onOpenChange(false),
@@ -259,7 +261,7 @@ const NewSubscriptionDialog = ({
                 type="submit"
                 className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
               >
-                Create Subscription
+                {t("Create Subscription")}
               </Button>
             </div>
           </div>

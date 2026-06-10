@@ -1,65 +1,110 @@
-export type ProductStatus = "Available" | "Out Of Stock";
+export type ProductsTab = "products" | "recipes" | "categories";
 
-export type ProductTab = "products" | "ingredients" | "categories";
+// --- Products ---------------------------------------------------------------
+
+export type ProductDiscountType = "fixed" | "percentage";
+
+export interface ProductDiscount {
+  type: ProductDiscountType;
+  /** Fixed → the discounted price in EGP. Percentage → the percent off. */
+  value: number;
+}
 
 export interface Product {
   id: number;
   name: string;
   description: string;
   category: string;
-  price: number;
-  status: ProductStatus;
-  isActive: boolean;
   imageUrl: string;
-  discountLabel?: string;
+  price: number;
+  discount?: ProductDiscount;
+  available: boolean;
 }
+
+// --- Ingredients (Recipes tab) ---------------------------------------------
 
 export interface Ingredient {
   id: number;
   name: string;
   description: string;
-  category: "Raw Ingredient";
-  price: number;
-  initialQuantity: number;
   imageUrl: string;
+  price: number;
+  quantity: number;
+  unit: string;
+  isExtra?: boolean;
+  extraCategories?: string[];
 }
 
-export interface ProductCategory {
+// --- Categories -------------------------------------------------------------
+
+export interface Category {
   id: number;
   name: string;
   imageUrl: string;
   itemCount: number;
-  isActive: boolean;
+  active: boolean;
+}
+
+// --- Add Product form -------------------------------------------------------
+
+export interface VariantOption {
+  id: string;
+  name: string;
+  price: number;
+}
+
+export interface VariantGroup {
+  id: string;
+  name: string;
+  required: boolean;
+  options: VariantOption[];
+}
+
+export interface RecipeIngredient {
+  ingredientId: number;
+  name: string;
+  amount: number;
+  unit: string;
 }
 
 export interface ProductFormData {
   name: string;
   category: string;
   description: string;
+  barcode: string;
   price: string;
-  status: ProductStatus;
-  discountType: string;
-  discountValue: string;
-  imageUrl: string;
-  isActive: boolean;
+  quantity: string;
+  imageUrl?: string;
+  variantGroups: VariantGroup[];
+  ingredients: RecipeIngredient[];
 }
+
+// --- Add Ingredient form ----------------------------------------------------
 
 export interface IngredientFormData {
   name: string;
   description: string;
+  barcode: string;
   price: string;
-  initialQuantity: string;
-  category: "Raw Ingredient";
-  imageUrl: string;
+  quantity: string;
+  imageUrl?: string;
+  isExtra: boolean;
+  extraCategories: string[];
 }
+
+// --- Add Category form ------------------------------------------------------
 
 export interface CategoryFormData {
   name: string;
-  imageUrl: string;
+  imageUrl?: string;
 }
 
-export interface RecipeSelection {
+// --- Send WhatsApp message --------------------------------------------------
+
+export type WhatsAppMode = "random" | "select";
+
+export interface CustomerContact {
   id: number;
   name: string;
-  quantityLabel: string;
+  phone: string;
 }

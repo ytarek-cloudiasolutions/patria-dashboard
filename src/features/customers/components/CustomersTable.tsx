@@ -10,6 +10,7 @@ import {
 import { Badge } from "@/shared/components/ui/badge";
 import ActionButton from "@/shared/components/ActionButton";
 import WhatsAppIcon from "@/assets/icons/whatsapp.svg";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import TierBadge from "./TierBadge";
 import type { Customer } from "../types";
 
@@ -29,21 +30,22 @@ const formatEgp = (value: number) =>
       })}`;
 
 const RoleSubLabel = ({ customer }: { customer: Customer }) => {
+  const { t } = useTranslation();
   if (customer.role === "subscriber") {
     return (
       <div className="flex items-center gap-2">
         <span className="text-[12px] text-[#8B8B8B]">
           {customer.createdBy ?? customer.name}
         </span>
-        <Badge className="h-[18px] px-2 py-0 text-[10px] font-semibold uppercase rounded-full border bg-[#E2F4ED] text-[#059B5A] border-current">
-          Subscriber
+        <Badge className="h-4.5 px-2 py-0 text-[10px] font-semibold uppercase rounded-full border bg-[#E2F4ED] text-[#059B5A] border-current">
+          {t("Subscriber")}
         </Badge>
       </div>
     );
   }
   return (
     <span className="text-[12px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
-      {customer.role}
+      {t(customer.role)}
     </span>
   );
 };
@@ -93,6 +95,7 @@ const CustomersTable = ({
   onDelete,
   onWhatsApp,
 }: CustomersTableProps) => {
+  const { t } = useTranslation();
   return (
     <>
       {/* Mobile card list — hidden on md+ */}
@@ -121,13 +124,15 @@ const CustomersTable = ({
 
             <div className="mb-3">
               <p className="text-[13px] text-[#28293D]">{customer.email}</p>
-              <p className="text-[12px] text-[#6B6B6B]" dir="ltr">{customer.phone}</p>
+              <p className="text-[12px] text-[#6B6B6B]" dir="ltr">
+                {customer.phone}
+              </p>
             </div>
 
             <div className="mb-3">
               <TierBadge tier={customer.tier} />
               <p className="mt-1 text-[12px] text-[#8B8B8B]">
-                {customer.loyaltyPoints} PTS
+                {customer.loyaltyPoints} {t("PTS")}
               </p>
             </div>
 
@@ -144,7 +149,7 @@ const CustomersTable = ({
 
         {customers.length === 0 && (
           <p className="py-8 text-center text-[14px] text-[#8B8B8B]">
-            No customers found.
+            {t("No customers found.")}
           </p>
         )}
       </div>
@@ -154,18 +159,28 @@ const CustomersTable = ({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="px-6 py-4">NAME &amp; ROLE</TableHead>
-              <TableHead className="px-6 py-4">PEOPLE &amp; DATE</TableHead>
-              <TableHead className="px-6 py-4">TIER &amp; POINTS</TableHead>
-              <TableHead className="px-6 py-4">LTV &amp; ORDERS</TableHead>
-              <TableHead className="px-6 py-4">ACTIONS</TableHead>
+              <TableHead className="ps-6 py-4 text-start">
+                {t("NAME & ROLE")}
+              </TableHead>
+              <TableHead className="px-6 py-4 text-start">
+                {t("PEOPLE & DATE")}
+              </TableHead>
+              <TableHead className="px-6 py-4 text-start">
+                {t("TIER & POINTS")}
+              </TableHead>
+              <TableHead className="px-6 py-4 text-start">
+                {t("LTV & ORDERS")}
+              </TableHead>
+              <TableHead className="pe-6 py-4 text-end">
+                {t("ACTIONS")}
+              </TableHead>
             </TableRow>
           </TableHeader>
 
           <TableBody>
             {customers.map((customer) => (
               <TableRow key={customer.id} className="hover:bg-[#FAFAF8]">
-                <TableCell className="px-6 py-4 whitespace-nowrap">
+                <TableCell className="ps-6 py-4 whitespace-nowrap">
                   <p className="text-[14px] font-semibold text-[#28293D]">
                     {customer.name}
                   </p>
@@ -175,12 +190,12 @@ const CustomersTable = ({
                 </TableCell>
                 <TableCell className="px-6 py-4 whitespace-nowrap">
                   <p className="text-[13px] text-[#28293D]">{customer.email}</p>
-                  <p className="text-[12px] text-[#6B6B6B]" dir="ltr">{customer.phone}</p>
+                  <p className="text-[12px] text-[#6B6B6B]">{customer.phone}</p>
                 </TableCell>
                 <TableCell className="px-6 py-4 whitespace-nowrap">
                   <TierBadge tier={customer.tier} />
                   <p className="mt-1 text-[12px] text-[#8B8B8B]">
-                    {customer.loyaltyPoints} PTS
+                    {customer.loyaltyPoints} {t("PTS")}
                   </p>
                 </TableCell>
                 <TableCell className="px-6 py-4 whitespace-nowrap">
@@ -188,16 +203,18 @@ const CustomersTable = ({
                     {formatEgp(customer.lifetimeValue)}
                   </p>
                   <p className="text-[12px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
-                    {customer.segment}
+                    {t(customer.segment)}
                   </p>
                 </TableCell>
-                <TableCell className="px-6 py-4 whitespace-nowrap">
-                  <CustomerActions
-                    customer={customer}
-                    onEdit={onEdit}
-                    onDelete={onDelete}
-                    onWhatsApp={onWhatsApp}
-                  />
+                <TableCell className="pe-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center justify-end">
+                    <CustomerActions
+                      customer={customer}
+                      onEdit={onEdit}
+                      onDelete={onDelete}
+                      onWhatsApp={onWhatsApp}
+                    />
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
@@ -208,7 +225,7 @@ const CustomersTable = ({
                   colSpan={5}
                   className="py-10 text-center text-[14px] text-[#8B8B8B]"
                 >
-                  No customers found.
+                  {t("No customers found.")}
                 </TableCell>
               </TableRow>
             )}

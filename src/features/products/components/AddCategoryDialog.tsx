@@ -1,20 +1,23 @@
-import { FileUp, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import { Button } from "@/shared/components/ui/button";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
   DialogTitle,
 } from "@/shared/components/ui/dialog";
-import { Input } from "@/shared/components/ui/input";
-import { useFileUpload } from "@/shared/hooks/use-file-upload";
-import { INITIAL_CATEGORY_FORM } from "../data";
+import { Button } from "@/shared/components/ui/button";
+import { Separator } from "@/shared/components/ui/separator";
+import DefaultButton from "@/shared/components/DefaultButton";
+import InputField from "@/shared/components/InputField";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import type { CategoryFormData } from "../types";
+import UploadDropzone from "./UploadDropzone";
+
+const FORM_ID = "add-category-form";
 
 interface AddCategoryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (payload: CategoryFormData) => void;
+  onSave: (data: CategoryFormData) => void;
 }
 
 const AddCategoryDialog = ({
@@ -22,168 +25,101 @@ const AddCategoryDialog = ({
   onOpenChange,
   onSave,
 }: AddCategoryDialogProps) => {
-  const [form, setForm] = useState<CategoryFormData>(INITIAL_CATEGORY_FORM);
-  const [showErrors, setShowErrors] = useState(false);
+  const { t } = useTranslation();
+  const [name, setName] = useState("");
+  const [imageUrl, setImageUrl] = useState<string | undefined>(undefined);
+  const [error, setError] = useState("");
 
-  const [uploadState, uploadActions] = useFileUpload({
-    accept: "image/*",
-    multiple: false,
-    maxFiles: 1,
-    onFilesChange: (files) => {
-      const first = files[0];
-      setForm((previous) => ({ ...previous, imageUrl: first?.preview ?? "" }));
-    },
-  });
-
-  const uploadedImage = useMemo(
-    () => uploadState.files[0]?.preview,
-    [uploadState.files]
-  );
-
-  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
-    if (!open) {
+    if (open) {
+      setName("");
+      setImageUrl(undefined);
+      setError("");
+    }
+  }, [open]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) {
+      setError(t("Category name is required"));
       return;
     }
-
-    setShowErrors(false);
-    uploadActions.clearFiles();
-    setForm(INITIAL_CATEGORY_FORM);
-  }, [open]);
-  /* eslint-enable react-hooks/exhaustive-deps */
-
-  const hasErrors = form.name.trim().length === 0;
-
-  const handleClose = () => {
+    onSave({ name: name.trim(), imageUrl });
     onOpenChange(false);
   };
-
-  const handleSubmit = () => {
-    if (hasErrors) {
-      setShowErrors(true);
-      return;
-    }
-
-    onSave(form);
-    handleClose();
-  };
-
-  const uploadZoneClass = uploadState.isDragging
-    ? "border-primary bg-primary/5"
-    : "border-[#7A5900] bg-white";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="max-w-[820px] rounded-[12px] bg-white p-0 ring-0 sm:max-w-174"
+        className="w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-150"
       >
-        <div className="relative max-h-[90vh] overflow-y-auto p-8">
-          <DialogTitle className="mb-10 text-[28px] font-semibold text-[#28293D]">
-            Add New Category
-          </DialogTitle>
-
-          <div className="space-y-8">
-            <div
-              className={`flex h-40 cursor-pointer items-center justify-center rounded-[16px] border border-dashed transition-colors [border-width:2px] [border-dasharray:6,4] ${uploadZoneClass}`}
-              onDragEnter={uploadActions.handleDragEnter}
-              onDragLeave={uploadActions.handleDragLeave}
-              onDragOver={uploadActions.handleDragOver}
-              onDrop={uploadActions.handleDrop}
-              onClick={uploadActions.openFileDialog}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" || event.key === " ") {
-                  event.preventDefault();
-                  uploadActions.openFileDialog();
-                }
-              }}
-            >
-              {uploadedImage || form.imageUrl ? (
-                <div className="relative flex size-full items-center justify-center p-2">
-                  <img
-                    src={uploadedImage ?? form.imageUrl}
-                    alt="Category"
-                    className="h-22 w-auto max-w-70 rounded-[8px] object-contain"
-                  />
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="icon"
-                    className="absolute top-2 right-2 size-7 rounded-full"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      uploadActions.clearFiles();
-                      setForm((previous) => ({ ...previous, imageUrl: "" }));
-                    }}
-                  >
-                    <X className="size-4" />
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center text-center">
-                  <FileUp className="mb-6 size-6 text-[#000000]" />
-                  <p className="mb-1 text-[16px] font-semibold text-[#333333]">
-                    Click to upload image
-                  </p>
-                  <p className="text-[14px] text-[#8B8B8B]">
-                    PNG, JPG up to 5MB
-                  </p>
-                </div>
-              )}
-
-              <input
-                {...uploadActions.getInputProps({ className: "hidden" })}
-              />
-            </div>
-
-            <div>
-              <p className="mb-3 text-[18px] font-medium text-[#000000]">
-                Category Name <span className="text-[#C90000]">*</span>
-              </p>
-              <Input
-                value={form.name}
-                onChange={(event) =>
-                  setForm((previous) => ({
-                    ...previous,
-                    name: event.target.value,
-                  }))
-                }
-                placeholder="e.g. Speciality Coffee"
-                className={`h-14 rounded-[12px] px-4 text-[16px] placeholder:text-[#8B8B8B] ${
-                  showErrors && hasErrors
-                    ? "border-[#C90000]"
-                    : "border-[#E5E5E5]"
-                }`}
-              />
-            </div>
-
-            {showErrors && hasErrors ? (
-              <p className="text-[12px] font-medium text-[#C90000]">
-                Please enter a category name.
-              </p>
-            ) : null}
+        <div className="flex flex-col">
+          <div className="px-5 pt-5 sm:px-7 sm:pt-7">
+            <DialogTitle className="text-[20px] font-semibold text-[#28293D] sm:text-[22px]">
+              {t("Add New Category")}
+            </DialogTitle>
           </div>
 
-          <div className="my-9 border-t border-[#CACBD4]" />
+          <form
+            id={FORM_ID}
+            onSubmit={handleSubmit}
+            noValidate
+            className="flex flex-col gap-5 px-5 py-5 sm:px-7 sm:py-6"
+          >
+            <UploadDropzone
+              value={imageUrl}
+              onSelect={(_, url) => setImageUrl(url)}
+              title="Click to upload image"
+              hint="PNG, JPG up to 5MB"
+            />
 
-          <div className="flex items-center justify-end gap-4">
-            <Button
-              type="button"
-              variant="outline"
-              className="h-14 rounded-[5px] border-primary px-7.5 py-4 text-[16px] text-primary hover:bg-white hover:text-primary"
-              onClick={handleClose}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              className="h-14 rounded-[5px] px-7.5 py-4 text-[16px]"
-              onClick={handleSubmit}
-            >
-              Add category
-            </Button>
+            <div>
+              <InputField
+                data={{
+                  id: "category-name",
+                  label: {
+                    htmlFor: "category-name",
+                    labelText: t("Category Name"),
+                  },
+                  placeholder: t("e.g. Speciality Coffee"),
+                  required: true,
+                  inputProps: {
+                    value: name,
+                    onChange: (e) => {
+                      setName(e.target.value);
+                      if (error) setError("");
+                    },
+                  },
+                }}
+              />
+              {error && (
+                <p className="mt-1 text-[13px] text-[#C90000]">{error}</p>
+              )}
+            </div>
+          </form>
+
+          <div className="bg-white px-5 pb-5 sm:px-7 sm:pb-6">
+            <Separator className="mb-4 bg-[#CACBD4] sm:mb-5" />
+            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <DefaultButton
+                data={{
+                  buttonText: t("Cancel"),
+                  variant: "outline",
+                  type: "button",
+                  onClick: () => onOpenChange(false),
+                  className:
+                    "w-full sm:w-auto border-primary text-primary hover:bg-white hover:text-primary",
+                }}
+              />
+              <Button
+                form={FORM_ID}
+                type="submit"
+                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
+              >
+                {t("Add category")}
+              </Button>
+            </div>
           </div>
         </div>
       </DialogContent>

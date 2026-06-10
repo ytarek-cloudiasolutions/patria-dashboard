@@ -7,6 +7,7 @@ import {
   TableRow,
 } from "@/shared/components/ui/table";
 import { Badge } from "@/shared/components/ui/badge";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import { cn } from "@/lib/utils";
 import type { EquipmentRecord, EquipmentStatus, EquipmentTask } from "../types";
 
@@ -20,32 +21,39 @@ const STATUS_STYLES: Record<EquipmentStatus, string> = {
   Maintenance: "bg-[#FFF5DC] text-[#B56C00] border-current",
 };
 
-const TaskBadge = ({ task }: { task: EquipmentTask }) => (
-  <Badge
-    className={cn(
-      "h-6 rounded-full border px-3 py-0 text-[11px] font-semibold border-[#595959] bg-[#E5E5E5] text-[#23252A]",
-      task,
-    )}
-  >
-    {task}
-  </Badge>
-);
+const TaskBadge = ({ task }: { task: EquipmentTask }) => {
+  const { t } = useTranslation();
+  return (
+    <Badge
+      className={cn(
+        "h-6 rounded-full border px-3 py-0 text-[11px] font-semibold border-[#595959] bg-[#E5E5E5] text-[#23252A]",
+        task,
+      )}
+    >
+      {t(task)}
+    </Badge>
+  );
+};
 
-const StatusBadge = ({ status }: { status: EquipmentStatus }) => (
-  <Badge
-    className={cn(
-      "h-6 min-w-24 rounded-full border px-3 py-0 text-[12px] font-semibold",
-      STATUS_STYLES[status],
-    )}
-  >
-    {status}
-  </Badge>
-);
+const StatusBadge = ({ status }: { status: EquipmentStatus }) => {
+  const { t } = useTranslation();
+  return (
+    <Badge
+      className={cn(
+        "h-6 min-w-24 rounded-full border px-3 py-0 text-[12px] font-semibold",
+        STATUS_STYLES[status],
+      )}
+    >
+      {t(status)}
+    </Badge>
+  );
+};
 
 const formatEgp = (value: number) =>
   `EGP ${value.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
 
 const EquipmentTable = ({ records }: EquipmentTableProps) => {
+  const { t } = useTranslation();
   return (
     <>
       {/* Mobile card list */}
@@ -65,27 +73,27 @@ const EquipmentTable = ({ records }: EquipmentTableProps) => {
             <div className="grid grid-cols-2 gap-3 text-[13px]">
               <div>
                 <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
-                  Task
+                  {t("Task")}
                 </p>
                 <TaskBadge task={record.task} />
               </div>
               <div>
                 <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
-                  Operator
+                  {t("Operator")}
                 </p>
                 <p className="text-[#28293D]">{record.operator}</p>
               </div>
               <div>
                 <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
-                  Deadline
+                  {t("Deadline")}
                 </p>
-                <p className="text-[#28293D]">{record.deadline}</p>
+                <p className="text-[#28293D]" dir="ltr">{record.deadline}</p>
               </div>
               <div>
                 <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
-                  Cost
+                  {t("Cost")}
                 </p>
-                <p className="font-semibold text-[#28293D]">
+                <p className="font-semibold text-[#28293D]" dir="ltr">
                   {formatEgp(record.cost)}
                 </p>
               </div>
@@ -95,7 +103,7 @@ const EquipmentTable = ({ records }: EquipmentTableProps) => {
 
         {records.length === 0 && (
           <p className="py-8 text-center text-[14px] text-[#8B8B8B]">
-            No equipment records yet.
+            {t("No equipment records yet.")}
           </p>
         )}
       </div>
@@ -105,18 +113,18 @@ const EquipmentTable = ({ records }: EquipmentTableProps) => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="px-6 py-4">MACHINE</TableHead>
-              <TableHead className="px-6 py-4 text-center">TASK</TableHead>
-              <TableHead className="px-6 py-4">OPERATOR</TableHead>
-              <TableHead className="px-6 py-4">DEADLINE</TableHead>
-              <TableHead className="px-6 py-4">COST</TableHead>
-              <TableHead className="px-6 py-4">STATUS</TableHead>
+              <TableHead className="ps-6 py-4 text-start">{t("MACHINE")}</TableHead>
+              <TableHead className="px-6 py-4 text-center">{t("TASK")}</TableHead>
+              <TableHead className="px-6 py-4 text-start">{t("OPERATOR")}</TableHead>
+              <TableHead className="px-6 py-4 text-start">{t("DEADLINE")}</TableHead>
+              <TableHead className="px-6 py-4 text-start">{t("COST")}</TableHead>
+              <TableHead className="pe-6 py-4 text-end">{t("STATUS")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {records.map((record) => (
               <TableRow key={record.id} className="hover:bg-[#FAFAF8]">
-                <TableCell className="px-6 py-4 whitespace-nowrap text-[14px] font-semibold text-[#28293D]">
+                <TableCell className="ps-6 py-4 whitespace-nowrap text-[14px] font-semibold text-[#28293D]">
                   {record.machine}
                 </TableCell>
                 <TableCell className="px-6 py-4 whitespace-nowrap text-center">
@@ -125,14 +133,16 @@ const EquipmentTable = ({ records }: EquipmentTableProps) => {
                 <TableCell className="px-6 py-4 whitespace-nowrap text-[14px] font-semibold text-[#28293D]">
                   {record.operator}
                 </TableCell>
-                <TableCell className="px-6 py-4 whitespace-nowrap font-medium text-[13px] text-black">
+                <TableCell className="px-6 py-4 whitespace-nowrap font-medium text-[13px] text-black" >
                   {record.deadline}
                 </TableCell>
-                <TableCell className="px-6 py-4 whitespace-nowrap text-[14px] font-semibold text-[#28293D]">
+                <TableCell className="px-6 py-4 whitespace-nowrap text-[14px] font-semibold text-[#28293D]" >
                   {formatEgp(record.cost)}
                 </TableCell>
-                <TableCell className="px-6 py-4 whitespace-nowrap">
-                  <StatusBadge status={record.status} />
+                <TableCell className="pe-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center justify-end">
+                    <StatusBadge status={record.status} />
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
@@ -143,7 +153,7 @@ const EquipmentTable = ({ records }: EquipmentTableProps) => {
                   colSpan={6}
                   className="py-10 text-center text-[14px] text-[#8B8B8B]"
                 >
-                  No equipment records yet.
+                  {t("No equipment records yet.")}
                 </TableCell>
               </TableRow>
             )}

@@ -14,15 +14,16 @@ import DefaultButton from "@/shared/components/DefaultButton";
 import InputField from "@/shared/components/InputField";
 import DropdownSelect from "@/shared/components/DropdownSelect";
 import { Label } from "@/shared/components/ui/label";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import MediaSvg from "@/assets/images/svgs/media.svg";
 import ShapeSvg from "@/assets/images/svgs/shape.svg";
 import TierBadge from "./TierBadge";
 import type { Customer, CustomerFormData, CustomerTier } from "../types";
 
-const TIER_OPTIONS: { label: string; value: CustomerTier }[] = [
-  { label: "Bronze (Standard)", value: "Bronze" },
-  { label: "Silver (Pro)", value: "Silver" },
-  { label: "Gold (Wholesale VIP)", value: "Gold" },
+const makeTierOptions = (t: (s: string) => string): { label: string; value: CustomerTier }[] => [
+  { label: t("Bronze (Standard)"), value: "Bronze" },
+  { label: t("Silver (Pro)"), value: "Silver" },
+  { label: t("Gold (Wholesale VIP)"), value: "Gold" },
 ];
 
 const getInitials = (name: string) =>
@@ -54,6 +55,8 @@ const EditCustomerDialog = ({
   onOpenChange,
   onSave,
 }: EditCustomerDialogProps) => {
+  const { t } = useTranslation();
+  const tierOptions = makeTierOptions(t);
   const [tier, setTier] = useState<CustomerTier>("Bronze");
   const [loyaltyPoints, setLoyaltyPoints] = useState("");
   const [isTierOpen, setIsTierOpen] = useState(false);
@@ -84,7 +87,7 @@ const EditCustomerDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-[560px]"
+        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-140"
       >
         {/* Scrim/backdrop overlay when the Tier dropdown is open */}
         {isTierOpen && (
@@ -95,7 +98,7 @@ const EditCustomerDialog = ({
           {/* Header */}
           <div className="px-5 pt-5 sm:px-7 sm:pt-7">
             <DialogTitle className="text-[20px] font-semibold text-[#28293D] sm:text-[22px]">
-              Edit Customer
+              {t("Edit Customer")}
             </DialogTitle>
           </div>
 
@@ -133,7 +136,7 @@ const EditCustomerDialog = ({
                   </Avatar>
                   <div className="min-w-0">
                     <p className="text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
-                      User Information
+                      {t("User Information")}
                     </p>
                     <p className="text-[18px] font-semibold text-[#28293D]">
                       {customer.name}
@@ -141,13 +144,13 @@ const EditCustomerDialog = ({
 
                     <div className="mt-4 flex flex-wrap gap-x-8 gap-y-2 text-[12px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
                       <div>
-                        <p>LTV</p>
+                        <p>{t("LTV")}</p>
                         <p className="mt-1 text-[14px] font-semibold normal-case tracking-normal text-[#059B5A]">
                           {formatEgp(customer.lifetimeValue)}
                         </p>
                       </div>
                       <div>
-                        <p>Orders</p>
+                        <p>{t("Orders")}</p>
                         <p className="mt-1 text-[14px] font-semibold normal-case tracking-normal text-[#059B5A]">
                           {formatEgp(0)}
                         </p>
@@ -166,14 +169,14 @@ const EditCustomerDialog = ({
                   htmlFor="customer-tier"
                   className="mb-2.5 text-[16px] font-medium text-black"
                 >
-                  Tier
+                  {t("Tier")}
                 </Label>
                 <DropdownSelect
-                  options={TIER_OPTIONS}
+                  options={tierOptions}
                   selected={tier}
                   onSelect={(value) => setTier(value as CustomerTier)}
                   onOpenChange={setIsTierOpen}
-                  placeholder="Select tier"
+                  placeholder={t("Select tier")}
                   align="start"
                   className="md:w-full"
                   contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
@@ -185,9 +188,9 @@ const EditCustomerDialog = ({
                   id: "loyalty-points",
                   label: {
                     htmlFor: "loyalty-points",
-                    labelText: "Loyalty Points",
+                    labelText: t("Loyalty Points"),
                   },
-                  placeholder: "e.g. 20",
+                  placeholder: t("e.g. 20"),
                   inputProps: {
                     type: "number",
                     min: "0",
@@ -205,7 +208,7 @@ const EditCustomerDialog = ({
             <div className="flex justify-end gap-3">
               <DefaultButton
                 data={{
-                  buttonText: "Cancel",
+                  buttonText: t("Cancel"),
                   variant: "outline",
                   type: "button",
                   onClick: () => onOpenChange(false),
@@ -218,7 +221,7 @@ const EditCustomerDialog = ({
                 type="submit"
                 className="flex h-12 cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:gap-3 sm:px-7.5 sm:text-[16px]"
               >
-                Save Edits
+                {t("Save Edits")}
               </Button>
             </div>
           </div>

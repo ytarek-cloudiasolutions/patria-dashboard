@@ -11,6 +11,7 @@ import { Textarea } from "@/shared/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import InputField from "@/shared/components/InputField";
 import DefaultButton from "@/shared/components/DefaultButton";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import type { Supplier, SupplierFormData } from "../types";
 
 const FORM_ID = "supplier-form";
@@ -37,6 +38,7 @@ const SupplierFormModal = ({
   onClose,
   onSave,
 }: SupplierFormModalProps) => {
+  const { t } = useTranslation();
   const [form, setForm] = useState<SupplierFormData>(INITIAL_FORM);
   const [errors, setErrors] = useState<
     Partial<Record<keyof SupplierFormData, string>>
@@ -69,20 +71,20 @@ const SupplierFormModal = ({
   const validate = () => {
     const next: Partial<Record<keyof SupplierFormData, string>> = {};
     if (!form.supplierName.trim())
-      next.supplierName = "Supplier name is required";
-    if (!form.contactName.trim()) next.contactName = "Name is required";
-    if (!form.phone.trim()) next.phone = "Phone number is required";
+      next.supplierName = t("Supplier name is required");
+    if (!form.contactName.trim()) next.contactName = t("Name is required");
+    if (!form.phone.trim()) next.phone = t("Phone number is required");
     if (!form.email.trim()) {
-      next.email = "Email is required";
+      next.email = t("Email is required");
     } else if (!/^\S+@\S+\.\S+$/.test(form.email)) {
-      next.email = "Enter a valid email";
+      next.email = t("Enter a valid email");
     }
-    if (!form.address.trim()) next.address = "Address is required";
+    if (!form.address.trim()) next.address = t("Address is required");
     setErrors(next);
     return Object.keys(next).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!validate()) return;
     onSave(form, supplier?.id);
@@ -95,13 +97,13 @@ const SupplierFormModal = ({
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent
         showCloseButton={false}
-        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-[640px]"
+        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-160"
       >
         <div className="flex max-h-[calc(100vh-2rem)] flex-col">
           {/* Header */}
           <div className="px-5 pt-5 sm:px-7 sm:pt-7">
             <DialogTitle className="text-[20px] font-semibold text-[#28293D] sm:text-[22px]">
-              {isEditing ? "Edit Supplier" : "Add New Supplier"}
+              {isEditing ? t("Edit Supplier") : t("Add New Supplier")}
             </DialogTitle>
           </div>
 
@@ -121,9 +123,9 @@ const SupplierFormModal = ({
                       id: "supplier-name",
                       label: {
                         htmlFor: "supplier-name",
-                        labelText: "Supplier Name",
+                        labelText: t("Supplier Name"),
                       },
-                      placeholder: "e.g. Bean's supplier",
+                      placeholder: t("e.g. Bean's supplier"),
                       required: true,
                       inputProps: {
                         value: form.supplierName,
@@ -142,8 +144,8 @@ const SupplierFormModal = ({
                   <InputField
                     data={{
                       id: "contact-name",
-                      label: { htmlFor: "contact-name", labelText: "Name" },
-                      placeholder: "Full Name",
+                      label: { htmlFor: "contact-name", labelText: t("Name") },
+                      placeholder: t("Full Name"),
                       required: true,
                       inputProps: {
                         value: form.contactName,
@@ -167,7 +169,7 @@ const SupplierFormModal = ({
                       id: "phone",
                       label: {
                         htmlFor: "phone",
-                        labelText: "Phone Number",
+                        labelText: t("Phone Number"),
                       },
                       type: "tel",
                       placeholder: "+20...",
@@ -191,10 +193,10 @@ const SupplierFormModal = ({
                       id: "email",
                       label: {
                         htmlFor: "email",
-                        labelText: "Email Address",
+                        labelText: t("Email Address"),
                       },
                       type: "email",
-                      placeholder: "vendor@global.com",
+                      placeholder: t("vendor@global.com"),
                       required: true,
                       inputProps: {
                         value: form.email,
@@ -216,12 +218,12 @@ const SupplierFormModal = ({
                   htmlFor="address"
                   className="mb-2.5 text-[16px] font-medium text-black"
                 >
-                  Address<span className="text-[#C90000]">*</span>
+                  {t("Address")}<span className="text-[#C90000]">*</span>
                 </Label>
                 <Textarea
                   id="address"
                   rows={3}
-                  placeholder="Street, Sector, Territory..."
+                  placeholder={t("Street, Sector, Territory...")}
                   value={form.address}
                   onChange={(e) => set("address", e.target.value)}
                   className={cn(
@@ -242,9 +244,9 @@ const SupplierFormModal = ({
                   id: "categories",
                   label: {
                     htmlFor: "categories",
-                    labelText: "Categories (Comma Seperated)",
+                    labelText: t("Categories (Comma Separated)"),
                   },
-                  placeholder: "E.G. ARABICA, COFFEE",
+                  placeholder: t("E.G. ARABICA, COFFEE"),
                   inputProps: {
                     value: form.categories,
                     onChange: (e) => set("categories", e.target.value),
@@ -261,7 +263,7 @@ const SupplierFormModal = ({
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <DefaultButton
                 data={{
-                  buttonText: "Cancel",
+                  buttonText: t("Cancel"),
                   variant: "outline",
                   type: "button",
                   onClick: onClose,
@@ -274,7 +276,7 @@ const SupplierFormModal = ({
                 type="submit"
                 className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
               >
-                {isEditing ? "Update Supplier" : "Save Supplier"}
+                {isEditing ? t("Update Supplier") : t("Save Supplier")}
               </Button>
             </div>
           </div>

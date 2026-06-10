@@ -9,6 +9,7 @@ import { Label } from "@/shared/components/ui/label";
 import { Separator } from "@/shared/components/ui/separator";
 import DefaultButton from "@/shared/components/DefaultButton";
 import InputField from "@/shared/components/InputField";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import { cn } from "@/lib/utils";
 import type { BatchFormData, RoastingDegree } from "../types";
 
@@ -35,6 +36,7 @@ const StartRoastDialog = ({
   onOpenChange,
   onSave,
 }: StartRoastDialogProps) => {
+  const { t } = useTranslation();
   const [form, setForm] = useState<BatchFormData>(INITIAL_FORM);
   const [errors, setErrors] = useState<
     Partial<Record<keyof BatchFormData, string>>
@@ -57,14 +59,14 @@ const StartRoastDialog = ({
 
   const validate = () => {
     const next: Partial<Record<keyof BatchFormData, string>> = {};
-    if (!form.batchNumber.trim()) next.batchNumber = "Batch number is required";
+    if (!form.batchNumber.trim()) next.batchNumber = t("Batch number is required");
     if (!form.rawCoffeeType.trim())
-      next.rawCoffeeType = "Raw coffee type is required";
+      next.rawCoffeeType = t("Raw coffee type is required");
     if (!form.weightBefore.trim() || Number(form.weightBefore) <= 0) {
-      next.weightBefore = "Enter a valid weight";
+      next.weightBefore = t("Enter a valid weight");
     }
     if (!form.weightAfter.trim() || Number(form.weightAfter) < 0) {
-      next.weightAfter = "Enter a valid weight";
+      next.weightAfter = t("Enter a valid weight");
     }
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -81,13 +83,13 @@ const StartRoastDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-[560px]"
+        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-140"
       >
         <div className="flex max-h-[calc(100vh-2rem)] flex-col">
           {/* Header */}
           <div className="px-5 pt-5 sm:px-7 sm:pt-7">
             <DialogTitle className="text-[20px] font-semibold text-[#28293D] sm:text-[22px]">
-              New Roasting Batch
+              {t("New Roasting Batch")}
             </DialogTitle>
           </div>
 
@@ -106,9 +108,9 @@ const StartRoastDialog = ({
                       id: "batch-number",
                       label: {
                         htmlFor: "batch-number",
-                        labelText: "Batch number",
+                        labelText: t("Batch number"),
                       },
-                      placeholder: "Driver Name",
+                      placeholder: t("Batch number"),
                       required: true,
                       inputProps: {
                         value: form.batchNumber,
@@ -129,9 +131,9 @@ const StartRoastDialog = ({
                       id: "raw-coffee",
                       label: {
                         htmlFor: "raw-coffee",
-                        labelText: "Raw Coffee Type",
+                        labelText: t("Raw Coffee Type"),
                       },
-                      placeholder: "+20...",
+                      placeholder: t("Raw Coffee Type"),
                       required: true,
                       inputProps: {
                         value: form.rawCoffeeType,
@@ -152,7 +154,7 @@ const StartRoastDialog = ({
                       id: "weight-before",
                       label: {
                         htmlFor: "weight-before",
-                        labelText: "Weight before roasting (kg)",
+                        labelText: t("Weight before roasting (kg)"),
                       },
                       placeholder: "0",
                       required: true,
@@ -178,7 +180,7 @@ const StartRoastDialog = ({
                       id: "weight-after",
                       label: {
                         htmlFor: "weight-after",
-                        labelText: "Weight after roasting (kg)",
+                        labelText: t("Weight after roasting (kg)"),
                       },
                       placeholder: "0",
                       required: true,
@@ -202,7 +204,7 @@ const StartRoastDialog = ({
               {/* Degree selector */}
               <div className="flex flex-col">
                 <Label className="mb-2.5 text-[16px] font-medium text-black">
-                  Roasting degree<span className="text-[#C90000]">*</span>
+                  {t("Roasting degree")}<span className="text-[#C90000]">*</span>
                 </Label>
                 <div className="flex gap-6 self-stretch">
                   {DEGREES.map((d) => {
@@ -219,7 +221,7 @@ const StartRoastDialog = ({
                             : "border-4 border-gray-400/40 bg-neutral-200 font-normal text-[#333333]",
                         )}
                       >
-                        {d}
+                        {t(d)}
                       </button>
                     );
                   })}
@@ -234,7 +236,7 @@ const StartRoastDialog = ({
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <DefaultButton
                 data={{
-                  buttonText: "Cancel",
+                  buttonText: t("Cancel"),
                   variant: "outline",
                   type: "button",
                   onClick: () => onOpenChange(false),
@@ -247,7 +249,7 @@ const StartRoastDialog = ({
                 type="submit"
                 className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
               >
-                Commit Batch
+                {t("Commit Batch")}
               </Button>
             </div>
           </div>

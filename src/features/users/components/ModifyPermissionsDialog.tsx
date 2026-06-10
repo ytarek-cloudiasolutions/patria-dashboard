@@ -9,6 +9,7 @@ import { Checkbox } from "@/shared/components/ui/checkbox";
 import { Separator } from "@/shared/components/ui/separator";
 import { cn } from "@/lib/utils";
 import DefaultButton from "@/shared/components/DefaultButton";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import {
   ALL_PERMISSION_PAGES,
   ROLE_CARD_OPTIONS,
@@ -30,6 +31,7 @@ const ModifyPermissionsDialog = ({
   onOpenChange,
   onSave,
 }: ModifyPermissionsDialogProps) => {
+  const { t } = useTranslation();
   const [role, setRole] = useState<UserRole>("Staff");
   const [pages, setPages] = useState<Set<PermissionPage>>(new Set());
 
@@ -74,7 +76,7 @@ const ModifyPermissionsDialog = ({
         <div className="flex max-h-[calc(100vh-2rem)] flex-col">
           {/* Header */}
           <div className="px-5 pt-5 sm:px-7 sm:pt-7">
-            <p className="text-[13px] text-[#8B8B8B]">Modify permissions</p>
+            <p className="text-[13px] text-[#8B8B8B]">{t("Modify permissions")}</p>
             <DialogTitle className="mt-1 text-[20px] font-semibold text-[#28293D] sm:text-[24px]">
               {user?.name ?? ""}
             </DialogTitle>
@@ -105,7 +107,7 @@ const ModifyPermissionsDialog = ({
                           isActive ? "text-white" : "text-[#333333]",
                         )}
                       >
-                        {option.label}
+                        {t(option.label)}
                       </span>
                       <span
                         className={cn(
@@ -113,7 +115,7 @@ const ModifyPermissionsDialog = ({
                           isActive ? "text-white" : "text-[#8B8B8B]",
                         )}
                       >
-                        {option.description}
+                        {t(option.description)}
                       </span>
                     </button>
                   );
@@ -124,7 +126,7 @@ const ModifyPermissionsDialog = ({
               <div>
                 <div className="mb-3 flex items-center justify-between">
                   <p className="text-[14px] font-semibold text-[#28293D]">
-                    Available pages
+                    {t("Available pages")}
                   </p>
                   <span className="text-[13px] text-[#8B8B8B]">
                     {pages.size}/{ALL_PERMISSION_PAGES.length}
@@ -147,7 +149,7 @@ const ModifyPermissionsDialog = ({
                         <span className="flex items-center gap-1.5">
                           <Icon size={18} className={color} />
                           <span className="text-[14px] font-semibold text-[#28293D]">
-                            {page}
+                            {t(page)}
                           </span>
                         </span>
                         <div
@@ -177,7 +179,7 @@ const ModifyPermissionsDialog = ({
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <DefaultButton
                 data={{
-                  buttonText: "Cancel",
+                  buttonText: t("Cancel"),
                   variant: "outline",
                   type: "button",
                   onClick: () => onOpenChange(false),
@@ -190,7 +192,7 @@ const ModifyPermissionsDialog = ({
                 onClick={handleSave}
                 className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
               >
-                Save Edits
+                {t("Save Edits")}
               </Button>
             </div>
           </div>

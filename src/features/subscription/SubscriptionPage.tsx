@@ -4,6 +4,7 @@ import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
 import SearchInputField from "@/shared/components/SearchInputField";
 import DropdownSelect from "@/shared/components/DropdownSelect";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 
 import SubscriptionsOverview from "./components/SubscriptionsOverview";
 import SubscriptionsTable from "./components/SubscriptionsTable";
@@ -40,6 +41,7 @@ const formatNextDelivery = (date: string) => {
 };
 
 const SubscriptionPage = () => {
+  const { t } = useTranslation();
   const [subscriptions, setSubscriptions] = useState<Subscription[]>(
     INITIAL_SUBSCRIPTIONS,
   );
@@ -148,13 +150,13 @@ const SubscriptionPage = () => {
 
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <HeaderLayout
-          title="Subscriptions"
-          description="Manage recurring subscriptions"
+          title={t("Subscription")}
+          description={t("Manage recurring subscriptions")}
         />
         <div className="flex flex-wrap gap-3">
           <DefaultButton
             data={{
-              buttonText: "Run Renewls",
+              buttonText: t("Run Renewls"),
               icon: <RefreshCw className="size-4.5" />,
               variant: "outline",
               onClick: () => {},
@@ -164,7 +166,7 @@ const SubscriptionPage = () => {
           />
           <DefaultButton
             data={{
-              buttonText: "New subscription",
+              buttonText: t("New subscription"),
               icon: <Plus className="size-4.5" />,
               onClick: () => setIsNewOpen(true),
             }}
@@ -183,16 +185,16 @@ const SubscriptionPage = () => {
           <SearchInputField
             value={search}
             onChange={setSearch}
-            placeholder="Search by Customer name..."
+            placeholder={t("Search by Customer name...")}
           />
         </div>
         <div className="sm:w-64">
           <DropdownSelect
-            options={SUBSCRIPTION_PAYMENT_FILTERS}
+            options={SUBSCRIPTION_PAYMENT_FILTERS.map((o) => ({ ...o, label: t(o.label) }))}
             selected={paymentFilter}
             onSelect={setPaymentFilter}
             onOpenChange={setIsPaymentFilterOpen}
-            placeholder="Payment"
+            placeholder={t("Payment")}
             align="end"
             className="md:w-full"
             contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"

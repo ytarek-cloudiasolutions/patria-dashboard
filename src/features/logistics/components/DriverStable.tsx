@@ -8,6 +8,7 @@ import {
   TableRow,
 } from "@/shared/components/ui/table";
 import { Switch } from "@/shared/components/ui/switch";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import ActionButton from "@/shared/components/ActionButton";
 import WhatsAppIcon from "@/assets/icons/whatsapp.svg";
 import type { Driver } from "../types";
@@ -23,16 +24,19 @@ const StatusToggle = ({
 }: {
   driver: Driver;
   onToggleStatus: (d: Driver, enabled: boolean) => void;
-}) => (
-  <div className="flex items-center gap-2">
-    <span className="text-[13px] font-semibold">{driver.status}</span>
-    <Switch
-      checked={driver.status === "Active"}
-      onCheckedChange={(checked) => onToggleStatus(driver, checked)}
-      aria-label={`Toggle ${driver.name}`}
-    />
-  </div>
-);
+}) => {
+  const { t } = useTranslation();
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-[13px] font-semibold">{t(driver.status)}</span>
+      <Switch
+        checked={driver.status === "Active"}
+        onCheckedChange={(checked) => onToggleStatus(driver, checked)}
+        aria-label={`Toggle ${driver.name}`}
+      />
+    </div>
+  );
+};
 
 const WhatsAppButton = ({ driver }: { driver: Driver }) => (
   <button
@@ -88,6 +92,7 @@ const DriversTable = ({
   onDelete,
   onToggleStatus,
 }: DriversTableProps) => {
+  const { t } = useTranslation();
   return (
     <>
       {/* Mobile card list — hidden on md+ */}
@@ -103,7 +108,7 @@ const DriversTable = ({
                   {driver.name}
                 </p>
                 <p className="text-[12px] text-[#6B6B6B]">
-                  {driver.whatsappPhone}
+                  <bdi>{driver.whatsappPhone}</bdi>
                 </p>
               </div>
               <DriverActions
@@ -116,13 +121,13 @@ const DriversTable = ({
             <div className="mb-3 grid grid-cols-2 gap-3 text-[13px]">
               <div>
                 <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
-                  Vehicle Type
+                  {t("Vehicle Type")}
                 </p>
-                <p className="text-[#28293D]">{driver.vehicleType}</p>
+                <p className="text-[#28293D]">{t(driver.vehicleType)}</p>
               </div>
               <div>
                 <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
-                  Zones
+                  {t("Zones")}
                 </p>
                 <p className="text-[#28293D]">{driver.zones.join(", ")}</p>
               </div>
@@ -134,7 +139,7 @@ const DriversTable = ({
 
         {drivers.length === 0 && (
           <p className="py-8 text-center text-[14px] text-[#8B8B8B]">
-            No drivers yet.
+            {t("No drivers yet.")}
           </p>
         )}
       </div>
@@ -144,25 +149,25 @@ const DriversTable = ({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="px-6 py-4">DRIVER NAME</TableHead>
-              <TableHead className="px-6 py-4">WHATSAPP PHONE</TableHead>
-              <TableHead className="px-6 py-4">VEHICLE TYPE</TableHead>
-              <TableHead className="px-6 py-4">ZONES</TableHead>
-              <TableHead className="px-6 py-4">STATUS</TableHead>
-              <TableHead className="px-6 py-4">ACTION</TableHead>
+              <TableHead className="ps-6 py-4 text-start">{t("DRIVER NAME")}</TableHead>
+              <TableHead className="px-6 py-4 text-start">{t("WHATSAPP PHONE")}</TableHead>
+              <TableHead className="px-6 py-4 text-start">{t("VEHICLE TYPE")}</TableHead>
+              <TableHead className="px-6 py-4 text-start">{t("ZONES")}</TableHead>
+              <TableHead className="px-6 py-4 text-start">{t("STATUS")}</TableHead>
+              <TableHead className="pe-6 py-4 text-end">{t("ACTION")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {drivers.map((driver) => (
               <TableRow key={driver.id} className="hover:bg-[#FAFAF8]">
-                <TableCell className="px-6 py-4 whitespace-nowrap text-[14px] font-medium text-[#28293D]">
+                <TableCell className="ps-6 py-4 whitespace-nowrap text-[14px] font-medium text-[#28293D]">
                   {driver.name}
                 </TableCell>
                 <TableCell className="px-6 py-4 whitespace-nowrap text-[14px] text-[#28293D]">
-                  {driver.whatsappPhone}
+                  <bdi>{driver.whatsappPhone}</bdi>
                 </TableCell>
                 <TableCell className="px-6 py-4 whitespace-nowrap text-[14px] text-[#28293D]">
-                  {driver.vehicleType}
+                  {t(driver.vehicleType)}
                 </TableCell>
                 <TableCell className="px-6 py-4 whitespace-nowrap text-[14px] text-[#28293D]">
                   {driver.zones.join(", ")}
@@ -173,12 +178,14 @@ const DriversTable = ({
                     onToggleStatus={onToggleStatus}
                   />
                 </TableCell>
-                <TableCell className="px-6 py-4 whitespace-nowrap">
-                  <DriverActions
-                    driver={driver}
-                    onEdit={onEdit}
-                    onDelete={onDelete}
-                  />
+                <TableCell className="pe-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center justify-end">
+                    <DriverActions
+                      driver={driver}
+                      onEdit={onEdit}
+                      onDelete={onDelete}
+                    />
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
@@ -189,7 +196,7 @@ const DriversTable = ({
                   colSpan={6}
                   className="py-10 text-center text-[14px] text-[#8B8B8B]"
                 >
-                  No drivers yet.
+                  {t("No drivers yet.")}
                 </TableCell>
               </TableRow>
             )}

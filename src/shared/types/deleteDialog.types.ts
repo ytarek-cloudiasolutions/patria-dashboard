@@ -4,6 +4,7 @@ export interface DeleteDialogProps {
     | "offer"
     | "notification"
     | "product"
+    | "ingredient"
     | "delivery zone"
     | "table"
     | "reservation"

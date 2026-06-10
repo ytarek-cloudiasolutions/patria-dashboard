@@ -10,6 +10,7 @@ import { Separator } from "@/shared/components/ui/separator";
 import DefaultButton from "@/shared/components/DefaultButton";
 import DropdownSelect from "@/shared/components/DropdownSelect";
 import InputField from "@/shared/components/InputField";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import { ROLE_DEFAULT_PAGES, ROLE_OPTIONS } from "../data";
 import type { UserFormData, UserRole } from "../types";
 import PageChip from "./PageChip";
@@ -35,6 +36,7 @@ const CreateUserDialog = ({
   onOpenChange,
   onSave,
 }: CreateUserDialogProps) => {
+  const { t } = useTranslation();
   const [form, setForm] = useState<UserFormData>(INITIAL_FORM);
   const [errors, setErrors] = useState<
     Partial<Record<keyof UserFormData, string>>
@@ -59,12 +61,12 @@ const CreateUserDialog = ({
 
   const validate = () => {
     const next: Partial<Record<keyof UserFormData, string>> = {};
-    if (!form.fullName.trim()) next.fullName = "Full name is required";
-    if (!form.email.trim()) next.email = "Email is required";
-    if (!form.phone.trim()) next.phone = "Phone is required";
+    if (!form.fullName.trim()) next.fullName = t("Full name is required");
+    if (!form.email.trim()) next.email = t("Email is required");
+    if (!form.phone.trim()) next.phone = t("Phone is required");
     if (!form.password.trim() || form.password.length < 6)
-      next.password = "Password must be at least 6 characters";
-    if (!form.role) next.role = "Role is required";
+      next.password = t("Password must be at least 6 characters");
+    if (!form.role) next.role = t("Role is required");
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -95,7 +97,7 @@ const CreateUserDialog = ({
           {/* Header */}
           <div className="px-5 pt-5 sm:px-7 sm:pt-7">
             <DialogTitle className="text-[20px] font-semibold text-[#28293D] sm:text-[22px]">
-              Create New User Account
+              {t("Create New User Account")}
             </DialogTitle>
           </div>
 
@@ -113,9 +115,9 @@ const CreateUserDialog = ({
                     id: "full-name",
                     label: {
                       htmlFor: "full-name",
-                      labelText: "Full Name",
+                      labelText: t("Full Name"),
                     },
-                    placeholder: "Full Name",
+                    placeholder: t("Full Name"),
                     required: true,
                     inputProps: {
                       value: form.fullName,
@@ -137,7 +139,7 @@ const CreateUserDialog = ({
                       id: "email",
                       label: {
                         htmlFor: "email",
-                        labelText: "Email Address",
+                        labelText: t("Email Address"),
                       },
                       placeholder: "user@erb.com",
                       required: true,
@@ -161,7 +163,7 @@ const CreateUserDialog = ({
                       id: "phone",
                       label: {
                         htmlFor: "phone",
-                        labelText: "Phone Number",
+                        labelText: t("Phone Number"),
                       },
                       placeholder: "+20...",
                       required: true,
@@ -186,7 +188,7 @@ const CreateUserDialog = ({
                       id: "password",
                       label: {
                         htmlFor: "password",
-                        labelText: "Password",
+                        labelText: t("Password"),
                       },
                       placeholder: "••••••••",
                       required: true,
@@ -209,15 +211,15 @@ const CreateUserDialog = ({
                     htmlFor="role"
                     className="mb-2.5 text-[16px] font-medium text-black"
                   >
-                    Role and Permission
+                    {t("Role and Permission")}
                     <span className="text-[#C90000]">*</span>
                   </Label>
                   <DropdownSelect
-                    options={ROLE_OPTIONS}
+                    options={ROLE_OPTIONS.map((o) => ({ ...o, label: t(o.label) }))}
                     selected={form.role}
                     onSelect={(value) => set("role", value as UserRole)}
                     onOpenChange={setIsRoleOpen}
-                    placeholder="Select role"
+                    placeholder={t("Select role")}
                     align="start"
                     className="md:w-full"
                     contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
@@ -233,7 +235,7 @@ const CreateUserDialog = ({
               {previewPages.length > 0 && (
                 <div className="rounded-[12px] bg-[#FAFAF7] px-4 py-4 border  border-[#CACBD4]">
                   <p className="mb-3 text-[12px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
-                    Available pages
+                    {t("Available pages")}
                   </p>
                   <div className="flex flex-wrap gap-x-4 gap-y-2">
                     {previewPages.map((page) => (
@@ -251,7 +253,7 @@ const CreateUserDialog = ({
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <DefaultButton
                 data={{
-                  buttonText: "Cancel",
+                  buttonText: t("Cancel"),
                   variant: "outline",
                   type: "button",
                   onClick: () => onOpenChange(false),
@@ -264,7 +266,7 @@ const CreateUserDialog = ({
                 type="submit"
                 className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
               >
-                Create Account
+                {t("Create Account")}
               </Button>
             </div>
           </div>

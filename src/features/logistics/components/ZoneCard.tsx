@@ -1,8 +1,9 @@
 import { Fragment, useState } from "react";
-import { Info, Package } from "lucide-react";
+import { Info } from "lucide-react";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import { Separator } from "@/shared/components/ui/separator";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import DefaultButton from "@/shared/components/DefaultButton";
 import OrderStatusPill from "./OrderStatusPill";
 import type { Zone } from "../types";
@@ -15,6 +16,7 @@ interface ZoneCardProps {
 }
 
 const ZoneCard = ({ zone, onDispatch }: ZoneCardProps) => {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const visibleOrders = expanded
     ? zone.orders
@@ -31,7 +33,7 @@ const ZoneCard = ({ zone, onDispatch }: ZoneCardProps) => {
           </h3>
           <Badge className="h-6 gap-1 rounded-full bg-primary px-2 py-0 text-[11px] font-semibold text-primary-foreground">
             <Info size={12} />
-            {zone.orders.length} Orders
+            {zone.orders.length} {t("Orders")}
           </Badge>
         </div>
 
@@ -59,14 +61,14 @@ const ZoneCard = ({ zone, onDispatch }: ZoneCardProps) => {
               onClick={() => setExpanded((v) => !v)}
               className="mx-auto inline-flex h-7 cursor-pointer items-center rounded-full border border-[#624F1C] bg-[#F5F0EA] px-3 text-[12px] font-semibold text-primary"
             >
-              {expanded ? "Show less" : `View ${remaining} more orders`}
+              {expanded ? t("Show less") : `${t("View more orders")} (${remaining})`}
             </button>
           )}
 
           {hasPending && (
             <DefaultButton
               data={{
-                buttonText: "Dispatch Driver",
+                buttonText: t("Dispatch Driver"),
                 variant: "outline",
                 type: "button",
                 onClick: () => onDispatch(zone),

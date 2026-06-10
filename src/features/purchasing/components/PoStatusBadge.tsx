@@ -1,5 +1,6 @@
 import { Badge } from "@/shared/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import type { PoStatus } from "../types";
 
 interface PoStatusBadgeProps {
@@ -13,15 +14,18 @@ const STATUS_STYLES: Record<PoStatus, string> = {
   Canceled: "bg-[#EAEAEA] text-[#5A5A66] border-current",
 };
 
-const PoStatusBadge = ({ status }: PoStatusBadgeProps) => (
-  <Badge
-    className={cn(
-      "h-7 px-3 py-1 text-[13px] font-semibold border rounded-full",
-      STATUS_STYLES[status],
-    )}
-  >
-    {status}
-  </Badge>
-);
+const PoStatusBadge = ({ status }: PoStatusBadgeProps) => {
+  const { t } = useTranslation();
+  return (
+    <Badge
+      className={cn(
+        "h-7 px-3 py-1 text-[13px] font-semibold border rounded-full",
+        STATUS_STYLES[status],
+      )}
+    >
+      {t(status)}
+    </Badge>
+  );
+};
 
 export default PoStatusBadge;

@@ -1,5 +1,6 @@
 import { Badge } from "@/shared/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import type { TransferStatus } from "../types";
 
 interface TransferStatusBadgeProps {
@@ -13,15 +14,18 @@ const STATUS_STYLES: Record<TransferStatus, string> = {
   Completed: "bg-[#E3ECFF] text-[#3357B5] border-current",
 };
 
-const TransferStatusBadge = ({ status }: TransferStatusBadgeProps) => (
-  <Badge
-    className={cn(
-      "h-7 px-3 py-1 text-[13px] font-semibold border rounded-full",
-      STATUS_STYLES[status],
-    )}
-  >
-    {status}
-  </Badge>
-);
+const TransferStatusBadge = ({ status }: TransferStatusBadgeProps) => {
+  const { t } = useTranslation();
+  return (
+    <Badge
+      className={cn(
+        "h-7 px-3 py-1 text-[13px] font-semibold border rounded-full",
+        STATUS_STYLES[status],
+      )}
+    >
+      {t(status)}
+    </Badge>
+  );
+};
 
 export default TransferStatusBadge;

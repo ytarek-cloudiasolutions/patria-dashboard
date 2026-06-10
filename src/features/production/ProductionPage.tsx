@@ -4,6 +4,7 @@ import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
 import SearchInputField from "@/shared/components/SearchInputField";
 import DropdownSelect from "@/shared/components/DropdownSelect";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 
 import ProductionTabs from "./components/ProductionTabs";
 import RoastOverview from "./components/RoastOverview";
@@ -32,6 +33,7 @@ import type {
 } from "./types";
 
 const ProductionPage = () => {
+  const { t } = useTranslation();
   const [tab, setTab] = useState<ProductionTab>("roast");
 
   const [batches, setBatches] = useState<RoastBatch[]>(INITIAL_BATCHES);
@@ -146,17 +148,17 @@ const ProductionPage = () => {
 
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <HeaderLayout
-          title={isRoast ? "Production" : "Equipment"}
+          title={isRoast ? t("Production") : t("Equipment")}
           description={
             isRoast
-              ? "Manufacturing & Quality Control"
-              : "Equipment maintenance and safety"
+              ? t("Manufacturing & Quality Control")
+              : t("Equipment maintenance and safety")
           }
         />
         {isRoast ? (
           <DefaultButton
             data={{
-              buttonText: "Start Roast",
+              buttonText: t("Start Roast"),
               icon: <Plus className="size-4.5" />,
               onClick: () => setIsStartRoastOpen(true),
             }}
@@ -164,7 +166,7 @@ const ProductionPage = () => {
         ) : (
           <DefaultButton
             data={{
-              buttonText: "Log Service",
+              buttonText: t("Log Service"),
               icon: <Wrench className="size-4.5" />,
               onClick: () => setIsLogServiceOpen(true),
             }}
@@ -183,16 +185,16 @@ const ProductionPage = () => {
               <SearchInputField
                 value={batchSearch}
                 onChange={setBatchSearch}
-                placeholder="Search by batch, status, or date..."
+                placeholder={t("Search by batch, status, or date...")}
               />
             </div>
             <div className="sm:w-64">
               <DropdownSelect
-                options={ROASTING_DEGREE_FILTERS}
+                options={ROASTING_DEGREE_FILTERS.map((o) => ({ ...o, label: t(o.label) }))}
                 selected={degreeFilter}
                 onSelect={setDegreeFilter}
                 onOpenChange={setIsDegreeFilterOpen}
-                placeholder="Roasting degree"
+                placeholder={t("Roasting degree")}
                 align="end"
                 className="md:w-full"
                 contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
@@ -217,16 +219,16 @@ const ProductionPage = () => {
               <SearchInputField
                 value={equipmentSearch}
                 onChange={setEquipmentSearch}
-                placeholder="Search by Machine."
+                placeholder={t("Search by Machine.")}
               />
             </div>
             <div className="sm:w-64">
               <DropdownSelect
-                options={EQUIPMENT_STATUS_FILTERS}
+                options={EQUIPMENT_STATUS_FILTERS.map((o) => ({ ...o, label: t(o.label) }))}
                 selected={equipmentStatusFilter}
                 onSelect={setEquipmentStatusFilter}
                 onOpenChange={setIsEquipmentStatusOpen}
-                placeholder="Status"
+                placeholder={t("Status")}
                 align="end"
                 className="md:w-full"
                 contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"

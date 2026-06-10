@@ -12,6 +12,7 @@ import DefaultButton from "@/shared/components/DefaultButton";
 import DropdownSelect from "@/shared/components/DropdownSelect";
 import InputField from "@/shared/components/InputField";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import { WAREHOUSE_TYPE_OPTIONS } from "../data";
 import type { WarehouseFormData, WarehouseKind } from "../types";
 
@@ -34,6 +35,7 @@ const AddWarehouseModal = ({
   onOpenChange,
   onSave,
 }: AddWarehouseModalProps) => {
+  const { t } = useTranslation();
   const [form, setForm] = useState<WarehouseFormData>(INITIAL_FORM);
   const [errors, setErrors] = useState<
     Partial<Record<keyof WarehouseFormData, string>>
@@ -58,8 +60,8 @@ const AddWarehouseModal = ({
 
   const validate = () => {
     const next: Partial<Record<keyof WarehouseFormData, string>> = {};
-    if (!form.name.trim()) next.name = "Warehouse name is required";
-    if (!form.address.trim()) next.address = "Address is required";
+    if (!form.name.trim()) next.name = t("Warehouse name is required");
+    if (!form.address.trim()) next.address = t("Address is required");
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -75,7 +77,7 @@ const AddWarehouseModal = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-[560px]"
+        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-140"
       >
         {isTypeOpen && (
           <div className="pointer-events-none fixed inset-0 z-60 bg-black/40" />
@@ -85,7 +87,7 @@ const AddWarehouseModal = ({
           {/* Header */}
           <div className="px-5 pt-5 sm:px-7 sm:pt-7">
             <DialogTitle className="text-[20px] font-semibold text-[#28293D] sm:text-[22px]">
-              Add Warehouse
+              {t("Add Warehouse")}
             </DialogTitle>
           </div>
 
@@ -104,9 +106,9 @@ const AddWarehouseModal = ({
                       id: "warehouse-name",
                       label: {
                         htmlFor: "warehouse-name",
-                        labelText: "Warehouse Name",
+                        labelText: t("Warehouse Name"),
                       },
-                      placeholder: "e.g. Central Rpastery Hub",
+                      placeholder: t("e.g. Central Roastery Hub"),
                       required: true,
                       inputProps: {
                         value: form.name,
@@ -126,7 +128,7 @@ const AddWarehouseModal = ({
                     htmlFor="warehouse-type"
                     className="mb-2.5 text-[16px] font-medium text-black"
                   >
-                    Type<span className="text-[#C90000]">*</span>
+                    {t("Type")}<span className="text-[#C90000]">*</span>
                   </Label>
                   <DropdownSelect
                     options={WAREHOUSE_TYPE_OPTIONS}
@@ -135,7 +137,7 @@ const AddWarehouseModal = ({
                       set("kind", value as WarehouseKind)
                     }
                     onOpenChange={setIsTypeOpen}
-                    placeholder="Select type"
+                    placeholder={t("Select type")}
                     align="start"
                     className="md:w-full"
                     contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
@@ -148,12 +150,12 @@ const AddWarehouseModal = ({
                   htmlFor="warehouse-address"
                   className="mb-2.5 text-[16px] font-medium text-black"
                 >
-                  Address<span className="text-[#C90000]">*</span>
+                  {t("Address")}<span className="text-[#C90000]">*</span>
                 </Label>
                 <Textarea
                   id="warehouse-address"
                   rows={3}
-                  placeholder="Enter full physical location details..."
+                  placeholder={t("Enter full physical location details...")}
                   value={form.address}
                   onChange={(e) => set("address", e.target.value)}
                   className={cn(
@@ -176,7 +178,7 @@ const AddWarehouseModal = ({
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <DefaultButton
                 data={{
-                  buttonText: "Cancel",
+                  buttonText: t("Cancel"),
                   variant: "outline",
                   type: "button",
                   onClick: () => onOpenChange(false),
@@ -189,7 +191,7 @@ const AddWarehouseModal = ({
                 type="submit"
                 className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
               >
-                Create Warehouse
+                {t("Create Warehouse")}
               </Button>
             </div>
           </div>

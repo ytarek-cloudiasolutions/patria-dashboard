@@ -10,6 +10,7 @@ import { Badge } from "@/shared/components/ui/badge";
 import { Separator } from "@/shared/components/ui/separator";
 import DefaultButton from "@/shared/components/DefaultButton";
 import InputField from "@/shared/components/InputField";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import type { QualityCheckFormData, RoastBatch } from "../types";
 
 const FORM_ID = "quality-check-form";
@@ -34,6 +35,7 @@ const QualityCheckDialog = ({
   onOpenChange,
   onConfirm,
 }: QualityCheckDialogProps) => {
+  const { t } = useTranslation();
   const [form, setForm] = useState<QualityCheckFormData>(INITIAL_FORM);
   const [errors, setErrors] = useState<
     Partial<Record<keyof QualityCheckFormData, string>>
@@ -57,12 +59,12 @@ const QualityCheckDialog = ({
   const validate = () => {
     const next: Partial<Record<keyof QualityCheckFormData, string>> = {};
     if (!form.outputMass.trim() || Number(form.outputMass) <= 0) {
-      next.outputMass = "Enter the certified output mass";
+      next.outputMass = t("Enter the certified output mass");
     }
     if (form.cuppingScore) {
       const score = Number(form.cuppingScore);
       if (Number.isNaN(score) || score < 0 || score > 100) {
-        next.cuppingScore = "Score must be between 0 and 100";
+        next.cuppingScore = t("Score must be between 0 and 100");
       }
     }
     setErrors(next);
@@ -82,13 +84,13 @@ const QualityCheckDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-[560px]"
+        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-140"
       >
         <div className="flex max-h-[calc(100vh-2rem)] flex-col">
           {/* Header */}
           <div className="px-5 pt-5 sm:px-7 sm:pt-7">
             <DialogTitle className="text-[20px] font-semibold text-[#28293D] sm:text-[22px]">
-              Quality Check
+              {t("Quality Check")}
             </DialogTitle>
           </div>
 
@@ -107,7 +109,7 @@ const QualityCheckDialog = ({
                 </Badge>
                 <div className="min-w-0">
                   <p className="text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
-                    Active Verification Target
+                    {t("Active Verification Target")}
                   </p>
                   <p className="text-[15px] font-semibold text-[#28293D]">
                     {batch.product}
@@ -122,9 +124,9 @@ const QualityCheckDialog = ({
                       id: "output-mass",
                       label: {
                         htmlFor: "output-mass",
-                        labelText: "Certified Output Mass (KG)",
+                        labelText: t("Certified Output Mass (KG)"),
                       },
-                      placeholder: "Driver Name",
+                      placeholder: "0",
                       required: true,
                       inputProps: {
                         type: "number",
@@ -147,7 +149,7 @@ const QualityCheckDialog = ({
                     id: "moisture",
                     label: {
                       htmlFor: "moisture",
-                      labelText: "Atmospheric Moisture (%) (Optional)",
+                      labelText: t("Atmospheric Moisture (%) (Optional)"),
                     },
                     placeholder: "0",
                     inputProps: {
@@ -167,7 +169,7 @@ const QualityCheckDialog = ({
                     id: "agtron",
                     label: {
                       htmlFor: "agtron",
-                      labelText: "Agtron Specular Index (Optional)",
+                      labelText: t("Agtron Specular Index (Optional)"),
                     },
                     placeholder: "e/g/ 582",
                     inputProps: {
@@ -183,7 +185,7 @@ const QualityCheckDialog = ({
                       id: "cupping",
                       label: {
                         htmlFor: "cupping",
-                        labelText: "Total Cupping Score (0-100) (Optional)",
+                        labelText: t("Total Cupping Score (0-100) (Optional)"),
                       },
                       placeholder: "0",
                       inputProps: {
@@ -211,7 +213,7 @@ const QualityCheckDialog = ({
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <DefaultButton
                 data={{
-                  buttonText: "Cancel",
+                  buttonText: t("Cancel"),
                   variant: "outline",
                   type: "button",
                   onClick: () => onOpenChange(false),
@@ -224,7 +226,7 @@ const QualityCheckDialog = ({
                 type="submit"
                 className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
               >
-                Certify &amp; Release
+                {t("Certify & Release")}
               </Button>
             </div>
           </div>

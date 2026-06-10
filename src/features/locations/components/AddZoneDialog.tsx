@@ -7,6 +7,7 @@ import {
 import { Separator } from "@/shared/components/ui/separator";
 import { Button } from "@/shared/components/ui/button";
 import DefaultButton from "@/shared/components/DefaultButton";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import AddZoneForm from "./AddZoneForm";
 import type { DeliveryZone, ZoneFormData } from "../types";
 
@@ -25,6 +26,7 @@ const AddZoneDialog = ({
   editingZone,
   onSave,
 }: AddZoneDialogProps) => {
+  const { t } = useTranslation();
   const [isStatusOpen, setIsStatusOpen] = useState(false);
 
   const handleSubmit = (data: ZoneFormData, id?: number) => {
@@ -36,7 +38,7 @@ const AddZoneDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-[640px]"
+        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-160"
       >
         {/* Scrim/backdrop overlay when the Status dropdown is open */}
         {isStatusOpen && (
@@ -47,7 +49,7 @@ const AddZoneDialog = ({
           {/* Header */}
           <div className="px-5 pt-5 sm:px-7 sm:pt-7">
             <DialogTitle className="text-[20px] font-semibold text-[#28293D] sm:text-[22px]">
-              {editingZone ? "Edit Zone" : "Add New Zone"}
+              {editingZone ? t("Edit Zone") : t("Add New Zone")}
             </DialogTitle>
           </div>
 
@@ -67,7 +69,7 @@ const AddZoneDialog = ({
             <div className="flex justify-end gap-3">
               <DefaultButton
                 data={{
-                  buttonText: "Cancel",
+                  buttonText: t("Cancel"),
                   variant: "outline",
                   type: "button",
                   onClick: () => onOpenChange(false),
@@ -80,7 +82,7 @@ const AddZoneDialog = ({
                 type="submit"
                 className="flex h-12 cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:gap-3 sm:px-7.5 sm:text-[16px]"
               >
-                {editingZone ? "Update Zone" : "Save Zone"}
+                {editingZone ? t("Update Zone") : t("Save Zone")}
               </Button>
             </div>
           </div>

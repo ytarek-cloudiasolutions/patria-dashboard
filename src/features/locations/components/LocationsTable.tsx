@@ -9,6 +9,7 @@ import {
 } from "@/shared/components/ui/table";
 import { Switch } from "@/shared/components/ui/switch";
 import ActionButton from "@/shared/components/ActionButton";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import StatusBadge from "./StatusBadge";
 import type { DeliveryZone } from "../types";
 
@@ -24,7 +25,7 @@ const formatEgp = (value: number) => `EGP ${value.toFixed(2)}`;
 const PrimaryAmount = ({ value }: { value: number }) => {
   const [prefix, amount] = formatEgp(value).split(" ");
   return (
-    <span className="text-[14px] text-[#28293D]">
+    <span className="text-[14px] text-[#28293D]" dir="ltr">
       {prefix} <span className="font-semibold text-[#28293D]">{amount}</span>
     </span>
   );
@@ -72,6 +73,7 @@ const LocationsTable = ({
   onDelete,
   onToggle,
 }: LocationsTableProps) => {
+  const { t } = useTranslation();
   return (
     <>
       {/* Mobile card list — hidden on md+ */}
@@ -101,13 +103,13 @@ const LocationsTable = ({
             <div className="grid grid-cols-2 gap-3 text-[13px]">
               <div>
                 <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
-                  Delivery Fee
+                  {t("Delivery Fee")}
                 </p>
                 <PrimaryAmount value={zone.deliveryFee} />
               </div>
               <div>
                 <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
-                  Min. Order Amount
+                  {t("Min. Order Amount")}
                 </p>
                 <PrimaryAmount value={zone.minOrderAmount} />
               </div>
@@ -117,7 +119,7 @@ const LocationsTable = ({
 
         {zones.length === 0 && (
           <p className="py-8 text-center text-[14px] text-[#8B8B8B]">
-            No delivery zones found.
+            {t("No delivery zones found.")}
           </p>
         )}
       </div>
@@ -127,18 +129,18 @@ const LocationsTable = ({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="px-6 py-4">LOCATION NAME</TableHead>
-              <TableHead className="px-6 py-4">DELIVERY FEE</TableHead>
-              <TableHead className="px-6 py-4">MIN. ORDER AMOUNT</TableHead>
-              <TableHead className="px-6 py-4">STATUS</TableHead>
-              <TableHead className="px-6 py-4">ACTIONS</TableHead>
+              <TableHead className="ps-6 py-4 text-start">{t("LOCATION NAME")}</TableHead>
+              <TableHead className="px-6 py-4 text-start">{t("DELIVERY FEE")}</TableHead>
+              <TableHead className="px-6 py-4 text-start">{t("MIN. ORDER AMOUNT")}</TableHead>
+              <TableHead className="px-6 py-4 text-start">{t("STATUS")}</TableHead>
+              <TableHead className="pe-6 py-4 text-end">{t("ACTIONS")}</TableHead>
             </TableRow>
           </TableHeader>
 
           <TableBody>
             {zones.map((zone) => (
               <TableRow key={zone.id} className="hover:bg-[#FAFAF8]">
-                <TableCell className="px-6 py-4 whitespace-nowrap text-[14px] font-medium text-[#28293D]">
+                <TableCell className="ps-6 py-4 whitespace-nowrap text-[14px] font-medium text-[#28293D]">
                   {zone.name}
                 </TableCell>
                 <TableCell className="px-6 py-4 whitespace-nowrap">
@@ -150,13 +152,15 @@ const LocationsTable = ({
                 <TableCell className="px-6 py-4 whitespace-nowrap">
                   <StatusBadge status={zone.status} />
                 </TableCell>
-                <TableCell className="px-6 py-4 whitespace-nowrap">
-                  <ZoneActions
-                    zone={zone}
-                    onEdit={onEdit}
-                    onDelete={onDelete}
-                    onToggle={onToggle}
-                  />
+                <TableCell className="pe-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center justify-end">
+                    <ZoneActions
+                      zone={zone}
+                      onEdit={onEdit}
+                      onDelete={onDelete}
+                      onToggle={onToggle}
+                    />
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
@@ -167,7 +171,7 @@ const LocationsTable = ({
                   colSpan={5}
                   className="py-10 text-center text-[14px] text-[#8B8B8B]"
                 >
-                  No delivery zones found.
+                  {t("No delivery zones found.")}
                 </TableCell>
               </TableRow>
             )}

@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Plus } from "lucide-react";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
 import SearchInputField from "@/shared/components/SearchInputField";
@@ -15,6 +16,7 @@ import { INITIAL_DRIVERS, INITIAL_ZONES } from "./data";
 import type { Driver, DriverFormData, Zone } from "./types";
 
 const LogisticsPage = () => {
+  const { t } = useTranslation();
   const [zones, setZones] = useState<Zone[]>(INITIAL_ZONES);
   const [drivers, setDrivers] = useState<Driver[]>(INITIAL_DRIVERS);
   const [search, setSearch] = useState("");
@@ -155,12 +157,12 @@ const LogisticsPage = () => {
     <>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <HeaderLayout
-          title="Fleet Management"
-          description="Logistics & Dispatch"
+          title={t("Fleet Management")}
+          description={t("Logistics & Dispatch")}
         />
         <DefaultButton
           data={{
-            buttonText: "Add Driver",
+            buttonText: t("Add Driver"),
             icon: <Plus className="size-4.5" />,
             onClick: handleOpenAddDriver,
           }}
@@ -177,13 +179,13 @@ const LogisticsPage = () => {
         <SearchInputField
           value={search}
           onChange={setSearch}
-          placeholder="Search by order number, driver, or zone..."
+          placeholder={t("Search by order number, driver, or zone...")}
         />
       </div>
 
       {filteredZones.length === 0 ? (
         <div className="mb-6 rounded-[16px] border border-[#E5E5E5] bg-white px-6 py-10 text-center text-[14px] text-[#8B8B8B]">
-          No zones match your search.
+          {t("No zones match your search.")}
         </div>
       ) : (
         <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

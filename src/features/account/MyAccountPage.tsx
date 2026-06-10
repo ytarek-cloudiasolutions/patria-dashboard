@@ -1,5 +1,6 @@
 import { useState } from "react";
 import HeaderLayout from "@/layouts/HeaderLayout";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 
 import AccountDateRange from "./components/AccountDateRange";
 import AccountSettingsCard from "./components/AccountSettingsCard";
@@ -13,6 +14,7 @@ import type {
 } from "./types";
 
 const MyAccountPage = () => {
+  const { t } = useTranslation();
   const [form, setForm] = useState<AccountFormData>(DEFAULT_ACCOUNT);
   const [dateRange, setDateRange] = useState<AccountDateRangeType>({
     from: "",
@@ -26,8 +28,8 @@ const MyAccountPage = () => {
     <>
       <div className="mb-6">
         <HeaderLayout
-          title="Order reports"
-          description="Filter by date and export to Excel"
+          title={t("Order reports")}
+          description={t("Filter by date and export to Excel")}
         />
       </div>
 
