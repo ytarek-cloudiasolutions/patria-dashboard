@@ -11,6 +11,7 @@ import DefaultButton from "@/shared/components/DefaultButton";
 import DropdownSelect from "@/shared/components/DropdownSelect";
 import InputField from "@/shared/components/InputField";
 import DatePicker from "@/shared/components/DatePicker";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import {
   SUBSCRIPTION_FREQUENCY_OPTIONS,
   SUBSCRIPTION_STATUS_OPTIONS,
@@ -45,6 +46,7 @@ const SubscriptionManagementDialog = ({
   onOpenChange,
   onSave,
 }: SubscriptionManagementDialogProps) => {
+  const { t } = useTranslation();
   const [form, setForm] = useState<ManageSubscriptionFormData>({
     status: "Active",
     frequency: "Weekly",
@@ -80,13 +82,11 @@ const SubscriptionManagementDialog = ({
   };
 
   const validate = () => {
-    const next: Partial<
-      Record<keyof ManageSubscriptionFormData, string>
-    > = {};
+    const next: Partial<Record<keyof ManageSubscriptionFormData, string>> = {};
     if (!form.quantity.trim() || Number(form.quantity) <= 0) {
-      next.quantity = "Enter a valid quantity";
+      next.quantity = t("Enter a valid quantity");
     }
-    if (!form.nextDelivery) next.nextDelivery = "Next delivery is required";
+    if (!form.nextDelivery) next.nextDelivery = t("Next delivery is required");
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -114,7 +114,7 @@ const SubscriptionManagementDialog = ({
           {/* Header */}
           <div className="px-5 pt-5 sm:px-7 sm:pt-7">
             <DialogTitle className="text-[20px] font-semibold text-[#28293D] sm:text-[22px]">
-              Subscription management
+              {t("Subscription management")}
             </DialogTitle>
           </div>
 
@@ -130,7 +130,7 @@ const SubscriptionManagementDialog = ({
               <div className="flex items-start justify-between gap-3 rounded-[12px] border border-[#E5E5E5] bg-[#FAFAF7] px-4 py-3">
                 <div>
                   <p className="text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
-                    Subscriber data
+                    {t("Subscriber data")}
                   </p>
                   <p className="mt-1 text-[15px] font-semibold text-[#28293D]">
                     {subscription.customerName}
@@ -153,10 +153,10 @@ const SubscriptionManagementDialog = ({
                     htmlFor="status"
                     className="mb-2.5 text-[16px] font-medium text-black"
                   >
-                    Status<span className="text-[#C90000]">*</span>
+                    {t("Status")}<span className="text-[#C90000]">*</span>
                   </Label>
                   <DropdownSelect
-                    options={SUBSCRIPTION_STATUS_OPTIONS}
+                    options={SUBSCRIPTION_STATUS_OPTIONS.map((o) => ({ ...o, label: t(o.label) }))}
                     selected={form.status}
                     onSelect={(value) =>
                       set("status", value as SubscriptionStatus)
@@ -164,7 +164,7 @@ const SubscriptionManagementDialog = ({
                     onOpenChange={(o) =>
                       setOpenDropdown(o ? "status" : null)
                     }
-                    placeholder="Status"
+                    placeholder={t("Status")}
                     align="start"
                     className="md:w-full"
                     contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
@@ -176,10 +176,10 @@ const SubscriptionManagementDialog = ({
                     htmlFor="frequency"
                     className="mb-2.5 text-[16px] font-medium text-black"
                   >
-                    Frequency<span className="text-[#C90000]">*</span>
+                    {t("Frequency")}<span className="text-[#C90000]">*</span>
                   </Label>
                   <DropdownSelect
-                    options={SUBSCRIPTION_FREQUENCY_OPTIONS}
+                    options={SUBSCRIPTION_FREQUENCY_OPTIONS.map((o) => ({ ...o, label: t(o.label) }))}
                     selected={form.frequency}
                     onSelect={(value) =>
                       set("frequency", value as SubscriptionFrequency)
@@ -187,7 +187,7 @@ const SubscriptionManagementDialog = ({
                     onOpenChange={(o) =>
                       setOpenDropdown(o ? "frequency" : null)
                     }
-                    placeholder="Frequency"
+                    placeholder={t("Frequency")}
                     align="start"
                     className="md:w-full"
                     contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
@@ -198,7 +198,7 @@ const SubscriptionManagementDialog = ({
                   <InputField
                     data={{
                       id: "quantity",
-                      label: { htmlFor: "quantity", labelText: "Quantity" },
+                      label: { htmlFor: "quantity", labelText: t("Quantity") },
                       placeholder: "0",
                       required: true,
                       inputProps: {
@@ -218,7 +218,7 @@ const SubscriptionManagementDialog = ({
 
                 <div className="flex flex-col">
                   <Label className="mb-2.5 text-[16px] font-medium text-black">
-                    Next Delivery Date
+                    {t("Next Delivery Date")}
                     <span className="text-[#C90000]">*</span>
                   </Label>
                   <DatePicker
@@ -244,7 +244,7 @@ const SubscriptionManagementDialog = ({
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <DefaultButton
                 data={{
-                  buttonText: "Cancel",
+                  buttonText: t("Cancel"),
                   variant: "outline",
                   type: "button",
                   onClick: () => onOpenChange(false),
@@ -257,7 +257,7 @@ const SubscriptionManagementDialog = ({
                 type="submit"
                 className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
               >
-                Save Changes
+                {t("Save Changes")}
               </Button>
             </div>
           </div>

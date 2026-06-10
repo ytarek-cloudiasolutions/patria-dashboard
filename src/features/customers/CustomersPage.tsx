@@ -15,11 +15,11 @@ import type {
   CustomerTier,
 } from "./types";
 
-const TIER_FILTER_OPTIONS = [
-  { label: "All Tiers", value: "all" },
-  { label: "Bronze (Standard)", value: "Bronze" },
-  { label: "Silver (Pro)", value: "Silver" },
-  { label: "Gold (Wholesale VIP)", value: "Gold" },
+const makeTierFilterOptions = (t: (s: string) => string) => [
+  { label: t("All Tiers"), value: "all" },
+  { label: t("Bronze (Standard)"), value: "Bronze" },
+  { label: t("Silver (Pro)"), value: "Silver" },
+  { label: t("Gold (Wholesale VIP)"), value: "Gold" },
 ];
 
 const DELETE_TYPE_BY_ROLE: Record<
@@ -34,6 +34,7 @@ const DELETE_TYPE_BY_ROLE: Record<
 
 const CustomersPage = () => {
   const { t } = useTranslation();
+  const tierFilterOptions = makeTierFilterOptions(t);
   const [customers, setCustomers] = useState<Customer[]>(INITIAL_CUSTOMERS);
   const [search, setSearch] = useState("");
   const [tierFilter, setTierFilter] = useState<string>("all");
@@ -117,11 +118,11 @@ const CustomersPage = () => {
         </div>
         <div className="sm:w-72">
           <DropdownSelect
-            options={TIER_FILTER_OPTIONS}
+            options={tierFilterOptions}
             selected={tierFilter}
             onSelect={setTierFilter}
             onOpenChange={setIsTierFilterOpen}
-            placeholder="Tier"
+            placeholder={t("Tier")}
             align="end"
             className="md:w-full"
             contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"

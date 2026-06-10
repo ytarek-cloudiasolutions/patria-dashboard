@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import {
   Dialog,
   DialogContent,
@@ -33,6 +34,7 @@ const PaymentDialog = ({
   onOpenChange,
   onConfirm,
 }: PaymentDialogProps) => {
+  const { t } = useTranslation();
   const [amount, setAmount] = useState("");
   const [error, setError] = useState("");
 
@@ -50,11 +52,11 @@ const PaymentDialog = ({
     e.preventDefault();
     if (!order) return;
     if (numericAmount <= 0) {
-      setError("Enter a payment greater than 0");
+      setError(t("Enter a payment greater than 0"));
       return;
     }
     if (numericAmount > remaining) {
-      setError(`Cannot exceed remaining ${formatEgp(remaining)}`);
+      setError(`${t("Cannot exceed remaining")} ${formatEgp(remaining)}`);
       return;
     }
     onConfirm(order.id, numericAmount);
@@ -67,13 +69,13 @@ const PaymentDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-[560px]"
+        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-140"
       >
         <div className="flex max-h-[calc(100vh-2rem)] flex-col">
           {/* Header */}
           <div className="px-5 pt-5 sm:px-7 sm:pt-7">
             <DialogTitle className="text-[20px] font-semibold text-[#28293D] sm:text-[22px]">
-              Confirmation of payment due to supplier
+              {t("Confirmation of payment due to supplier")}
             </DialogTitle>
           </div>
 
@@ -87,26 +89,26 @@ const PaymentDialog = ({
             {/* Summary card */}
             <div className="mb-5 rounded-[12px] border border-[#CACBD4] bg-[#FAFAF7] px-4 py-4 text-[14px] sm:px-5">
               <div className="flex items-center justify-between py-1">
-                <span className="text-[#28293D]">Order Supplier:</span>
+                <span className="text-[#28293D]">{t("Order Supplier:")}</span>
                 <span className="font-semibold text-[#28293D]">
                   {order.supplierName}
                 </span>
               </div>
               <div className="flex items-center justify-between py-1">
-                <span className="text-[#28293D]">Original order value:</span>
-                <span className="font-semibold text-[#28293D]">
+                <span className="text-[#28293D]">{t("Original order value:")}</span>
+                <span className="font-semibold text-[#28293D]" dir="ltr">
                   {formatEgp(order.totalAmount)}
                 </span>
               </div>
               <div className="flex items-center justify-between py-1">
-                <span className="text-[#28293D]">Previously paid:</span>
-                <span className="font-semibold text-[#28293D]">
+                <span className="text-[#28293D]">{t("Previously paid:")}</span>
+                <span className="font-semibold text-[#28293D]" dir="ltr">
                   {formatEgp(order.paid)}
                 </span>
               </div>
               <div className="flex items-center justify-between py-1">
-                <span className="font-semibold text-[#C90000]">Remaining:</span>
-                <span className="font-semibold text-[#C90000]">
+                <span className="font-semibold text-[#C90000]">{t("Remaining:")}</span>
+                <span className="font-semibold text-[#C90000]" dir="ltr">
                   {formatEgp(remaining)}
                 </span>
               </div>
@@ -118,7 +120,7 @@ const PaymentDialog = ({
                 htmlFor="payment-amount"
                 className="mb-2.5 text-[16px] font-medium text-black"
               >
-                Current payment amount (EGP)
+                {t("Current payment amount (EGP)")}
                 <span className="text-[#C90000]">*</span>
               </Label>
               <Input
@@ -138,8 +140,7 @@ const PaymentDialog = ({
                 )}
               />
               <p className="mt-1.5 text-[12px] text-[#8B8B8B]">
-                This payment will be automatically recorded in the
-                accounts/expenses ledger.
+                {t("This payment will be automatically recorded in the accounts/expenses ledger.")}
               </p>
               {error && (
                 <p className="mt-1.5 text-[13px] text-[#C90000]">{error}</p>
@@ -153,8 +154,8 @@ const PaymentDialog = ({
 
             {/* Total — stacked, right-aligned */}
             <div className="mb-4 flex flex-col items-end sm:mb-5">
-              <p className="text-[12px] font-medium text-[#8B8B8B]">Total</p>
-              <p className="text-[22px] font-bold text-[#28293D] sm:text-[24px]">
+              <p className="text-[12px] font-medium text-[#8B8B8B]">{t("Total")}</p>
+              <p className="text-[22px] font-bold text-[#28293D] sm:text-[24px]" dir="ltr">
                 {formatEgp(numericAmount)}
               </p>
             </div>
@@ -164,7 +165,7 @@ const PaymentDialog = ({
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <DefaultButton
                 data={{
-                  buttonText: "Cancel",
+                  buttonText: t("Cancel"),
                   variant: "outline",
                   type: "button",
                   onClick: () => onOpenChange(false),
@@ -177,7 +178,7 @@ const PaymentDialog = ({
                 type="submit"
                 className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
               >
-                Confirm exchange
+                {t("Confirm exchange")}
               </Button>
             </div>
           </div>

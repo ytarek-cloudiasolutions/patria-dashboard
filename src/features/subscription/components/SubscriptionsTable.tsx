@@ -1,4 +1,4 @@
-import { Box, Calendar, CalendarDays, SquarePen, Trash2 } from "lucide-react";
+import { Box, CalendarDays, SquarePen, Trash2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -9,6 +9,7 @@ import {
 } from "@/shared/components/ui/table";
 import { Badge } from "@/shared/components/ui/badge";
 import ActionButton from "@/shared/components/ActionButton";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import { cn } from "@/lib/utils";
 import type { PaymentStatus, Subscription, SubscriptionStatus } from "../types";
 
@@ -60,30 +61,36 @@ const NextDeliveryCell = ({ label }: { label: string }) => (
   </Badge>
 );
 
-const PaymentCell = ({ subscription }: { subscription: Subscription }) => (
-  <div className="flex flex-col justify-center items-center gap-1">
+const PaymentCell = ({ subscription }: { subscription: Subscription }) => {
+  const { t } = useTranslation();
+  return (
+    <div className="flex flex-col justify-center items-center gap-1">
+      <Badge
+        className={cn(
+          "h-6 w-fit rounded-full border px-3 py-0 text-[11px] font-semibold",
+          PAYMENT_STYLES[subscription.paymentStatus],
+        )}
+      >
+        {t(subscription.paymentStatus)}
+      </Badge>
+      <span className="text-[11px] text-[#8B8B8B]" dir="ltr">{subscription.reference}</span>
+    </div>
+  );
+};
+
+const StatusBadgeCell = ({ status }: { status: SubscriptionStatus }) => {
+  const { t } = useTranslation();
+  return (
     <Badge
       className={cn(
-        "h-6 w-fit rounded-full border px-3 py-0 text-[11px] font-semibold",
-        PAYMENT_STYLES[subscription.paymentStatus],
+        "h-7 min-w-24 rounded-full border px-3 py-0 text-[12px] font-semibold",
+        STATUS_STYLES[status],
       )}
     >
-      {subscription.paymentStatus}
+      {t(STATUS_LABEL[status])}
     </Badge>
-    <span className="text-[11px] text-[#8B8B8B]">{subscription.reference}</span>
-  </div>
-);
-
-const StatusBadgeCell = ({ status }: { status: SubscriptionStatus }) => (
-  <Badge
-    className={cn(
-      "h-7 min-w-24 rounded-full border px-3 py-0 text-[12px] font-semibold",
-      STATUS_STYLES[status],
-    )}
-  >
-    {STATUS_LABEL[status]}
-  </Badge>
-);
+  );
+};
 
 const SubscriptionActions = ({
   subscription,
@@ -119,6 +126,7 @@ const SubscriptionsTable = ({
   onEdit,
   onCancel,
 }: SubscriptionsTableProps) => {
+  const { t } = useTranslation();
   return (
     <>
       {/* Mobile card list */}
@@ -142,7 +150,7 @@ const SubscriptionsTable = ({
 
             <div className="mb-3">
               <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
-                Plan
+                {t("Plan")}
               </p>
               <PlanDetailsCell subscription={subscription} />
             </div>
@@ -150,19 +158,19 @@ const SubscriptionsTable = ({
             <div className="mb-3 grid grid-cols-2 gap-3 text-[13px]">
               <div>
                 <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
-                  Frequency
+                  {t("Frequency")}
                 </p>
-                <p className="text-[#28293D]">{subscription.frequency}</p>
+                <p className="text-[#28293D]">{t(subscription.frequency)}</p>
               </div>
               <div>
                 <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
-                  Next Delivery
+                  {t("Next Delivery")}
                 </p>
                 <NextDeliveryCell label={subscription.nextDelivery} />
               </div>
               <div className="col-span-2">
                 <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
-                  Payment
+                  {t("Payment")}
                 </p>
                 <PaymentCell subscription={subscription} />
               </div>
@@ -178,7 +186,7 @@ const SubscriptionsTable = ({
 
         {subscriptions.length === 0 && (
           <p className="py-8 text-center text-[14px] text-[#8B8B8B]">
-            No subscriptions yet.
+            {t("No subscriptions yet.")}
           </p>
         )}
       </div>
@@ -188,19 +196,19 @@ const SubscriptionsTable = ({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="px-6 py-4">CUSTOMER</TableHead>
-              <TableHead className="px-6 py-4">PLAN DETAILS</TableHead>
-              <TableHead className="px-6 py-4">FREQUENCY</TableHead>
-              <TableHead className="px-6 py-4">NEXT DELIVERY</TableHead>
-              <TableHead className="px-6 py-4 text-center">PAYMENT</TableHead>
-              <TableHead className="px-6 py-4 text-center">STATUS</TableHead>
-              <TableHead className="px-6 py-4">ACTIONS</TableHead>
+              <TableHead className="ps-6 py-4 text-start">{t("CUSTOMER")}</TableHead>
+              <TableHead className="px-6 py-4 text-start">{t("PLAN DETAILS")}</TableHead>
+              <TableHead className="px-6 py-4 text-start">{t("FREQUENCY")}</TableHead>
+              <TableHead className="px-6 py-4 text-start">{t("NEXT DELIVERY")}</TableHead>
+              <TableHead className="px-6 py-4 text-center">{t("PAYMENT")}</TableHead>
+              <TableHead className="px-6 py-4 text-center">{t("STATUS")}</TableHead>
+              <TableHead className="pe-6 py-4 text-end">{t("ACTIONS")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {subscriptions.map((subscription) => (
               <TableRow key={subscription.id} className="hover:bg-[#FAFAF8]">
-                <TableCell className="px-6 py-4 whitespace-nowrap">
+                <TableCell className="ps-6 py-4 whitespace-nowrap">
                   <p className="text-[14px] font-semibold text-[#28293D]">
                     {subscription.customerName}
                   </p>
@@ -212,7 +220,7 @@ const SubscriptionsTable = ({
                   <PlanDetailsCell subscription={subscription} />
                 </TableCell>
                 <TableCell className="px-6 py-4 whitespace-nowrap font-semibold text-[14px] text-[#28293D]">
-                  {subscription.frequency}
+                  {t(subscription.frequency)}
                 </TableCell>
                 <TableCell className="px-6 py-4 whitespace-nowrap">
                   <NextDeliveryCell label={subscription.nextDelivery} />
@@ -223,12 +231,14 @@ const SubscriptionsTable = ({
                 <TableCell className="px-6 py-4 whitespace-nowrap">
                   <StatusBadgeCell status={subscription.status} />
                 </TableCell>
-                <TableCell className="px-6 py-4 whitespace-nowrap">
-                  <SubscriptionActions
-                    subscription={subscription}
-                    onEdit={onEdit}
-                    onCancel={onCancel}
-                  />
+                <TableCell className="pe-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center justify-end">
+                    <SubscriptionActions
+                      subscription={subscription}
+                      onEdit={onEdit}
+                      onCancel={onCancel}
+                    />
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
@@ -239,7 +249,7 @@ const SubscriptionsTable = ({
                   colSpan={7}
                   className="py-10 text-center text-[14px] text-[#8B8B8B]"
                 >
-                  No subscriptions yet.
+                  {t("No subscriptions yet.")}
                 </TableCell>
               </TableRow>
             )}

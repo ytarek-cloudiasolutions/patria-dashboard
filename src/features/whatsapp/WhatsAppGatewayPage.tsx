@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { CheckCircle2, XCircle } from "lucide-react";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import { Badge } from "@/shared/components/ui/badge";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 
 import ConnectionStatusCard from "./components/ConnectionStatusCard";
 import GatewaySecurityCard from "./components/GatewaySecurityCard";
@@ -13,6 +13,7 @@ import { LINK_STEPS, PERFORMANCE_METRICS, SECURITY_LAST_AUDIT } from "./data";
 import type { GatewayConnectionStatus } from "./types";
 
 const WhatsAppGatewayPage = () => {
+  const { t } = useTranslation();
   const [status, setStatus] = useState<GatewayConnectionStatus>("connected");
   const isConnected = status === "connected";
 
@@ -20,8 +21,8 @@ const WhatsAppGatewayPage = () => {
     <>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <HeaderLayout
-          title="WhatsApp Gateway"
-          description="Link your device for internal OTP & Notifications"
+          title={t("WhatsApp Gateway")}
+          description={t("Link your device for internal OTP & Notifications")}
         />
         <Badge
           className={`h-7 gap-1.5 rounded-full border px-3 py-0 text-[12px] font-semibold ${
@@ -30,7 +31,7 @@ const WhatsAppGatewayPage = () => {
               : "border-current bg-[#FFF0F0] text-[#C90000]"
           }`}
         >
-          {isConnected ? "Connected" : "Disconnected"}
+          {isConnected ? t("Connected") : t("Disconnected")}
         </Badge>
       </div>
 

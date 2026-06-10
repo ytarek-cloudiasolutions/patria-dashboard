@@ -5,10 +5,6 @@ import SignUpPage from "@/features/auth/pages/SignUpPage";
 import KitchenDetailsPage from "@/features/kitchen/pages/KitchenDetailsPage";
 import KitchenPage from "@/features/kitchen/pages/KitchenPage";
 
-import OrdersPage from "@/features/orders/pages/OrdersPage";
-
-import ProductsPage from "@/features/products/pages/ProductsPage";
-
 import ReportsPage from "@/features/reports/ReportsPage";
 import RequestsPage from "@/features/requests/RequestsPage";
 
@@ -16,11 +12,9 @@ import { createBrowserRouter } from "react-router-dom";
 import AppLayout from "@/features/sidebar/layouts/AppLayout";
 import DashboardPage from "@/features/dashboard/DashboardPage";
 
-import PosPage from "@/features/pos/pages/PosPage";
 import OffersPage from "@/features/offers/OffersPage";
 import CouponsPage from "@/features/coupons/CouponsPage";
 import InventoryPage from "@/features/inventory/InventoryPage";
-
 
 import LocationsPage from "@/features/locations/LocationsPage";
 import CustomersPage from "@/features/customers/CustomersPage";
@@ -38,6 +32,9 @@ import WhatsAppGatewayPage from "@/features/whatsapp/WhatsAppGatewayPage";
 import SettingsPage from "@/features/settings/SettingsPage";
 import MyAccountPage from "@/features/account/MyAccountPage";
 import TablesPage from "@/features/tables/TablesPage";
+import PosPage from "@/features/pos/PosPage";
+import ProductsPage from "@/features/products/ProductsPage";
+import OrdersPage from "@/features/orders/pages/OrdersPage";
 
 export const router = createBrowserRouter([
   { path: "/sign-up", element: <SignUpPage /> },

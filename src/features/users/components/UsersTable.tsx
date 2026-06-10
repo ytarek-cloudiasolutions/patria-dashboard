@@ -8,6 +8,7 @@ import {
   TableRow,
 } from "@/shared/components/ui/table";
 import ActionButton from "@/shared/components/ActionButton";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import RoleBadge from "./RoleBadge";
 import PageChip from "./PageChip";
 import type { UserAccount } from "../types";
@@ -65,6 +66,7 @@ const UserActions = ({
 );
 
 const UsersTable = ({ users, onEdit, onDelete }: UsersTableProps) => {
+  const { t } = useTranslation();
   return (
     <>
       {/* Mobile card list */}
@@ -92,7 +94,7 @@ const UsersTable = ({ users, onEdit, onDelete }: UsersTableProps) => {
 
             <div>
               <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
-                Available pages
+                {t("Available pages")}
               </p>
               <PagesList pages={user.pages} />
             </div>
@@ -101,7 +103,7 @@ const UsersTable = ({ users, onEdit, onDelete }: UsersTableProps) => {
 
         {users.length === 0 && (
           <p className="py-8 text-center text-[14px] text-[#8B8B8B]">
-            No users found.
+            {t("No users found.")}
           </p>
         )}
       </div>
@@ -111,16 +113,16 @@ const UsersTable = ({ users, onEdit, onDelete }: UsersTableProps) => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="px-6 py-4">USER PROFILE</TableHead>
-              <TableHead className="px-6 py-4">ROLE</TableHead>
-              <TableHead className="px-6 py-4 text-center">AVAILABLE PAGES</TableHead>
-              <TableHead className="px-6 py-4">ACTIONS</TableHead>
+              <TableHead className="ps-6 py-4 text-start">{t("USER PROFILE")}</TableHead>
+              <TableHead className="px-6 py-4 text-start">{t("ROLE")}</TableHead>
+              <TableHead className="px-6 py-4 text-center">{t("AVAILABLE PAGES")}</TableHead>
+              <TableHead className="pe-6 py-4 text-end">{t("ACTIONS")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {users.map((user) => (
               <TableRow key={user.id} className="hover:bg-[#FAFAF8]">
-                <TableCell className="px-6 py-4">
+                <TableCell className="ps-6 py-4">
                   <p className="text-[14px] font-semibold text-[#28293D]">
                     {user.name}
                   </p>
@@ -134,12 +136,14 @@ const UsersTable = ({ users, onEdit, onDelete }: UsersTableProps) => {
                 <TableCell className="px-6 py-4">
                   <PagesList pages={user.pages} />
                 </TableCell>
-                <TableCell className="px-6 py-4">
-                  <UserActions
-                    user={user}
-                    onEdit={onEdit}
-                    onDelete={onDelete}
-                  />
+                <TableCell className="pe-6 py-4">
+                  <div className="flex items-center justify-end">
+                    <UserActions
+                      user={user}
+                      onEdit={onEdit}
+                      onDelete={onDelete}
+                    />
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
@@ -150,7 +154,7 @@ const UsersTable = ({ users, onEdit, onDelete }: UsersTableProps) => {
                   colSpan={4}
                   className="py-10 text-center text-[14px] text-[#8B8B8B]"
                 >
-                  No users found.
+                  {t("No users found.")}
                 </TableCell>
               </TableRow>
             )}

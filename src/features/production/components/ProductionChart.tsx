@@ -1,5 +1,6 @@
 import { Activity } from "lucide-react";
 import { Card, CardContent } from "@/shared/components/ui/card";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import { PRODUCTION_CHART_DATA } from "../data";
 
 const HEIGHT = 200;
@@ -7,6 +8,7 @@ const WIDTH = 320;
 const PADDING = { top: 16, right: 16, bottom: 28, left: 32 };
 
 const ProductionChart = () => {
+  const { t } = useTranslation();
   const data = PRODUCTION_CHART_DATA;
   const max = 100;
   const innerW = WIDTH - PADDING.left - PADDING.right;
@@ -30,9 +32,9 @@ const ProductionChart = () => {
     <Card className="h-full gap-0 overflow-hidden rounded-2xl bg-white py-0 ring-0">
       <div className="flex items-center justify-between gap-6 bg-[#F5F0EA] px-6.5 py-3">
         <div className="flex flex-col gap-1">
-          <h3 className="text-[20px] font-bold text-[#333333]">Production</h3>
+          <h3 className="text-[20px] font-bold text-[#333333]">{t("Production")}</h3>
           <p className="text-[12px] font-normal text-[#595959]">
-            Manufacturing &amp; Quality Control
+            {t("Manufacturing & Quality Control")}
           </p>
         </div>
         <Activity size={20} className="size-6 text-[#28293D]" />

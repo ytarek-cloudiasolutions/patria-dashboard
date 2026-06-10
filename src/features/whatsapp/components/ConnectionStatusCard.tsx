@@ -1,5 +1,6 @@
 import { LinkIcon, LogOut, ShieldCheck, Zap } from "lucide-react";
 import DefaultButton from "@/shared/components/DefaultButton";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import GatewayCard from "./GatewayCard";
 import type { GatewayConnectionStatus } from "../types";
 
@@ -16,11 +17,12 @@ const ConnectionStatusCard = ({
   onConnect,
   className,
 }: ConnectionStatusCardProps) => {
+  const { t } = useTranslation();
   const isConnected = status === "connected";
 
   return (
     <GatewayCard
-      title="Connections"
+      title={t("Connections")}
       icon={<Zap size={24} className="text-[#000000]" />}
       className={className}
       contentClassName="flex flex-col items-center justify-center gap-4 px-5 py-10 text-center sm:px-6 sm:py-12"
@@ -37,18 +39,18 @@ const ConnectionStatusCard = ({
       </span>
       <div className="flex flex-col gap-1.5">
         <h4 className="text-[20px] font-bold text-[#333333]">
-          {isConnected ? "Securely Connected" : "Not Connected"}
+          {isConnected ? t("Securely Connected") : t("Not Connected")}
         </h4>
         <p className="text-[14px] text-[#595959]">
           {isConnected
-            ? "The system is ready to send OTPs through your device."
-            : "Link your device to start sending OTPs and notifications."}
+            ? t("The system is ready to send OTPs through your device.")
+            : t("Link your device to start sending OTPs and notifications.")}
         </p>
       </div>
       {isConnected ? (
         <DefaultButton
           data={{
-            buttonText: "Disconnect Account",
+            buttonText: t("Disconnect Account"),
             icon: <LogOut className="size-4.5" />,
             onClick: onDisconnect,
             className:
@@ -58,7 +60,7 @@ const ConnectionStatusCard = ({
       ) : (
         <DefaultButton
           data={{
-            buttonText: "Link Account",
+            buttonText: t("Link Account"),
             icon: <LinkIcon className="size-4.5" />,
             onClick: onConnect,
             className: "mt-2",

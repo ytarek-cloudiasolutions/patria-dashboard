@@ -1,5 +1,6 @@
 import { useState } from "react";
 import HeaderLayout from "@/layouts/HeaderLayout";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 
 import SettingsTabs from "./components/SettingsTabs";
 import SettingsSidebar from "./components/SettingsSidebar";
@@ -16,6 +17,7 @@ import { INITIAL_TEAM } from "./data";
 import type { InviteFormData, SettingsTab, TeamMember, TeamRole } from "./types";
 
 const SettingsPage = () => {
+  const { t } = useTranslation();
   const [tab, setTab] = useState<SettingsTab>("profile");
   const [team, setTeam] = useState<TeamMember[]>(INITIAL_TEAM);
   const [isInviteOpen, setIsInviteOpen] = useState(false);
@@ -77,8 +79,8 @@ const SettingsPage = () => {
 
       <div className="mb-6">
         <HeaderLayout
-          title="Settings"
-          description="Manage your account and platform preferences"
+          title={t("Settings")}
+          description={t("Manage your account and platform preferences")}
         />
       </div>
 

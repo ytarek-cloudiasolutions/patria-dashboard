@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import InputField from "@/shared/components/InputField";
 import DropdownSelect from "@/shared/components/DropdownSelect";
 import { Label } from "@/shared/components/ui/label";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import type { DeliveryZone, ZoneFormData, ZoneStatus } from "../types";
 
 interface AddZoneFormProps {
@@ -10,11 +11,6 @@ interface AddZoneFormProps {
   onSubmit: (data: ZoneFormData, id?: number) => void;
   onDropdownOpenChange?: (open: boolean) => void;
 }
-
-const STATUS_OPTIONS: { label: string; value: ZoneStatus }[] = [
-  { label: "Active", value: "Active" },
-  { label: "Inactive", value: "Inactive" },
-];
 
 const INITIAL_FORM: ZoneFormData = {
   name: "",
@@ -29,6 +25,13 @@ const AddZoneForm = ({
   onSubmit,
   onDropdownOpenChange,
 }: AddZoneFormProps) => {
+  const { t } = useTranslation();
+
+  const statusOptions: { label: string; value: ZoneStatus }[] = [
+    { label: t("Active"), value: "Active" },
+    { label: t("Inactive"), value: "Inactive" },
+  ];
+
   const [form, setForm] = useState<ZoneFormData>(INITIAL_FORM);
   const [errors, setErrors] = useState<Partial<Record<keyof ZoneFormData, string>>>({});
 
@@ -53,25 +56,25 @@ const AddZoneForm = ({
 
   const validate = () => {
     const next: Partial<Record<keyof ZoneFormData, string>> = {};
-    if (!form.name.trim()) next.name = "Zone name is required";
+    if (!form.name.trim()) next.name = t("Zone name is required");
     if (!form.deliveryFee.trim()) {
-      next.deliveryFee = "Delivery fee is required";
+      next.deliveryFee = t("Delivery fee is required");
     } else if (isNaN(Number(form.deliveryFee)) || Number(form.deliveryFee) < 0) {
-      next.deliveryFee = "Enter a valid amount";
+      next.deliveryFee = t("Enter a valid amount");
     }
     if (!form.minOrderAmount.trim()) {
-      next.minOrderAmount = "Min. order is required";
+      next.minOrderAmount = t("Min. order is required");
     } else if (
       isNaN(Number(form.minOrderAmount)) ||
       Number(form.minOrderAmount) < 0
     ) {
-      next.minOrderAmount = "Enter a valid amount";
+      next.minOrderAmount = t("Enter a valid amount");
     }
     setErrors(next);
     return Object.keys(next).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!validate()) return;
     onSubmit(form, editingZone?.id);
@@ -83,8 +86,8 @@ const AddZoneForm = ({
         <InputField
           data={{
             id: "zone-name",
-            label: { htmlFor: "zone-name", labelText: "Zone Name / Area" },
-            placeholder: "e.g. Kafr Abdo, Semouha",
+            label: { htmlFor: "zone-name", labelText: t("Zone Name / Area") },
+            placeholder: t("e.g. Kafr Abdo, Semouha"),
             required: true,
             inputProps: {
               value: form.name,
@@ -102,7 +105,7 @@ const AddZoneForm = ({
           <InputField
             data={{
               id: "delivery-fee",
-              label: { htmlFor: "delivery-fee", labelText: "Delivery Fee (EGP)" },
+              label: { htmlFor: "delivery-fee", labelText: t("Delivery Fee (EGP)") },
               placeholder: "0",
               required: true,
               inputProps: {
@@ -122,7 +125,7 @@ const AddZoneForm = ({
           <InputField
             data={{
               id: "min-order",
-              label: { htmlFor: "min-order", labelText: "Min. Order (EGP)" },
+              label: { htmlFor: "min-order", labelText: t("Min. Order (EGP)") },
               placeholder: "0",
               required: true,
               inputProps: {
@@ -146,14 +149,14 @@ const AddZoneForm = ({
           htmlFor="zone-status"
           className="mb-2.5 text-[16px] font-medium text-black"
         >
-          Status<span className="text-[#C90000]">*</span>
+          {t("Status")}<span className="text-[#C90000]">*</span>
         </Label>
         <DropdownSelect
-          options={STATUS_OPTIONS}
+          options={statusOptions}
           selected={form.status}
           onSelect={(value) => set("status", value as ZoneStatus)}
           onOpenChange={onDropdownOpenChange}
-          placeholder="Select status"
+          placeholder={t("Select status")}
           align="start"
           className="md:w-full"
           contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"

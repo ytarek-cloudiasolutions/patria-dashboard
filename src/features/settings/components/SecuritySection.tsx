@@ -2,6 +2,7 @@ import { useState } from "react";
 import { KeyRound } from "lucide-react";
 import DefaultButton from "@/shared/components/DefaultButton";
 import InputField from "@/shared/components/InputField";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import SectionCard from "./SectionCard";
 import type { PasswordFormData } from "../types";
 
@@ -11,6 +12,7 @@ const INITIAL: PasswordFormData = {
 };
 
 const SecuritySection = () => {
+  const { t } = useTranslation();
   const [form, setForm] = useState<PasswordFormData>(INITIAL);
 
   const set = (key: keyof PasswordFormData, value: string) =>
@@ -19,8 +21,8 @@ const SecuritySection = () => {
   return (
     <SectionCard
       icon={<KeyRound size={32} />}
-      title="Security"
-      subtitle="Change your password"
+      title={t("Security")}
+      subtitle={t("Change your password")}
     >
       <div className="flex h-full flex-col gap-5">
         <InputField
@@ -28,9 +30,9 @@ const SecuritySection = () => {
             id: "current-password",
             label: {
               htmlFor: "current-password",
-              labelText: "Current Password",
+              labelText: t("Current Password"),
             },
-            placeholder: "Current Password",
+            placeholder: t("Current Password"),
             inputProps: {
               type: "password",
               value: form.currentPassword,
@@ -41,8 +43,8 @@ const SecuritySection = () => {
         <InputField
           data={{
             id: "new-password",
-            label: { htmlFor: "new-password", labelText: "New Password" },
-            placeholder: "Minimal 6 characters",
+            label: { htmlFor: "new-password", labelText: t("New Password") },
+            placeholder: t("Minimal 6 characters"),
             inputProps: {
               type: "password",
               value: form.newPassword,
@@ -51,7 +53,7 @@ const SecuritySection = () => {
           }}
         />
         <div className="mt-auto flex justify-end">
-          <DefaultButton data={{ buttonText: "Update Password" }} />
+          <DefaultButton data={{ buttonText: t("Update Password") }} />
         </div>
       </div>
     </SectionCard>

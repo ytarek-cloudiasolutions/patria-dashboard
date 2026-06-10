@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Box, Boxes, Plus, X } from "lucide-react";
+import { Box, Plus, X } from "lucide-react";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import {
   Dialog,
   DialogContent,
@@ -60,6 +61,7 @@ const CreatePoDialog = ({
   onOpenChange,
   onSave,
 }: CreatePoDialogProps) => {
+  const { t } = useTranslation();
   const [form, setForm] = useState<PoFormState>(INITIAL_FORM);
   const [openDropdown, setOpenDropdown] = useState<
     "supplier" | "warehouse" | "product" | null
@@ -116,7 +118,7 @@ const CreatePoDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-[720px]"
+        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-180"
       >
         {/* Scrim while any dropdown inside is open */}
         {openDropdown && (
@@ -127,7 +129,7 @@ const CreatePoDialog = ({
           {/* Header */}
           <div className="px-5 pt-5 sm:px-7 sm:pt-7">
             <DialogTitle className="text-[20px] font-semibold text-[#28293D] sm:text-[22px]">
-              Create Purchase Order
+              {t("Create Purchase Order")}
             </DialogTitle>
           </div>
 
@@ -146,14 +148,14 @@ const CreatePoDialog = ({
                     htmlFor="select-supplier"
                     className="mb-2.5 text-[16px] font-medium text-black"
                   >
-                    Select Supplier<span className="text-[#C90000]">*</span>
+                    {t("Select Supplier")}<span className="text-[#C90000]">*</span>
                   </Label>
                   <DropdownSelect
                     options={supplierOptions}
                     selected={form.supplierId}
                     onSelect={setSupplier}
                     onOpenChange={(o) => setOpenDropdown(o ? "supplier" : null)}
-                    placeholder="Select Supplier"
+                    placeholder={t("Select Supplier")}
                     align="start"
                     className="md:w-full"
                     contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
@@ -165,7 +167,7 @@ const CreatePoDialog = ({
                     htmlFor="select-warehouse"
                     className="mb-2.5 text-[16px] font-medium text-black"
                   >
-                    Receiving Warehouse
+                    {t("Receiving Warehouse")}
                     <span className="text-[#C90000]">*</span>
                   </Label>
                   <DropdownSelect
@@ -175,7 +177,7 @@ const CreatePoDialog = ({
                     onOpenChange={(o) =>
                       setOpenDropdown(o ? "warehouse" : null)
                     }
-                    placeholder="Receiving Warehouse"
+                    placeholder={t("Receiving Warehouse")}
                     align="start"
                     className="md:w-full"
                     contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
@@ -184,13 +186,13 @@ const CreatePoDialog = ({
 
                 <div className="flex flex-col">
                   <Label className="mb-2.5 text-[16px] font-medium text-black">
-                    Expected Delivery Date
+                    {t("Expected Delivery Date")}
                     <span className="text-[#C90000]">*</span>
                   </Label>
                   <DatePicker
                     value={form.expectedDeliveryDate}
                     onChange={setDate}
-                    placeholder="DD/MM/YYYY"
+                    placeholder={t("DD/MM/YYYY")}
                     withBackdrop
                     minDate={new Date().toISOString().slice(0, 10)}
                   />
@@ -201,7 +203,7 @@ const CreatePoDialog = ({
               <div className="flex flex-col gap-4">
                 <div className="flex items-center gap-2 text-[15px] font-semibold text-[#28293D]">
                   <Box size={14} className="text-[#000000]" />
-                  Line Items
+                  {t("Line Items")}
                 </div>
 
                 {form.items.map((item, index) => {
@@ -213,7 +215,7 @@ const CreatePoDialog = ({
                     >
                       <div className="flex flex-col">
                         <Label className="mb-2.5 text-[16px] font-medium text-black">
-                          Product<span className="text-[#C90000]">*</span>
+                          {t("Product")}<span className="text-[#C90000]">*</span>
                         </Label>
                         <DropdownSelect
                           options={productOptions}
@@ -234,7 +236,7 @@ const CreatePoDialog = ({
                           onOpenChange={(o) =>
                             setOpenDropdown(o ? "product" : null)
                           }
-                          placeholder="Select SKU"
+                          placeholder={t("Select SKU")}
                           align="start"
                           className="md:w-full"
                           contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
@@ -246,7 +248,7 @@ const CreatePoDialog = ({
                           id: `qty-${item.id}`,
                           label: {
                             htmlFor: `qty-${item.id}`,
-                            labelText: "Quantity",
+                            labelText: t("Quantity"),
                           },
                           placeholder: "0",
                           required: true,
@@ -269,7 +271,7 @@ const CreatePoDialog = ({
                           id: `cost-${item.id}`,
                           label: {
                             htmlFor: `cost-${item.id}`,
-                            labelText: "Unit Cost",
+                            labelText: t("Unit Cost"),
                           },
                           placeholder: "0",
                           required: true,
@@ -291,7 +293,7 @@ const CreatePoDialog = ({
                       <div className="flex items-end gap-2 md:flex-col md:items-end md:gap-1">
                         <div className="flex-1 text-left md:text-right">
                           <p className="text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
-                            Subtotal
+                            {t("Subtotal")}
                           </p>
                           <p className="text-[14px] font-semibold text-[#28293D]">
                             {formatEgp(subtotal)}
@@ -318,7 +320,7 @@ const CreatePoDialog = ({
                   className="inline-flex w-fit cursor-pointer items-center gap-2 self-center rounded-[8px] px-3 py-2 text-[14px] font-semibold text-primary hover:bg-[#F5F0EA]"
                 >
                   <Plus size={16} />
-                  Add Items
+                  {t("Add Items")}
                 </button>
               </div>
 
@@ -327,7 +329,7 @@ const CreatePoDialog = ({
                 <Separator className="bg-[#CACBD4]" />
                 <div className="mt-3 flex items-center justify-end gap-6">
                   <p className="text-[12px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
-                    Total
+                    {t("Total")}
                   </p>
                   <p className="text-[20px] font-semibold text-[#28293D]">
                     {formatEgp(total)}
@@ -343,7 +345,7 @@ const CreatePoDialog = ({
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <DefaultButton
                 data={{
-                  buttonText: "Cancel",
+                  buttonText: t("Cancel"),
                   variant: "outline",
                   type: "button",
                   onClick: () => onOpenChange(false),
@@ -356,7 +358,7 @@ const CreatePoDialog = ({
                 type="submit"
                 className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
               >
-                Save PO
+                {t("Save PO")}
               </Button>
             </div>
           </div>

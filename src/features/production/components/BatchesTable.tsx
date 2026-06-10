@@ -8,6 +8,7 @@ import {
 } from "@/shared/components/ui/table";
 import { Badge } from "@/shared/components/ui/badge";
 import DefaultButton from "@/shared/components/DefaultButton";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import { cn } from "@/lib/utils";
 import type { BatchStatus, RoastBatch, RoastingDegree } from "../types";
 
@@ -22,16 +23,19 @@ const DEGREE_STYLES: Record<RoastingDegree, string> = {
   Dark: "bg-[#FFF7E6] text-[#C7861E] border-[#C7861E]",
 };
 
-const DegreeBadge = ({ degree }: { degree: RoastingDegree }) => (
-  <Badge
-    className={cn(
-      "h-6 rounded-full border px-3 py-0 text-[11px] font-semibold tracking-wide",
-      DEGREE_STYLES[degree],
-    )}
-  >
-    {degree}
-  </Badge>
-);
+const DegreeBadge = ({ degree }: { degree: RoastingDegree }) => {
+  const { t } = useTranslation();
+  return (
+    <Badge
+      className={cn(
+        "h-6 rounded-full border px-3 py-0 text-[11px] font-semibold tracking-wide",
+        DEGREE_STYLES[degree],
+      )}
+    >
+      {t(degree)}
+    </Badge>
+  );
+};
 
 const STATUS_STYLES: Record<BatchStatus, string> = {
   "Verify Quality": "bg-primary text-primary-foreground",
@@ -41,6 +45,7 @@ const STATUS_STYLES: Record<BatchStatus, string> = {
 };
 
 const MassCell = ({ batch }: { batch: RoastBatch }) => {
+  const { t } = useTranslation();
   const loss =
     batch.weightBefore > 0
       ? ((batch.weightBefore - batch.weightAfter) / batch.weightBefore) * 100
@@ -48,11 +53,11 @@ const MassCell = ({ batch }: { batch: RoastBatch }) => {
   const lossColor = loss < 50 ? "text-[#059B5A]" : "text-[#C90000]";
   return (
     <div>
-      <p className="text-[13px] font-medium text-[#28293D]">
+      <p className="text-[13px] font-medium text-[#28293D]" dir="ltr">
         {batch.weightBefore}Kg + {batch.weightAfter}kg
       </p>
       <p className={cn("text-[12px] font-semibold", lossColor)}>
-        Missing {loss.toFixed(1)}%
+        {t("Missing")} {loss.toFixed(1)}%
       </p>
     </div>
   );
@@ -65,11 +70,12 @@ const StatusCell = ({
   batch: RoastBatch;
   onVerifyQuality: (b: RoastBatch) => void;
 }) => {
+  const { t } = useTranslation();
   if (batch.status === "Verify Quality") {
     return (
       <DefaultButton
         data={{
-          buttonText: "Verify Quality",
+          buttonText: t("Verify Quality"),
           type: "button",
           onClick: () => onVerifyQuality(batch),
           className:
@@ -85,12 +91,13 @@ const StatusCell = ({
         STATUS_STYLES[batch.status],
       )}
     >
-      {batch.status}
+      {t(batch.status)}
     </Badge>
   );
 };
 
 const BatchesTable = ({ batches, onVerifyQuality }: BatchesTableProps) => {
+  const { t } = useTranslation();
   return (
     <>
       {/* Mobile card list */}
@@ -113,15 +120,15 @@ const BatchesTable = ({ batches, onVerifyQuality }: BatchesTableProps) => {
             <div className="mb-3 grid grid-cols-2 gap-3 text-[13px]">
               <div>
                 <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
-                  Mass (in/out)
+                  {t("Mass (in/out)")}
                 </p>
                 <MassCell batch={batch} />
               </div>
               <div>
                 <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
-                  Date
+                  {t("Date")}
                 </p>
-                <p className="text-[#28293D]">{batch.date}</p>
+                <p className="text-[#28293D]" dir="ltr">{batch.date}</p>
               </div>
             </div>
 
@@ -131,7 +138,7 @@ const BatchesTable = ({ batches, onVerifyQuality }: BatchesTableProps) => {
 
         {batches.length === 0 && (
           <p className="py-8 text-center text-[14px] text-[#8B8B8B]">
-            No batches yet.
+            {t("No batches yet.")}
           </p>
         )}
       </div>
@@ -141,18 +148,18 @@ const BatchesTable = ({ batches, onVerifyQuality }: BatchesTableProps) => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="px-6 py-4">BATCH</TableHead>
-              <TableHead className="px-6 py-4">PRODUCT</TableHead>
-              <TableHead className="px-6 py-4">DEGREE</TableHead>
-              <TableHead className="px-6 py-4">MASS(IN/OUT)</TableHead>
-              <TableHead className="px-6 py-4">STATUS</TableHead>
-              <TableHead className="px-6 py-4">DATE</TableHead>
+              <TableHead className="ps-6 py-4 text-start">{t("BATCH")}</TableHead>
+              <TableHead className="px-6 py-4 text-start">{t("PRODUCT")}</TableHead>
+              <TableHead className="px-6 py-4 text-start">{t("DEGREE")}</TableHead>
+              <TableHead className="px-6 py-4 text-start">{t("MASS(IN/OUT)")}</TableHead>
+              <TableHead className="px-6 py-4 text-start">{t("STATUS")}</TableHead>
+              <TableHead className="pe-6 py-4 text-end">{t("DATE")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {batches.map((batch) => (
               <TableRow key={batch.id} className="hover:bg-[#FAFAF8]">
-                <TableCell className="px-6 py-4 whitespace-nowrap text-[14px] font-medium text-[#28293D]">
+                <TableCell className="ps-6 py-4 whitespace-nowrap text-[14px] font-medium text-[#28293D]">
                   {batch.batchNumber}
                 </TableCell>
                 <TableCell className="px-6 py-4 whitespace-nowrap font-medium text-[14px] text-[#28293D]">
@@ -170,7 +177,7 @@ const BatchesTable = ({ batches, onVerifyQuality }: BatchesTableProps) => {
                     onVerifyQuality={onVerifyQuality}
                   />
                 </TableCell>
-                <TableCell className="px-6 py-4 whitespace-nowrap font-medium text-[13px] text-[#28293D]">
+                <TableCell className="pe-6 py-4 whitespace-nowrap font-medium text-[13px] text-[#28293D]" dir="ltr">
                   {batch.date}
                 </TableCell>
               </TableRow>
@@ -182,7 +189,7 @@ const BatchesTable = ({ batches, onVerifyQuality }: BatchesTableProps) => {
                   colSpan={6}
                   className="py-10 text-center text-[14px] text-[#8B8B8B]"
                 >
-                  No batches yet.
+                  {t("No batches yet.")}
                 </TableCell>
               </TableRow>
             )}

@@ -1,5 +1,6 @@
 import { Badge } from "@/shared/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import type { ZoneStatus } from "../types";
 
 interface StatusBadgeProps {
@@ -7,6 +8,7 @@ interface StatusBadgeProps {
 }
 
 const StatusBadge = ({ status }: StatusBadgeProps) => {
+  const { t } = useTranslation();
   const isActive = status === "Active";
 
   return (
@@ -18,7 +20,7 @@ const StatusBadge = ({ status }: StatusBadgeProps) => {
           : "bg-[#DCDCDC] text-[#23252A] border-[#595959]",
       )}
     >
-      {isActive ? "Available" : "Inactive"}
+      {isActive ? t("Available") : t("Inactive")}
     </Badge>
   );
 };

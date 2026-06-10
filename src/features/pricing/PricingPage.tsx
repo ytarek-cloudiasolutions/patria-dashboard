@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
-import { Plus, Users, WalletCards } from "lucide-react";
+import { Plus, WalletCards } from "lucide-react";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 
 import CreatePricingRuleDialog from "./components/CreatePricingRuleDialog";
 import PricingDateRange from "./components/PricingDateRange";
@@ -19,6 +20,7 @@ import type {
 } from "./types";
 
 const PricingPage = () => {
+  const { t } = useTranslation();
   const [dateRange, setDateRange] = useState<PricingDateRangeType>({
     from: "",
     to: "",
@@ -54,13 +56,13 @@ const PricingPage = () => {
     <>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <HeaderLayout
-          title="Pricing Strategy"
-          description="Manage bulk discounts, wholesale tiers, and dynamic surcharges."
+          title={t("Pricing Strategy")}
+          description={t("Manage bulk discounts, wholesale tiers, and dynamic surcharges.")}
         />
         <div className="flex flex-wrap items-center gap-3">
           <DefaultButton
             data={{
-              buttonText: "Manage Pricelists",
+              buttonText: t("Manage Pricelists"),
               variant: "outline",
               icon: <WalletCards className="size-4.5" />,
               className:
@@ -69,7 +71,7 @@ const PricingPage = () => {
           />
           <DefaultButton
             data={{
-              buttonText: "New Pricing Rule",
+              buttonText: t("New Pricing Rule"),
               icon: <Plus className="size-4.5" />,
               onClick: () => setIsCreateOpen(true),
             }}

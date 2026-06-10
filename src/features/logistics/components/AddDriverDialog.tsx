@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogTitle,
 } from "@/shared/components/ui/dialog";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import { Button } from "@/shared/components/ui/button";
 import { Label } from "@/shared/components/ui/label";
 import { Separator } from "@/shared/components/ui/separator";
@@ -43,6 +44,7 @@ const AddDriverDialog = ({
   onOpenChange,
   onSave,
 }: AddDriverDialogProps) => {
+  const { t } = useTranslation();
   const [form, setForm] = useState<DriverFormData>(INITIAL_FORM);
   const [errors, setErrors] = useState<
     Partial<Record<keyof DriverFormData, string>>
@@ -78,9 +80,9 @@ const AddDriverDialog = ({
 
   const validate = () => {
     const next: Partial<Record<keyof DriverFormData, string>> = {};
-    if (!form.name.trim()) next.name = "Driver name is required";
+    if (!form.name.trim()) next.name = t("Driver name is required");
     if (!form.whatsappPhone.trim())
-      next.whatsappPhone = "WhatsApp phone is required";
+      next.whatsappPhone = t("WhatsApp phone is required");
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -96,7 +98,7 @@ const AddDriverDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-[560px]"
+        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-140"
       >
         {openDropdown && (
           <div className="pointer-events-none fixed inset-0 z-60 bg-black/40" />
@@ -106,7 +108,7 @@ const AddDriverDialog = ({
           {/* Header */}
           <div className="px-5 pt-5 sm:px-7 sm:pt-7">
             <DialogTitle className="text-[20px] font-semibold text-[#28293D] sm:text-[22px]">
-              {driver ? "Edit Driver" : "Add Driver"}
+              {driver ? t("Edit Driver") : t("Add Driver")}
             </DialogTitle>
           </div>
 
@@ -124,9 +126,9 @@ const AddDriverDialog = ({
                     id: "driver-name",
                     label: {
                       htmlFor: "driver-name",
-                      labelText: "Driver Name",
+                      labelText: t("Driver Name"),
                     },
-                    placeholder: "Driver Name",
+                    placeholder: t("Driver Name"),
                     required: true,
                     inputProps: {
                       value: form.name,
@@ -147,7 +149,7 @@ const AddDriverDialog = ({
                     id: "whatsapp-phone",
                     label: {
                       htmlFor: "whatsapp-phone",
-                      labelText: "Whatsapp Phone",
+                      labelText: t("Whatsapp Phone"),
                     },
                     type: "tel",
                     placeholder: "+20...",
@@ -171,10 +173,10 @@ const AddDriverDialog = ({
                   htmlFor="vehicle-type"
                   className="mb-2.5 text-[16px] font-medium text-black"
                 >
-                  Vehicle Type<span className="text-[#C90000]">*</span>
+                  {t("Vehicle Type")}<span className="text-[#C90000]">*</span>
                 </Label>
                 <DropdownSelect
-                  options={VEHICLE_TYPE_OPTIONS}
+                  options={VEHICLE_TYPE_OPTIONS.map((o) => ({ ...o, label: t(o.label) }))}
                   selected={form.vehicleType}
                   onSelect={(value) =>
                     set("vehicleType", value as VehicleType)
@@ -182,7 +184,7 @@ const AddDriverDialog = ({
                   onOpenChange={(o) =>
                     setOpenDropdown(o ? "vehicle" : null)
                   }
-                  placeholder="Select vehicle type"
+                  placeholder={t("Select vehicle type")}
                   align="start"
                   className="md:w-full"
                   contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
@@ -194,10 +196,10 @@ const AddDriverDialog = ({
                   htmlFor="driver-status"
                   className="mb-2.5 text-[16px] font-medium text-black"
                 >
-                  Status<span className="text-[#C90000]">*</span>
+                  {t("Status")}<span className="text-[#C90000]">*</span>
                 </Label>
                 <DropdownSelect
-                  options={DRIVER_STATUS_OPTIONS}
+                  options={DRIVER_STATUS_OPTIONS.map((o) => ({ ...o, label: t(o.label) }))}
                   selected={form.status}
                   onSelect={(value) =>
                     set("status", value as DriverStatus)
@@ -205,7 +207,7 @@ const AddDriverDialog = ({
                   onOpenChange={(o) =>
                     setOpenDropdown(o ? "status" : null)
                   }
-                  placeholder="Select status"
+                  placeholder={t("Select status")}
                   align="start"
                   className="md:w-full"
                   contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
@@ -220,7 +222,7 @@ const AddDriverDialog = ({
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <DefaultButton
                 data={{
-                  buttonText: "Cancel",
+                  buttonText: t("Cancel"),
                   variant: "outline",
                   type: "button",
                   onClick: () => onOpenChange(false),
@@ -233,7 +235,7 @@ const AddDriverDialog = ({
                 type="submit"
                 className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
               >
-                {driver ? "Update Driver" : "Save Driver"}
+                {driver ? t("Update Driver") : t("Save Driver")}
               </Button>
             </div>
           </div>

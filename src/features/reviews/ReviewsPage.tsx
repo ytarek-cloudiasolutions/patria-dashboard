@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import SearchInputField from "@/shared/components/SearchInputField";
 import DropdownSelect from "@/shared/components/DropdownSelect";
@@ -21,6 +22,7 @@ import type {
 } from "./types";
 
 const ReviewsPage = () => {
+  const { t } = useTranslation();
   const [reviews, setReviews] = useState<Review[]>(INITIAL_REVIEWS);
   const [search, setSearch] = useState("");
   const [ratingFilter, setRatingFilter] = useState("all");
@@ -115,8 +117,8 @@ const ReviewsPage = () => {
 
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <HeaderLayout
-          title="Customer reviews"
-          description="Customer feedback on completed orders"
+          title={t("Customer reviews")}
+          description={t("Customer feedback on completed orders")}
         />
         <OverallRatingCard
           averageRating={averageRating}
@@ -129,19 +131,19 @@ const ReviewsPage = () => {
           <SearchInputField
             value={search}
             onChange={setSearch}
-            placeholder="Search customer..."
+            placeholder={t("Search customer...")}
           />
         </div>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-3">
           <div className="sm:w-56">
             <DropdownSelect
-              options={REVIEW_RATING_FILTERS}
+              options={REVIEW_RATING_FILTERS.map((o) => ({ ...o, label: t(o.label) }))}
               selected={ratingFilter}
               onSelect={setRatingFilter}
               onOpenChange={(open) =>
                 setIsAnyDropdownOpen((prev) => ({ ...prev, rating: open }))
               }
-              placeholder="All Ratings"
+              placeholder={t("All Ratings")}
               align="end"
               className="md:w-full"
               contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
@@ -155,7 +157,7 @@ const ReviewsPage = () => {
               onOpenChange={(open) =>
                 setIsAnyDropdownOpen((prev) => ({ ...prev, category: open }))
               }
-              placeholder="All Categories"
+              placeholder={t("All Categories")}
               align="end"
               className="md:w-full"
               contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
@@ -171,7 +173,7 @@ const ReviewsPage = () => {
 
       {filteredReviews.length === 0 ? (
         <div className="rounded-[16px] border border-[#E5E5E5] bg-white px-6 py-10 text-center text-[14px] text-[#8B8B8B]">
-          No reviews match your filters.
+          {t("No reviews match your filters.")}
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">

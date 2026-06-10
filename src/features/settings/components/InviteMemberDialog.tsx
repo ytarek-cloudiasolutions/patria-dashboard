@@ -10,6 +10,7 @@ import { Separator } from "@/shared/components/ui/separator";
 import DefaultButton from "@/shared/components/DefaultButton";
 import DropdownSelect from "@/shared/components/DropdownSelect";
 import InputField from "@/shared/components/InputField";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import { PRIVILEGE_ROLE_OPTIONS } from "../data";
 import type { InviteFormData, TeamRole } from "../types";
 
@@ -34,6 +35,7 @@ const InviteMemberDialog = ({
   onOpenChange,
   onSave,
 }: InviteMemberDialogProps) => {
+  const { t } = useTranslation();
   const [form, setForm] = useState<InviteFormData>(INITIAL_FORM);
   const [errors, setErrors] = useState<
     Partial<Record<keyof InviteFormData, string>>
@@ -58,10 +60,10 @@ const InviteMemberDialog = ({
 
   const validate = () => {
     const next: Partial<Record<keyof InviteFormData, string>> = {};
-    if (!form.name.trim()) next.name = "Entity name is required";
-    if (!form.email.trim()) next.email = "Email is required";
+    if (!form.name.trim()) next.name = t("Entity name is required");
+    if (!form.email.trim()) next.email = t("Email is required");
     if (!form.securityCode.trim() || form.securityCode.length < 6) {
-      next.securityCode = "Minimum 6 characters";
+      next.securityCode = t("Minimum 6 characters");
     }
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -88,7 +90,7 @@ const InviteMemberDialog = ({
           {/* Header */}
           <div className="px-5 pt-5 sm:px-7 sm:pt-7">
             <DialogTitle className="text-[20px] font-semibold text-[#28293D] sm:text-[22px]">
-              Issue Professional Access Key
+              {t("Issue Professional Access Key")}
             </DialogTitle>
           </div>
 
@@ -107,9 +109,9 @@ const InviteMemberDialog = ({
                       id: "entity-name",
                       label: {
                         htmlFor: "entity-name",
-                        labelText: "Entity Official Name",
+                        labelText: t("Entity Official Name"),
                       },
-                      placeholder: "e.g. Staff",
+                      placeholder: t("e.g. Staff"),
                       required: true,
                       inputProps: {
                         value: form.name,
@@ -129,7 +131,7 @@ const InviteMemberDialog = ({
                       id: "auth-email",
                       label: {
                         htmlFor: "auth-email",
-                        labelText: "Authentication Email",
+                        labelText: t("Authentication Email"),
                       },
                       placeholder: "admin@erb.com",
                       required: true,
@@ -154,7 +156,7 @@ const InviteMemberDialog = ({
                     id: "contact-phone",
                     label: {
                       htmlFor: "contact-phone",
-                      labelText: "Contact Phone (Optional)",
+                      labelText: t("Contact Phone (Optional)"),
                     },
                     placeholder: "e.g. 0123456789",
                     inputProps: {
@@ -169,7 +171,7 @@ const InviteMemberDialog = ({
                       id: "security-code",
                       label: {
                         htmlFor: "security-code",
-                        labelText: "Initial Security Code",
+                        labelText: t("Initial Security Code"),
                       },
                       placeholder: "••••••••••",
                       required: true,
@@ -193,10 +195,10 @@ const InviteMemberDialog = ({
                   htmlFor="privilege-role"
                   className="mb-2.5 text-[16px] font-medium text-black"
                 >
-                  Logical Privilege Role
+                  {t("Logical Privilege Role")}
                 </Label>
                 <DropdownSelect
-                  options={PRIVILEGE_ROLE_OPTIONS}
+                  options={PRIVILEGE_ROLE_OPTIONS.map((o) => ({ ...o, label: t(o.label) }))}
                   selected={form.role}
                   onSelect={(value) => set("role", value as TeamRole)}
                   onOpenChange={setIsRoleOpen}
@@ -214,7 +216,7 @@ const InviteMemberDialog = ({
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <DefaultButton
                 data={{
-                  buttonText: "Cancel",
+                  buttonText: t("Cancel"),
                   variant: "outline",
                   type: "button",
                   onClick: () => onOpenChange(false),
@@ -227,7 +229,7 @@ const InviteMemberDialog = ({
                 type="submit"
                 className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
               >
-                Authorize Administrative Entity
+                {t("Authorize Administrative Entity")}
               </Button>
             </div>
           </div>

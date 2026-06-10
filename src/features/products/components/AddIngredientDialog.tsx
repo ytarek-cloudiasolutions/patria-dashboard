@@ -1,287 +1,303 @@
-import { FileUp, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import { Button } from "@/shared/components/ui/button";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
   DialogTitle,
 } from "@/shared/components/ui/dialog";
+import { Button } from "@/shared/components/ui/button";
+import { Checkbox } from "@/shared/components/ui/checkbox";
 import { Input } from "@/shared/components/ui/input";
-import { useFileUpload } from "@/shared/hooks/use-file-upload";
-import { INITIAL_INGREDIENT_FORM } from "../data";
-import type { Ingredient, IngredientFormData } from "../types";
+import { Label } from "@/shared/components/ui/label";
+import { Separator } from "@/shared/components/ui/separator";
+import { Switch } from "@/shared/components/ui/switch";
+import { Textarea } from "@/shared/components/ui/textarea";
+import DefaultButton from "@/shared/components/DefaultButton";
+import InputField from "@/shared/components/InputField";
+import { useTranslation } from "@/shared/i18n/useTranslation";
+import { EXTRA_CATEGORIES } from "../data";
+import type { IngredientFormData } from "../types";
+import UploadDropzone from "./UploadDropzone";
+
+const FORM_ID = "add-ingredient-form";
+
+const INITIAL_FORM: IngredientFormData = {
+  name: "",
+  description: "",
+  barcode: "",
+  price: "",
+  quantity: "",
+  imageUrl: undefined,
+  isExtra: false,
+  extraCategories: [],
+};
 
 interface AddIngredientDialogProps {
   open: boolean;
-  ingredient: Ingredient | null;
   onOpenChange: (open: boolean) => void;
-  onSave: (payload: IngredientFormData) => void;
+  onSave: (data: IngredientFormData) => void;
 }
 
 const AddIngredientDialog = ({
   open,
-  ingredient,
   onOpenChange,
   onSave,
 }: AddIngredientDialogProps) => {
-  const [form, setForm] = useState<IngredientFormData>(INITIAL_INGREDIENT_FORM);
-  const [showErrors, setShowErrors] = useState(false);
+  const { t } = useTranslation();
+  const [form, setForm] = useState<IngredientFormData>(INITIAL_FORM);
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof IngredientFormData, string>>
+  >({});
 
-  const [uploadState, uploadActions] = useFileUpload({
-    accept: "image/*",
-    multiple: false,
-    maxFiles: 1,
-    onFilesChange: (files) => {
-      const first = files[0];
-      setForm((previous) => ({ ...previous, imageUrl: first?.preview ?? "" }));
-    },
-  });
-
-  const uploadedImage = useMemo(
-    () => uploadState.files[0]?.preview,
-    [uploadState.files]
-  );
-
-  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
-    if (!open) {
-      return;
+    if (open) {
+      setForm(INITIAL_FORM);
+      setErrors({});
     }
+  }, [open]);
 
-    setShowErrors(false);
-    uploadActions.clearFiles();
-
-    if (ingredient) {
-      setForm({
-        name: ingredient.name,
-        description: ingredient.description,
-        price: ingredient.price.toString(),
-        initialQuantity: ingredient.initialQuantity.toString(),
-        category: "Raw Ingredient",
-        imageUrl: ingredient.imageUrl,
-      });
-      return;
-    }
-
-    setForm(INITIAL_INGREDIENT_FORM);
-  }, [ingredient, open]);
-  /* eslint-enable react-hooks/exhaustive-deps */
-
-  const requiredFields = {
-    name: form.name.trim().length > 0,
-    price: form.price.trim().length > 0,
-    initialQuantity: form.initialQuantity.trim().length > 0,
+  const set = <K extends keyof IngredientFormData>(
+    key: K,
+    value: IngredientFormData[K],
+  ) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+    if (errors[key]) setErrors((prev) => ({ ...prev, [key]: "" }));
   };
 
-  const hasErrors = Object.values(requiredFields).some((value) => !value);
+  const toggleCategory = (category: string) =>
+    setForm((prev) => ({
+      ...prev,
+      extraCategories: prev.extraCategories.includes(category)
+        ? prev.extraCategories.filter((c) => c !== category)
+        : [...prev.extraCategories, category],
+    }));
 
-  const handleClose = () => {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const next: Partial<Record<keyof IngredientFormData, string>> = {};
+    if (!form.name.trim()) next.name = t("Product name is required");
+    if (!form.price.trim() || Number(form.price) <= 0)
+      next.price = t("Enter a valid price");
+    if (!form.quantity.trim() || Number(form.quantity) < 0)
+      next.quantity = t("Enter a valid quantity");
+    setErrors(next);
+    if (Object.keys(next).length > 0) return;
+    onSave(form);
     onOpenChange(false);
   };
-
-  const handleSubmit = () => {
-    if (hasErrors) {
-      setShowErrors(true);
-      return;
-    }
-
-    onSave(form);
-    handleClose();
-  };
-
-  const uploadZoneClass = uploadState.isDragging
-    ? "border-primary bg-primary/5"
-    : "border-[#7A5900] bg-white";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="max-w-[820px] rounded-[12px] bg-white p-0 ring-0 sm:max-w-174"
+        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-150"
       >
-        <div className="relative max-h-[90vh] overflow-y-auto p-8">
-          <DialogTitle className="mb-10 text-[28px] font-semibold text-[#28293D]">
-            {ingredient ? "Edit Ingredient" : "Add New Ingredient"}
-          </DialogTitle>
-
-          <div className="space-y-8">
-            <div
-              className={`flex h-40 cursor-pointer items-center justify-center rounded-[16px] border border-dashed transition-colors [border-width:2px] [border-dasharray:6,4] ${uploadZoneClass}`}
-              onDragEnter={uploadActions.handleDragEnter}
-              onDragLeave={uploadActions.handleDragLeave}
-              onDragOver={uploadActions.handleDragOver}
-              onDrop={uploadActions.handleDrop}
-              onClick={uploadActions.openFileDialog}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" || event.key === " ") {
-                  event.preventDefault();
-                  uploadActions.openFileDialog();
-                }
-              }}
-            >
-              {uploadedImage || form.imageUrl ? (
-                <div className="relative flex size-full items-center justify-center p-2">
-                  <img
-                    src={uploadedImage ?? form.imageUrl}
-                    alt="Product"
-                    className="h-22 w-auto max-w-70 rounded-[8px] object-contain"
-                  />
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="icon"
-                    className="absolute top-2 right-2 size-7 rounded-full"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      uploadActions.clearFiles();
-                      setForm((previous) => ({
-                        ...previous,
-                        imageUrl: "",
-                      }));
-                    }}
-                  >
-                    <X className="size-4" />
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center text-center">
-                  <FileUp className="mb-6 size-6 text-[#000000]" />
-                  <p className="mb-1 text-[16px] font-semibold text-[#333333]">
-                    Click to upload image
-                  </p>
-                  <p className="text-[14px] text-[#8B8B8B]">
-                    PNG, JPG up to 5MB
-                  </p>
-                </div>
-              )}
-
-              <input
-                {...uploadActions.getInputProps({ className: "hidden" })}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-7">
-              <div>
-                <p className="mb-3 text-[18px] font-medium text-[#000000]">
-                  Product Name <span className="text-[#C90000]">*</span>
-                </p>
-                <Input
-                  value={form.name}
-                  onChange={(event) =>
-                    setForm((previous) => ({
-                      ...previous,
-                      name: event.target.value,
-                    }))
-                  }
-                  placeholder="e.g. Artisanal Sourdough"
-                  className={`h-14 rounded-[12px] px-4 text-[16px] placeholder:text-[#8B8B8B] ${
-                    showErrors && !requiredFields.name
-                      ? "border-[#C90000]"
-                      : "border-[#E5E5E5]"
-                  }`}
-                />
-              </div>
-
-              <div>
-                <p className="mb-3 text-[18px] font-medium text-[#000000]">
-                  Category
-                </p>
-                <Input
-                  value={form.category}
-                  readOnly
-                  className="h-14 rounded-[12px] border-[#CACBD4] bg-[#E9EAEE] px-4 text-[16px] text-[#8B8B8B]"
-                />
-              </div>
-            </div>
-
-            <div>
-              <p className="mb-3 text-[18px] font-medium text-[#000000]">
-                Description{" "}
-                <span className="text-[15px] text-[#595959]">(Optional)</span>
-              </p>
-              <Input
-                value={form.description}
-                onChange={(event) =>
-                  setForm((previous) => ({
-                    ...previous,
-                    description: event.target.value,
-                  }))
-                }
-                placeholder="Describe this product..."
-                className="h-14 rounded-[12px] border-[#E5E5E5] px-4 text-[16px] placeholder:text-[#8B8B8B]"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-7">
-              <div>
-                <p className="mb-3 text-[18px] font-medium text-[#000000]">
-                  Price <span className="text-[#C90000]">*</span>
-                </p>
-                <Input
-                  value={form.price}
-                  onChange={(event) =>
-                    setForm((previous) => ({
-                      ...previous,
-                      price: event.target.value,
-                    }))
-                  }
-                  placeholder="0"
-                  className={`h-14 rounded-[12px] px-4 text-[16px] placeholder:text-[#8B8B8B] ${
-                    showErrors && !requiredFields.price
-                      ? "border-[#C90000]"
-                      : "border-[#E5E5E5]"
-                  }`}
-                />
-              </div>
-              <div>
-                <p className="mb-3 text-[18px] font-medium text-[#000000]">
-                  Initial Quantity <span className="text-[#C90000]">*</span>
-                </p>
-                <Input
-                  value={form.initialQuantity}
-                  onChange={(event) =>
-                    setForm((previous) => ({
-                      ...previous,
-                      initialQuantity: event.target.value,
-                    }))
-                  }
-                  placeholder="0"
-                  className={`h-14 rounded-[12px] px-4 text-[16px] placeholder:text-[#8B8B8B] ${
-                    showErrors && !requiredFields.initialQuantity
-                      ? "border-[#C90000]"
-                      : "border-[#E5E5E5]"
-                  }`}
-                />
-              </div>
-            </div>
-
-            {showErrors && hasErrors ? (
-              <p className="text-[12px] font-medium text-[#C90000]">
-                Please fill all required fields to continue.
-              </p>
-            ) : null}
+        <div className="flex max-h-[calc(100vh-2rem)] flex-col">
+          <div className="px-5 pt-5 sm:px-7 sm:pt-7">
+            <DialogTitle className="text-[20px] font-semibold text-[#28293D] sm:text-[22px]">
+              {t("Add New Ingredient")}
+            </DialogTitle>
           </div>
 
-          <div className="my-9 border-t border-[#CACBD4]" />
+          <form
+            id={FORM_ID}
+            onSubmit={handleSubmit}
+            noValidate
+            className="flex flex-1 flex-col gap-5 overflow-y-auto px-5 py-5 sm:px-7 sm:py-6"
+          >
+            <UploadDropzone
+              value={form.imageUrl}
+              onSelect={(_, url) => set("imageUrl", url)}
+              title="Click to upload image"
+              hint="PNG, JPG up to 5MB"
+            />
 
-          <div className="flex items-center justify-end gap-4">
-            <Button
-              type="button"
-              variant="outline"
-              className="h-14 rounded-[5px] border-primary px-7.5 py-4 text-[16px] text-primary hover:bg-white hover:text-primary"
-              onClick={handleClose}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              className="h-14 rounded-[5px] px-7.5 py-4 text-[16px]"
-              onClick={handleSubmit}
-            >
-              Add Ingredient
-            </Button>
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+              <div>
+                <InputField
+                  data={{
+                    id: "ingredient-name",
+                    label: {
+                      htmlFor: "ingredient-name",
+                      labelText: t("Product Name"),
+                    },
+                    placeholder: t("e.g. Artisanal Sourdough"),
+                    required: true,
+                    inputProps: {
+                      value: form.name,
+                      onChange: (e) => set("name", e.target.value),
+                    },
+                  }}
+                />
+                {errors.name && (
+                  <p className="mt-1 text-[13px] text-[#C90000]">
+                    {errors.name}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex flex-col">
+                <Label className="mb-2.5 text-[16px] font-medium text-black">
+                  {t("Category")}
+                </Label>
+                <Input
+                  value={t("Raw Ingredient")}
+                  disabled
+                  readOnly
+                  className="h-12.5 rounded-xl border-[#E5E5E5] bg-[#F4F4F4] px-4.5 py-3 text-[14px] text-[#595959] disabled:opacity-100"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col">
+              <Label
+                htmlFor="ingredient-description"
+                className="mb-2.5 text-[16px] font-medium text-black"
+              >
+                {t("Description")}{" "}
+                <span className="text-[13px] font-normal text-[#8B8B8B]">
+                  {t("(Optional)")}
+                </span>
+              </Label>
+              <Textarea
+                id="ingredient-description"
+                value={form.description}
+                onChange={(e) => set("description", e.target.value)}
+                placeholder={t("Describe this product...")}
+                className="min-h-20 rounded-xl border-[#E5E5E5] px-4.5 py-3 text-[14px] text-[#23252A] placeholder:text-[#8B8B8B] focus-visible:border-primary focus-visible:ring-0"
+              />
+            </div>
+
+            <InputField
+              data={{
+                id: "ingredient-barcode",
+                label: {
+                  htmlFor: "ingredient-barcode",
+                  labelText: `${t("Barcode")} ${t("(Optional)")}`,
+                },
+                placeholder: t("Manually enter barcode"),
+                inputProps: {
+                  value: form.barcode,
+                  onChange: (e) => set("barcode", e.target.value),
+                },
+              }}
+            />
+
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+              <div>
+                <InputField
+                  data={{
+                    id: "ingredient-price",
+                    label: {
+                      htmlFor: "ingredient-price",
+                      labelText: t("Price"),
+                    },
+                    placeholder: "0",
+                    required: true,
+                    inputProps: {
+                      type: "number",
+                      min: "0",
+                      step: "0.01",
+                      value: form.price,
+                      onChange: (e) => set("price", e.target.value),
+                    },
+                  }}
+                />
+                {errors.price && (
+                  <p className="mt-1 text-[13px] text-[#C90000]">
+                    {errors.price}
+                  </p>
+                )}
+              </div>
+              <div>
+                <InputField
+                  data={{
+                    id: "ingredient-quantity",
+                    label: {
+                      htmlFor: "ingredient-quantity",
+                      labelText: t("Initial Quantity"),
+                    },
+                    placeholder: "0",
+                    required: true,
+                    inputProps: {
+                      type: "number",
+                      min: "0",
+                      value: form.quantity,
+                      onChange: (e) => set("quantity", e.target.value),
+                    },
+                  }}
+                />
+                {errors.quantity && (
+                  <p className="mt-1 text-[13px] text-[#C90000]">
+                    {errors.quantity}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="rounded-[12px] border border-[#E5E5E5] p-4">
+              <div className="flex items-center justify-between">
+                <span className="text-[15px] font-medium text-[#28293D]">
+                  {t("Add as extra")}
+                </span>
+                <Switch
+                  checked={form.isExtra}
+                  onCheckedChange={(val) => set("isExtra", val)}
+                  className="data-[state=checked]:bg-[#059B5A] ring-[#059B5A33]"
+                />
+              </div>
+
+              {form.isExtra && (
+                <div className="mt-4 rounded-[10px] border border-dashed border-[#624F1C] p-3">
+                  <p className="mb-2 text-[13px] font-semibold text-[#28293D]">
+                    {t("Categories")}
+                  </p>
+                  <div className="grid grid-cols-2 gap-y-2">
+                    {EXTRA_CATEGORIES.map((category) => {
+                      const id = `extra-${category}`;
+                      const checked = form.extraCategories.includes(category);
+                      return (
+                        <label
+                          key={category}
+                          htmlFor={id}
+                          className="flex cursor-pointer items-center gap-2 text-[14px] text-[#28293D]"
+                        >
+                          <Checkbox
+                            id={id}
+                            checked={checked}
+                            onCheckedChange={() => toggleCategory(category)}
+                            className="size-5 rounded-[6px] border-[#8F6900]"
+                          />
+                          {t(category)}
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          </form>
+
+          <div className="bg-white px-5 pb-5 sm:px-7 sm:pb-6">
+            <Separator className="mb-4 bg-[#CACBD4] sm:mb-5" />
+            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <DefaultButton
+                data={{
+                  buttonText: t("Cancel"),
+                  variant: "outline",
+                  type: "button",
+                  onClick: () => onOpenChange(false),
+                  className:
+                    "w-full sm:w-auto border-primary text-primary hover:bg-white hover:text-primary",
+                }}
+              />
+              <Button
+                form={FORM_ID}
+                type="submit"
+                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
+              >
+                {t("Add Ingredient")}
+              </Button>
+            </div>
           </div>
         </div>
       </DialogContent>

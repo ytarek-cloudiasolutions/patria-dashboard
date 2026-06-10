@@ -9,6 +9,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import TabItem from "@/shared/components/TabItem";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import type { SettingsTab } from "../types";
 
 const TABS: { value: SettingsTab; label: string; icon: LucideIcon }[] = [
@@ -26,19 +27,22 @@ interface SettingsTabsProps {
   onChange: (tab: SettingsTab) => void;
 }
 
-const SettingsTabs = ({ active, onChange }: SettingsTabsProps) => (
-  <div className="mb-6 grid grid-cols-2 gap-1.5 sm:grid-cols-4 lg:grid-cols-7">
-    {TABS.map((tab) => (
-      <TabItem
-        key={tab.value}
-        value={tab.value}
-        label={tab.label}
-        icon={tab.icon}
-        isActive={active === tab.value}
-        onClick={(value) => onChange(value as SettingsTab)}
-      />
-    ))}
-  </div>
-);
+const SettingsTabs = ({ active, onChange }: SettingsTabsProps) => {
+  const { t } = useTranslation();
+  return (
+    <div className="mb-6 grid grid-cols-2 gap-1.5 sm:grid-cols-4 lg:grid-cols-7">
+      {TABS.map((tab) => (
+        <TabItem
+          key={tab.value}
+          value={tab.value}
+          label={t(tab.label)}
+          icon={tab.icon}
+          isActive={active === tab.value}
+          onClick={(value) => onChange(value as SettingsTab)}
+        />
+      ))}
+    </div>
+  );
+};
 
 export default SettingsTabs;

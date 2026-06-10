@@ -1,5 +1,6 @@
 import { Star } from "lucide-react";
 import { Card } from "@/shared/components/ui/card";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import type { RatingDistributionRow } from "../types";
 
 interface RatingDistributionCardProps {
@@ -7,6 +8,7 @@ interface RatingDistributionCardProps {
 }
 
 const RatingDistributionCard = ({ rows }: RatingDistributionCardProps) => {
+  const { t } = useTranslation();
   const total = rows.reduce((sum, r) => sum + r.count, 0);
   const max = Math.max(...rows.map((r) => r.count), 1);
 
@@ -15,7 +17,7 @@ const RatingDistributionCard = ({ rows }: RatingDistributionCardProps) => {
       {/* Tinted header */}
       <div className="flex items-center justify-between bg-[#F5F0EA] px-5 py-3 sm:px-6 sm:py-4">
         <h3 className="text-[15px] font-semibold text-[#28293D] sm:text-[16px]">
-          Distribution of ratings
+          {t("Distribution of ratings")}
         </h3>
         <Star className="size-6 text-[#000000]" />
       </div>
@@ -28,7 +30,7 @@ const RatingDistributionCard = ({ rows }: RatingDistributionCardProps) => {
               key={row.stars}
               className="grid grid-cols-[2.25rem_1fr_1.75rem] items-center gap-3"
             >
-              <span className="flex items-center gap-1 text-[13px] font-bold text-[#28293D]">
+              <span className="flex items-center gap-1 text-[13px] font-bold text-[#28293D]" dir="ltr">
                 {row.stars}
                 <Star className="size-3 fill-[#F6B73C] text-[#F6B73C]" />
               </span>

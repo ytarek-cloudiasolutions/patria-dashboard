@@ -7,6 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/shared/components/ui/table";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import TransferStatusBadge from "./TransferStatusBadge";
 import type { InternalTransfer } from "../types";
 
@@ -14,14 +15,23 @@ interface TransfersTableProps {
   transfers: InternalTransfer[];
 }
 
-const ItemsCount = ({ count }: { count: number }) => (
+const ItemsCount = ({
+  count,
+  itemLabel,
+  itemsLabel,
+}: {
+  count: number;
+  itemLabel: string;
+  itemsLabel: string;
+}) => (
   <div className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#28293D]">
     <Box size={14} className="text-[#595959]" />
-    {count} {count === 1 ? "Item" : "Items"}
+    {count} {count === 1 ? itemLabel : itemsLabel}
   </div>
 );
 
 const TransfersTable = ({ transfers }: TransfersTableProps) => {
+  const { t } = useTranslation();
   return (
     <>
       {/* Mobile card list — hidden on md+ */}
@@ -32,7 +42,7 @@ const TransfersTable = ({ transfers }: TransfersTableProps) => {
             className="rounded-2xl border border-[#E5E5E5] bg-white px-4 py-4"
           >
             <div className="mb-2 flex items-center justify-between gap-3">
-              <p className="text-[14px] font-semibold text-[#28293D]">
+              <p className="text-[14px] font-semibold text-[#28293D]" dir="ltr">
                 {transfer.reference}
               </p>
               <TransferStatusBadge status={transfer.status} />
@@ -41,27 +51,31 @@ const TransfersTable = ({ transfers }: TransfersTableProps) => {
             <div className="grid grid-cols-2 gap-3 text-[13px]">
               <div>
                 <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
-                  From
+                  {t("From")}
                 </p>
                 <p className="text-[#28293D]">{transfer.fromName}</p>
               </div>
               <div>
                 <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
-                  To
+                  {t("To")}
                 </p>
                 <p className="text-[#28293D]">{transfer.toName}</p>
               </div>
               <div>
                 <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
-                  Items
+                  {t("Items")}
                 </p>
-                <ItemsCount count={transfer.items.length} />
+                <ItemsCount
+                  count={transfer.items.length}
+                  itemLabel={t("Item")}
+                  itemsLabel={t("Items")}
+                />
               </div>
               <div>
                 <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
-                  Date
+                  {t("Date")}
                 </p>
-                <p className="text-[#28293D]">{transfer.createdAt}</p>
+                <p className="text-[#28293D]" dir="ltr">{transfer.createdAt}</p>
               </div>
             </div>
           </div>
@@ -69,7 +83,7 @@ const TransfersTable = ({ transfers }: TransfersTableProps) => {
 
         {transfers.length === 0 && (
           <p className="py-8 text-center text-[14px] text-[#8B8B8B]">
-            No transfers yet.
+            {t("No transfers yet.")}
           </p>
         )}
       </div>
@@ -79,18 +93,18 @@ const TransfersTable = ({ transfers }: TransfersTableProps) => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="px-6 py-4">ID</TableHead>
-              <TableHead className="px-6 py-4">FROM</TableHead>
-              <TableHead className="px-6 py-4">TO</TableHead>
-              <TableHead className="px-6 py-4">ITEMS</TableHead>
-              <TableHead className="px-6 py-4">DATE</TableHead>
-              <TableHead className="px-6 py-4">STATUS</TableHead>
+              <TableHead className="ps-6 py-4 text-start">{t("ID")}</TableHead>
+              <TableHead className="px-6 py-4 text-start">{t("FROM")}</TableHead>
+              <TableHead className="px-6 py-4 text-start">{t("TO")}</TableHead>
+              <TableHead className="px-6 py-4 text-start">{t("ITEMS")}</TableHead>
+              <TableHead className="px-6 py-4 text-start">{t("DATE")}</TableHead>
+              <TableHead className="pe-6 py-4 text-start">{t("STATUS")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {transfers.map((transfer) => (
               <TableRow key={transfer.id} className="hover:bg-[#FAFAF8]">
-                <TableCell className="px-6 py-4 whitespace-nowrap text-[14px] font-semibold text-[#28293D]">
+                <TableCell className="ps-6 py-4 whitespace-nowrap text-[14px] font-semibold text-[#28293D]">
                   {transfer.reference}
                 </TableCell>
                 <TableCell className="px-6 py-4 whitespace-nowrap text-[14px] text-[#28293D]">
@@ -100,12 +114,16 @@ const TransfersTable = ({ transfers }: TransfersTableProps) => {
                   {transfer.toName}
                 </TableCell>
                 <TableCell className="px-6 py-4 whitespace-nowrap">
-                  <ItemsCount count={transfer.items.length} />
+                  <ItemsCount
+                    count={transfer.items.length}
+                    itemLabel={t("Item")}
+                    itemsLabel={t("Items")}
+                  />
                 </TableCell>
                 <TableCell className="px-6 py-4 whitespace-nowrap text-[13px] text-[#5A5A66]">
                   {transfer.createdAt}
                 </TableCell>
-                <TableCell className="px-6 py-4 whitespace-nowrap">
+                <TableCell className="pe-6 py-4 whitespace-nowrap">
                   <TransferStatusBadge status={transfer.status} />
                 </TableCell>
               </TableRow>
@@ -117,7 +135,7 @@ const TransfersTable = ({ transfers }: TransfersTableProps) => {
                   colSpan={6}
                   className="py-10 text-center text-[14px] text-[#8B8B8B]"
                 >
-                  No transfers yet.
+                  {t("No transfers yet.")}
                 </TableCell>
               </TableRow>
             )}

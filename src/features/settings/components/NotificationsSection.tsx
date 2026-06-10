@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Bell, Users, Zap, Activity } from "lucide-react";
 import DefaultButton from "@/shared/components/DefaultButton";
 import { Switch } from "@/shared/components/ui/switch";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import SectionCard from "./SectionCard";
 import { INITIAL_NOTIFICATIONS } from "../data";
 import type { NotificationSetting } from "../types";
@@ -16,6 +17,7 @@ const ROW_ICONS: Record<
 };
 
 const NotificationsSection = () => {
+  const { t } = useTranslation();
   const [settings, setSettings] = useState<NotificationSetting[]>(
     INITIAL_NOTIFICATIONS,
   );
@@ -28,8 +30,8 @@ const NotificationsSection = () => {
   return (
     <SectionCard
       icon={<Bell size={32} />}
-      title="Notifications"
-      subtitle="Configure how you receive alerts"
+      title={t("Notifications")}
+      subtitle={t("Configure how you receive alerts")}
     >
       <div className="flex h-full flex-col gap-4">
         {settings.map((setting) => {
@@ -45,10 +47,10 @@ const NotificationsSection = () => {
                 </span>
                 <span className="min-w-0">
                   <span className="block text-[14px] font-semibold text-[#28293D]">
-                    {setting.title}
+                    {t(setting.title)}
                   </span>
                   <span className="block text-[12px] text-[#8B8B8B]">
-                    {setting.description}
+                    {t(setting.description)}
                   </span>
                 </span>
               </span>
@@ -61,7 +63,7 @@ const NotificationsSection = () => {
           );
         })}
         <div className="mt-auto flex justify-end">
-          <DefaultButton data={{ buttonText: "Save changes" }} />
+          <DefaultButton data={{ buttonText: t("Save changes") }} />
         </div>
       </div>
     </SectionCard>

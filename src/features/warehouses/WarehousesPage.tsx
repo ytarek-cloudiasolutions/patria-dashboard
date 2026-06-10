@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { ArrowLeftRight, Plus } from "lucide-react";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
 
@@ -26,6 +27,7 @@ const formatDate = (date: Date) =>
   `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
 
 const WarehousesPage = () => {
+  const { t } = useTranslation();
   const [warehouses, setWarehouses] =
     useState<Warehouse[]>(INITIAL_WAREHOUSES);
   const [transfers, setTransfers] =
@@ -80,13 +82,13 @@ const WarehousesPage = () => {
     <>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <HeaderLayout
-          title="Warehouses"
-          description="Manage physical storage and internal stock movements."
+          title={t("Warehouses")}
+          description={t("Manage physical storage and internal stock movements.")}
         />
         <div className="flex flex-wrap gap-3">
           <DefaultButton
             data={{
-              buttonText: "Internal Transfer",
+              buttonText: t("Internal Transfer"),
               icon: <ArrowLeftRight className="size-4.5" />,
               onClick: () => setIsTransferOpen(true),
               className:
@@ -95,7 +97,7 @@ const WarehousesPage = () => {
           />
           <DefaultButton
             data={{
-              buttonText: "Add Warehouse",
+              buttonText: t("Add Warehouse"),
               icon: <Plus className="size-4.5" />,
               onClick: () => setIsAddOpen(true),
             }}
@@ -104,13 +106,13 @@ const WarehousesPage = () => {
       </div>
 
       <WarehouseSection
-        title="Main Warehouses"
+        title={t("Main Warehouses")}
         kind="Main Warehouse"
         warehouses={mainWarehouses}
       />
 
       <WarehouseSection
-        title="Sub Warehouses"
+        title={t("Sub Warehouses")}
         kind="Sub Warehouse"
         warehouses={subWarehouses}
       />

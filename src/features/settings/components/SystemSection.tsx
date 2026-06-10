@@ -1,5 +1,6 @@
 import { Activity, Database, Globe, HardDrive, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import SectionCard from "./SectionCard";
 import { SYSTEM_METRICS, SYSTEM_STATS } from "../data";
 import type { SystemMetric, SystemMetricTone, SystemStat } from "../types";
@@ -22,6 +23,7 @@ const METRIC_ICONS: Record<
 };
 
 const MetricCard = ({ metric }: { metric: SystemMetric }) => {
+  const { t } = useTranslation();
   const tone = TONE_STYLES[metric.tone];
   const Icon = METRIC_ICONS[metric.id] ?? Activity;
   return (
@@ -36,41 +38,45 @@ const MetricCard = ({ metric }: { metric: SystemMetric }) => {
       </span>
       <div>
         <p className="text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
-          {metric.label}
+          {t(metric.label)}
         </p>
-        <p className="text-[20px] font-bold text-[#333333]">{metric.value}</p>
+        <p className="text-[20px] font-bold text-[#333333]" dir="ltr">{metric.value}</p>
         <p className="text-[11px] font-medium uppercase tracking-wide text-[#8B8B8B]">
-          {metric.sublabel}
+          {t(metric.sublabel)}
         </p>
       </div>
     </div>
   );
 };
 
-const StatCard = ({ stat }: { stat: SystemStat }) => (
-  <div className="flex flex-col gap-2 rounded-[14px] border border-[#E5E5E5] bg-[#FAFAF7] px-4 py-4">
-    <p className="text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
-      {stat.label}
-    </p>
-    <p
-      className={cn(
-        "text-[18px] font-bold",
-        stat.tone === "green" ? "text-[#059B5A]" : "text-[#333333]",
-      )}
-    >
-      {stat.value}
-    </p>
-    <span className="flex items-center gap-1.5 text-[11px] font-medium text-[#8B8B8B]">
-      <span
+const StatCard = ({ stat }: { stat: SystemStat }) => {
+  const { t } = useTranslation();
+  return (
+    <div className="flex flex-col gap-2 rounded-[14px] border border-[#E5E5E5] bg-[#FAFAF7] px-4 py-4">
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
+        {t(stat.label)}
+      </p>
+      <p
+        dir="ltr"
         className={cn(
-          "size-2 rounded-full",
-          stat.tone === "green" ? "bg-[#059B5A]" : "bg-[#8B8B8B]",
+          "text-[18px] font-bold",
+          stat.tone === "green" ? "text-[#059B5A]" : "text-[#333333]",
         )}
-      />
-      {stat.caption}
-    </span>
-  </div>
-);
+      >
+        {stat.value}
+      </p>
+      <span className="flex items-center gap-1.5 text-[11px] font-medium text-[#8B8B8B]">
+        <span
+          className={cn(
+            "size-2 rounded-full",
+            stat.tone === "green" ? "bg-[#059B5A]" : "bg-[#8B8B8B]",
+          )}
+        />
+        {t(stat.caption)}
+      </span>
+    </div>
+  );
+};
 
 const RefreshButton = () => (
   <button
@@ -82,25 +88,28 @@ const RefreshButton = () => (
   </button>
 );
 
-const SystemSection = () => (
-  <SectionCard
-    icon={<Activity size={32} />}
-    title="System Status"
-    subtitle="Global Cluster Health"
-    action={<RefreshButton />}
-    contentClassName="flex flex-col gap-4 px-5 py-5 sm:px-6 sm:py-6"
-  >
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      {SYSTEM_METRICS.map((metric) => (
-        <MetricCard key={metric.id} metric={metric} />
-      ))}
-    </div>
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-      {SYSTEM_STATS.map((stat) => (
-        <StatCard key={stat.id} stat={stat} />
-      ))}
-    </div>
-  </SectionCard>
-);
+const SystemSection = () => {
+  const { t } = useTranslation();
+  return (
+    <SectionCard
+      icon={<Activity size={32} />}
+      title={t("System Status")}
+      subtitle={t("Global Cluster Health")}
+      action={<RefreshButton />}
+      contentClassName="flex flex-col gap-4 px-5 py-5 sm:px-6 sm:py-6"
+    >
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {SYSTEM_METRICS.map((metric) => (
+          <MetricCard key={metric.id} metric={metric} />
+        ))}
+      </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {SYSTEM_STATS.map((stat) => (
+          <StatCard key={stat.id} stat={stat} />
+        ))}
+      </div>
+    </SectionCard>
+  );
+};
 
 export default SystemSection;

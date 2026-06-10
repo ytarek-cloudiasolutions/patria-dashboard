@@ -49,7 +49,7 @@ const ReviewCard = ({
               size="sm"
               className="**:data-[slot=rating-star-empty]:text-[#FDA900]"
             />
-            <span className={cn("text-[11px] font-semibold", accent.text)}>
+            <span className={cn("text-[11px] font-semibold", accent.text)} dir="ltr">
               {review.rating.toFixed(1)} / {review.maxRating.toFixed(1)}
             </span>
           </div>
@@ -57,7 +57,7 @@ const ReviewCard = ({
 
         {/* Order id + type */}
         <div className="flex items-center gap-3">
-          <span className="text-[13px] font-semibold text-[#28293D]">
+          <span className="text-[13px] font-semibold text-[#28293D]" dir="ltr">
             {review.orderId}
           </span>
           <span
@@ -80,7 +80,7 @@ const ReviewCard = ({
             {review.categories.map((category) => (
               <Badge
                 key={category}
-                className="h-9.75 rounded-[4px] border-2 border-[#CACBD4] bg-[#F5F0EA] px-2 py-3.5 text-[11px] font-medium text-[#333333]"
+                className="h-9.75 rounded-lg border-2 border-[#CACBD4] bg-[#F5F0EA] px-2 py-3.5 text-[11px] font-medium text-[#333333]"
               >
                 {category}
               </Badge>

@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Plus } from "lucide-react";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
 import SearchInputField from "@/shared/components/SearchInputField";
@@ -18,6 +19,7 @@ import {
 import type { PoFormState, PoStatus, PurchaseOrder } from "./types";
 
 const ProcurementPage = () => {
+  const { t } = useTranslation();
   const [orders, setOrders] = useState<PurchaseOrder[]>(
     INITIAL_PURCHASE_ORDERS,
   );
@@ -135,12 +137,12 @@ const ProcurementPage = () => {
 
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <HeaderLayout
-          title="Procurement & POs"
-          description="Supply chain management"
+          title={t("Procurement & POs")}
+          description={t("Supply chain management")}
         />
         <DefaultButton
           data={{
-            buttonText: "Create PO",
+            buttonText: t("Create PO"),
             icon: <Plus className="size-4.5" />,
             onClick: () => setIsCreateOpen(true),
           }}
@@ -159,16 +161,16 @@ const ProcurementPage = () => {
           <SearchInputField
             value={search}
             onChange={setSearch}
-            placeholder="Search by PO number or supplier..."
+            placeholder={t("Search by PO number or supplier...")}
           />
         </div>
         <div className="sm:w-64">
           <DropdownSelect
-            options={PURCHASING_STATUS_FILTERS}
+            options={PURCHASING_STATUS_FILTERS.map((o) => ({ ...o, label: t(o.label) }))}
             selected={statusFilter}
             onSelect={setStatusFilter}
             onOpenChange={setIsStatusFilterOpen}
-            placeholder="Status"
+            placeholder={t("Status")}
             align="end"
             className="md:w-full"
             contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"

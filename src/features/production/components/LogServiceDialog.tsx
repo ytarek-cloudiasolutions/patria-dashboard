@@ -12,6 +12,7 @@ import DefaultButton from "@/shared/components/DefaultButton";
 import DropdownSelect from "@/shared/components/DropdownSelect";
 import InputField from "@/shared/components/InputField";
 import DatePicker from "@/shared/components/DatePicker";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import { cn } from "@/lib/utils";
 import { EQUIPMENT_TASK_OPTIONS } from "../data";
 import type { EquipmentTask, ServiceLogFormData } from "../types";
@@ -36,6 +37,7 @@ const LogServiceDialog = ({
   onOpenChange,
   onSave,
 }: LogServiceDialogProps) => {
+  const { t } = useTranslation();
   const [form, setForm] = useState<ServiceLogFormData>(INITIAL_FORM);
   const [errors, setErrors] = useState<
     Partial<Record<keyof ServiceLogFormData, string>>
@@ -61,8 +63,8 @@ const LogServiceDialog = ({
   const validate = () => {
     const next: Partial<Record<keyof ServiceLogFormData, string>> = {};
     if (!form.machine.trim())
-      next.machine = "Machine designation is required";
-    if (!form.deadline) next.deadline = "Deadline is required";
+      next.machine = t("Machine designation is required");
+    if (!form.deadline) next.deadline = t("Deadline is required");
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -78,7 +80,7 @@ const LogServiceDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-[560px]"
+        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-140"
       >
         {isTaskOpen && (
           <div className="pointer-events-none fixed inset-0 z-60 bg-black/40" />
@@ -88,7 +90,7 @@ const LogServiceDialog = ({
           {/* Header */}
           <div className="px-5 pt-5 sm:px-7 sm:pt-7">
             <DialogTitle className="text-[20px] font-semibold text-[#28293D] sm:text-[22px]">
-              Equipment Service Log
+              {t("Equipment Service Log")}
             </DialogTitle>
           </div>
 
@@ -105,7 +107,7 @@ const LogServiceDialog = ({
                   htmlFor="machine-designation"
                   className="mb-2.5 text-[16px] font-medium text-black"
                 >
-                  Machine Designation<span className="text-[#C90000]">*</span>
+                  {t("Machine Designation")}<span className="text-[#C90000]">*</span>
                 </Label>
                 <Textarea
                   id="machine-designation"
@@ -131,16 +133,16 @@ const LogServiceDialog = ({
                     htmlFor="task-taxonomy"
                     className="mb-2.5 text-[16px] font-medium text-black"
                   >
-                    Task Taxonomy<span className="text-[#C90000]">*</span>
+                    {t("Task Taxonomy")}<span className="text-[#C90000]">*</span>
                   </Label>
                   <DropdownSelect
-                    options={EQUIPMENT_TASK_OPTIONS}
+                    options={EQUIPMENT_TASK_OPTIONS.map((o) => ({ ...o, label: t(o.label) }))}
                     selected={form.task}
                     onSelect={(value) =>
                       set("task", value as EquipmentTask)
                     }
                     onOpenChange={setIsTaskOpen}
-                    placeholder="Select task"
+                    placeholder={t("Select task")}
                     align="start"
                     className="md:w-full"
                     contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
@@ -152,7 +154,7 @@ const LogServiceDialog = ({
                     id: "outlay",
                     label: {
                       htmlFor: "outlay",
-                      labelText: "Financial Outlay (EGP) (Optional)",
+                      labelText: t("Financial Outlay (EGP) (Optional)"),
                     },
                     placeholder: "0",
                     inputProps: {
@@ -168,7 +170,7 @@ const LogServiceDialog = ({
 
               <div className="flex flex-col">
                 <Label className="mb-2.5 text-[16px] font-medium text-black">
-                  Next Recalibration Deadline
+                  {t("Next Recalibration Deadline")}
                   <span className="text-[#C90000]">*</span>
                 </Label>
                 <DatePicker
@@ -193,7 +195,7 @@ const LogServiceDialog = ({
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <DefaultButton
                 data={{
-                  buttonText: "Cancel",
+                  buttonText: t("Cancel"),
                   variant: "outline",
                   type: "button",
                   onClick: () => onOpenChange(false),
@@ -206,7 +208,7 @@ const LogServiceDialog = ({
                 type="submit"
                 className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
               >
-                Confirm Service Log
+                {t("Confirm Service Log")}
               </Button>
             </div>
           </div>

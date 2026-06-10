@@ -3,12 +3,14 @@ import { Plus } from "lucide-react";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
 import DeleteDialog from "@/shared/components/DeleteDialog";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import LocationsTable from "./components/LocationsTable";
 import AddZoneDialog from "./components/AddZoneDialog";
 import { INITIAL_ZONES } from "./data";
 import type { DeliveryZone, ZoneFormData } from "./types";
 
 const LocationsPage = () => {
+  const { t } = useTranslation();
   const [zones, setZones] = useState<DeliveryZone[]>(INITIAL_ZONES);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingZone, setEditingZone] = useState<DeliveryZone | undefined>();
@@ -71,12 +73,12 @@ const LocationsPage = () => {
     <>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <HeaderLayout
-          title="Delivery Zones"
-          description="Manage delivery locations and fees"
+          title={t("Delivery Zones")}
+          description={t("Manage delivery locations and fees")}
         />
         <DefaultButton
           data={{
-            buttonText: "Add Zone",
+            buttonText: t("Add Zone"),
             icon: <Plus className="size-4.5" />,
             onClick: handleOpenAdd,
           }}

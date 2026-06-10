@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogTitle,
 } from "@/shared/components/ui/dialog";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import { Button } from "@/shared/components/ui/button";
 import { Label } from "@/shared/components/ui/label";
 import { Separator } from "@/shared/components/ui/separator";
@@ -28,6 +29,7 @@ const DispatchDialog = ({
   onOpenChange,
   onConfirm,
 }: DispatchDialogProps) => {
+  const { t } = useTranslation();
   const [driverId, setDriverId] = useState("");
   const [error, setError] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -51,7 +53,7 @@ const DispatchDialog = ({
     e.preventDefault();
     if (!zone) return;
     if (!driverId) {
-      setError("Please choose a driver");
+      setError(t("Please choose a driver"));
       return;
     }
     onConfirm(zone.id, Number(driverId));
@@ -64,7 +66,7 @@ const DispatchDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-[480px]"
+        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-120"
       >
         {isDropdownOpen && (
           <div className="pointer-events-none fixed inset-0 z-60 bg-black/40" />
@@ -74,7 +76,7 @@ const DispatchDialog = ({
           {/* Header */}
           <div className="px-5 pt-5 sm:px-7 sm:pt-7">
             <DialogTitle className="text-[20px] font-semibold text-[#28293D] sm:text-[22px]">
-              Dispatch
+              {t("Dispatch")}
             </DialogTitle>
           </div>
 
@@ -90,7 +92,7 @@ const DispatchDialog = ({
                 htmlFor="assign-driver"
                 className="mb-2.5 text-[16px] font-medium text-black"
               >
-                Assign Driver<span className="text-[#C90000]">*</span>
+                {t("Assign Driver")}<span className="text-[#C90000]">*</span>
               </Label>
               <DropdownSelect
                 options={driverOptions}
@@ -100,7 +102,7 @@ const DispatchDialog = ({
                   if (error) setError("");
                 }}
                 onOpenChange={setIsDropdownOpen}
-                placeholder="Assign Driver"
+                placeholder={t("Assign Driver")}
                 align="start"
                 className="md:w-full"
                 contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
@@ -117,7 +119,7 @@ const DispatchDialog = ({
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <DefaultButton
                 data={{
-                  buttonText: "Cancel",
+                  buttonText: t("Cancel"),
                   variant: "outline",
                   type: "button",
                   onClick: () => onOpenChange(false),
@@ -130,7 +132,7 @@ const DispatchDialog = ({
                 type="submit"
                 className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
               >
-                Execute Dispatch
+                {t("Execute Dispatch")}
               </Button>
             </div>
           </div>

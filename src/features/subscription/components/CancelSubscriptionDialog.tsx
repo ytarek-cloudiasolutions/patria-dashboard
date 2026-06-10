@@ -7,6 +7,7 @@ import {
 } from "@/shared/components/ui/dialog";
 import { Separator } from "@/shared/components/ui/separator";
 import DefaultButton from "@/shared/components/DefaultButton";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import type { Subscription } from "../types";
 
 interface CancelSubscriptionDialogProps {
@@ -22,6 +23,7 @@ const CancelSubscriptionDialog = ({
   onOpenChange,
   onConfirm,
 }: CancelSubscriptionDialogProps) => {
+  const { t } = useTranslation();
   if (!subscription) return null;
 
   return (
@@ -45,15 +47,14 @@ const CancelSubscriptionDialog = ({
               subscription?
             </h1>
             <p className="text-[13px] text-[#8B8B8B] sm:text-[14px]">
-              This will stop future deliveries. Any upcoming scheduled orders
-              will be cancelled.
+              {t("This will stop future deliveries. Any upcoming scheduled orders will be cancelled.")}
             </p>
           </div>
           <Separator className="bg-[#CACBD4]" />
           <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end sm:gap-4">
             <DefaultButton
               data={{
-                buttonText: "Cancel",
+                buttonText: t("Cancel"),
                 variant: "outline",
                 type: "button",
                 onClick: () => onOpenChange(false),
@@ -63,7 +64,7 @@ const CancelSubscriptionDialog = ({
             />
             <DefaultButton
               data={{
-                buttonText: "Cancel Subscription",
+                buttonText: t("Cancel Subscription"),
                 type: "button",
                 icon: <Trash2 className="size-4.5" />,
                 className: "w-full sm:w-auto bg-[#C90000]",

@@ -5,6 +5,7 @@ import DefaultButton from "@/shared/components/DefaultButton";
 import DeleteDialog from "@/shared/components/DeleteDialog";
 import DropdownSelect from "@/shared/components/DropdownSelect";
 import SearchInputField from "@/shared/components/SearchInputField";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 
 import CreateUserDialog from "./components/CreateUserDialog";
 import ModifyPermissionsDialog from "./components/ModifyPermissionsDialog";
@@ -30,6 +31,7 @@ const DELETE_TYPE_BY_ROLE: Record<
 };
 
 const UsersPermissionsPage = () => {
+  const { t } = useTranslation();
   const [users, setUsers] = useState<UserAccount[]>(INITIAL_USERS);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
@@ -106,12 +108,12 @@ const UsersPermissionsPage = () => {
 
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <HeaderLayout
-          title="Users & Permissions"
-          description="User Roles & Module Permissions"
+          title={t("User's & Permissions")}
+          description={t("User Roles & Module Permissions")}
         />
         <DefaultButton
           data={{
-            buttonText: "Create New User Account",
+            buttonText: t("Create New User Account"),
             icon: <Plus className="size-4.5" />,
             onClick: () => setIsCreateOpen(true),
           }}
@@ -129,16 +131,16 @@ const UsersPermissionsPage = () => {
           <SearchInputField
             value={search}
             onChange={setSearch}
-            placeholder="Search users..."
+            placeholder={t("Search users...")}
           />
         </div>
         <div className="sm:w-72">
           <DropdownSelect
-            options={ROLE_FILTER_OPTIONS}
+            options={ROLE_FILTER_OPTIONS.map((o) => ({ ...o, label: t(o.label) }))}
             selected={roleFilter}
             onSelect={setRoleFilter}
             onOpenChange={setIsRoleFilterOpen}
-            placeholder="Role"
+            placeholder={t("Role")}
             align="end"
             className="md:w-full"
             contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
