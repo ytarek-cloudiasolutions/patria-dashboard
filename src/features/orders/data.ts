@@ -1,4 +1,7 @@
 import type {
+  CustomerLookup,
+  DeliveryZone,
+  Driver,
   Order,
   OrderCategory,
   OrderSource,
@@ -27,6 +30,13 @@ export const ORDER_CATEGORY_OPTIONS: OrderCategory[] = [
 export const ORDER_SOURCE_LABELS: Record<OrderSource, string> = {
   application: "Application",
   pos: "POS Orders",
+  call: "Call",
+};
+
+export const ORDER_SOURCE_COUNTS: Record<OrderSource, number> = {
+  application: 44,
+  pos: 16,
+  call: 8,
 };
 
 export const ORDER_SOURCE_SUMMARIES: Record<OrderSource, OrdersSummary> = {
@@ -42,29 +52,115 @@ export const ORDER_SOURCE_SUMMARIES: Record<OrderSource, OrdersSummary> = {
     pending: 2,
     delivered: 2,
   },
+  call: {
+    revenue: 3120.0,
+    totalOrders: 8,
+    pending: 3,
+    delivered: 4,
+  },
+};
+
+export const DRIVERS: Driver[] = [
+  { id: "d1", name: "Omnia" },
+  { id: "d2", name: "Karim" },
+  { id: "d3", name: "Hassan" },
+  { id: "d4", name: "Mariam" },
+  { id: "d5", name: "Tarek" },
+];
+
+export const DELIVERY_ZONES: DeliveryZone[] = [
+  { id: "z1", name: "Kafr Abdo", deliveryFee: 40, minOrder: 250 },
+  { id: "z2", name: "Mohandiseen", deliveryFee: 50, minOrder: 300 },
+  { id: "z3", name: "Maadi", deliveryFee: 60, minOrder: 320 },
+  { id: "z4", name: "Zamalek", deliveryFee: 70, minOrder: 350 },
+];
+
+/** Phone numbers that resolve to an existing customer during a call order. */
+export const CUSTOMER_DIRECTORY: Record<string, CustomerLookup> = {
+  "01288716491": {
+    name: "Omnia Maher Galal",
+    phone: "01288716491",
+    lastAddress: "Villa 4, Bastour, Bab Sharki And Wabour El Miyah, Alexandria",
+    tier: "BRONZE (STANDARD)",
+  },
 };
 
 export const PRODUCT_OPTIONS: ProductOption[] = [
   {
     id: 1,
-    name: "Middle Eastern Roast Beef",
-    unitPrice: 120,
-    category: "Sandwiches",
+    name: "Almond Croissant",
+    unitPrice: 280,
+    category: "Bakery",
+    customizable: true,
+    extras: [
+      { id: 101, name: "Chocolate", price: 85.2 },
+      { id: 102, name: "Lotus", price: 85.2 },
+      { id: 103, name: "Pistachio", price: 95.0 },
+      { id: 104, name: "Caramel", price: 90.5 },
+      { id: 105, name: "White Chocolate", price: 92.3 },
+    ],
   },
   {
     id: 2,
-    name: "Green Ranch Sandwich",
-    unitPrice: 120,
+    name: "Middle Eastern Beef Sandwich",
+    unitPrice: 280,
     category: "Sandwiches",
   },
   {
     id: 3,
-    name: "Avocado Ranch",
-    unitPrice: 140,
-    category: "Sandwiches",
+    name: "Kunafa Trimsiu",
+    unitPrice: 280,
+    category: "Bakery",
+    customizable: true,
+    extras: [
+      { id: 301, name: "Extra Nuts", price: 30.0 },
+      { id: 302, name: "Chocolate Drizzle", price: 25.0 },
+    ],
   },
-  { id: 4, name: "Almond Croissant", unitPrice: 95, category: "Bakery" },
-  { id: 5, name: "Amber Sobia", unitPrice: 80, category: "Coffee" },
+  { id: 4, name: "Biryani Masala", unitPrice: 150, category: "Meals" },
+  {
+    id: 5,
+    name: "Cappuccino",
+    unitPrice: 120,
+    category: "Coffee",
+    customizable: true,
+    variantGroups: [
+      {
+        id: 51,
+        name: "Roast Level",
+        required: true,
+        options: [
+          { id: 511, name: "Light", price: 40 },
+          { id: 512, name: "Medium", price: 50 },
+          { id: 513, name: "Dark", price: 60 },
+        ],
+      },
+      {
+        id: 52,
+        name: "Grind Type",
+        required: true,
+        options: [
+          { id: 521, name: "Whole Bean", price: 40 },
+          { id: 522, name: "Espresso", price: 60 },
+          { id: 523, name: "Filter", price: 60 },
+        ],
+      },
+    ],
+  },
+  { id: 6, name: "Stuffed Grape Leaves", unitPrice: 100, category: "Meals" },
+  { id: 7, name: "Falafel Wrap", unitPrice: 90, category: "Sandwiches" },
+  { id: 8, name: "Hummus with Pita", unitPrice: 70, category: "Meals" },
+  {
+    id: 9,
+    name: "Baklava Delight",
+    unitPrice: 60,
+    category: "Bakery",
+    customizable: true,
+    extras: [
+      { id: 901, name: "Extra Honey", price: 15.0 },
+      { id: 902, name: "Ice Cream Scoop", price: 35.0 },
+    ],
+  },
 ];
 
 const repeatedItems = [
@@ -102,6 +198,7 @@ export const MOCK_ORDERS: Order[] = [
     paymentMethod: "Cash",
     paymentState: "Waiting for payment",
     items: repeatedItems,
+    driver: "Omnia",
   },
   {
     id: "ORD-214068",
@@ -229,6 +326,51 @@ export const MOCK_ORDERS: Order[] = [
     items: [
       { id: 15, name: "Avocado Ranch", quantity: 9, unitPrice: 140 },
       { id: 16, name: "Avocado Ranch", quantity: 9, unitPrice: 140 },
+    ],
+  },
+  {
+    id: "CALL-512001",
+    customerName: "Omnia Maher Galal",
+    customerPhone: "01288716491",
+    address: "Villa 4, Bastour, Bab Sharki And Wabour El Miyah, Alexandria",
+    zone: "Kafr Abdo",
+    date: "3/31/2026",
+    time: "2:37:57 PM",
+    total: 310,
+    subtotal: 250.25,
+    discount: 0,
+    deliveryFee: 40,
+    status: "Preparing",
+    category: "Coffee",
+    source: "call",
+    paymentMethod: "Cash 90 + Visa 190",
+    paymentState: "Waiting for payment",
+    items: [
+      { id: 17, name: "Cappuccino", quantity: 2, unitPrice: 170.4 },
+      { id: 18, name: "Almond Croissant", quantity: 2, unitPrice: 170.4 },
+    ],
+    driver: "Karim",
+  },
+  {
+    id: "CALL-512002",
+    customerName: "Ahmed El-Sayed",
+    customerPhone: "+20 122 555 7890",
+    address: "Abo Al Nwateer, Alexandria",
+    zone: "Maadi",
+    date: "3/31/2026",
+    time: "2:37:57 PM",
+    total: 460,
+    subtotal: 400,
+    discount: 0,
+    deliveryFee: 60,
+    status: "Delivered",
+    category: "Meals",
+    source: "call",
+    paymentMethod: "Online Payment",
+    paymentState: "Paid",
+    items: [
+      { id: 19, name: "Biryani Masala", quantity: 2, unitPrice: 150 },
+      { id: 20, name: "Hummus with Pita", quantity: 1, unitPrice: 70 },
     ],
   },
 ];

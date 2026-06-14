@@ -4,11 +4,8 @@ import {
   Box,
   Coffee,
   MoveUp,
-  Package,
-  PackageX,
   RefreshCw,
   Save,
-  TrendingUp,
 } from "lucide-react";
 import OverviewCard from "@/shared/components/OverviewCard";
 import SearchInputField from "@/shared/components/SearchInputField";
