@@ -1144,6 +1144,7 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   // Orders module
   "Add Products": "إضافة المنتجات",
   "Add product": "إضافة المنتج",
+  "Add products to cart": "أضف المنتجات إلى السلة",
   "Administrative discount application": "تطبيق خصم إداري",
   "Apply Discount": "تطبيق الخصم",
   "Call": "اتصال",

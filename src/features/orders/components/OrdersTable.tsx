@@ -1,7 +1,8 @@
 import { Fragment } from "react";
-import { ChevronDown, Info, MessageCircle } from "lucide-react";
+import { ChevronDown, Info } from "lucide-react";
 import Whatsapp from "@/assets/icons/whatsapp.svg";
 import { Button } from "@/shared/components/ui/button";
+import { Checkbox } from "@/shared/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,7 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/shared/components/ui/table";
-import { ORDER_STATUS_OPTIONS } from "../data";
+import { DRIVERS, ORDER_STATUS_OPTIONS } from "../data";
 import type { Order, OrderStatus, PaymentState } from "../types";
 import OrdersStatusBadge from "./OrdersStatusBadge";
 import { useTranslation } from "@/shared/i18n/useTranslation";
@@ -24,8 +25,12 @@ import { translatePaymentMethod } from "../utils";
 
 interface OrdersTableProps {
   orders: Order[];
+  selectedIds: string[];
+  onToggleSelected: (orderId: string) => void;
+  onToggleSelectAll: () => void;
   onViewOrder: (order: Order) => void;
   onUpdateStatus: (orderId: string, status: OrderStatus) => void;
+  onAssignDriver: (orderId: string, driver: string) => void;
   onStatusMenuOpenChange?: (open: boolean) => void;
 }
 
@@ -36,16 +41,24 @@ const paymentStateStyles: Record<Exclude<PaymentState, "None">, string> = {
 
 const OrdersTable = ({
   orders,
+  selectedIds,
+  onToggleSelected,
+  onToggleSelectAll,
   onViewOrder,
   onUpdateStatus,
+  onAssignDriver,
   onStatusMenuOpenChange,
 }: OrdersTableProps) => {
   const { t } = useTranslation();
 
+  const allSelected =
+    orders.length > 0 && selectedIds.length === orders.length;
+
   return (
     <div className="w-full overflow-x-auto rounded-[16px] border border-[#E5E5E5]">
-      <Table className="min-w-[700px]">
+      <Table className="min-w-[820px]">
         <colgroup>
+          <col className="w-10" />
           <col className="w-28" />
           <col className="w-36" />
           <col className="w-52" />
@@ -53,9 +66,26 @@ const OrdersTable = ({
           <col className="w-32" />
           <col className="w-28" />
           <col className="w-24" />
+          <col className="w-28" />
         </colgroup>
         <TableHeader>
           <TableRow className="h-10">
+            <TableHead className="ps-4 text-center">
+              <div className="flex justify-center">
+                <div
+                  className={`rounded-[10px] p-1 ${
+                    allSelected ? "bg-[#624F1C1A]" : ""
+                  }`}
+                >
+                  <Checkbox
+                    checked={allSelected}
+                    onCheckedChange={onToggleSelectAll}
+                    aria-label="Select all orders"
+                    className="h-5 w-5 rounded-[5.99px] border-[#8F6900] cursor-pointer"
+                  />
+                </div>
+              </div>
+            </TableHead>
             {[
               "Order ID",
               "Customer",
@@ -64,6 +94,7 @@ const OrdersTable = ({
               "Payment",
               "Status",
               "Date",
+              "Driver",
             ].map((header) => (
               <TableHead key={header} className="text-center">
                 {t(header)}
@@ -76,7 +107,7 @@ const OrdersTable = ({
           {orders.length === 0 ? (
             <TableRow>
               <TableCell
-                colSpan={7}
+                colSpan={9}
                 className="px-4 py-12 text-center text-[14px] text-[#5b4f4f]"
               >
                 {t("No orders found.")}
@@ -89,6 +120,25 @@ const OrdersTable = ({
               return (
                 <Fragment key={order.id}>
                   <TableRow>
+                    <TableCell className="ps-4 text-center">
+                      <div className="flex justify-center">
+                        <div
+                          className={`rounded-[10px] p-1 ${
+                            selectedIds.includes(order.id)
+                              ? "bg-[#624F1C1A]"
+                              : ""
+                          }`}
+                        >
+                          <Checkbox
+                            checked={selectedIds.includes(order.id)}
+                            onCheckedChange={() => onToggleSelected(order.id)}
+                            aria-label={`Select order ${order.id}`}
+                            className="h-5 w-5 rounded-[5.99px] border-[#8F6900] cursor-pointer"
+                          />
+                        </div>
+                      </div>
+                    </TableCell>
+
                     <TableCell className="text-center">
                       <button
                         type="button"
@@ -119,31 +169,19 @@ const OrdersTable = ({
                     </TableCell>
 
                     <TableCell className="py-4 text-center">
-                      <div className="flex max-w-52 flex-col gap-2 items-center">
-                        {order.items.map((item) => (
-                          <div
-                            key={item.id}
-                            className="inline-flex h-6.75 w-fit max-w-full items-center gap-4 rounded-[8px] bg-[#F5F0EA] px-2.5 py-1.5 text-[11px]"
-                          >
-                            <span className="truncate font-medium text-[#000000]">
-                              <span className="font-semibold">
-                                {item.quantity}X
-                              </span>{" "}
-                              {item.name}
-                            </span>
-                            <span className="shrink-0 font-semibold text-[#595959]">
-                              <span className="font-medium">EGP</span>{" "}
-                              {item.unitPrice}
-                            </span>
-                          </div>
-                        ))}
-                        {order.items.some((item) => item.note) && (
-                          <span className="inline-flex h-6 w-fit items-center rounded-[30px] border border-[#C7861E] bg-[#FFF7E6] px-2.5 py-1 text-[11px] font-semibold text-[#C7861E]">
-                            {t("Note")}:{" "}
-                            {order.items.find((item) => item.note)?.note}
-                          </span>
-                        )}
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => onViewOrder(order)}
+                        className="inline-flex h-8 cursor-pointer items-center gap-2 rounded-[8px] bg-[#F5F0EA] px-3 text-[13px] text-[#333333]"
+                      >
+                        <span>
+                          <span className="font-semibold">
+                            {order.items.length}
+                          </span>{" "}
+                          {t("Products")}
+                        </span>
+                        <Info className="size-3.5 text-[#23252A]" />
+                      </button>
                     </TableCell>
 
                     <TableCell className="text-center text-[13px] text-[#28293D]">
@@ -173,12 +211,8 @@ const OrdersTable = ({
                       </div>
                     </TableCell>
 
-                    <TableCell className="text-start" >
-                      <DropdownMenu
-                        onOpenChange={(open) => {
-                          onStatusMenuOpenChange?.(open);
-                        }}
-                      >
+                    <TableCell className="text-start">
+                      <DropdownMenu onOpenChange={onStatusMenuOpenChange}>
                         <DropdownMenuTrigger asChild>
                           <Button
                             variant="ghost"
@@ -214,10 +248,18 @@ const OrdersTable = ({
                       <br />
                       <span>{order.time}</span>
                     </TableCell>
+
+                    <TableCell className="text-center">
+                      <DriverCell
+                        driver={order.driver}
+                        onAssign={(driver) => onAssignDriver(order.id, driver)}
+                        onOpenChange={onStatusMenuOpenChange}
+                      />
+                    </TableCell>
                   </TableRow>
                   {!isLast && (
                     <TableRow className="h-0 hover:bg-transparent data-[state=selected]:bg-transparent">
-                      <TableCell colSpan={7} className="p-0">
+                      <TableCell colSpan={9} className="p-0">
                         <div className="mx-6 h-px bg-[#CACBD4]" />
                       </TableCell>
                     </TableRow>
@@ -229,6 +271,57 @@ const OrdersTable = ({
         </TableBody>
       </Table>
     </div>
+  );
+};
+
+interface DriverCellProps {
+  driver?: string;
+  onAssign: (driver: string) => void;
+  onOpenChange?: (open: boolean) => void;
+}
+
+const DriverCell = ({ driver, onAssign, onOpenChange }: DriverCellProps) => {
+  const { t } = useTranslation();
+
+  return (
+    <DropdownMenu onOpenChange={onOpenChange}>
+      <DropdownMenuTrigger asChild>
+        {driver ? (
+          <button
+            type="button"
+            className="inline-flex h-7 cursor-pointer items-center justify-center rounded-full bg-[#DCDCDC] px-4 text-[12px] font-semibold text-[#23252A]"
+          >
+            {driver}
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="inline-flex h-7 cursor-pointer items-center justify-center gap-1 rounded-full border border-[#8B16FF]/30 bg-[#F4E8FF] px-3 text-[12px] font-semibold text-[#8B16FF]"
+          >
+            {t("Rider")}
+            <ChevronDown className="size-3.5" />
+          </button>
+        )}
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="end"
+        className="z-70 w-40 rounded-[16px] p-2 ring-0"
+      >
+        {DRIVERS.map((d) => (
+          <DropdownMenuItem
+            key={d.id}
+            onSelect={() => onAssign(d.name)}
+            className={`rounded-[12px] px-3 py-2 text-[12px] font-medium cursor-pointer ${
+              driver === d.name
+                ? "bg-primary text-primary-foreground pointer-events-none"
+                : "text-[#28293D] data-highlighted:bg-[#F5F0EA]"
+            }`}
+          >
+            {d.name}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 
