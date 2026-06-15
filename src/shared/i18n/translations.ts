@@ -1180,4 +1180,47 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   "e.g Kafr Abdo": "مثال: كفر عبده",
   "e.g Loyalty Discount, compensation": "مثال: خصم ولاء، تعويض",
   "e.g No sugar, Extra hot": "مثال: بدون سكر، ساخن جدًا",
+
+  // Authentication (Sign in / Sign up / Reset password)
+  "Welcome back, Admin": "مرحباً بعودتك، أيها المشرف",
+  "Enter your credentials to access your account":
+    "أدخل بياناتك للوصول إلى حسابك",
+  "Forgot your Password?": "نسيت كلمة المرور؟",
+  "Sign In": "تسجيل الدخول",
+  "Don't have an account?": "ليس لديك حساب؟",
+  "Create account": "إنشاء حساب",
+  "Set up your admin account": "قم بإعداد حساب المشرف الخاص بك",
+  "Set up your restaurant management space.": "قم بإعداد مساحة إدارة مطعمك.",
+  "Confirm Password": "تأكيد كلمة المرور",
+  "Sign Up": "إنشاء حساب",
+  "Already have an account?": "لديك حساب بالفعل؟",
+  "Reset Password": "إعادة تعيين كلمة المرور",
+  "Enter and confirm your new password to secure your account.":
+    "أدخل كلمة المرور الجديدة وأكدها لتأمين حسابك.",
+  "Remember me": "تذكرني",
+  "All Rights Reserved.": "جميع الحقوق محفوظة.",
+
+  // Shift Management module
+  "Shift Management": "إدارة الورديات",
+  "Set shift start and end times": "حدد أوقات بداية ونهاية الوردية",
+  "Create New Shift": "إنشاء وردية جديدة",
+  "New Shift": "وردية جديدة",
+  "Edit Shift": "تعديل الوردية",
+  "Shift Name": "اسم الوردية",
+  "e.g Morning Shift": "مثال: الوردية الصباحية",
+  "Start Time": "وقت البداية",
+  "End Time": "وقت النهاية",
+  "Accent Color": "اللون المميّز",
+  "e.g Add details to this shift": "مثال: أضف تفاصيل لهذه الوردية",
+  "Add New Shift": "إضافة وردية جديدة",
+  "Update Shift": "تحديث الوردية",
+  "No shifts found.": "لا توجد ورديات.",
+  shift: "وردية",
+  "Delete Shift": "حذف الوردية",
+  "Are you sure you want to delete this shift?":
+    "هل أنت متأكد أنك تريد حذف هذه الوردية؟",
+  "This will remove the shift. Any upcoming scheduled work for this shift will be cancelled.":
+    "سيؤدي ذلك إلى إزالة الوردية. سيتم إلغاء أي عمل مجدول قادم لهذه الوردية.",
+  Hex: "ست عشري",
+  "Saved colors": "الألوان المحفوظة",
 };

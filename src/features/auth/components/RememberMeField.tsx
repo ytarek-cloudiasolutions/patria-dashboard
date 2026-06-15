@@ -1,8 +1,10 @@
 import { Checkbox } from "@/shared/components/ui/checkbox";
 import { Label } from "@/shared/components/ui/label";
 import { useState } from "react";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 
 const RememberMeField = () => {
+  const { t } = useTranslation();
   const [isChecked, setIsChecked] = useState(false);
 
   return (
@@ -21,7 +23,7 @@ const RememberMeField = () => {
         htmlFor="logged_in"
         className="text-[16px] font-medium text-[#333333] cursor-pointer"
       >
-        Remember me
+        {t("Remember me")}
       </Label>
     </div>
   );

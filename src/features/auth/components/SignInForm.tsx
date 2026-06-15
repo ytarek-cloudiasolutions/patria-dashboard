@@ -4,15 +4,17 @@ import EmailInputField from "./EmailInputField";
 import FormButton from "./FormButton";
 import PasswordInputField from "./PasswordInputField";
 import RememberMeField from "./RememberMeField";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 
 const SignInForm = () => {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-col gap-12 lg:gap-22.5">
       {/* Header */}
-      <div className="text-center lg:text-left">
+      <div className="text-center lg:text-start">
         <HeaderLayout
-          title="Welcome back, Admin"
-          description="Enter your credentials to access your account"
+          title={t("Welcome back, Admin")}
+          description={t("Enter your credentials to access your account")}
         />
       </div>
       {/* Form */}
@@ -21,8 +23,8 @@ const SignInForm = () => {
           <EmailInputField />
           <PasswordInputField
             id="password"
-            label="Password"
-            placeholder="Password"
+            label={t("Password")}
+            placeholder={t("Password")}
           />
           <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
             <RememberMeField />
@@ -30,16 +32,16 @@ const SignInForm = () => {
               href="/reset-password"
               className="text-sm sm:text-base font-medium text-[#333333]"
             >
-              Forgot your Password?
+              {t("Forgot your Password?")}
             </a>
           </div>
         </div>
         <div className="flex flex-col gap-4">
-          <FormButton buttonText="Sign In" />
+          <FormButton buttonText={t("Sign In")} />
           <AuthRedirectSection
             actionLinkHref="/sign-up"
-            promptText="Don't have an account?"
-            actionLinkText="Create account"
+            promptText={t("Don't have an account?")}
+            actionLinkText={t("Create account")}
           />
         </div>
       </form>
