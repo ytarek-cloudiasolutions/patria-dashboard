@@ -35,6 +35,7 @@ import TablesPage from "@/features/tables/TablesPage";
 import PosPage from "@/features/pos/PosPage";
 import ProductsPage from "@/features/products/ProductsPage";
 import OrdersPage from "@/features/orders/pages/OrdersPage";
+import ShiftManagementPage from "@/features/shifts/ShiftManagementPage";
 
 export const router = createBrowserRouter([
   { path: "/sign-up", element: <SignUpPage /> },
@@ -65,6 +66,7 @@ export const router = createBrowserRouter([
       { path: "/production", element: <ProductionPage /> },
       { path: "/requests", element: <RequestsPage /> },
       { path: "/users-permissions", element: <UsersPermissionsPage /> },
+      { path: "/shift-management", element: <ShiftManagementPage /> },
       { path: "/financial-hub", element: <FinancialHubPage /> },
       { path: "/reports", element: <ReportsPage /> },
       { path: "/pricing", element: <PricingPage /> },

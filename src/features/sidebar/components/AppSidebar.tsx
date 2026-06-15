@@ -10,8 +10,8 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarRail,
 } from "@/shared/components/ui/sidebar";
+import { ScrollArea } from "@/shared/components/ui/scroll-area";
 
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/shared/i18n/useTranslation";
@@ -66,48 +66,50 @@ const AppSidebar = ({
       </SidebarHeader>
 
       {/* Navigation */}
-      <SidebarContent className="bg-white">
-        {NAV_SECTIONS.map((section) => (
-          <SidebarGroup key={section.title}>
-            {section.title && (
-              <SidebarGroupLabel className="text-[10px] tracking-widest font-bold text-[#595959]">
-                {t(section.title)}
-              </SidebarGroupLabel>
-            )}
+      <SidebarContent className="overflow-hidden bg-white">
+        <ScrollArea dir={dir} className="h-full w-full">
+          {NAV_SECTIONS.map((section) => (
+            <SidebarGroup key={section.title}>
+              {section.title && (
+                <SidebarGroupLabel className="text-[10px] tracking-widest font-bold text-[#595959]">
+                  {t(section.title)}
+                </SidebarGroupLabel>
+              )}
 
-            <SidebarMenu>
-              {section.items.map((item) => {
-                const isActive = activePath === item.href;
-                const Icon = item.icon;
+              <SidebarMenu>
+                {section.items.map((item) => {
+                  const isActive = activePath === item.href;
+                  const Icon = item.icon;
 
-                return (
-                  <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={isActive}
-                      className={cn(
-                        "flex w-full items-center gap-1.5 rounded-[16px] px-3 py-2 text-[12px] transition-colors cursor-pointer",
-                        "font-medium text-[#595959] hover:bg-[#F5F0EA]",
-                        "data-[active=true]:font-semibold data-[active=true]:bg-primary data-[active=true]:text-white"
-                      )}
-                    >
-                      <button onClick={() => onNavigate?.(item.href)}>
-                        <Icon
-                          size={16}
-                          className={cn(
-                            "shrink-0",
-                            isActive ? "text-white" : "text-[#595959]"
-                          )}
-                        />
-                        <span className="truncate">{t(item.label)}</span>
-                      </button>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroup>
-        ))}
+                  return (
+                    <SidebarMenuItem key={item.href}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={isActive}
+                        className={cn(
+                          "flex w-full items-center gap-1.5 rounded-[16px] px-3 py-2 text-[12px] transition-colors cursor-pointer",
+                          "font-medium text-[#595959] hover:bg-[#F5F0EA]",
+                          "data-[active=true]:font-semibold data-[active=true]:bg-primary data-[active=true]:text-white",
+                        )}
+                      >
+                        <button onClick={() => onNavigate?.(item.href)}>
+                          <Icon
+                            size={16}
+                            className={cn(
+                              "shrink-0",
+                              isActive ? "text-white" : "text-[#595959]",
+                            )}
+                          />
+                          <span className="truncate">{t(item.label)}</span>
+                        </button>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroup>
+          ))}
+        </ScrollArea>
       </SidebarContent>
 
       {/* Footer — Logout */}
@@ -126,8 +128,6 @@ const AppSidebar = ({
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
-
-      <SidebarRail />
     </Sidebar>
   );
 };

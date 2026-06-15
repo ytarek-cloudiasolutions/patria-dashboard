@@ -21,7 +21,8 @@ export interface DeleteDialogProps {
     | "subscriber"
     | "staff"
     | "review"
-    | "driver";
+    | "driver"
+    | "shift";
   /**
    * When true, render the type before the name (e.g.
    * "Delete user 'Ahmed'") and use "that" qualifier in the description.

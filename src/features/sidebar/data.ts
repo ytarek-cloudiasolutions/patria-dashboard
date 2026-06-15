@@ -20,6 +20,7 @@ import {
   MessageSquare,
   BadgeDollarSign,
   Receipt,
+  Clock,
 } from "lucide-react";
 import type { NavSection } from "./types";
 
@@ -76,6 +77,11 @@ export const NAV_SECTIONS: NavSection[] = [
         label: "User's & Permissions",
         href: "/users-permissions",
         icon: UserCircle,
+      },
+      {
+        label: "Shift Management",
+        href: "/shift-management",
+        icon: Clock,
       },
       {
         label: "WhatsApp Gateway",

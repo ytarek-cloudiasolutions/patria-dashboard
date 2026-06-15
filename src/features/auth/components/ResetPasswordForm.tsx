@@ -1,15 +1,19 @@
 import HeaderLayout from "@/layouts/HeaderLayout";
 import FormButton from "./FormButton";
 import PasswordInputField from "./PasswordInputField";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 
 const ResetPasswordForm = () => {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-col gap-12 lg:gap-22.5">
       {/* Header */}
-      <div className="text-center lg:text-left">
+      <div className="text-center lg:text-start">
         <HeaderLayout
-          title="Reset Password"
-          description="Enter and confirm your new password to secure your account."
+          title={t("Reset Password")}
+          description={t(
+            "Enter and confirm your new password to secure your account.",
+          )}
         />
       </div>
       {/* Form */}
@@ -18,17 +22,17 @@ const ResetPasswordForm = () => {
         <div className="flex flex-col gap-5 lg:gap-6">
           <PasswordInputField
             id="password"
-            label="Password"
-            placeholder="Password"
+            label={t("Password")}
+            placeholder={t("Password")}
           />
           <PasswordInputField
             id="confirm-password"
-            label="Confirm Password"
-            placeholder="Confirm Password"
+            label={t("Confirm Password")}
+            placeholder={t("Confirm Password")}
           />
         </div>
         {/* Button */}
-        <FormButton buttonText="Reset Password" />
+        <FormButton buttonText={t("Reset Password")} />
       </form>
     </div>
   );
