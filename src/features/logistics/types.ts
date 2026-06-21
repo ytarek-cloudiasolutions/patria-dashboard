@@ -1,4 +1,4 @@
-export type DriverStatus = "Active" | "Inactive";
+export type DriverStatus = "Active" | "On-Route" | "Off-Duty";
 export type VehicleType = "Motorcycle" | "Car" | "Van";
 
 export interface Driver {
@@ -6,18 +6,26 @@ export interface Driver {
   name: string;
   whatsappPhone: string;
   vehicleType: VehicleType;
+  plateNumber?: string;
   zones: string[];
   status: DriverStatus;
+  /** Live-duty stats shown on the driver duty card. */
+  ordersToday: number;
+  salaryNow: number;
+  hourlyRate: number;
+  dutyTime: string;
 }
 
-export type OrderStatus = "Pending" | "Assigned";
+export type ZoneOrderStatus = "Waiting" | "Processing" | "Cancelled";
 
 export interface ZoneOrder {
   id: string;
   reference: string;
   customer: string;
-  status: OrderStatus;
-  assignedDriverId?: number;
+  address: string;
+  amount: number;
+  status: ZoneOrderStatus;
+  /** Set once the order has been dispatched to a driver. */
   assignedDriverName?: string;
 }
 
@@ -30,6 +38,14 @@ export interface Zone {
 export interface DriverFormData {
   name: string;
   whatsappPhone: string;
+  password: string;
   vehicleType: VehicleType;
+  plateNumber: string;
+  zones: string[];
   status: DriverStatus;
+}
+
+export interface DriverNotification {
+  title: string;
+  message: string;
 }

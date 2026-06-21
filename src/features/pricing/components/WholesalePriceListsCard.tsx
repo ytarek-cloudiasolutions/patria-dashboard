@@ -1,4 +1,10 @@
-import { Banknote, SquareArrowOutUpRight, Trash2 } from "lucide-react";
+import {
+  Banknote,
+  BadgeCheck,
+  Package,
+  SquareArrowOutUpRight,
+  Trash2,
+} from "lucide-react";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import type { WholesalePriceList } from "../types";
@@ -32,33 +38,48 @@ const WholesalePriceListsCard = ({
           lists.map((list) => (
             <div
               key={list.id}
-              className="flex flex-col gap-3 rounded-[12px] bg-[#FAFAF7] px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+              className="rounded-[12px] border border-[#EDEBE7] bg-[#FAFAF7] px-4 py-3"
             >
-              <div className="flex min-w-0 flex-col gap-1">
-                <p className="truncate text-[14px] font-semibold text-[#333333]">
-                  {list.name}
-                </p>
-                <p className="text-[12px] text-[#8B8B8B]" dir="ltr">
-                  {list.productsCount} products • {list.customerSegment}
-                </p>
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate text-[15px] font-bold text-[#333333]">
+                    {list.name}
+                  </p>
+                  <span className="mt-1.5 inline-flex h-6 items-center rounded-full border border-[#059B5A] bg-white px-2.5 text-[11px] font-semibold uppercase text-[#059B5A]">
+                    {list.customerSegment}
+                  </span>
+                </div>
+                <div className="flex shrink-0 items-center gap-3">
+                  <button
+                    type="button"
+                    aria-label={`Edit ${list.name}`}
+                    onClick={() => onEdit?.(list)}
+                    className="cursor-pointer text-[#000000] hover:text-primary"
+                  >
+                    <SquareArrowOutUpRight size={18} />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label={`Delete ${list.name}`}
+                    onClick={() => onDelete?.(list)}
+                    className="cursor-pointer text-[#C90000]"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
               </div>
-              <div className="flex shrink-0 items-center gap-3 self-end sm:self-center">
-                <button
-                  type="button"
-                  aria-label={`Edit ${list.name}`}
-                  onClick={() => onEdit?.(list)}
-                  className="inline-flex size-9 cursor-pointer items-center justify-center rounded-[8px] text-[#000000] hover:bg-white"
-                >
-                  <SquareArrowOutUpRight size={18} />
-                </button>
-                <button
-                  type="button"
-                  aria-label={`Delete ${list.name}`}
-                  onClick={() => onDelete?.(list)}
-                  className="inline-flex size-9 cursor-pointer items-center justify-center rounded-[8px] text-[#C90000] hover:bg-white"
-                >
-                  <Trash2 size={18} />
-                </button>
+
+              <div className="mt-3 flex items-center justify-between gap-3">
+                <span className="flex items-center gap-1.5 text-[13px] text-[#595959]">
+                  <Package size={16} className="text-[#8B8B8B]" />
+                  {list.products.length} {t("products at a special price")}
+                </span>
+                {list.authorized && (
+                  <span className="flex items-center gap-1 text-[13px] font-medium text-[#059B5A]">
+                    <BadgeCheck size={16} />
+                    {t("Authorized Tier")}
+                  </span>
+                )}
               </div>
             </div>
           ))

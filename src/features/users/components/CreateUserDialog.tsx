@@ -11,7 +11,11 @@ import DefaultButton from "@/shared/components/DefaultButton";
 import DropdownSelect from "@/shared/components/DropdownSelect";
 import InputField from "@/shared/components/InputField";
 import { useTranslation } from "@/shared/i18n/useTranslation";
-import { ROLE_DEFAULT_PAGES, ROLE_OPTIONS } from "../data";
+import {
+  ROLE_DEFAULT_PAGES,
+  ROLE_OPTIONS,
+  VIRTUAL_SHIFT_OPTIONS,
+} from "../data";
 import type { UserFormData, UserRole } from "../types";
 import PageChip from "./PageChip";
 
@@ -23,6 +27,7 @@ const INITIAL_FORM: UserFormData = {
   phone: "",
   password: "",
   role: "Staff",
+  virtualShift: "none",
 };
 
 interface CreateUserDialogProps {
@@ -42,12 +47,14 @@ const CreateUserDialog = ({
     Partial<Record<keyof UserFormData, string>>
   >({});
   const [isRoleOpen, setIsRoleOpen] = useState(false);
+  const [isShiftOpen, setIsShiftOpen] = useState(false);
 
   useEffect(() => {
     if (open) {
       setForm(INITIAL_FORM);
       setErrors({});
       setIsRoleOpen(false);
+      setIsShiftOpen(false);
     }
   }, [open]);
 
@@ -89,7 +96,7 @@ const CreateUserDialog = ({
         showCloseButton={false}
         className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-150"
       >
-        {isRoleOpen && (
+        {(isRoleOpen || isShiftOpen) && (
           <div className="pointer-events-none fixed inset-0 z-60 bg-black/40" />
         )}
 
@@ -230,6 +237,28 @@ const CreateUserDialog = ({
                     </p>
                   )}
                 </div>
+              </div>
+
+              <div className="flex flex-col">
+                <Label
+                  htmlFor="virtual-shift"
+                  className="mb-2.5 text-[16px] font-medium text-black"
+                >
+                  {t("Virtual Shift")}
+                </Label>
+                <DropdownSelect
+                  options={VIRTUAL_SHIFT_OPTIONS.map((o) => ({
+                    ...o,
+                    label: t(o.label),
+                  }))}
+                  selected={form.virtualShift}
+                  onSelect={(value) => set("virtualShift", value)}
+                  onOpenChange={setIsShiftOpen}
+                  placeholder={t("Without shift selected")}
+                  align="start"
+                  className="md:w-full"
+                  contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
+                />
               </div>
 
               {previewPages.length > 0 && (

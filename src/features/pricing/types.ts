@@ -14,11 +14,24 @@ export interface PricingRule {
   minimumQuantity: number;
 }
 
+export interface PriceListProduct {
+  id: string;
+  name: string;
+  price: number;
+}
+
 export interface WholesalePriceList {
   id: number;
   name: string;
-  productsCount: number;
   customerSegment: string;
+  products: PriceListProduct[];
+  authorized: boolean;
+}
+
+export interface PriceListFormData {
+  name: string;
+  customerSegment: string;
+  products: PriceListProduct[];
 }
 
 export interface PricingRuleFormData {

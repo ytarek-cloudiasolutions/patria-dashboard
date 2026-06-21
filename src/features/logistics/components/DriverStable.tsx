@@ -1,4 +1,4 @@
-import { SquarePen, Trash2 } from "lucide-react";
+import { Bell, ChevronDown, SquarePen } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -7,66 +7,114 @@ import {
   TableHeader,
   TableRow,
 } from "@/shared/components/ui/table";
-import { Switch } from "@/shared/components/ui/switch";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/shared/components/ui/dropdown-menu";
 import { useTranslation } from "@/shared/i18n/useTranslation";
+import { cn } from "@/lib/utils";
 import ActionButton from "@/shared/components/ActionButton";
 import WhatsAppIcon from "@/assets/icons/whatsapp.svg";
-import type { Driver } from "../types";
+import { DRIVER_STATUS_OPTIONS } from "../data";
+import type { Driver, DriverStatus } from "../types";
+
+const STATUS_STYLES: Record<DriverStatus, string> = {
+  Active: "border-[#059B5A] bg-white text-[#059B5A]",
+  "On-Route": "border-[#3357B5] bg-white text-[#3357B5]",
+  "Off-Duty": "border-[#CACBD4] bg-[#E5E5E5] text-[#28293D]",
+};
 
 const openWhatsApp = (phone: string) => {
   const digits = phone.replace(/\D/g, "");
   window.open(`https://wa.me/${digits}`, "_blank", "noopener,noreferrer");
 };
 
-const StatusToggle = ({
+interface DriversTableProps {
+  drivers: Driver[];
+  onEdit: (driver: Driver) => void;
+  onNotify: (driver: Driver) => void;
+  onChangeStatus: (driver: Driver, status: DriverStatus) => void;
+  onMenuOpenChange?: (open: boolean) => void;
+}
+
+const StatusDropdown = ({
   driver,
-  onToggleStatus,
+  onChangeStatus,
+  onMenuOpenChange,
 }: {
   driver: Driver;
-  onToggleStatus: (d: Driver, enabled: boolean) => void;
+  onChangeStatus: (d: Driver, s: DriverStatus) => void;
+  onMenuOpenChange?: (open: boolean) => void;
 }) => {
   const { t } = useTranslation();
   return (
-    <div className="flex items-center gap-2">
-      <span className="text-[13px] font-semibold">{t(driver.status)}</span>
-      <Switch
-        checked={driver.status === "Active"}
-        onCheckedChange={(checked) => onToggleStatus(driver, checked)}
-        aria-label={`Toggle ${driver.name}`}
-      />
+    <div className="flex items-center gap-1.5">
+      <DropdownMenu onOpenChange={onMenuOpenChange}>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            className="inline-flex cursor-pointer items-center gap-1.5"
+          >
+            <span
+              className={cn(
+                "inline-flex h-7 min-w-20 items-center justify-center rounded-full border px-3 text-[12px] font-semibold",
+                STATUS_STYLES[driver.status],
+              )}
+            >
+              {t(driver.status)}
+            </span>
+            <ChevronDown className="size-4 text-[#28293D]" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="z-70 rounded-[12px] p-2">
+          {DRIVER_STATUS_OPTIONS.map((option) => (
+            <DropdownMenuItem
+              key={option.value}
+              onSelect={() => onChangeStatus(driver, option.value as DriverStatus)}
+              className={cn(
+                "cursor-pointer rounded-[8px] px-3 py-2 text-[13px] font-medium",
+                option.value === driver.status
+                  ? "bg-primary text-white data-highlighted:bg-primary data-highlighted:text-white"
+                  : "text-[#28293D] data-highlighted:bg-[#F5F0EA]",
+              )}
+            >
+              {t(option.label)}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 };
 
-const WhatsAppButton = ({ driver }: { driver: Driver }) => (
-  <button
-    type="button"
-    onClick={() => openWhatsApp(driver.whatsappPhone)}
-    aria-label={`Message ${driver.name} on WhatsApp`}
-    className="flex cursor-pointer items-center justify-center"
-  >
-    <img src={WhatsAppIcon} alt="" className="size-5" />
-  </button>
-);
-
-interface DriversTableProps {
-  drivers: Driver[];
-  onEdit: (driver: Driver) => void;
-  onDelete: (driver: Driver) => void;
-  onToggleStatus: (driver: Driver, enabled: boolean) => void;
-}
-
 const DriverActions = ({
   driver,
   onEdit,
-  onDelete,
+  onNotify,
 }: {
   driver: Driver;
   onEdit: (d: Driver) => void;
-  onDelete: (d: Driver) => void;
+  onNotify: (d: Driver) => void;
 }) => (
   <div className="flex items-center gap-3">
-    <WhatsAppButton driver={driver} />
+    <button
+      type="button"
+      onClick={() => openWhatsApp(driver.whatsappPhone)}
+      aria-label={`Message ${driver.name} on WhatsApp`}
+      className="flex cursor-pointer items-center justify-center"
+    >
+      <img src={WhatsAppIcon} alt="" className="size-5" />
+    </button>
+    <ActionButton
+      data={{
+        icon: <Bell size={16} />,
+        iconColor: "text-[#28293D]",
+        ariaLabel: `Send notification to ${driver.name}`,
+        onClick: () => onNotify(driver),
+      }}
+    />
     <ActionButton
       data={{
         icon: <SquarePen size={16} />,
@@ -75,27 +123,20 @@ const DriverActions = ({
         onClick: () => onEdit(driver),
       }}
     />
-    <ActionButton
-      data={{
-        icon: <Trash2 size={16} />,
-        iconColor: "text-[#C90000]",
-        ariaLabel: `Delete ${driver.name}`,
-        onClick: () => onDelete(driver),
-      }}
-    />
   </div>
 );
 
 const DriversTable = ({
   drivers,
   onEdit,
-  onDelete,
-  onToggleStatus,
+  onNotify,
+  onChangeStatus,
+  onMenuOpenChange,
 }: DriversTableProps) => {
   const { t } = useTranslation();
   return (
     <>
-      {/* Mobile card list — hidden on md+ */}
+      {/* Mobile card list */}
       <div className="flex flex-col gap-3 md:hidden">
         {drivers.map((driver) => (
           <div
@@ -111,13 +152,8 @@ const DriversTable = ({
                   <bdi>{driver.whatsappPhone}</bdi>
                 </p>
               </div>
-              <DriverActions
-                driver={driver}
-                onEdit={onEdit}
-                onDelete={onDelete}
-              />
+              <DriverActions driver={driver} onEdit={onEdit} onNotify={onNotify} />
             </div>
-
             <div className="mb-3 grid grid-cols-2 gap-3 text-[13px]">
               <div>
                 <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
@@ -132,11 +168,13 @@ const DriversTable = ({
                 <p className="text-[#28293D]">{driver.zones.join(", ")}</p>
               </div>
             </div>
-
-            <StatusToggle driver={driver} onToggleStatus={onToggleStatus} />
+            <StatusDropdown
+              driver={driver}
+              onChangeStatus={onChangeStatus}
+              onMenuOpenChange={onMenuOpenChange}
+            />
           </div>
         ))}
-
         {drivers.length === 0 && (
           <p className="py-8 text-center text-[14px] text-[#8B8B8B]">
             {t("No drivers yet.")}
@@ -144,7 +182,7 @@ const DriversTable = ({
         )}
       </div>
 
-      {/* Desktop table — hidden below md */}
+      {/* Desktop table */}
       <div className="hidden md:block">
         <Table>
           <TableHeader>
@@ -173,9 +211,10 @@ const DriversTable = ({
                   {driver.zones.join(", ")}
                 </TableCell>
                 <TableCell className="px-6 py-4 whitespace-nowrap">
-                  <StatusToggle
+                  <StatusDropdown
                     driver={driver}
-                    onToggleStatus={onToggleStatus}
+                    onChangeStatus={onChangeStatus}
+                    onMenuOpenChange={onMenuOpenChange}
                   />
                 </TableCell>
                 <TableCell className="pe-6 py-4 whitespace-nowrap">
@@ -183,13 +222,12 @@ const DriversTable = ({
                     <DriverActions
                       driver={driver}
                       onEdit={onEdit}
-                      onDelete={onDelete}
+                      onNotify={onNotify}
                     />
                   </div>
                 </TableCell>
               </TableRow>
             ))}
-
             {drivers.length === 0 && (
               <TableRow>
                 <TableCell

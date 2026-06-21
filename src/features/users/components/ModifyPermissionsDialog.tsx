@@ -6,17 +6,21 @@ import {
 } from "@/shared/components/ui/dialog";
 import { Button } from "@/shared/components/ui/button";
 import { Checkbox } from "@/shared/components/ui/checkbox";
+import { Label } from "@/shared/components/ui/label";
 import { Separator } from "@/shared/components/ui/separator";
 import { cn } from "@/lib/utils";
 import DefaultButton from "@/shared/components/DefaultButton";
+import DropdownSelect from "@/shared/components/DropdownSelect";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import {
   ALL_PERMISSION_PAGES,
+  BACKUP_WAREHOUSE_OPTIONS,
   ROLE_CARD_OPTIONS,
   ROLE_DEFAULT_PAGES,
+  VIRTUAL_SHIFT_OPTIONS,
 } from "../data";
 import type { PermissionPage, UserAccount, UserRole } from "../types";
-import { PAGE_ICONS } from "./PageChip";
+import { PAGE_ICONS } from "../pageIcons";
 
 interface ModifyPermissionsDialogProps {
   open: boolean;
@@ -34,6 +38,10 @@ const ModifyPermissionsDialog = ({
   const { t } = useTranslation();
   const [role, setRole] = useState<UserRole>("Staff");
   const [pages, setPages] = useState<Set<PermissionPage>>(new Set());
+  const [backupWarehouse, setBackupWarehouse] = useState("none");
+  const [virtualShift, setVirtualShift] = useState("none");
+  const [isWarehouseOpen, setIsWarehouseOpen] = useState(false);
+  const [isShiftOpen, setIsShiftOpen] = useState(false);
 
   useEffect(() => {
     if (open && user) {
@@ -44,6 +52,10 @@ const ModifyPermissionsDialog = ({
       ) as UserRole;
       setRole(initialRole);
       setPages(new Set(user.pages));
+      setBackupWarehouse("none");
+      setVirtualShift("none");
+      setIsWarehouseOpen(false);
+      setIsShiftOpen(false);
     }
   }, [open, user]);
 
@@ -73,6 +85,10 @@ const ModifyPermissionsDialog = ({
         showCloseButton={false}
         className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-150"
       >
+        {(isWarehouseOpen || isShiftOpen) && (
+          <div className="pointer-events-none fixed inset-0 z-60 bg-black/40" />
+        )}
+
         <div className="flex max-h-[calc(100vh-2rem)] flex-col">
           {/* Header */}
           <div className="px-5 pt-5 sm:px-7 sm:pt-7">
@@ -86,7 +102,7 @@ const ModifyPermissionsDialog = ({
           <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-7 sm:py-6">
             <div className="flex flex-col gap-5">
               {/* Role cards */}
-              <div className="flex flex-col gap-3 sm:flex-row sm:gap-6">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
                 {ROLE_CARD_OPTIONS.map((option) => {
                   const isActive = role === option.value;
                   return (
@@ -120,6 +136,46 @@ const ModifyPermissionsDialog = ({
                     </button>
                   );
                 })}
+              </div>
+
+              {/* Backup warehouse */}
+              <div className="flex flex-col">
+                <Label className="mb-2.5 text-[16px] font-medium text-black">
+                  {t("Backup Warehouse")}
+                </Label>
+                <DropdownSelect
+                  options={BACKUP_WAREHOUSE_OPTIONS.map((o) => ({
+                    ...o,
+                    label: t(o.label),
+                  }))}
+                  selected={backupWarehouse}
+                  onSelect={setBackupWarehouse}
+                  onOpenChange={setIsWarehouseOpen}
+                  placeholder={t("Without backup storage")}
+                  align="start"
+                  className="md:w-full"
+                  contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
+                />
+              </div>
+
+              {/* Virtual shift */}
+              <div className="flex flex-col">
+                <Label className="mb-2.5 text-[16px] font-medium text-black">
+                  {t("Virtual Shift")}
+                </Label>
+                <DropdownSelect
+                  options={VIRTUAL_SHIFT_OPTIONS.map((o) => ({
+                    ...o,
+                    label: t(o.label),
+                  }))}
+                  selected={virtualShift}
+                  onSelect={setVirtualShift}
+                  onOpenChange={setIsShiftOpen}
+                  placeholder={t("Without shift selected")}
+                  align="start"
+                  className="md:w-full"
+                  contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
+                />
               </div>
 
               {/* Available pages */}
