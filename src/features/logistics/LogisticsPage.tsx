@@ -7,13 +7,15 @@ import SearchInputField from "@/shared/components/SearchInputField";
 import DeleteDialog from "@/shared/components/DeleteDialog";
 
 import LogisticsOverview from "./components/LogisticsOverview";
-import ZoneCard from "./components/ZoneCard";
+import ZoneAccordion from "./components/ZoneAccordion";
+import DispatchPanel from "./components/DispatchPanel";
+import DriverDutyCard from "./components/DriverDutyCard";
 import DriversTable from "./components/DriversTable";
 import AddDriverDialog from "./components/AddDriverDialog";
-import DispatchDialog from "./components/DispatchDialog";
+import SendNotificationDialog from "./components/SendNotificationDialog";
 
 import { INITIAL_DRIVERS, INITIAL_ZONES } from "./data";
-import type { Driver, DriverFormData, Zone } from "./types";
+import type { Driver, DriverFormData, DriverStatus, Zone } from "./types";
 
 const LogisticsPage = () => {
   const { t } = useTranslation();
@@ -21,16 +23,21 @@ const LogisticsPage = () => {
   const [drivers, setDrivers] = useState<Driver[]>(INITIAL_DRIVERS);
   const [search, setSearch] = useState("");
 
+  const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(
+    new Set(),
+  );
+  const [selectedDriverId, setSelectedDriverId] = useState("");
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   const [isAddDriverOpen, setIsAddDriverOpen] = useState(false);
   const [editingDriver, setEditingDriver] = useState<Driver | undefined>();
   const [deletingDriver, setDeletingDriver] = useState<Driver | null>(null);
-
-  const [dispatchZone, setDispatchZone] = useState<Zone | null>(null);
+  const [notifyingDriver, setNotifyingDriver] = useState<Driver | null>(null);
 
   const overview = useMemo(() => {
     const pendingOrders = zones.reduce(
       (sum, zone) =>
-        sum + zone.orders.filter((o) => o.status === "Pending").length,
+        sum + zone.orders.filter((o) => !o.assignedDriverName).length,
       0,
     );
     return {
@@ -58,6 +65,63 @@ const LogisticsPage = () => {
       );
   }, [zones, search]);
 
+  const selectedReferences = useMemo(() => {
+    const refs: string[] = [];
+    zones.forEach((zone) =>
+      zone.orders.forEach((order) => {
+        if (selectedOrderIds.has(order.id)) refs.push(order.reference);
+      }),
+    );
+    return refs;
+  }, [zones, selectedOrderIds]);
+
+  // --- Dispatch -------------------------------------------------------------
+
+  const toggleOrder = (id: string) =>
+    setSelectedOrderIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
+  const toggleZone = (zone: Zone) =>
+    setSelectedOrderIds((prev) => {
+      const next = new Set(prev);
+      const unassigned = zone.orders.filter((o) => !o.assignedDriverName);
+      const allSelected = unassigned.every((o) => next.has(o.id));
+      unassigned.forEach((o) => {
+        if (allSelected) next.delete(o.id);
+        else next.add(o.id);
+      });
+      return next;
+    });
+
+  const handleSend = () => {
+    const driver = drivers.find((d) => String(d.id) === selectedDriverId);
+    if (!driver) return;
+    const firstName = driver.name.split(" ")[0];
+    setZones((prev) =>
+      prev.map((zone) => ({
+        ...zone,
+        orders: zone.orders.map((order) =>
+          selectedOrderIds.has(order.id)
+            ? { ...order, assignedDriverName: firstName }
+            : order,
+        ),
+      })),
+    );
+    setSelectedOrderIds(new Set());
+    setSelectedDriverId("");
+  };
+
+  const handleCancelDispatch = () => {
+    setSelectedOrderIds(new Set());
+    setSelectedDriverId("");
+  };
+
+  // --- Drivers --------------------------------------------------------------
+
   const handleOpenAddDriver = () => {
     setEditingDriver(undefined);
     setIsAddDriverOpen(true);
@@ -78,6 +142,8 @@ const LogisticsPage = () => {
                 name: data.name.trim(),
                 whatsappPhone: data.whatsappPhone.trim(),
                 vehicleType: data.vehicleType,
+                plateNumber: data.plateNumber.trim(),
+                zones: data.zones,
                 status: data.status,
               }
             : d,
@@ -89,21 +155,32 @@ const LogisticsPage = () => {
         name: data.name.trim(),
         whatsappPhone: data.whatsappPhone.trim(),
         vehicleType: data.vehicleType,
+        plateNumber: data.plateNumber.trim(),
         status: data.status,
-        zones: [],
+        zones: data.zones,
+        ordersToday: 0,
+        salaryNow: 0,
+        hourlyRate: 21,
+        dutyTime: "00:00:00",
       };
       setDrivers((prev) => [...prev, newDriver]);
     }
   };
 
-  const handleToggleStatus = (driver: Driver, enabled: boolean) => {
+  const handleChangeStatus = (driver: Driver, status: DriverStatus) =>
     setDrivers((prev) =>
-      prev.map((d) =>
-        d.id === driver.id
-          ? { ...d, status: enabled ? "Active" : "Inactive" }
-          : d,
-      ),
+      prev.map((d) => (d.id === driver.id ? { ...d, status } : d)),
     );
+
+  const handleHourlyRateChange = (id: number, rate: number) =>
+    setDrivers((prev) =>
+      prev.map((d) => (d.id === id ? { ...d, hourlyRate: rate } : d)),
+    );
+
+  const handleRemoveDriver = (driver: Driver) => {
+    setIsAddDriverOpen(false);
+    setEditingDriver(undefined);
+    setDeletingDriver(driver);
   };
 
   const handleConfirmDelete = () => {
@@ -112,49 +189,12 @@ const LogisticsPage = () => {
     setDeletingDriver(null);
   };
 
-  const handleDispatch = (zoneId: string, driverId: number) => {
-    const driver = drivers.find((d) => d.id === driverId);
-    if (!driver) return;
-
-    setZones((prev) =>
-      prev.map((zone) =>
-        zone.id === zoneId
-          ? {
-              ...zone,
-              orders: zone.orders.map((order) =>
-                order.status === "Pending"
-                  ? {
-                      ...order,
-                      status: "Assigned",
-                      assignedDriverId: driver.id,
-                      assignedDriverName: driver.name.split(" ")[0],
-                    }
-                  : order,
-              ),
-            }
-          : zone,
-      ),
-    );
-
-    setDrivers((prev) =>
-      prev.map((d) =>
-        d.id === driverId && !d.zones.includes(zoneId)
-          ? {
-              ...d,
-              zones: Array.from(
-                new Set([
-                  ...d.zones,
-                  zones.find((z) => z.id === zoneId)?.name ?? "",
-                ]),
-              ).filter(Boolean),
-            }
-          : d,
-      ),
-    );
-  };
-
   return (
     <>
+      {isMenuOpen && (
+        <div className="pointer-events-none fixed inset-0 z-40 bg-black/40" />
+      )}
+
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <HeaderLayout
           title={t("Fleet Management")}
@@ -183,27 +223,48 @@ const LogisticsPage = () => {
         />
       </div>
 
-      {filteredZones.length === 0 ? (
-        <div className="mb-6 rounded-[16px] border border-[#E5E5E5] bg-white px-6 py-10 text-center text-[14px] text-[#8B8B8B]">
-          {t("No zones match your search.")}
-        </div>
-      ) : (
-        <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredZones.map((zone) => (
-            <ZoneCard
-              key={zone.id}
-              zone={zone}
-              onDispatch={setDispatchZone}
-            />
-          ))}
-        </div>
-      )}
+      {/* Zones + dispatch */}
+      <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
+        {filteredZones.length === 0 ? (
+          <div className="rounded-[16px] border border-[#E5E5E5] bg-white px-6 py-10 text-center text-[14px] text-[#8B8B8B]">
+            {t("No zones match your search.")}
+          </div>
+        ) : (
+          <ZoneAccordion
+            zones={filteredZones}
+            selectedIds={selectedOrderIds}
+            onToggleOrder={toggleOrder}
+            onToggleZone={toggleZone}
+          />
+        )}
+        <DispatchPanel
+          selectedReferences={selectedReferences}
+          drivers={drivers}
+          selectedDriverId={selectedDriverId}
+          onSelectDriver={setSelectedDriverId}
+          onDriverMenuOpenChange={setIsMenuOpen}
+          onSend={handleSend}
+          onCancel={handleCancelDispatch}
+        />
+      </div>
+
+      {/* Driver duty cards */}
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {drivers.map((driver) => (
+          <DriverDutyCard
+            key={driver.id}
+            driver={driver}
+            onHourlyRateChange={handleHourlyRateChange}
+          />
+        ))}
+      </div>
 
       <DriversTable
         drivers={drivers}
         onEdit={handleEditDriver}
-        onDelete={setDeletingDriver}
-        onToggleStatus={handleToggleStatus}
+        onNotify={setNotifyingDriver}
+        onChangeStatus={handleChangeStatus}
+        onMenuOpenChange={setIsMenuOpen}
       />
 
       <AddDriverDialog
@@ -211,14 +272,13 @@ const LogisticsPage = () => {
         driver={editingDriver}
         onOpenChange={setIsAddDriverOpen}
         onSave={handleSaveDriver}
+        onRemove={handleRemoveDriver}
       />
 
-      <DispatchDialog
-        open={!!dispatchZone}
-        zone={dispatchZone}
-        drivers={drivers}
-        onOpenChange={(open) => !open && setDispatchZone(null)}
-        onConfirm={handleDispatch}
+      <SendNotificationDialog
+        driver={notifyingDriver}
+        onOpenChange={(open) => !open && setNotifyingDriver(null)}
+        onSend={() => setNotifyingDriver(null)}
       />
 
       <DeleteDialog

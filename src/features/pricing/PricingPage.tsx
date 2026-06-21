@@ -5,6 +5,7 @@ import DefaultButton from "@/shared/components/DefaultButton";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 
 import CreatePricingRuleDialog from "./components/CreatePricingRuleDialog";
+import NewPriceListDialog from "./components/NewPriceListDialog";
 import PricingDateRange from "./components/PricingDateRange";
 import PricingOverview from "./components/PricingOverview";
 import PricingRulesCard from "./components/PricingRulesCard";
@@ -13,10 +14,12 @@ import WholesalePriceListsCard from "./components/WholesalePriceListsCard";
 import { INITIAL_PRICING_RULES, INITIAL_WHOLESALE_LISTS } from "./data";
 import type {
   AdjustmentType,
+  PriceListFormData,
   PricingDateRange as PricingDateRangeType,
   PricingRule,
   PricingRuleFormData,
   PricingRuleType,
+  WholesalePriceList,
 } from "./types";
 
 const PricingPage = () => {
@@ -26,8 +29,11 @@ const PricingPage = () => {
     to: "",
   });
   const [rules, setRules] = useState<PricingRule[]>(INITIAL_PRICING_RULES);
-  const [wholesaleLists] = useState(INITIAL_WHOLESALE_LISTS);
+  const [wholesaleLists, setWholesaleLists] = useState<WholesalePriceList[]>(
+    INITIAL_WHOLESALE_LISTS,
+  );
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isPriceListOpen, setIsPriceListOpen] = useState(false);
 
   const averageDiscountRate = useMemo(() => {
     if (rules.length === 0) return 12.4;
@@ -52,6 +58,21 @@ const PricingPage = () => {
     setRules((prev) => prev.filter((r) => r.id !== rule.id));
   };
 
+  const handleCreateList = (data: PriceListFormData) => {
+    const newList: WholesalePriceList = {
+      id: Date.now(),
+      name: data.name,
+      customerSegment: data.customerSegment,
+      products: data.products,
+      authorized: true,
+    };
+    setWholesaleLists((prev) => [newList, ...prev]);
+  };
+
+  const handleDeleteList = (list: WholesalePriceList) => {
+    setWholesaleLists((prev) => prev.filter((l) => l.id !== list.id));
+  };
+
   return (
     <>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -65,6 +86,7 @@ const PricingPage = () => {
               buttonText: t("Manage Pricelists"),
               variant: "outline",
               icon: <WalletCards className="size-4.5" />,
+              onClick: () => setIsPriceListOpen(true),
               className:
                 "border-transparent bg-[#F5F0EA] text-primary hover:bg-[#EFE7DA] hover:text-primary",
             }}
@@ -90,13 +112,22 @@ const PricingPage = () => {
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <PricingRulesCard rules={rules} onDelete={handleDeleteRule} />
-        <WholesalePriceListsCard lists={wholesaleLists} />
+        <WholesalePriceListsCard
+          lists={wholesaleLists}
+          onDelete={handleDeleteList}
+        />
       </div>
 
       <CreatePricingRuleDialog
         open={isCreateOpen}
         onOpenChange={setIsCreateOpen}
         onSave={handleCreateRule}
+      />
+
+      <NewPriceListDialog
+        open={isPriceListOpen}
+        onOpenChange={setIsPriceListOpen}
+        onSave={handleCreateList}
       />
     </>
   );
