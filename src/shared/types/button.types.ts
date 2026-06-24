@@ -25,4 +25,5 @@ export interface ButtonProps {
   className?: string;
   icon?: React.ReactNode;
   form?: string;
+  disabled?: boolean;
 }

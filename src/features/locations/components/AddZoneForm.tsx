@@ -8,7 +8,7 @@ import type { DeliveryZone, ZoneFormData, ZoneStatus } from "../types";
 interface AddZoneFormProps {
   id: string;
   editingZone?: DeliveryZone;
-  onSubmit: (data: ZoneFormData, id?: number) => void;
+  onSubmit: (data: ZoneFormData, id?: string) => void;
   onDropdownOpenChange?: (open: boolean) => void;
 }
 

@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { Sun, Bell, PanelLeftClose, PanelRightClose, Languages } from "lucide-react";
+import { useSelector } from "react-redux";
 import { useSidebar } from "@/shared/components/ui/sidebar";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import NotificationsPanel from "@/features/notifications/components/NotificationsPanel";
+import { selectAuthUser } from "@/features/auth/store/authSelectors";
 
 interface AppTopbarProps {
   adminName?: string;
@@ -11,16 +13,33 @@ interface AppTopbarProps {
   notificationCount?: number;
 }
 
+const getInitials = (name?: string) => {
+  if (!name?.trim()) return "AD";
+
+  const initials = name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join("");
+
+  return initials || "AD";
+};
+
 const AppTopbar = ({
   adminName = "Admin User",
   adminEmail = "admin@erb.com",
-  adminInitials = "OM",
+  adminInitials,
   notificationCount = 2,
 }: AppTopbarProps) => {
+  const user = useSelector(selectAuthUser);
   const { toggleSidebar } = useSidebar();
   const { language, toggleLanguage, dir } = useTranslation();
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const PanelIcon = dir === "rtl" ? PanelRightClose : PanelLeftClose;
+  const displayName = user?.name ?? adminName;
+  const displayEmail = user?.email ?? adminEmail;
+  const displayInitials = adminInitials ?? getInitials(displayName);
 
   return (
     <header className="flex h-16 items-center justify-between border-b border-white bg-white px-4 sm:h-21 sm:px-8 sm:pt-6">
@@ -70,14 +89,14 @@ const AppTopbar = ({
         {/* Admin info */}
         <div className="flex items-center gap-2 sm:gap-3.25">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-[12px] font-bold text-white sm:h-9 sm:w-9 sm:text-[13px]">
-            {adminInitials}
+            {displayInitials}
           </div>
           {/* Hide name/email on very small screens */}
           <div className="hidden sm:block">
             <p className="text-[14px] font-semibold text-[#333333]">
-              {adminName}
+              {displayName}
             </p>
-            <p className="text-[12px] text-[#8B8B8B]">{adminEmail}</p>
+            <p className="text-[12px] text-[#8B8B8B]">{displayEmail}</p>
           </div>
         </div>
       </div>

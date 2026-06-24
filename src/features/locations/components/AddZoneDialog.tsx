@@ -17,19 +17,21 @@ interface AddZoneDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   editingZone?: DeliveryZone;
-  onSave: (data: ZoneFormData, id?: number) => void;
+  isSaving?: boolean;
+  onSave: (data: ZoneFormData, id?: string) => void;
 }
 
 const AddZoneDialog = ({
   open,
   onOpenChange,
   editingZone,
+  isSaving = false,
   onSave,
 }: AddZoneDialogProps) => {
   const { t } = useTranslation();
   const [isStatusOpen, setIsStatusOpen] = useState(false);
 
-  const handleSubmit = (data: ZoneFormData, id?: number) => {
+  const handleSubmit = (data: ZoneFormData, id?: string) => {
     onSave(data, id);
     onOpenChange(false);
   };
@@ -80,6 +82,7 @@ const AddZoneDialog = ({
               <Button
                 form={FORM_ID}
                 type="submit"
+                disabled={isSaving}
                 className="flex h-12 cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:gap-3 sm:px-7.5 sm:text-[16px]"
               >
                 {editingZone ? t("Update Zone") : t("Save Zone")}

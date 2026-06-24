@@ -107,10 +107,11 @@ const OverviewTab = ({
   const maxQty = Math.max(...topProducts.map((p) => p.quantity));
   const maxDelivery = Math.max(...deliveryPerformance.map((d) => d.orders));
 
-  const couponChartData = [
-    { name: "Revenue", value: 1300, fill: "#059B5A" },
-    { name: "Discount", value: 600, fill: "#C90000" },
-  ];
+  const couponChartData = couponPerformance.map((item) => ({
+    name: item.label,
+    value: item.revenue || item.discount,
+    fill: item.revenue ? "#059B5A" : "#C90000",
+  }));
 
   return (
     <div className="flex flex-col gap-5">

@@ -1,10 +1,8 @@
 import { useMemo, useState } from "react";
 import {
-  CircleCheck,
   CircleX,
   Plus,
   Ticket,
-  BadgeCheck,
   CircleCheckBig,
   CheckCheck,
 } from "lucide-react";

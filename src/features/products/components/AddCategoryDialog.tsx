@@ -17,12 +17,14 @@ const FORM_ID = "add-category-form";
 interface AddCategoryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  isSaving?: boolean;
   onSave: (data: CategoryFormData) => void;
 }
 
 const AddCategoryDialog = ({
   open,
   onOpenChange,
+  isSaving = false,
   onSave,
 }: AddCategoryDialogProps) => {
   const { t } = useTranslation();
@@ -115,9 +117,10 @@ const AddCategoryDialog = ({
               <Button
                 form={FORM_ID}
                 type="submit"
+                disabled={isSaving}
                 className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
               >
-                {t("Add category")}
+                {isSaving ? t("Saving...") : t("Add category")}
               </Button>
             </div>
           </div>

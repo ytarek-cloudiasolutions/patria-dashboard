@@ -2,12 +2,16 @@ import { SidebarProvider, SidebarInset } from "@/shared/components/ui/sidebar";
 import AppSidebar from "../components/AppSidebar";
 import AppTopbar from "../components/AppTopbar";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import type { AppDispatch } from "@/app/store";
+import { authActions } from "@/features/auth/store/authSlice";
 
 interface AppLayoutProps {
   children?: React.ReactNode;
 }
 
 const AppLayout = ({ children }: AppLayoutProps) => {
+  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
@@ -18,7 +22,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
           activePath={pathname}
           onNavigate={(href) => navigate(href)}
           onOpenPOS={() => navigate("/pos")}
-          onLogout={() => console.log("Logout")}
+          onLogout={() => dispatch(authActions.logoutRequest())}
         />
 
         <SidebarInset className="flex flex-1 flex-col overflow-hidden min-w-0">

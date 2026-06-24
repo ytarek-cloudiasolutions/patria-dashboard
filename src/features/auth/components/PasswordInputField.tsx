@@ -4,19 +4,30 @@ import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { useState } from "react";
 import type { InputFieldProps } from "@/shared/types/InputField.types";
 
-const PasswordInputField = ({ id, label, placeholder }: InputFieldProps) => {
+const PasswordInputField = ({
+  id,
+  label,
+  placeholder,
+  inputProps,
+}: InputFieldProps) => {
   const [isVisible, setIsVisible] = useState(false);
+  const labelText = typeof label === "string" ? label : label.labelText;
+  const labelHtmlFor = typeof label === "string" ? id : label.htmlFor;
 
   return (
     <div className="flex flex-col gap-2.5">
-      <Label htmlFor={id} className="text-[16px] font-medium text-black">
-        {label}
+      <Label
+        htmlFor={labelHtmlFor}
+        className="text-[16px] font-medium text-black"
+      >
+        {labelText}
       </Label>
       <div className="relative">
         <Input
           id={id}
           type={isVisible ? "text" : "password"}
           placeholder={placeholder}
+          {...inputProps}
           className="h-12.5 rounded-xl border border-[#E5E5E5] bg-white px-4.5 py-3 pe-12 text-[14px] text-[#23252A] placeholder:text-[#8B8B8B] focus-visible:ring-0 focus-visible:border-primary"
         />
         <div

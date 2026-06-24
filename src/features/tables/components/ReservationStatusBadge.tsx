@@ -4,15 +4,25 @@ import { useTranslation } from "@/shared/i18n/useTranslation";
 import type { ReservationStatus } from "../types";
 
 export const RESERVATION_STATUS_STYLES: Record<ReservationStatus, string> = {
-  "On Hold": "border-[#C7861E] bg-[#FFF5DC] text-[#C7861E]",
-  Sitting: "border-[#059B5A] bg-[#E2F4ED] text-[#059B5A]",
-  Confirmed: "border-[#004EF9] bg-[#EDF4FB] text-[#3574FF]",
+  on_hold: "border-[#C7861E] bg-[#FFF5DC] text-[#C7861E]",
+  sitting: "border-[#059B5A] bg-[#E2F4ED] text-[#059B5A]",
+  confirmed: "border-[#004EF9] bg-[#EDF4FB] text-[#3574FF]",
   cancelled: "border-[#C90000] bg-[#FFF0F0] text-[#C90000]",
-  Ended: "border-[#624F1C] bg-[#8F6900] text-white",
+  ended: "border-[#624F1C] bg-[#8F6900] text-white",
+};
+
+export const RESERVATION_STATUS_DISPLAY_KEYS: Record<ReservationStatus, string> = {
+  on_hold: "On Hold",
+  sitting: "Sitting",
+  confirmed: "Confirmed",
+  cancelled: "cancelled",
+  ended: "Ended",
 };
 
 const ReservationStatusBadge = ({ status }: { status: ReservationStatus }) => {
   const { t } = useTranslation();
+  const displayKey = RESERVATION_STATUS_DISPLAY_KEYS[status] ?? status;
+
   return (
     <Badge
       className={cn(
@@ -20,7 +30,7 @@ const ReservationStatusBadge = ({ status }: { status: ReservationStatus }) => {
         RESERVATION_STATUS_STYLES[status],
       )}
     >
-      {t(status)}
+      {t(displayKey)}
     </Badge>
   );
 };

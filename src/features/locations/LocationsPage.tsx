@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
@@ -6,15 +6,31 @@ import DeleteDialog from "@/shared/components/DeleteDialog";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import LocationsTable from "./components/LocationsTable";
 import AddZoneDialog from "./components/AddZoneDialog";
-import { INITIAL_ZONES } from "./data";
 import type { DeliveryZone, ZoneFormData } from "./types";
+import { useLocations } from "./hooks/useLocations";
 
 const LocationsPage = () => {
   const { t } = useTranslation();
-  const [zones, setZones] = useState<DeliveryZone[]>(INITIAL_ZONES);
+  const {
+    createLocation,
+    deleteLocation,
+    getLocations,
+    isCreatingLocation,
+    isDeletingLocation,
+    isFetchingLocations,
+    isTogglingLocation,
+    isUpdatingLocation,
+    locations,
+    toggleLocationStatus,
+    updateLocation,
+  } = useLocations();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingZone, setEditingZone] = useState<DeliveryZone | undefined>();
   const [deletingZone, setDeletingZone] = useState<DeliveryZone | null>(null);
+
+  useEffect(() => {
+    getLocations();
+  }, [getLocations]);
 
   const handleOpenAdd = () => {
     setEditingZone(undefined);
@@ -27,45 +43,33 @@ const LocationsPage = () => {
   };
 
   const handleToggle = (zone: DeliveryZone, enabled: boolean) => {
-    setZones((prev) =>
-      prev.map((z) =>
-        z.id === zone.id
-          ? { ...z, status: enabled ? "Active" : "Inactive" }
-          : z,
-      ),
-    );
+    toggleLocationStatus({
+      locationId: zone.id,
+      isActive: enabled,
+    });
   };
 
-  const handleSave = (data: ZoneFormData, id?: number) => {
-    if (id !== undefined) {
-      setZones((prev) =>
-        prev.map((z) =>
-          z.id === id
-            ? {
-                ...z,
-                name: data.name.trim(),
-                deliveryFee: Number(data.deliveryFee),
-                minOrderAmount: Number(data.minOrderAmount),
-                status: data.status,
-              }
-            : z,
-        ),
-      );
+  const handleSave = (data: ZoneFormData, id?: string) => {
+    const payload = {
+      name: data.name.trim(),
+      deliveryFee: Number(data.deliveryFee),
+      minOrderAmount: Number(data.minOrderAmount),
+      isActive: data.status === "Active",
+    };
+
+    if (id) {
+      updateLocation({
+        locationId: id,
+        data: payload,
+      });
     } else {
-      const newZone: DeliveryZone = {
-        id: Date.now(),
-        name: data.name.trim(),
-        deliveryFee: Number(data.deliveryFee),
-        minOrderAmount: Number(data.minOrderAmount),
-        status: data.status,
-      };
-      setZones((prev) => [newZone, ...prev]);
+      createLocation(payload);
     }
   };
 
   const handleConfirmDelete = () => {
     if (!deletingZone) return;
-    setZones((prev) => prev.filter((z) => z.id !== deletingZone.id));
+    deleteLocation({ locationId: deletingZone.id });
     setDeletingZone(null);
   };
 
@@ -81,12 +85,15 @@ const LocationsPage = () => {
             buttonText: t("Add Zone"),
             icon: <Plus className="size-4.5" />,
             onClick: handleOpenAdd,
+            disabled: isFetchingLocations || isCreatingLocation,
           }}
         />
       </div>
 
       <LocationsTable
-        zones={zones}
+        zones={locations}
+        isLoading={isFetchingLocations}
+        isMutating={isTogglingLocation || isDeletingLocation}
         onEdit={handleEdit}
         onDelete={setDeletingZone}
         onToggle={handleToggle}
@@ -96,6 +103,7 @@ const LocationsPage = () => {
         open={isFormOpen}
         onOpenChange={setIsFormOpen}
         editingZone={editingZone}
+        isSaving={isCreatingLocation || isUpdatingLocation}
         onSave={handleSave}
       />
 

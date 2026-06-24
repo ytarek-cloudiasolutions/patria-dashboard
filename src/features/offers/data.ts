@@ -1,4 +1,4 @@
-import type { DiscountType, Offer, OfferProduct } from "./types";
+import type { Customer, DiscountType, Offer, OfferProduct } from "./types";
 
 export const DISCOUNT_TYPE_OPTIONS: { value: DiscountType; label: string }[] = [
   { value: "percentage", label: "Percentage %" },
@@ -64,4 +64,22 @@ export const MOCK_OFFERS: Offer[] = [
     offerImage:
       "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=600&q=80",
   },
+];
+
+export const CUSTOMER_COUNT_OPTIONS: { value: number | "all"; label: string }[] =
+  [
+    { value: 25, label: "25 Customer" },
+    { value: 50, label: "50 Customer" },
+    { value: 100, label: "100 Customer" },
+    { value: 200, label: "200 Customer" },
+    { value: 500, label: "500 Customer" },
+    { value: "all", label: "All Customers" },
+  ];
+
+export const MOCK_CUSTOMERS: Customer[] = [
+  { id: 1, name: "Omnia Maher Galal", phone: "01288716491" },
+  { id: 2, name: "Liam Johnson", phone: "01345678901" },
+  { id: 3, name: "Aisha Patel", phone: "01456789012" },
+  { id: 4, name: "Carlos Mendoza", phone: "01567890123" },
+  { id: 5, name: "Sofia Kim", phone: "01678901234" },
 ];

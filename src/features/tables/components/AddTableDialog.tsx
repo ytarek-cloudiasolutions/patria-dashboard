@@ -12,7 +12,8 @@ import DropdownSelect from "@/shared/components/DropdownSelect";
 import InputField from "@/shared/components/InputField";
 import { SECTION_OPTIONS } from "../data";
 import { useTranslation } from "@/shared/i18n/useTranslation";
-import type { AddTableFormData, TableSection } from "../types";
+import type { AddTableFormData } from "../types";
+import type { TableSection } from "../store/tableTypes";
 
 const FORM_ID = "add-table-form";
 

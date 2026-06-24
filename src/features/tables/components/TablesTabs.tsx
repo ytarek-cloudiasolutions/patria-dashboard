@@ -1,7 +1,8 @@
 import TabItem from "@/shared/components/TabItem";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { TABLE_SECTIONS } from "../data";
-import type { TableSection } from "../types";
+import { SECTION_DISPLAY_NAMES } from "../types";
+import type { TableSection } from "../store/tableTypes";
 
 interface TablesTabsProps {
   active: TableSection;
@@ -16,7 +17,7 @@ const TablesTabs = ({ active, onChange }: TablesTabsProps) => {
         <TabItem
           key={section}
           value={section}
-          label={t(section)}
+          label={t(SECTION_DISPLAY_NAMES[section])}
           isActive={active === section}
           onClick={(value) => onChange(value as TableSection)}
         />

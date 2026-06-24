@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Plus, ScanBarcode, Upload } from "lucide-react";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
@@ -6,6 +6,7 @@ import DeleteDialog from "@/shared/components/DeleteDialog";
 import DropdownSelect from "@/shared/components/DropdownSelect";
 import SearchInputField from "@/shared/components/SearchInputField";
 import { useTranslation } from "@/shared/i18n/useTranslation";
+import { useCategories } from "@/features/categories";
 
 import ProductsTabs from "./components/ProductsTabs";
 import ProductsTable from "./components/ProductsTable";
@@ -36,7 +37,7 @@ import type {
 import type { DeleteDialogProps } from "@/shared/types/deleteDialog.types";
 
 type DeleteTarget = {
-  id: number;
+  id: string | number;
   name: string;
   kind: "product" | "ingredient" | "category";
 };
@@ -58,8 +59,23 @@ const ProductsPage = () => {
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
   const [ingredients, setIngredients] =
     useState<Ingredient[]>(INITIAL_INGREDIENTS);
-  const [categories, setCategories] =
-    useState<Category[]>(INITIAL_CATEGORIES);
+
+  const {
+    categories,
+    togglingCategoryId,
+    isFetchingCategories,
+    isCreatingCategory,
+    isTogglingCategory,
+    isDeletingCategory,
+    getCategories,
+    createCategory,
+    toggleCategoryStatus,
+    deleteCategory,
+  } = useCategories();
+
+  useEffect(() => {
+    getCategories();
+  }, [getCategories]);
 
   const [productSearch, setProductSearch] = useState("");
   const [ingredientSearch, setIngredientSearch] = useState("");
@@ -113,15 +129,14 @@ const ProductsPage = () => {
 
   // --- Mutations ------------------------------------------------------------
 
-  const toggleProductAvailability = (id: number, available: boolean) =>
+   const toggleProductAvailability = (id: number, available: boolean) =>
     setProducts((prev) =>
       prev.map((p) => (p.id === id ? { ...p, available } : p)),
     );
 
-  const toggleCategoryActive = (id: number, active: boolean) =>
-    setCategories((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, active } : c)),
-    );
+  const toggleCategoryActive = (id: string, active: boolean) => {
+    toggleCategoryStatus({ categoryId: id, isActive: active });
+  };
 
   const handleSaveProduct = (data: ProductFormData) => {
     if (editingProduct) {
@@ -176,16 +191,10 @@ const ProductsPage = () => {
   };
 
   const handleAddCategory = (data: CategoryFormData) => {
-    const category: Category = {
-      id: nextId(),
+    createCategory({
       name: data.name.trim(),
-      imageUrl:
-        data.imageUrl ??
-        "https://images.unsplash.com/photo-1517701604599-bb29b565090c?auto=format&fit=crop&w=600&q=80",
-      itemCount: 0,
-      active: true,
-    };
-    setCategories((prev) => [...prev, category]);
+      image: data.imageUrl || undefined,
+    });
   };
 
   const handleConfirmDelete = () => {
@@ -196,7 +205,7 @@ const ProductsPage = () => {
     if (kind === "ingredient")
       setIngredients((prev) => prev.filter((i) => i.id !== id));
     if (kind === "category")
-      setCategories((prev) => prev.filter((c) => c.id !== id));
+      deleteCategory({ categoryId: String(id) });
     setDeleteTarget(null);
   };
 
@@ -335,6 +344,9 @@ const ProductsPage = () => {
       {isCategories && (
         <CategoriesTable
           categories={categories}
+          togglingCategoryId={togglingCategoryId}
+          isLoading={isFetchingCategories}
+          isMutating={isTogglingCategory || isDeletingCategory}
           onToggleActive={toggleCategoryActive}
           onDelete={(category) =>
             setDeleteTarget({
@@ -367,6 +379,7 @@ const ProductsPage = () => {
       <AddCategoryDialog
         open={isAddCategoryOpen}
         onOpenChange={setIsAddCategoryOpen}
+        isSaving={isCreatingCategory}
         onSave={handleAddCategory}
       />
 
