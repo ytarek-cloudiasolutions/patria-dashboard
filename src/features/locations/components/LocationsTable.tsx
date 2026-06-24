@@ -15,6 +15,8 @@ import type { DeliveryZone } from "../types";
 
 interface LocationsTableProps {
   zones: DeliveryZone[];
+  isLoading?: boolean;
+  isMutating?: boolean;
   onEdit: (zone: DeliveryZone) => void;
   onDelete: (zone: DeliveryZone) => void;
   onToggle: (zone: DeliveryZone, enabled: boolean) => void;
@@ -36,15 +38,18 @@ const ZoneActions = ({
   onEdit,
   onDelete,
   onToggle,
+  isMutating = false,
 }: {
   zone: DeliveryZone;
   onEdit: (z: DeliveryZone) => void;
   onDelete: (z: DeliveryZone) => void;
   onToggle: (z: DeliveryZone, enabled: boolean) => void;
+  isMutating?: boolean;
 }) => (
   <div className="flex items-center gap-3">
     <Switch
       checked={zone.status === "Active"}
+      disabled={isMutating}
       onCheckedChange={(checked) => onToggle(zone, checked)}
       aria-label={`Toggle ${zone.name}`}
     />
@@ -53,6 +58,7 @@ const ZoneActions = ({
         icon: <SquarePen size={16} />,
         iconColor: "text-[#000000]",
         ariaLabel: `Edit ${zone.name}`,
+        disabled: isMutating,
         onClick: () => onEdit(zone),
       }}
     />
@@ -61,6 +67,7 @@ const ZoneActions = ({
         icon: <Trash2 size={16} />,
         iconColor: "text-[#C90000]",
         ariaLabel: `Delete ${zone.name}`,
+        disabled: isMutating,
         onClick: () => onDelete(zone),
       }}
     />
@@ -69,6 +76,8 @@ const ZoneActions = ({
 
 const LocationsTable = ({
   zones,
+  isLoading = false,
+  isMutating = false,
   onEdit,
   onDelete,
   onToggle,
@@ -97,6 +106,7 @@ const LocationsTable = ({
                 onEdit={onEdit}
                 onDelete={onDelete}
                 onToggle={onToggle}
+                isMutating={isMutating}
               />
             </div>
 
@@ -117,7 +127,13 @@ const LocationsTable = ({
           </div>
         ))}
 
-        {zones.length === 0 && (
+        {isLoading && (
+          <p className="py-8 text-center text-[14px] text-[#8B8B8B]">
+            {t("Loading delivery zones...")}
+          </p>
+        )}
+
+        {!isLoading && zones.length === 0 && (
           <p className="py-8 text-center text-[14px] text-[#8B8B8B]">
             {t("No delivery zones found.")}
           </p>
@@ -159,13 +175,25 @@ const LocationsTable = ({
                       onEdit={onEdit}
                       onDelete={onDelete}
                       onToggle={onToggle}
+                      isMutating={isMutating}
                     />
                   </div>
                 </TableCell>
               </TableRow>
             ))}
 
-            {zones.length === 0 && (
+            {isLoading && (
+              <TableRow>
+                <TableCell
+                  colSpan={5}
+                  className="py-10 text-center text-[14px] text-[#8B8B8B]"
+                >
+                  {t("Loading delivery zones...")}
+                </TableCell>
+              </TableRow>
+            )}
+
+            {!isLoading && zones.length === 0 && (
               <TableRow>
                 <TableCell
                   colSpan={5}

@@ -1,12 +1,13 @@
 import DefaultButton from "@/shared/components/DefaultButton";
-import type { ButtonProps } from "@/shared/types/Button.types";
+import type { ButtonProps } from "@/shared/types/button.types";
 
-const FormButton = ({ buttonText }: ButtonProps) => {
+const FormButton = ({ buttonText, disabled }: ButtonProps) => {
   return (
     <DefaultButton
       data={{
         buttonText: buttonText,
         type: "submit",
+        disabled,
       }}
     />
   );

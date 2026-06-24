@@ -10,6 +10,7 @@ const DefaultButton = ({ data }: { data: ButtonProps }) => {
       size={data.size}
       onClick={data.onClick}
       form={data.form}
+      disabled={data.disabled}
       className={cn(
         // base responsive layout
         "flex items-center justify-center gap-2 sm:gap-3",

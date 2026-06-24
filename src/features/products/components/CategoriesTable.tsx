@@ -1,4 +1,4 @@
-import { Trash2 } from "lucide-react";
+import { Trash2, Loader2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -13,7 +13,10 @@ import type { Category } from "../types";
 
 interface CategoriesTableProps {
   categories: Category[];
-  onToggleActive: (id: number, active: boolean) => void;
+  togglingCategoryId: string | null;
+  isLoading?: boolean;
+  isMutating?: boolean;
+  onToggleActive: (id: string, active: boolean) => void;
   onDelete: (category: Category) => void;
 }
 
@@ -21,27 +24,42 @@ const RowActions = ({
   category,
   onToggleActive,
   onDelete,
+  togglingCategoryId,
+  isMutating = false,
 }: {
   category: Category;
-  onToggleActive: (id: number, active: boolean) => void;
+  onToggleActive: (id: string, active: boolean) => void;
   onDelete: (category: Category) => void;
-}) => (
-  <div className="flex items-center justify-end gap-4">
-    <Switch
-      checked={category.active}
-      onCheckedChange={(val) => onToggleActive(category.id, val)}
-      className="data-[state=checked]:bg-[#059B5A] ring-[#059B5A33]"
-    />
-    <button
-      type="button"
-      onClick={() => onDelete(category)}
-      aria-label={`Delete ${category.name}`}
-      className="cursor-pointer text-[#C90000]"
-    >
-      <Trash2 className="size-4.5" />
-    </button>
-  </div>
-);
+  togglingCategoryId: string | null;
+  isMutating?: boolean;
+}) => {
+  const isTogglingThis = togglingCategoryId === category.id;
+  return (
+    <div className="flex items-center justify-end gap-4">
+      {isTogglingThis ? (
+        <div className="flex size-9 items-center justify-center">
+          <Loader2 className="size-4.5 animate-spin text-[#059B5A]" />
+        </div>
+      ) : (
+        <Switch
+          checked={category.active}
+          disabled={isMutating || togglingCategoryId !== null}
+          onCheckedChange={(val) => onToggleActive(category.id, val)}
+          className="data-[state=checked]:bg-[#059B5A] ring-[#059B5A33]"
+        />
+      )}
+      <button
+        type="button"
+        disabled={isMutating || togglingCategoryId !== null}
+        onClick={() => onDelete(category)}
+        aria-label={`Delete ${category.name}`}
+        className="cursor-pointer text-[#C90000] disabled:opacity-50"
+      >
+        <Trash2 className="size-4.5" />
+      </button>
+    </div>
+  );
+};
 
 const Thumb = ({ category }: { category: Category }) => (
   <img
@@ -53,6 +71,9 @@ const Thumb = ({ category }: { category: Category }) => (
 
 const CategoriesTable = ({
   categories,
+  togglingCategoryId,
+  isLoading = false,
+  isMutating = false,
   onToggleActive,
   onDelete,
 }: CategoriesTableProps) => {
@@ -61,31 +82,41 @@ const CategoriesTable = ({
     <>
       {/* Mobile card list */}
       <div className="flex flex-col gap-3 md:hidden">
-        {categories.map((category) => (
-          <div
-            key={category.id}
-            className="flex items-center gap-3 rounded-2xl border border-[#E5E5E5] bg-white px-4 py-4"
-          >
-            <Thumb category={category} />
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-[15px] font-semibold text-[#28293D]">
-                {category.name}
-              </p>
-              <p className="text-[12px] text-[#8B8B8B]">
-                {category.itemCount} {t("items")}
-              </p>
-            </div>
-            <RowActions
-              category={category}
-              onToggleActive={onToggleActive}
-              onDelete={onDelete}
-            />
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="size-8 animate-spin text-primary" />
           </div>
-        ))}
-        {categories.length === 0 && (
-          <p className="py-8 text-center text-[14px] text-[#8B8B8B]">
-            {t("No categories found.")}
-          </p>
+        ) : (
+          <>
+            {categories.map((category) => (
+              <div
+                key={category.id}
+                className="flex items-center gap-3 rounded-2xl border border-[#E5E5E5] bg-white px-4 py-4"
+              >
+                <Thumb category={category} />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[15px] font-semibold text-[#28293D]">
+                    {category.name}
+                  </p>
+                  <p className="text-[12px] text-[#8B8B8B]">
+                    {category.itemCount} {t("items")}
+                  </p>
+                </div>
+                <RowActions
+                  category={category}
+                  onToggleActive={onToggleActive}
+                  onDelete={onDelete}
+                  togglingCategoryId={togglingCategoryId}
+                  isMutating={isMutating}
+                />
+              </div>
+            ))}
+            {categories.length === 0 && (
+              <p className="py-8 text-center text-[14px] text-[#8B8B8B]">
+                {t("No categories found.")}
+              </p>
+            )}
+          </>
         )}
       </div>
 
@@ -107,35 +138,52 @@ const CategoriesTable = ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {categories.map((category) => (
-              <TableRow key={category.id} className="hover:bg-[#FAFAF8]">
-                <TableCell className="ps-6 py-4">
-                  <Thumb category={category} />
-                </TableCell>
-                <TableCell className="px-6 py-4 whitespace-nowrap text-[14px] font-semibold text-[#28293D]">
-                  {category.name}
-                </TableCell>
-                <TableCell className="px-6 py-4 whitespace-nowrap text-center text-[14px] font-medium text-[#28293D]">
-                  {category.itemCount}
-                </TableCell>
-                <TableCell className="pe-6 py-4 whitespace-nowrap">
-                  <RowActions
-                    category={category}
-                    onToggleActive={onToggleActive}
-                    onDelete={onDelete}
-                  />
-                </TableCell>
-              </TableRow>
-            ))}
-            {categories.length === 0 && (
+            {isLoading ? (
               <TableRow>
                 <TableCell
                   colSpan={4}
-                  className="py-10 text-center text-[14px] text-[#8B8B8B]"
+                  className="py-12 text-center text-[14px] text-[#8B8B8B]"
                 >
-                  {t("No categories found.")}
+                  <div className="flex items-center justify-center">
+                    <Loader2 className="size-8 animate-spin text-primary" />
+                  </div>
                 </TableCell>
               </TableRow>
+            ) : (
+              <>
+                {categories.map((category) => (
+                  <TableRow key={category.id} className="hover:bg-[#FAFAF8]">
+                    <TableCell className="ps-6 py-4">
+                      <Thumb category={category} />
+                    </TableCell>
+                    <TableCell className="px-6 py-4 whitespace-nowrap text-[14px] font-semibold text-[#28293D]">
+                      {category.name}
+                    </TableCell>
+                    <TableCell className="px-6 py-4 whitespace-nowrap text-center text-[14px] font-medium text-[#28293D]">
+                      {category.itemCount}
+                    </TableCell>
+                    <TableCell className="pe-6 py-4 whitespace-nowrap">
+                      <RowActions
+                        category={category}
+                        onToggleActive={onToggleActive}
+                        onDelete={onDelete}
+                        togglingCategoryId={togglingCategoryId}
+                        isMutating={isMutating}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {categories.length === 0 && (
+                  <TableRow>
+                    <TableCell
+                      colSpan={4}
+                      className="py-10 text-center text-[14px] text-[#8B8B8B]"
+                    >
+                      {t("No categories found.")}
+                    </TableCell>
+                  </TableRow>
+                )}
+              </>
             )}
           </TableBody>
         </Table>

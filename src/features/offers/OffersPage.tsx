@@ -1,4 +1,5 @@
-import { Bell, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
+import WhatsAppIcon from "@/assets/icons/whatsapp.svg";
 import type { Offer } from "./types";
 import { useState } from "react";
 import OffersOverView from "./components/OffersOverView";
@@ -6,7 +7,7 @@ import CreateOfferDialog from "./components/CreateOfferDialog";
 import DefaultButton from "@/shared/components/DefaultButton";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import { MOCK_OFFERS } from "./data";
-import BroadcastNotificationDialog from "./components/BroadcastNotificationDialog";
+import WhatsAppBroadcastDialog from "./components/WhatsAppBroadcastDialog";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 
 const OffersPage = () => {
@@ -68,13 +69,14 @@ const OffersPage = () => {
           title={t("Promotional Offers")}
           description={t("Create and manage discounts for your products")}
         />
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-4">
           <DefaultButton
             data={{
-              buttonText: t("Broadcast Notification"),
+              buttonText: t("WhatsApp Broadcast"),
               onClick: handleOpenGlobalBroadcast,
-              icon: <Bell className="size-4.5" />,
-              className: "bg-[#F5F0EA] text-primary",
+              icon: <img src={WhatsAppIcon} alt="" className="size-4.5" />,
+              className:
+                "bg-[#E2F4ED] text-[#059B5A] border border-[#059B5A]",
             }}
           />
           <DefaultButton
@@ -102,7 +104,7 @@ const OffersPage = () => {
         editingOffer={editingOffer}
       />
 
-      <BroadcastNotificationDialog
+      <WhatsAppBroadcastDialog
         isOpen={isBroadcastDialogOpen}
         onOpenChange={setIsBroadcastDialogOpen}
         offer={broadcastOffer}

@@ -1,31 +1,6 @@
-export type TableSection = "Main Hall" | "Terrace" | "VIP" | "Counter";
+import type { TableSection, ReservationStatus, Reservation } from "./store/tableTypes";
 
-export type TableStatus = "Available" | "Unavailable";
-
-export interface RestaurantTable {
-  id: number;
-  number: number;
-  capacity: number;
-  section: TableSection;
-  status: TableStatus;
-}
-
-export type ReservationStatus =
-  | "On Hold"
-  | "Sitting"
-  | "Confirmed"
-  | "cancelled"
-  | "Ended";
-
-export interface Reservation {
-  id: number;
-  customer: string;
-  phone: string;
-  people: number;
-  date: string;
-  table: number;
-  status: ReservationStatus;
-}
+export type { ReservationStatus, Reservation };
 
 export interface AddTableFormData {
   number: string;
@@ -42,3 +17,10 @@ export interface ReservationFormData {
   time: string;
   table: string;
 }
+
+export const SECTION_DISPLAY_NAMES: Record<TableSection, string> = {
+  main_hall: "Main Hall",
+  terrace: "Terrace",
+  vip: "VIP",
+  counter: "Counter",
+};

@@ -1,4 +1,4 @@
-import { Check, Armchair, CalendarX, X } from "lucide-react";
+import { Check, Armchair, CalendarX, X, Loader2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -16,18 +16,19 @@ import ReservationStatusSelect from "./ReservationStatusSelect";
 interface ReservationsTableProps {
   reservations: Reservation[];
   emptyMessage: string;
-  onStatusChange: (id: number, status: ReservationStatus) => void;
+  togglingReservationId: string | null;
+  onStatusChange: (id: string, status: ReservationStatus) => void;
   onDropdownOpenChange: (open: boolean) => void;
 }
 
 type ActionKey = "confirm" | "seat" | "cancel";
 
 const STATUS_ACTIONS: Record<ReservationStatus, ActionKey[]> = {
-  "On Hold": ["confirm", "seat", "cancel"],
-  Sitting: ["confirm", "cancel"],
-  Confirmed: ["seat", "cancel"],
+  on_hold: ["confirm", "seat", "cancel"],
+  sitting: ["confirm", "cancel"],
+  confirmed: ["seat", "cancel"],
   cancelled: [],
-  Ended: [],
+  ended: [],
 };
 
 const ACTION_META: Record<
@@ -59,14 +60,29 @@ const ACTION_META: Record<
   },
 };
 
+const formatDisplayDate = (isoString: string) => {
+  if (!isoString) return "";
+  const datePart = isoString.split("T")[0];
+  const [year, month, day] = datePart.split("-").map(Number);
+  if (!year || !month || !day) return isoString;
+
+  return new Date(year, month - 1, day).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+};
+
 const RowActions = ({
   reservation,
+  isLoading,
   onStatusChange,
 }: {
   reservation: Reservation;
-  onStatusChange: (id: number, status: ReservationStatus) => void;
+  isLoading: boolean;
+  onStatusChange: (id: string, status: ReservationStatus) => void;
 }) => {
-  const actions = STATUS_ACTIONS[reservation.status];
+  const actions = STATUS_ACTIONS[reservation.status] ?? [];
   if (actions.length === 0) {
     return <span className="text-[14px] text-[#8B8B8B]">—</span>;
   }
@@ -78,21 +94,23 @@ const RowActions = ({
           <button
             key={key}
             type="button"
-            aria-label={`${label} reservation for ${reservation.customer}`}
+            disabled={isLoading}
+            aria-label={`${label} reservation for ${reservation.customerName}`}
             onClick={() =>
               onStatusChange(
-                reservation.id,
+                reservation._id,
                 key === "cancel"
                   ? "cancelled"
                   : key === "seat"
-                    ? "Sitting"
-                    : "Confirmed",
+                    ? "sitting"
+                    : "confirmed",
               )
             }
             className={cn(
-              "flex size-9 cursor-pointer items-center justify-center rounded-[10px]",
+              "flex size-9 cursor-pointer items-center justify-center rounded-[10px] transition-opacity",
               bg,
               color,
+              isLoading && "pointer-events-none opacity-50",
             )}
           >
             <Icon size={18} />
@@ -106,6 +124,7 @@ const RowActions = ({
 const ReservationsTable = ({
   reservations,
   emptyMessage,
+  togglingReservationId,
   onStatusChange,
   onDropdownOpenChange,
 }: ReservationsTableProps) => {
@@ -122,49 +141,64 @@ const ReservationsTable = ({
             </p>
           </div>
         ) : (
-          reservations.map((r) => (
-            <div
-              key={r.id}
-              className="rounded-2xl border border-[#E5E5E5] bg-white px-4 py-4"
-            >
-              <div className="mb-3 flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="truncate text-[14px] font-semibold text-[#28293D]">
-                    {r.customer}
-                  </p>
-                  <p className="text-[12px] text-[#8B8B8B]" dir="ltr">
-                    {r.phone}
-                  </p>
+          reservations.map((r) => {
+            const isRowLoading = togglingReservationId === r._id;
+            return (
+              <div
+                key={r._id}
+                className={cn(
+                  "rounded-2xl border border-[#E5E5E5] bg-white px-4 py-4 transition-opacity",
+                  isRowLoading && "opacity-80",
+                )}
+              >
+                <div className="mb-3 flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-[14px] font-semibold text-[#28293D]">
+                      {r.customerName}
+                    </p>
+                    <p className="text-[12px] text-[#8B8B8B]" dir="ltr">
+                      {r.phone}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    {isRowLoading && (
+                      <Loader2 size={14} className="animate-spin text-[#8B8B8B]" />
+                    )}
+                    <ReservationStatusBadge status={r.status} />
+                  </div>
                 </div>
-                <ReservationStatusBadge status={r.status} />
+                <div className="mb-3 grid grid-cols-3 gap-3 text-[12px]">
+                  <div>
+                    <p className="mb-0.5 font-semibold uppercase tracking-wide text-[#8B8B8B]">
+                      {t("People")}
+                    </p>
+                    <p className="text-[#28293D]" dir="ltr">
+                      {r.numberOfPeople} {t("People")}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="mb-0.5 font-semibold uppercase tracking-wide text-[#8B8B8B]">
+                      {t("Date")}
+                    </p>
+                    <p className="text-[#28293D]" dir="ltr">
+                      {formatDisplayDate(r.date)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="mb-0.5 font-semibold uppercase tracking-wide text-[#8B8B8B]">
+                      {t("TABLE")}
+                    </p>
+                    <p className="text-[#28293D]">{r.tableId?.number ?? ""}</p>
+                  </div>
+                </div>
+                <RowActions
+                  reservation={r}
+                  isLoading={isRowLoading}
+                  onStatusChange={onStatusChange}
+                />
               </div>
-              <div className="mb-3 grid grid-cols-3 gap-3 text-[12px]">
-                <div>
-                  <p className="mb-0.5 font-semibold uppercase tracking-wide text-[#8B8B8B]">
-                    {t("People")}
-                  </p>
-                  <p className="text-[#28293D]" dir="ltr">
-                    {r.people} {t("People")}
-                  </p>
-                </div>
-                <div>
-                  <p className="mb-0.5 font-semibold uppercase tracking-wide text-[#8B8B8B]">
-                    {t("Date")}
-                  </p>
-                  <p className="text-[#28293D]" dir="ltr">
-                    {r.date}
-                  </p>
-                </div>
-                <div>
-                  <p className="mb-0.5 font-semibold uppercase tracking-wide text-[#8B8B8B]">
-                    {t("TABLE")}
-                  </p>
-                  <p className="text-[#28293D]">{r.table}</p>
-                </div>
-              </div>
-              <RowActions reservation={r} onStatusChange={onStatusChange} />
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 
@@ -193,48 +227,59 @@ const ReservationsTable = ({
                 </TableCell>
               </TableRow>
             ) : (
-              reservations.map((r) => (
-                <TableRow key={r.id} className="hover:bg-[#FAFAF8]">
-                  <TableCell className="px-6 py-4">
-                    <p
-                      className="text-[14px] font-semibold text-[#28293D]"
+              reservations.map((r) => {
+                const isRowLoading = togglingReservationId === r._id;
+                return (
+                  <TableRow
+                    key={r._id}
+                    className={cn(
+                      "hover:bg-[#FAFAF8] transition-opacity",
+                      isRowLoading && "opacity-80",
+                    )}
+                  >
+                    <TableCell className="px-6 py-4">
+                      <p
+                        className="text-[14px] font-semibold text-[#28293D]"
+                        dir="ltr"
+                      >
+                        {r.customerName}
+                      </p>
+                      <p className="text-[12px] text-[#8B8B8B]" dir="ltr">
+                        {r.phone}
+                      </p>
+                    </TableCell>
+                    <TableCell className="px-6 py-4">
+                      <p className="text-[14px] text-[#28293D]" dir="ltr">
+                        {r.numberOfPeople} {t("People")}
+                      </p>
+                      <p className="text-[12px] text-[#8B8B8B]" dir="ltr">
+                        {formatDisplayDate(r.date)}
+                      </p>
+                    </TableCell>
+                    <TableCell
+                      className="px-6 py-4 text-[14px] text-[#28293D]"
                       dir="ltr"
                     >
-                      {r.customer}
-                    </p>
-                    <p className="text-[12px] text-[#8B8B8B]" dir="ltr">
-                      {r.phone}
-                    </p>
-                  </TableCell>
-                  <TableCell className="px-6 py-4">
-                    <p className="text-[14px] text-[#28293D]" dir="ltr">
-                      {r.people} {t("People")}
-                    </p>
-                    <p className="text-[12px] text-[#8B8B8B]" dir="ltr">
-                      {r.date}
-                    </p>
-                  </TableCell>
-                  <TableCell
-                    className="px-6 py-4 text-[14px] text-[#28293D]"
-                    dir="ltr"
-                  >
-                    {r.table}
-                  </TableCell>
-                  <TableCell className="px-6 py-4" dir="ltr">
-                    <ReservationStatusSelect
-                      status={r.status}
-                      onChange={(status) => onStatusChange(r.id, status)}
-                      onOpenChange={onDropdownOpenChange}
-                    />
-                  </TableCell>
-                  <TableCell className="px-6 py-4" dir="ltr">
-                    <RowActions
-                      reservation={r}
-                      onStatusChange={onStatusChange}
-                    />
-                  </TableCell>
-                </TableRow>
-              ))
+                      {r.tableId?.number ?? ""}
+                    </TableCell>
+                    <TableCell className="px-6 py-4" dir="ltr">
+                      <ReservationStatusSelect
+                        status={r.status}
+                        isLoading={isRowLoading}
+                        onChange={(status) => onStatusChange(r._id, status)}
+                        onOpenChange={onDropdownOpenChange}
+                      />
+                    </TableCell>
+                    <TableCell className="px-6 py-4" dir="ltr">
+                      <RowActions
+                        reservation={r}
+                        isLoading={isRowLoading}
+                        onStatusChange={onStatusChange}
+                      />
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>

@@ -1,6 +1,7 @@
-import ResetPasswordPage from "@/features/auth/pages/ResetPasswordPage";
+
 import SignInPage from "@/features/auth/pages/SignInPage";
 import SignUpPage from "@/features/auth/pages/SignUpPage";
+import ProtectedRoute from "@/features/auth/components/ProtectedRoute";
 
 import KitchenDetailsPage from "@/features/kitchen/pages/KitchenDetailsPage";
 import KitchenPage from "@/features/kitchen/pages/KitchenPage";
@@ -41,11 +42,14 @@ import ShiftReportsPage from "@/features/shift-reports/ShiftReportsPage";
 export const router = createBrowserRouter([
   { path: "/sign-up", element: <SignUpPage /> },
   { path: "/sign-in", element: <SignInPage /> },
-  { path: "/reset-password", element: <ResetPasswordPage /> },
   { path: "/pos", element: <PosPage /> },
   {
     path: "/",
-    element: <AppLayout />,
+    element: (
+      <ProtectedRoute>
+        <AppLayout />
+      </ProtectedRoute>
+    ),
     children: [
       { index: true, element: <DashboardPage /> },
       { path: "/orders", element: <OrdersPage /> },

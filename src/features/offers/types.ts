@@ -34,3 +34,20 @@ export interface BroadcastFormData {
   title: string;
   body: string;
 }
+
+export type WhatsAppTargetType = "random" | "select";
+
+export interface Customer {
+  id: number;
+  name: string;
+  phone: string;
+}
+
+export interface WhatsAppBroadcastFormData {
+  targetType: WhatsAppTargetType;
+  customerCount: number | "all" | null;
+  customNumber: string;
+  selectedCustomerIds: number[];
+  image: File | null;
+  body: string;
+}

@@ -18,6 +18,27 @@ import type { ReservationFormData } from "../types";
 
 const FORM_ID = "new-reservation-form";
 
+const getTodayDateString = () => {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const getCurrentTimeFormatted = () => {
+  const d = new Date();
+  let hours = d.getHours();
+  const minutes = d.getMinutes();
+  const period = hours >= 12 ? "PM" : "AM";
+
+  hours = hours % 12;
+  hours = hours ? hours : 12; // 0 should be 12
+
+  const pad = (num: number) => String(num).padStart(2, "0");
+  return `${pad(hours)}:${pad(minutes)} ${period}`;
+};
+
 const INITIAL_FORM: ReservationFormData = {
   name: "",
   email: "",
@@ -50,7 +71,11 @@ const NewReservationDialog = ({
 
   useEffect(() => {
     if (open) {
-      setForm(INITIAL_FORM);
+      setForm({
+        ...INITIAL_FORM,
+        date: getTodayDateString(),
+        time: getCurrentTimeFormatted(),
+      });
       setErrors({});
       setIsTableOpen(false);
     }

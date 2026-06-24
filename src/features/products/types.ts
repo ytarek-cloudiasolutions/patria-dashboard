@@ -38,7 +38,7 @@ export interface Ingredient {
 // --- Categories -------------------------------------------------------------
 
 export interface Category {
-  id: number;
+  id: string;
   name: string;
   imageUrl: string;
   itemCount: number;

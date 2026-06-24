@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { CalendarPlus, Plus, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { CalendarPlus, Loader2, Plus, X } from "lucide-react";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
 import DatePicker from "@/shared/components/DatePicker";
@@ -12,43 +12,83 @@ import ReservationsTable from "./components/ReservationsTable";
 import AddTableDialog from "./components/AddTableDialog";
 import NewReservationDialog from "./components/NewReservationDialog";
 
-import { INITIAL_RESERVATIONS, INITIAL_TABLES } from "./data";
+import { useTables } from "./hooks/useTables";
 import { useTranslation } from "@/shared/i18n/useTranslation";
+import type { Table, TableSection, ReservationStatus } from "./store/tableTypes";
 import type {
   AddTableFormData,
-  Reservation,
   ReservationFormData,
-  ReservationStatus,
-  RestaurantTable,
-  TableSection,
 } from "./types";
 
-const formatReservationDate = (value: string) => {
-  const [year, month, day] = value.split("-").map(Number);
-  if (!year || !month || !day) return "";
+const getTodayDateString = () => {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
 
-  return new Date(year, month - 1, day).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+const convertTo24Hour = (timeStr: string): string => {
+  if (!timeStr) return "";
+  const match = timeStr.trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (!match) return timeStr;
+
+  let hours = parseInt(match[1], 10);
+  const minutes = match[2];
+  const ampm = match[3].toUpperCase();
+
+  if (ampm === "PM" && hours < 12) {
+    hours += 12;
+  } else if (ampm === "AM" && hours === 12) {
+    hours = 0;
+  }
+
+  const hoursStr = String(hours).padStart(2, "0");
+  return `${hoursStr}:${minutes}`;
 };
 
 const TablesPage = () => {
   const { t } = useTranslation();
-  const [tables, setTables] = useState<RestaurantTable[]>(INITIAL_TABLES);
-  const [reservations, setReservations] =
-    useState<Reservation[]>(INITIAL_RESERVATIONS);
-  const [activeSection, setActiveSection] = useState<TableSection>("Main Hall");
+  const {
+    tables,
+    isFetchingTables,
+    togglingTableId,
+    getTables,
+    createTable,
+    updateTableStatus,
+    deleteTable: deleteTableAction,
+
+    // Reservations
+    reservations,
+    togglingReservationId,
+    isFetchingReservations,
+    getReservations,
+    createReservation,
+    updateReservationStatus: updateReservationStatusAction,
+    deleteReservation: deleteReservationAction,
+  } = useTables();
+
+  const [activeSection, setActiveSection] =
+    useState<TableSection>("main_hall");
   const [search, setSearch] = useState("");
-  const [reservationDate, setReservationDate] = useState("");
+  const [reservationDate, setReservationDate] = useState(getTodayDateString);
 
   const [isAddTableOpen, setIsAddTableOpen] = useState(false);
   const [isReservationOpen, setIsReservationOpen] = useState(false);
-  const [deletingTable, setDeletingTable] = useState<RestaurantTable | null>(
-    null,
-  );
+  const [deletingTable, setDeletingTable] = useState<Table | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  // Fetch tables and reservations on mount
+  useEffect(() => {
+    getTables();
+  }, [getTables]);
+
+  // Fetch reservations whenever the selected date changes
+  useEffect(() => {
+    if (reservationDate) {
+      getReservations({ date: reservationDate });
+    }
+  }, [reservationDate, getReservations]);
 
   const sectionTables = useMemo(() => {
     const q = search.toLowerCase().trim();
@@ -65,76 +105,82 @@ const TablesPage = () => {
 
   const filteredReservations = useMemo(() => {
     const q = search.toLowerCase().trim();
-    const selectedDate = formatReservationDate(reservationDate);
 
     return reservations.filter((r) => {
-      if (selectedDate && r.date !== selectedDate) return false;
       if (!q) return true;
 
       return [
-        r.customer,
+        r.customerName,
         r.phone,
-        String(r.people),
+        String(r.numberOfPeople),
         r.date,
-        String(r.table),
+        String(r.tableId?.number ?? ""),
         r.status,
-      ].some((value) => value.toLowerCase().includes(q));
+      ].some((value) => value && value.toLowerCase().includes(q));
     });
-  }, [reservations, reservationDate, search]);
+  }, [reservations, search]);
 
   const reservationEmptyMessage =
     reservations.length === 0
       ? t("No reservations yet.")
-      : reservationDate
-        ? t("No reservations match your filters.")
-        : search.trim()
-          ? t("No reservations match your search.")
+      : search.trim()
+        ? t("No reservations match your search.")
         : t("No reservations yet.");
 
   const tableOptions = useMemo(
     () =>
       tables.map((tbl) => ({
-        value: String(tbl.id),
-        label: `${t("Table")} ${tbl.number} — ${t(tbl.section)} (${tbl.capacity} ${t("ppl")})`,
+        value: tbl._id,
+        label: `${t("Table")} ${tbl.number} (${tbl.capacity} ${t("ppl")})`,
       })),
     [tables, t],
   );
 
   const handleAddTable = (data: AddTableFormData) => {
-    const newTable: RestaurantTable = {
-      id: Date.now(),
+    createTable({
       number: Number(data.number) || 0,
       capacity: Number(data.capacity) || 0,
       section: data.section,
-      status: "Available",
-    };
-    setTables((prev) => [...prev, newTable]);
-    setActiveSection(data.section);
+    });
+    setIsAddTableOpen(false);
+  };
+
+  const handleToggleStatus = (table: Table) => {
+    const newStatus = table.status === "available" ? "occupied" : "available";
+    updateTableStatus({ tableId: table._id, status: newStatus });
   };
 
   const handleConfirmDelete = () => {
     if (!deletingTable) return;
-    setTables((prev) => prev.filter((t) => t.id !== deletingTable.id));
+    deleteTableAction({ tableId: deletingTable._id });
     setDeletingTable(null);
   };
 
-  const handleStatusChange = (id: number, status: ReservationStatus) =>
-    setReservations((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, status } : r)),
-    );
+  const handleStatusChange = (id: string, status: ReservationStatus) => {
+    const r = reservations.find((item) => item._id === id);
+    if (!r) return;
+
+    if (status === "cancelled") {
+      deleteReservationAction({ reservationId: id });
+    } else {
+      updateReservationStatusAction({
+        reservationId: id,
+        status,
+        previousStatus: r.status,
+      });
+    }
+  };
 
   const handleAddReservation = (data: ReservationFormData) => {
-    const table = tables.find((t) => String(t.id) === data.table);
-    const newReservation: Reservation = {
-      id: Date.now(),
-      customer: data.name.trim(),
+    createReservation({
+      customerName: data.name.trim(),
       phone: data.phone.trim(),
-      people: Number(data.people) || 0,
-      date: formatReservationDate(data.date) || "—",
-      table: table?.number ?? 0,
-      status: "On Hold",
-    };
-    setReservations((prev) => [newReservation, ...prev]);
+      customerEmail: data.email.trim() || undefined,
+      date: data.date,
+      time: convertTo24Hour(data.time),
+      numberOfPeople: Number(data.people) || 0,
+      tableId: data.table,
+    });
   };
 
   return (
@@ -179,16 +225,28 @@ const TablesPage = () => {
 
       <TablesTabs active={activeSection} onChange={setActiveSection} />
 
-      <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-6">
-        {sectionTables.map((table) => (
-          <TableCard key={table.id} table={table} onDelete={setDeletingTable} />
-        ))}
-        {sectionTables.length === 0 && (
-          <p className="col-span-full py-8 text-center text-[14px] text-[#8B8B8B]">
-            {t("No tables in this section.")}
-          </p>
-        )}
-      </div>
+      {isFetchingTables ? (
+        <div className="flex items-center justify-center py-16">
+          <Loader2 className="size-8 animate-spin text-primary" />
+        </div>
+      ) : (
+        <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-6">
+          {sectionTables.map((table) => (
+            <TableCard
+              key={table._id}
+              table={table}
+              isTogglingStatus={togglingTableId === table._id}
+              onDelete={setDeletingTable}
+              onToggleStatus={handleToggleStatus}
+            />
+          ))}
+          {sectionTables.length === 0 && (
+            <p className="col-span-full py-8 text-center text-[14px] text-[#8B8B8B]">
+              {t("No tables in this section.")}
+            </p>
+          )}
+        </div>
+      )}
 
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-[20px] font-bold text-[#28293D]">
@@ -202,11 +260,11 @@ const TablesPage = () => {
             popoverPlacement="bottom-right"
             withBackdrop
           />
-          {reservationDate && (
+          {reservationDate && reservationDate !== getTodayDateString() && (
             <button
               type="button"
               aria-label={t("Clear reservation date filter")}
-              onClick={() => setReservationDate("")}
+              onClick={() => setReservationDate(getTodayDateString())}
               className="mt-2 inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-[8px] px-2 text-[13px] font-medium text-[#8B8B8B] hover:bg-[#F5F0EA] hover:text-[#28293D]"
             >
               <X size={14} />
@@ -216,12 +274,19 @@ const TablesPage = () => {
         </div>
       </div>
 
-      <ReservationsTable
-        reservations={filteredReservations}
-        emptyMessage={reservationEmptyMessage}
-        onStatusChange={handleStatusChange}
-        onDropdownOpenChange={setIsDropdownOpen}
-      />
+      {isFetchingReservations ? (
+        <div className="flex items-center justify-center py-16">
+          <Loader2 className="size-8 animate-spin text-primary" />
+        </div>
+      ) : (
+        <ReservationsTable
+          reservations={filteredReservations}
+          emptyMessage={reservationEmptyMessage}
+          togglingReservationId={togglingReservationId}
+          onStatusChange={handleStatusChange}
+          onDropdownOpenChange={setIsDropdownOpen}
+        />
+      )}
 
       <AddTableDialog
         open={isAddTableOpen}

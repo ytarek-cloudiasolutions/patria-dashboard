@@ -4,4 +4,5 @@ export interface ActionButtonProps {
   ariaLabel?: string;
   onClick?: () => void;
   className?: string;
+  disabled?: boolean;
 }

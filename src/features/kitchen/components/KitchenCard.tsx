@@ -1,5 +1,4 @@
 import ActionButton from "@/shared/components/ActionButton";
-import DefaultButton from "@/shared/components/DefaultButton";
 import { Badge } from "@/shared/components/ui/badge";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import {
