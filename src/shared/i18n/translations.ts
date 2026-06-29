@@ -56,6 +56,8 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   Save: "حفظ",
   Delete: "حذف",
   Search: "بحث",
+  "Search...": "بحث...",
+  "No results found.": "لا توجد نتائج.",
 
   // Dashboard
   "Welcome back": "مرحباً بعودتك",
@@ -1014,7 +1016,9 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   Increase: "زيادة",
   Edit: "تعديل",
   "Special instructions...": "تعليمات خاصة...",
-  Extras: "الإضافات",
+   Extras: "الإضافات",
+  "Add Extra": "إضافة +",
+  "No extras added yet.": "لا توجد إضافات مضافة حالياً.",
   "Tax (14%)": "الضريبة (١٤٪)",
   "Send to Kitchen": "إرسال إلى المطبخ",
   Checkout: "الدفع",
@@ -1092,6 +1096,7 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   "Enter a valid price": "أدخل سعرًا صحيحًا",
   "Enter barcode": "أدخل الباركود",
   "Gram(s)": "جرام",
+  "Piece(s)": "قطعة",
   "Group Name(e.g. Bread Type)": "اسم المجموعة (مثال: نوع الخبز)",
   "IMAGE": "الصورة",
   "INITIAL QUANTITY": "الكمية الأولية",

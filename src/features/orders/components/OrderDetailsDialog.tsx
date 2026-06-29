@@ -136,7 +136,7 @@ const OrderDetailsDialog = ({
                 {t("Orders")}
               </p>
               <div className="space-y-2.5 sm:space-y-3">
-                {order.items.slice(0, 2).map((item) => (
+                {order.items.map((item) => (
                   <div
                     key={item.id}
                     className="flex min-h-10 items-center justify-between rounded-[8px] border border-[#E5E5E5] bg-white px-3 gap-3"

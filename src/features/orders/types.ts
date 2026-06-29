@@ -8,7 +8,7 @@ export type OrderStatus =
 
 export type OrderSource = "application" | "pos" | "call";
 
-export type OrderStatusFilter = "All Categories" | OrderStatus;
+export type OrderStatusFilter = "All statuses" | OrderStatus;
 
 export type OrderCategory =
   | "All Categories"
@@ -20,7 +20,8 @@ export type OrderCategory =
 export type PaymentState = "Paid" | "Waiting for payment" | "None";
 
 export interface OrderLineItem {
-  id: number;
+  id: string | number;
+  productId?: string | number;
   name: string;
   quantity: number;
   unitPrice: number;
@@ -58,28 +59,28 @@ export interface OrdersSummary {
 
 /** A single selectable add-on for a product (multi-select checkboxes). */
 export interface ProductExtra {
-  id: number;
+  id: string | number;
   name: string;
   price: number;
 }
 
 /** One option inside a single-select variant group (radio buttons). */
 export interface ProductVariantOption {
-  id: number;
+  id: string | number;
   name: string;
   price: number;
 }
 
 /** A required single-select group such as "Roast Level" or "Grind Type". */
 export interface ProductVariantGroup {
-  id: number;
+  id: string | number;
   name: string;
   required?: boolean;
   options: ProductVariantOption[];
 }
 
 export interface ProductOption {
-  id: number;
+  id: string | number;
   name: string;
   unitPrice: number;
   category: Exclude<OrderCategory, "All Categories">;
@@ -92,7 +93,7 @@ export interface ProductOption {
 export interface CartLineItem {
   /** Unique per cart line (a product configured differently is a new line). */
   uid: string;
-  productId: number;
+  productId: string | number;
   name: string;
   basePrice: number;
   /** Per-unit price including the selected variants + extras. */

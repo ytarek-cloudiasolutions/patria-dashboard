@@ -43,6 +43,7 @@ export const cartSubtotal = (cart: CartLineItem[]) =>
 export const cartToOrderItems = (cart: CartLineItem[]): OrderLineItem[] =>
   cart.map((line, index) => ({
     id: index + 1,
+    productId: line.productId,
     name: line.name,
     quantity: line.quantity,
     unitPrice: line.unitPrice,

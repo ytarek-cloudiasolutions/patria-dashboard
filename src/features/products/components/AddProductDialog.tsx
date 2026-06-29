@@ -1,10 +1,17 @@
 import { useEffect, useState } from "react";
-import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Plus, Trash2, Sparkles, Box } from "lucide-react";
+import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
   DialogTitle,
 } from "@/shared/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/shared/components/ui/dropdown-menu";
 import { Button } from "@/shared/components/ui/button";
 import { Checkbox } from "@/shared/components/ui/checkbox";
 import { Input } from "@/shared/components/ui/input";
@@ -22,6 +29,8 @@ import type {
   ProductFormData,
   VariantGroup,
   VariantOption,
+  ProductExtra,
+  Category,
 } from "../types";
 import UploadDropzone from "./UploadDropzone";
 
@@ -51,14 +60,18 @@ const INITIAL_FORM: ProductFormData = {
   price: "",
   quantity: "",
   imageUrl: undefined,
+  imageFile: undefined,
   variantGroups: [],
   ingredients: [],
+  extras: [],
 };
 
 interface AddProductDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   ingredients: Ingredient[];
+  categories: Category[];
+  isSaving?: boolean;
   /** When provided, the dialog edits this product instead of creating one. */
   editingProduct?: Product | null;
   onSave: (data: ProductFormData) => void;
@@ -68,10 +81,12 @@ const AddProductDialog = ({
   open,
   onOpenChange,
   ingredients,
+  categories,
+  isSaving = false,
   editingProduct,
   onSave,
 }: AddProductDialogProps) => {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [form, setForm] = useState<ProductFormData>(INITIAL_FORM);
   const [errors, setErrors] = useState<
     Partial<Record<keyof ProductFormData, string>>
@@ -81,22 +96,31 @@ const AddProductDialog = ({
 
   useEffect(() => {
     if (!open) return;
+    let categoryId = "";
+    if (editingProduct) {
+      const selectedCat = categories.find(
+        (c) => c.name === editingProduct.category || c.id === editingProduct.category
+      );
+      categoryId = selectedCat ? selectedCat.id : editingProduct.category;
+    }
     setForm(
       editingProduct
         ? {
             ...INITIAL_FORM,
             name: editingProduct.name,
-            category: editingProduct.category,
+            category: categoryId,
             description: editingProduct.description,
             price: String(editingProduct.price),
             imageUrl: editingProduct.imageUrl,
+            extras: editingProduct.extras ?? [],
+            variantGroups: editingProduct.variantGroups ?? [],
           }
         : INITIAL_FORM,
     );
     setErrors({});
     setIsCategoryOpen(false);
     setIsRecipeOpen(false);
-  }, [open, editingProduct]);
+  }, [open, editingProduct, categories]);
 
   const set = <K extends keyof ProductFormData>(
     key: K,
@@ -174,12 +198,12 @@ const AddProductDialog = ({
         ingredientId: ingredient.id,
         name: ingredient.name,
         amount: 1,
-        unit: "Gram(s)",
+        unit: ingredient.unit || "Piece(s)",
       },
     ]);
   };
 
-  const updateIngredientAmount = (ingredientId: number, amount: number) =>
+  const updateIngredientAmount = (ingredientId: string, amount: number) =>
     set(
       "ingredients",
       form.ingredients.map((i) =>
@@ -187,10 +211,43 @@ const AddProductDialog = ({
       ),
     );
 
-  const removeIngredient = (ingredientId: number) =>
+  const updateIngredientUnit = (ingredientId: string, unit: string) =>
+    set(
+      "ingredients",
+      form.ingredients.map((i) =>
+        i.ingredientId === ingredientId ? { ...i, unit } : i,
+      ),
+    );
+
+  const removeIngredient = (ingredientId: string) =>
     set(
       "ingredients",
       form.ingredients.filter((i) => i.ingredientId !== ingredientId),
+    );
+
+  // --- Extras ---------------------------------------------------------------
+
+  const addExtra = () =>
+    set("extras", [
+      ...form.extras,
+      {
+        id: nextId(),
+        name: "",
+        price: 0,
+        active: true,
+      },
+    ]);
+
+  const removeExtra = (id: string) =>
+    set(
+      "extras",
+      form.extras.filter((e) => e.id !== id),
+    );
+
+  const updateExtra = (id: string, patch: Partial<ProductExtra>) =>
+    set(
+      "extras",
+      form.extras.map((e) => (e.id === id ? { ...e, ...patch } : e)),
     );
 
   // --- Submit ---------------------------------------------------------------
@@ -239,7 +296,10 @@ const AddProductDialog = ({
           >
             <UploadDropzone
               value={form.imageUrl}
-              onSelect={(_, url) => set("imageUrl", url)}
+              onSelect={(file, url) => {
+                set("imageUrl", url);
+                set("imageFile", file);
+              }}
               title="Click to upload image"
               hint="PNG, JPG up to 5MB"
             />
@@ -273,9 +333,9 @@ const AddProductDialog = ({
                   {t("Category")}<span className="text-[#C90000]">*</span>
                 </Label>
                 <DropdownSelect
-                  options={PRODUCT_CATEGORIES.map((c) => ({
-                    label: t(c),
-                    value: c,
+                  options={categories.map((c) => ({
+                    label: c.name,
+                    value: c.id,
                   }))}
                   selected={form.category}
                   onSelect={(value) => set("category", value)}
@@ -373,16 +433,125 @@ const AddProductDialog = ({
               />
             </div>
 
+            {/* Recipe / Ingredients */}
+            <div className="flex flex-col">
+              <Label className="mb-2.5 text-[16px] font-semibold text-black">
+                {t("Recipe/Ingredients")}{" "}
+                <span className="text-[13px] font-normal text-[#8B8B8B]">
+                  {t("(Optional)")}
+                </span>
+              </Label>
+              <DropdownSelect
+                options={ingredientOptions}
+                selected=""
+                onSelect={addIngredient}
+                onOpenChange={setIsRecipeOpen}
+                placeholder={t("Select a recipe")}
+                align="start"
+                searchable
+                className="md:w-full"
+                contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
+              />
+
+              {form.ingredients.length > 0 && (
+                <div className="mt-3 rounded-[12px] border border-[#E5E5E5] p-4 bg-[#FAFAF7]/30 space-y-3">
+                  {form.ingredients.map((ingredient) => (
+                    <div
+                      key={ingredient.ingredientId}
+                      className="flex items-center gap-3"
+                    >
+                      <div className="flex-1 h-12 flex items-center rounded-xl border border-[#E5E5E5] bg-white px-4.5 text-[14px] text-[#28293D] font-medium">
+                        {ingredient.name}
+                      </div>
+                      <div className="h-12 w-36 flex items-center rounded-xl border border-[#E5E5E5] bg-white px-3 gap-1 justify-between">
+                        <input
+                          type="number"
+                          min="0"
+                          value={ingredient.amount}
+                          onChange={(e) =>
+                            updateIngredientAmount(
+                              ingredient.ingredientId,
+                              Number(e.target.value) || 0,
+                            )
+                          }
+                          className="w-12 h-full bg-transparent text-center text-[14px] text-[#28293D] focus:outline-none focus:ring-0 border-0 p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        />
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button
+                              type="button"
+                              className="h-full flex items-center gap-1 bg-transparent border-0 text-[12px] text-[#8B8B8B] font-semibold focus:outline-none cursor-pointer select-none"
+                            >
+                              <span>{t(ingredient.unit)}</span>
+                              <ChevronDown className="size-3.5 text-[#8B8B8B]" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent
+                            align="end"
+                            className="z-70 p-2 ring-0 rounded-[16px] space-y-1 w-28 bg-white border border-[#E5E5E5] shadow-md"
+                          >
+                            <DropdownMenuItem
+                              className={cn(
+                                "px-3 py-2 text-[13px] font-semibold rounded-[16px] cursor-pointer focus:bg-[#F5F0EA] focus:text-[#28293D] hover:bg-[#F5F0EA]",
+                                ingredient.unit === "Gram(s)"
+                                  ? "bg-primary text-primary-foreground pointer-events-none"
+                                  : "text-[#28293D]"
+                              )}
+                              onSelect={() =>
+                                updateIngredientUnit(
+                                  ingredient.ingredientId,
+                                  "Gram(s)",
+                                )
+                              }
+                            >
+                              {t("Gram(s)")}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className={cn(
+                                "px-3 py-2 text-[13px] font-semibold rounded-[16px] cursor-pointer focus:bg-[#F5F0EA] focus:text-[#28293D] hover:bg-[#F5F0EA]",
+                                ingredient.unit === "Piece(s)"
+                                  ? "bg-primary text-primary-foreground pointer-events-none"
+                                  : "text-[#28293D]"
+                              )}
+                              onSelect={() =>
+                                updateIngredientUnit(
+                                  ingredient.ingredientId,
+                                  "Piece(s)",
+                                )
+                              }
+                            >
+                              {t("Piece(s)")}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          removeIngredient(ingredient.ingredientId)
+                        }
+                        aria-label={`${t("Remove")} ${ingredient.name}`}
+                        className="h-12 w-12 rounded-xl bg-[#C90000] text-white flex items-center justify-center hover:bg-[#A80000] transition-colors cursor-pointer shrink-0"
+                      >
+                        <Trash2 className="size-5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {/* Variants */}
             <div className="rounded-[12px] border border-[#E5E5E5] p-4">
               <div className="mb-3 flex items-center justify-between">
-                <span className="text-[15px] font-semibold text-[#28293D]">
+                <span className="text-[15px] font-semibold text-[#28293D] flex items-center gap-1.5">
+                  <Box className="size-4.5 text-[#28293D]" />
                   {t("Variants")}
                 </span>
                 <button
                   type="button"
                   onClick={addGroup}
-                  className="flex h-9 cursor-pointer items-center gap-1.5 rounded-[8px] border border-primary px-3 text-[13px] font-semibold text-primary hover:bg-[#FBF6EE]"
+                  className="flex h-9 cursor-pointer items-center gap-1.5 rounded-[8px] border border-[#B28A15] px-3 text-[13px] font-semibold text-[#B28A15] hover:bg-[#FDFBF7]"
                 >
                   <Plus className="size-4" />
                   {t("Add Group")}
@@ -390,7 +559,7 @@ const AddProductDialog = ({
               </div>
 
               {form.variantGroups.length === 0 ? (
-                <div className="rounded-[10px] border border-dashed border-[#CACBD4] bg-[#FAFAF7] py-5 text-center text-[13px] text-[#8B8B8B]">
+                <div className="rounded-[10px] border border-dashed border-[#B28A15] bg-[#FDFBF7] py-5 text-center text-[13px] font-semibold text-[#B28A15]">
                   {t("There are no option sets currently available.")}
                 </div>
               ) : (
@@ -446,9 +615,17 @@ const AddProductDialog = ({
                               className="h-10 flex-1 rounded-[8px] border-[#E5E5E5] bg-white px-3 text-[13px] focus-visible:border-primary focus-visible:ring-0"
                             />
                             <div className="flex h-10 items-center gap-2 rounded-[8px] border border-[#E5E5E5] bg-white px-2">
-                              <span className="min-w-6 text-center text-[13px] font-semibold text-[#28293D]">
-                                {option.price}
-                              </span>
+                              <input
+                                type="number"
+                                min="0"
+                                value={option.price}
+                                onChange={(e) =>
+                                  updateOption(group.id, option.id, {
+                                    price: Number(e.target.value) || 0,
+                                  })
+                                }
+                                className="w-10 bg-transparent text-center text-[13px] font-semibold text-[#28293D] focus:outline-none focus:ring-0 border-0 p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                              />
                               <div className="flex flex-col">
                                 <button
                                   type="button"
@@ -502,59 +679,69 @@ const AddProductDialog = ({
               )}
             </div>
 
-            {/* Recipe / Ingredients */}
-            <div className="flex flex-col">
-              <Label className="mb-2.5 text-[16px] font-medium text-black">
-                {t("Recipe/Ingredients")}{" "}
-                <span className="text-[13px] font-normal text-[#8B8B8B]">
-                  {t("(Optional)")}
+            {/* Extras */}
+            <div className="rounded-[12px] border border-[#E5E5E5] p-4">
+              <div className="mb-3 flex items-center justify-between">
+                <span className="text-[15px] font-semibold text-[#28293D] flex items-center gap-1.5">
+                  <Sparkles className="size-4.5 text-[#28293D]" />
+                  {language === "ar" ? "الإضافات (Extras)" : t("Extras")}
                 </span>
-              </Label>
-              <DropdownSelect
-                options={ingredientOptions}
-                selected=""
-                onSelect={addIngredient}
-                onOpenChange={setIsRecipeOpen}
-                placeholder={t("Select a recipe")}
-                align="start"
-                className="md:w-full"
-                contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
-              />
+                <button
+                  type="button"
+                  onClick={addExtra}
+                  className="flex h-9 cursor-pointer items-center gap-1.5 rounded-[8px] border border-[#B28A15] px-3 text-[13px] font-semibold text-[#B28A15] hover:bg-[#FDFBF7]"
+                >
+                  <Plus className="size-4" />
+                  {t("Add Extra")}
+                </button>
+              </div>
 
-              {form.ingredients.length > 0 && (
-                <div className="mt-3 space-y-2">
-                  {form.ingredients.map((ingredient) => (
+              {form.extras.length === 0 ? (
+                <div className="rounded-[10px] border border-dashed border-[#B28A15] bg-[#FDFBF7] py-5 text-center text-[13px] font-semibold text-[#B28A15]">
+                  {t("No extras added yet.")}
+                </div>
+              ) : (
+                <div className="mt-3 rounded-[12px] border border-[#E5E5E5] p-4 bg-[#FAFAF7]/30 space-y-3">
+                  {form.extras.map((extra) => (
                     <div
-                      key={ingredient.ingredientId}
-                      className="flex items-center gap-2 rounded-[10px] border border-[#E5E5E5] bg-white px-3 py-2"
+                      key={extra.id}
+                      className="flex items-center gap-3"
                     >
-                      <span className="flex-1 text-[14px] font-medium text-[#28293D]">
-                        {ingredient.name}
-                      </span>
+                      <Input
+                        value={extra.name}
+                        onChange={(e) =>
+                          updateExtra(extra.id, { name: e.target.value })
+                        }
+                        placeholder={t("Extra name")}
+                        className="h-12 flex-1 rounded-xl border-[#E5E5E5] bg-white px-4.5 text-[14px] focus-visible:border-primary focus-visible:ring-0"
+                      />
                       <Input
                         type="number"
                         min="0"
-                        value={ingredient.amount}
+                        value={extra.price === 0 ? "" : extra.price}
                         onChange={(e) =>
-                          updateIngredientAmount(
-                            ingredient.ingredientId,
-                            Number(e.target.value) || 0,
-                          )
+                          updateExtra(extra.id, { price: Number(e.target.value) || 0 })
                         }
-                        className="h-9 w-16 rounded-[8px] border-[#E5E5E5] px-2 text-center text-[13px] focus-visible:border-primary focus-visible:ring-0"
+                        placeholder="0"
+                        className="h-12 w-20 rounded-xl border-[#E5E5E5] bg-white px-3 text-[14px] text-center focus-visible:border-primary focus-visible:ring-0"
                       />
-                      <span className="text-[12px] text-[#8B8B8B]">
-                        {t("Gram(s)")}
-                      </span>
+                      <label className="flex cursor-pointer items-center gap-1.5 text-[13px] font-semibold text-[#28293D] shrink-0">
+                        <Checkbox
+                          checked={extra.active}
+                          onCheckedChange={(val) =>
+                            updateExtra(extra.id, { active: Boolean(val) })
+                          }
+                          className="size-5 rounded-[6px] border-[#8F6900]"
+                        />
+                        {t("Active")}
+                      </label>
                       <button
                         type="button"
-                        onClick={() =>
-                          removeIngredient(ingredient.ingredientId)
-                        }
-                        aria-label={`${t("Remove")} ${ingredient.name}`}
-                        className="cursor-pointer p-1 text-[#C90000]"
+                        onClick={() => removeExtra(extra.id)}
+                        aria-label={t("Remove")}
+                        className="h-12 w-12 rounded-xl bg-[#C90000] text-white flex items-center justify-center hover:bg-[#A80000] transition-colors cursor-pointer shrink-0"
                       >
-                        <Trash2 className="size-4" />
+                        <Trash2 className="size-5" />
                       </button>
                     </div>
                   ))}
@@ -579,9 +766,14 @@ const AddProductDialog = ({
               <Button
                 form={FORM_ID}
                 type="submit"
+                disabled={isSaving}
                 className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
               >
-                {editingProduct ? t("Update Product") : t("Add Product")}
+                {isSaving
+                  ? t("Saving...")
+                  : editingProduct
+                    ? t("Update Product")
+                    : t("Add Product")}
               </Button>
             </div>
           </div>

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -7,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 import type {
   DropdownSelectOption,
   DropdownSelectProps,
@@ -28,14 +30,29 @@ const DropdownSelect = ({
   className,
   contentClassName,
   align = "end",
+  searchable = false,
 }: DropdownSelectProps) => {
+  const { t } = useTranslation();
+  const [searchQuery, setSearchQuery] = useState("");
+  
   const normalizedOptions = normalizeOptions(options);
   const selectedLabel =
     normalizedOptions.find((opt) => opt.value === selected)?.label ??
     placeholder;
 
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      setSearchQuery("");
+    }
+    onOpenChange?.(open);
+  };
+
+  const filteredOptions = normalizedOptions.filter((option) =>
+    option.label.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
-    <DropdownMenu onOpenChange={onOpenChange}>
+    <DropdownMenu onOpenChange={handleOpenChange}>
       <DropdownMenuTrigger asChild>
         <Button
           variant="outline"
@@ -59,23 +76,46 @@ const DropdownSelect = ({
           contentClassName
         )}
       >
-        {normalizedOptions.map((option) => (
-          <DropdownMenuItem
-            key={option.value}
-            className={cn(
-              "px-3 py-2 text-[14px] font-medium rounded-[16px] cursor-pointer",
-              selected === option.value
-                ? "bg-primary text-primary-foreground pointer-events-none"
-                : "text-[#28293D] data-highlighted:bg-[#F5F0EA]"
-            )}
-            onSelect={() => onSelect(option.value)}
+        {searchable && (
+          <div 
+            className="px-2 py-1.5 border-b border-[#E5E5E5] mb-1"
+            onClick={(e) => e.stopPropagation()}
           >
-            {option.label}
-          </DropdownMenuItem>
-        ))}
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => e.stopPropagation()}
+              placeholder={t("Search...")}
+              className="h-9 w-full rounded-[8px] border border-[#E5E5E5] px-2.5 text-[13px] text-[#28293D] focus:outline-none focus:border-primary placeholder:text-[#8B8B8B]"
+              autoFocus
+            />
+          </div>
+        )}
+        {filteredOptions.length === 0 ? (
+          <div className="px-3 py-2 text-[13px] text-[#8B8B8B] text-center font-medium">
+            {t("No results found.")}
+          </div>
+        ) : (
+          filteredOptions.map((option) => (
+            <DropdownMenuItem
+              key={option.value}
+              className={cn(
+                "px-3 py-2 text-[14px] font-medium rounded-[16px] cursor-pointer",
+                selected === option.value
+                  ? "bg-primary text-primary-foreground pointer-events-none"
+                  : "text-[#28293D] data-highlighted:bg-[#F5F0EA]"
+              )}
+              onSelect={() => onSelect(option.value)}
+            >
+              {option.label}
+            </DropdownMenuItem>
+          ))
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
 };
 
 export default DropdownSelect;
+
