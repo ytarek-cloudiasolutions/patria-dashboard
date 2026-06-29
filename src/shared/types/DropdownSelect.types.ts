@@ -12,4 +12,5 @@ export interface DropdownSelectProps {
   className?: string;
   contentClassName?: string;
   align?: "start" | "center" | "end";
+  searchable?: boolean;
 }

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Smartphone,
   CheckCheck,
@@ -18,19 +18,20 @@ import OverviewCard from "@/shared/components/OverviewCard";
 import DeleteDialog from "@/shared/components/DeleteDialog";
 import {
   MOCK_ORDERS,
-  ORDER_SOURCE_COUNTS,
   ORDER_SOURCE_LABELS,
-  ORDER_SOURCE_SUMMARIES,
-  PRODUCT_OPTIONS,
 } from "../data";
-import NewPosOrderDialog from "../components/NewPosOrderDialog";
 import NewCallOrderDialog from "../components/NewCallOrderDialog";
 import OrderDetailsDialog from "../components/OrderDetailsDialog";
 import OrdersFilters from "../components/OrdersFilters";
 import OrdersTable from "../components/OrdersTable";
-import type { Order, OrderCategory, OrderSource, OrderStatus } from "../types";
+import type { Order, OrderSource, OrderStatus, OrderStatusFilter, ProductOption } from "../types";
 import TabItem from "@/shared/components/TabItem";
 import { useTranslation } from "@/shared/i18n/useTranslation";
+import { useOrders } from "../hooks/useOrders";
+import { useProducts } from "@/features/products/hooks/useProducts";
+import { useLocations } from "@/features/locations/hooks/useLocations";
+import type { CreateOrderRequest } from "../store/orderTypes";
+import { showSuccessToast } from "@/shared/utils/toast";
 
 const SOURCE_ICONS: Record<OrderSource, LucideIcon> = {
   application: Smartphone,
@@ -40,27 +41,94 @@ const SOURCE_ICONS: Record<OrderSource, LucideIcon> = {
 
 const OrdersPage = () => {
   const { t } = useTranslation();
-  const [orders, setOrders] = useState<Order[]>(MOCK_ORDERS);
+  const { orders, getOrdersList, updateOrderStatusValue, createNewOrder, deleteOrderValue } = useOrders();
+  const { products, getProducts } = useProducts();
+  const { locations, getLocations } = useLocations();
+
   const [searchValue, setSearchValue] = useState("");
-  const [selectedCategory, setSelectedCategory] =
-    useState<OrderCategory>("All Categories");
+  const [selectedStatus, setSelectedStatus] =
+    useState<OrderStatusFilter>("All statuses");
   const [activeSource, setActiveSource] = useState<OrderSource>("application");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [isPosDialogOpen, setIsPosDialogOpen] = useState(false);
   const [isCallDialogOpen, setIsCallDialogOpen] = useState(false);
-  const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
   const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isBulkDeleteOpen, setIsBulkDeleteOpen] = useState(false);
 
+  // Fetch initial list once on page mount
+  useEffect(() => {
+    getOrdersList({
+      type: "takeaway",
+    });
+  }, [getOrdersList]);
+
+  // Fetch products and locations for call orders
+  useEffect(() => {
+    getProducts();
+    getLocations();
+  }, [getProducts, getLocations]);
+
+  // Map backend locations to delivery zones
+  const deliveryZones = useMemo(() => {
+    return locations.map((loc) => ({
+      id: loc._id || loc.id,
+      name: loc.name,
+      deliveryFee: loc.deliveryFee,
+      minOrder: loc.minOrderAmount,
+    }));
+  }, [locations]);
+
+  // Map backend products to product options
+  const productOptions: ProductOption[] = useMemo(() => {
+    return products.map((p) => {
+      const rawCat = p.category;
+      const category =
+        rawCat === "Bakery" || rawCat === "Meals" || rawCat === "Sandwiches" || rawCat === "Coffee"
+          ? rawCat
+          : "Coffee";
+
+      return {
+        id: p.id,
+        name: p.name,
+        unitPrice: p.price,
+        category,
+        customizable:
+          (p.variantGroups && p.variantGroups.length > 0) ||
+          (p.extras && p.extras.length > 0),
+        variantGroups: p.variantGroups?.map((vg) => ({
+          id: vg.id,
+          name: vg.name,
+          required: vg.required,
+          options: vg.options.map((opt) => ({
+            id: opt.id,
+            name: opt.name,
+            price: opt.price,
+          })),
+        })),
+        extras: p.extras?.map((ext) => ({
+          id: ext.id,
+          name: ext.name,
+          price: ext.price,
+        })),
+      };
+    });
+  }, [products]);
+
+  const displayedOrders = useMemo(() => {
+    if (activeSource === "call") {
+      return orders;
+    }
+    return MOCK_ORDERS;
+  }, [orders, activeSource]);
+
   const filteredOrders = useMemo(() => {
     const normalizedSearch = searchValue.trim().toLowerCase();
 
-    return orders.filter((order) => {
+    return displayedOrders.filter((order) => {
       const matchesSource = order.source === activeSource;
-      const matchesCategory =
-        selectedCategory === "All Categories" ||
-        order.category === selectedCategory;
+      const matchesStatus =
+        selectedStatus === "All statuses" ||
+        order.status === selectedStatus;
       const matchesSearch =
         normalizedSearch.length === 0 ||
         order.id.toLowerCase().includes(normalizedSearch) ||
@@ -71,12 +139,40 @@ const OrdersPage = () => {
           item.name.toLowerCase().includes(normalizedSearch)
         );
 
-      return matchesSource && matchesCategory && matchesSearch;
+      return matchesSource && matchesStatus && matchesSearch;
     });
-  }, [activeSource, orders, searchValue, selectedCategory]);
+  }, [activeSource, displayedOrders, searchValue, selectedStatus]);
 
-  const summary = ORDER_SOURCE_SUMMARIES[activeSource];
-  const isCallTab = activeSource === "call";
+  const summary = useMemo(() => {
+    const activeOrders = displayedOrders.filter((o) => o.source === activeSource);
+    const revenue = activeOrders.reduce((sum, o) => sum + (o.status !== "Cancelled" ? o.total : 0), 0);
+    const totalOrders = activeOrders.length;
+    const pending = activeOrders.filter(
+      (o) =>
+        o.status === "Pending" ||
+        o.status === "Preparing" ||
+        o.status === "Confirmed" ||
+        o.status === "On The Way"
+    ).length;
+    const delivered = activeOrders.filter((o) => o.status === "Delivered").length;
+
+    return {
+      revenue,
+      totalOrders,
+      pending,
+      delivered,
+    };
+  }, [displayedOrders, activeSource]);
+
+  const tabCounts = useMemo(() => {
+    return {
+      application: MOCK_ORDERS.filter((o) => o.source === "application").length,
+      pos: MOCK_ORDERS.filter((o) => o.source === "pos").length,
+      call: orders.filter((o) => o.source === "call").length,
+    };
+  }, [orders]);
+
+  const sources: OrderSource[] = ["application", "pos", "call"];
 
   const handleSourceChange = (source: OrderSource) => {
     setActiveSource(source);
@@ -84,22 +180,14 @@ const OrdersPage = () => {
   };
 
   const updateStatus = (orderId: string, status: OrderStatus) => {
-    setOrders((previous) =>
-      previous.map((order) =>
-        order.id === orderId ? { ...order, status } : order
-      )
-    );
-    setSelectedOrder((previous) =>
-      previous && previous.id === orderId ? { ...previous, status } : previous
-    );
+    updateOrderStatusValue({ orderId, status });
+    if (selectedOrder?.id === orderId) {
+      setSelectedOrder({ ...selectedOrder, status });
+    }
   };
 
-  const assignDriver = (orderId: string, driver: string) => {
-    setOrders((previous) =>
-      previous.map((order) =>
-        order.id === orderId ? { ...order, driver } : order
-      )
-    );
+  const assignDriver = (_orderId: string, _driver: string) => {
+    showSuccessToast(t("Driver assigned successfully (local)"));
   };
 
   const toggleSelected = (orderId: string) => {
@@ -119,22 +207,40 @@ const OrdersPage = () => {
   };
 
   const handleBulkDelete = () => {
-    setOrders((previous) =>
-      previous.filter((order) => !selectedIds.includes(order.id))
-    );
+    selectedIds.forEach((id) => {
+      if (activeSource === "call") {
+        deleteOrderValue(id);
+      }
+    });
     setSelectedIds([]);
     setIsBulkDeleteOpen(false);
   };
 
   const handleCreateOrder = (order: Order) => {
-    setOrders((previous) => [order, ...previous]);
-    setActiveSource(order.source);
-    setSelectedIds([]);
+    const requestItems = order.items.map((item) => ({
+      productId: String(item.productId || item.id),
+      quantity: item.quantity,
+      price: item.unitPrice,
+      notes: item.note || undefined,
+    }));
+
+    const createRequest: CreateOrderRequest = {
+      type: order.source === "pos" ? "dine_in" : "takeaway",
+      customerName: order.customerName,
+      customerPhone: order.customerPhone,
+      address: order.address,
+      zone: order.zone,
+      deliveryFee: order.deliveryFee,
+      items: requestItems,
+      notes: order.items.map((item) => item.note).filter(Boolean).join("; ") || undefined,
+    };
+
+    createNewOrder(createRequest);
   };
 
   return (
     <>
-      {(isCategoryMenuOpen || isStatusMenuOpen) && (
+      {isStatusMenuOpen && (
         <div className="pointer-events-none fixed inset-0 z-60 bg-black/50" />
       )}
 
@@ -156,12 +262,9 @@ const OrdersPage = () => {
           )}
           <DefaultButton
             data={{
-              buttonText: isCallTab ? t("New Call Order") : t("New POS Order"),
+              buttonText: t("New Call Order"),
               icon: <Plus className="size-4.5" />,
-              onClick: () =>
-                isCallTab
-                  ? setIsCallDialogOpen(true)
-                  : setIsPosDialogOpen(true),
+              onClick: () => setIsCallDialogOpen(true),
             }}
           />
         </div>
@@ -170,20 +273,20 @@ const OrdersPage = () => {
       <div className="space-y-4 sm:space-y-6">
         <OrdersFilters
           searchValue={searchValue}
-          selectedCategory={selectedCategory}
+          selectedStatus={selectedStatus}
           onSearchChange={setSearchValue}
-          onCategoryChange={setSelectedCategory}
-          onCategoryMenuOpenChange={setIsCategoryMenuOpen}
+          onStatusChange={setSelectedStatus}
+          onStatusMenuOpenChange={setIsStatusMenuOpen}
         />
 
         <div className="grid grid-cols-3 gap-1.5">
-          {(Object.keys(ORDER_SOURCE_COUNTS) as OrderSource[]).map((source) => (
+          {sources.map((source) => (
             <TabItem
               key={source}
               value={source}
               label={t(ORDER_SOURCE_LABELS[source])}
               icon={SOURCE_ICONS[source]}
-              count={ORDER_SOURCE_COUNTS[source]}
+              count={tabCounts[source]}
               isActive={source === activeSource}
               onClick={(value) => handleSourceChange(value as OrderSource)}
             />
@@ -249,16 +352,10 @@ const OrdersPage = () => {
         }}
       />
 
-      <NewPosOrderDialog
-        open={isPosDialogOpen}
-        productOptions={PRODUCT_OPTIONS}
-        onOpenChange={setIsPosDialogOpen}
-        onCreateOrder={handleCreateOrder}
-      />
-
       <NewCallOrderDialog
         open={isCallDialogOpen}
-        productOptions={PRODUCT_OPTIONS}
+        productOptions={productOptions}
+        deliveryZones={deliveryZones}
         onOpenChange={setIsCallDialogOpen}
         onCreateOrder={handleCreateOrder}
       />

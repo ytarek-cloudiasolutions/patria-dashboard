@@ -5,8 +5,7 @@ import { Button } from "@/shared/components/ui/button";
 import InputField from "@/shared/components/InputField";
 import DropdownSelect from "@/shared/components/DropdownSelect";
 import { useTranslation } from "@/shared/i18n/useTranslation";
-import { DELIVERY_ZONES } from "../data";
-import type { CustomerLookup } from "../types";
+import type { CustomerLookup, DeliveryZone } from "../types";
 
 interface CallCustomerStepProps {
   phoneQuery: string;
@@ -23,6 +22,7 @@ interface CallCustomerStepProps {
   zoneId: string;
   onZoneChange: (value: string) => void;
   onZoneMenuOpenChange?: (open: boolean) => void;
+  deliveryZones: DeliveryZone[];
 }
 
 const CallCustomerStep = ({
@@ -40,10 +40,11 @@ const CallCustomerStep = ({
   zoneId,
   onZoneChange,
   onZoneMenuOpenChange,
+  deliveryZones,
 }: CallCustomerStepProps) => {
   const { t } = useTranslation();
 
-  const zoneOptions = DELIVERY_ZONES.map((zone) => ({
+  const zoneOptions = deliveryZones.map((zone) => ({
     value: zone.id,
     label: `${zone.name} - EGP ${zone.deliveryFee} - Min Order EGP ${zone.minOrder}`,
   }));

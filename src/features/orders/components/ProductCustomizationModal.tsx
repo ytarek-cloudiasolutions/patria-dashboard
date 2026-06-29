@@ -29,8 +29,8 @@ const ProductCustomizationModal = ({
 }: ProductCustomizationModalProps) => {
   const { t } = useTranslation();
   // groupId -> optionId
-  const [variantChoice, setVariantChoice] = useState<Record<number, number>>({});
-  const [extraIds, setExtraIds] = useState<number[]>([]);
+  const [variantChoice, setVariantChoice] = useState<Record<string | number, string | number>>({});
+  const [extraIds, setExtraIds] = useState<(string | number)[]>([]);
   const [specialRequest, setSpecialRequest] = useState("");
   const [quantity, setQuantity] = useState(1);
 
@@ -38,7 +38,7 @@ const ProductCustomizationModal = ({
     if (!product) return;
 
     if (editingLine) {
-      const choice: Record<number, number> = {};
+      const choice: Record<string | number, string | number> = {};
       product.variantGroups?.forEach((group) => {
         const picked = group.options.find((option) =>
           editingLine.variantSelections.some(
@@ -63,7 +63,7 @@ const ProductCustomizationModal = ({
     }
 
     // Defaults: required single-select groups start on their first option.
-    const defaults: Record<number, number> = {};
+    const defaults: Record<string | number, string | number> = {};
     product.variantGroups?.forEach((group) => {
       if (group.required && group.options.length > 0) {
         defaults[group.id] = group.options[0].id;
@@ -115,7 +115,7 @@ const ProductCustomizationModal = ({
     onClose();
   };
 
-  const toggleExtra = (id: number) =>
+  const toggleExtra = (id: string | number) =>
     setExtraIds((previous) =>
       previous.includes(id)
         ? previous.filter((value) => value !== id)

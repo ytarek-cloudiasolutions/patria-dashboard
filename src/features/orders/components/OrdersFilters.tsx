@@ -1,23 +1,23 @@
 import DropdownSelect from "@/shared/components/DropdownSelect";
-import { ORDER_CATEGORY_OPTIONS } from "../data";
-import type { OrderCategory } from "../types";
+import { ORDER_STATUS_FILTER_OPTIONS } from "../data";
+import type { OrderStatusFilter } from "../types";
 import SearchInputField from "@/shared/components/SearchInputField";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 
 interface OrdersFiltersProps {
   searchValue: string;
-  selectedCategory: OrderCategory;
+  selectedStatus: OrderStatusFilter;
   onSearchChange: (value: string) => void;
-  onCategoryChange: (category: OrderCategory) => void;
-  onCategoryMenuOpenChange?: (open: boolean) => void;
+  onStatusChange: (status: OrderStatusFilter) => void;
+  onStatusMenuOpenChange?: (open: boolean) => void;
 }
 
 const OrdersFilters = ({
   searchValue,
-  selectedCategory,
+  selectedStatus,
   onSearchChange,
-  onCategoryChange,
-  onCategoryMenuOpenChange,
+  onStatusChange,
+  onStatusMenuOpenChange,
 }: OrdersFiltersProps) => {
   const { t } = useTranslation();
 
@@ -26,13 +26,13 @@ const OrdersFilters = ({
       <SearchInputField
         value={searchValue}
         onChange={onSearchChange}
-        placeholder={t("Search products...")}
+        placeholder={t("Search orders...")}
       />
       <DropdownSelect
-        options={ORDER_CATEGORY_OPTIONS}
-        selected={selectedCategory}
-        onSelect={(value) => onCategoryChange(value as OrderCategory)}
-        onOpenChange={onCategoryMenuOpenChange}
+        options={ORDER_STATUS_FILTER_OPTIONS}
+        selected={selectedStatus}
+        onSelect={(value) => onStatusChange(value as OrderStatusFilter)}
+        onOpenChange={onStatusMenuOpenChange}
         align="end"
       />
     </div>

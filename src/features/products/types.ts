@@ -11,7 +11,7 @@ export interface ProductDiscount {
 }
 
 export interface Product {
-  id: number;
+  id: string;
   name: string;
   description: string;
   category: string;
@@ -19,12 +19,16 @@ export interface Product {
   price: number;
   discount?: ProductDiscount;
   available: boolean;
+  extras?: ProductExtra[];
+  variantGroups?: VariantGroup[];
+  quantity?: number;
+  unit?: string;
 }
 
 // --- Ingredients (Recipes tab) ---------------------------------------------
 
 export interface Ingredient {
-  id: number;
+  id: string;
   name: string;
   description: string;
   imageUrl: string;
@@ -61,10 +65,17 @@ export interface VariantGroup {
 }
 
 export interface RecipeIngredient {
-  ingredientId: number;
+  ingredientId: string;
   name: string;
   amount: number;
   unit: string;
+}
+
+export interface ProductExtra {
+  id: string;
+  name: string;
+  price: number;
+  active: boolean;
 }
 
 export interface ProductFormData {
@@ -75,8 +86,10 @@ export interface ProductFormData {
   price: string;
   quantity: string;
   imageUrl?: string;
+  imageFile?: File;
   variantGroups: VariantGroup[];
   ingredients: RecipeIngredient[];
+  extras: ProductExtra[];
 }
 
 // --- Add Ingredient form ----------------------------------------------------
@@ -88,6 +101,7 @@ export interface IngredientFormData {
   price: string;
   quantity: string;
   imageUrl?: string;
+  imageFile?: File;
   isExtra: boolean;
   extraCategories: string[];
 }

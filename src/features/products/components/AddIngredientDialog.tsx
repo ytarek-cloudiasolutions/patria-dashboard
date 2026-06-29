@@ -5,17 +5,14 @@ import {
   DialogTitle,
 } from "@/shared/components/ui/dialog";
 import { Button } from "@/shared/components/ui/button";
-import { Checkbox } from "@/shared/components/ui/checkbox";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Separator } from "@/shared/components/ui/separator";
-import { Switch } from "@/shared/components/ui/switch";
 import { Textarea } from "@/shared/components/ui/textarea";
 import DefaultButton from "@/shared/components/DefaultButton";
 import InputField from "@/shared/components/InputField";
 import { useTranslation } from "@/shared/i18n/useTranslation";
-import { EXTRA_CATEGORIES } from "../data";
-import type { IngredientFormData } from "../types";
+import type { IngredientFormData, Ingredient } from "../types";
 import UploadDropzone from "./UploadDropzone";
 
 const FORM_ID = "add-ingredient-form";
@@ -27,6 +24,7 @@ const INITIAL_FORM: IngredientFormData = {
   price: "",
   quantity: "",
   imageUrl: undefined,
+  imageFile: undefined,
   isExtra: false,
   extraCategories: [],
 };
@@ -34,12 +32,16 @@ const INITIAL_FORM: IngredientFormData = {
 interface AddIngredientDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  isSaving?: boolean;
+  editingIngredient?: Ingredient | null;
   onSave: (data: IngredientFormData) => void;
 }
 
 const AddIngredientDialog = ({
   open,
   onOpenChange,
+  isSaving = false,
+  editingIngredient,
   onSave,
 }: AddIngredientDialogProps) => {
   const { t } = useTranslation();
@@ -49,11 +51,24 @@ const AddIngredientDialog = ({
   >({});
 
   useEffect(() => {
-    if (open) {
-      setForm(INITIAL_FORM);
-      setErrors({});
-    }
-  }, [open]);
+    if (!open) return;
+    setForm(
+      editingIngredient
+        ? {
+            name: editingIngredient.name,
+            description: editingIngredient.description || "",
+            barcode: "",
+            price: String(editingIngredient.price),
+            quantity: String(editingIngredient.quantity),
+            imageUrl: editingIngredient.imageUrl,
+            imageFile: undefined,
+            isExtra: editingIngredient.isExtra ?? false,
+            extraCategories: editingIngredient.extraCategories ?? [],
+          }
+        : INITIAL_FORM,
+    );
+    setErrors({});
+  }, [open, editingIngredient]);
 
   const set = <K extends keyof IngredientFormData>(
     key: K,
@@ -62,14 +77,6 @@ const AddIngredientDialog = ({
     setForm((prev) => ({ ...prev, [key]: value }));
     if (errors[key]) setErrors((prev) => ({ ...prev, [key]: "" }));
   };
-
-  const toggleCategory = (category: string) =>
-    setForm((prev) => ({
-      ...prev,
-      extraCategories: prev.extraCategories.includes(category)
-        ? prev.extraCategories.filter((c) => c !== category)
-        : [...prev.extraCategories, category],
-    }));
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,7 +101,7 @@ const AddIngredientDialog = ({
         <div className="flex max-h-[calc(100vh-2rem)] flex-col">
           <div className="px-5 pt-5 sm:px-7 sm:pt-7">
             <DialogTitle className="text-[20px] font-semibold text-[#28293D] sm:text-[22px]">
-              {t("Add New Ingredient")}
+              {editingIngredient ? t("Edit Ingredient") : t("Add New Ingredient")}
             </DialogTitle>
           </div>
 
@@ -106,7 +113,10 @@ const AddIngredientDialog = ({
           >
             <UploadDropzone
               value={form.imageUrl}
-              onSelect={(_, url) => set("imageUrl", url)}
+              onSelect={(file, url) => {
+                set("imageUrl", url);
+                set("imageFile", file);
+              }}
               title="Click to upload image"
               hint="PNG, JPG up to 5MB"
             />
@@ -234,47 +244,6 @@ const AddIngredientDialog = ({
               </div>
             </div>
 
-            <div className="rounded-[12px] border border-[#E5E5E5] p-4">
-              <div className="flex items-center justify-between">
-                <span className="text-[15px] font-medium text-[#28293D]">
-                  {t("Add as extra")}
-                </span>
-                <Switch
-                  checked={form.isExtra}
-                  onCheckedChange={(val) => set("isExtra", val)}
-                  className="data-[state=checked]:bg-[#059B5A] ring-[#059B5A33]"
-                />
-              </div>
-
-              {form.isExtra && (
-                <div className="mt-4 rounded-[10px] border border-dashed border-[#624F1C] p-3">
-                  <p className="mb-2 text-[13px] font-semibold text-[#28293D]">
-                    {t("Categories")}
-                  </p>
-                  <div className="grid grid-cols-2 gap-y-2">
-                    {EXTRA_CATEGORIES.map((category) => {
-                      const id = `extra-${category}`;
-                      const checked = form.extraCategories.includes(category);
-                      return (
-                        <label
-                          key={category}
-                          htmlFor={id}
-                          className="flex cursor-pointer items-center gap-2 text-[14px] text-[#28293D]"
-                        >
-                          <Checkbox
-                            id={id}
-                            checked={checked}
-                            onCheckedChange={() => toggleCategory(category)}
-                            className="size-5 rounded-[6px] border-[#8F6900]"
-                          />
-                          {t(category)}
-                        </label>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
           </form>
 
           <div className="bg-white px-5 pb-5 sm:px-7 sm:pb-6">
@@ -293,9 +262,14 @@ const AddIngredientDialog = ({
               <Button
                 form={FORM_ID}
                 type="submit"
+                disabled={isSaving}
                 className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
               >
-                {t("Add Ingredient")}
+                {isSaving
+                  ? t("Saving...")
+                  : editingIngredient
+                    ? t("Update Ingredient")
+                    : t("Add Ingredient")}
               </Button>
             </div>
           </div>

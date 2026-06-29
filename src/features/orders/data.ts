@@ -3,10 +3,10 @@ import type {
   DeliveryZone,
   Driver,
   Order,
-  OrderCategory,
   OrderSource,
   OrdersSummary,
   OrderStatus,
+  OrderStatusFilter,
   ProductOption,
 } from "./types";
 
@@ -19,12 +19,14 @@ export const ORDER_STATUS_OPTIONS: OrderStatus[] = [
   "Cancelled",
 ];
 
-export const ORDER_CATEGORY_OPTIONS: OrderCategory[] = [
-  "All Categories",
-  "Sandwiches",
-  "Coffee",
-  "Bakery",
-  "Meals",
+export const ORDER_STATUS_FILTER_OPTIONS: OrderStatusFilter[] = [
+  "All statuses",
+  "Pending",
+  "Confirmed",
+  "Preparing",
+  "On The Way",
+  "Delivered",
+  "Cancelled",
 ];
 
 export const ORDER_SOURCE_LABELS: Record<OrderSource, string> = {

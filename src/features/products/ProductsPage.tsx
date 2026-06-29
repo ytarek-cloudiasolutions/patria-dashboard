@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { Plus, ScanBarcode, Upload } from "lucide-react";
+import { Plus, ScanBarcode, Upload, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
 import DeleteDialog from "@/shared/components/DeleteDialog";
@@ -7,6 +8,7 @@ import DropdownSelect from "@/shared/components/DropdownSelect";
 import SearchInputField from "@/shared/components/SearchInputField";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { useCategories } from "@/features/categories";
+import { useProducts } from "@/features/products";
 
 import ProductsTabs from "./components/ProductsTabs";
 import ProductsTable from "./components/ProductsTable";
@@ -56,9 +58,23 @@ const ProductsPage = () => {
   const { t } = useTranslation();
   const [tab, setTab] = useState<ProductsTab>("products");
 
-  const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
-  const [ingredients, setIngredients] =
-    useState<Ingredient[]>(INITIAL_INGREDIENTS);
+  const {
+    products,
+    ingredients,
+    pagination,
+    togglingProductId,
+    isFetchingProducts,
+    isCreatingProduct,
+    isUpdatingProduct,
+    isDeletingProduct,
+    isTogglingProduct,
+    getProducts,
+    getIngredients,
+    createProduct,
+    updateProduct,
+    deleteProduct,
+    toggleProductActive,
+  } = useProducts();
 
   const {
     categories,
@@ -73,18 +89,46 @@ const ProductsPage = () => {
     deleteCategory,
   } = useCategories();
 
-  useEffect(() => {
-    getCategories();
-  }, [getCategories]);
-
   const [productSearch, setProductSearch] = useState("");
   const [ingredientSearch, setIngredientSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [isCategoryFilterOpen, setIsCategoryFilterOpen] = useState(false);
+  const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    setPage(1);
+    setProductSearch("");
+    setIngredientSearch("");
+    setCategoryFilter("all");
+  }, [tab]);
+
+  useEffect(() => {
+    getCategories();
+    getIngredients();
+  }, [getCategories, getIngredients]);
+
+  useEffect(() => {
+    if (tab === "products") {
+      getProducts({
+        search: productSearch.trim() || undefined,
+        category: categoryFilter !== "all" ? categoryFilter : undefined,
+        page,
+        limit: 10,
+      });
+    } else if (tab === "recipes") {
+      getProducts({
+        search: ingredientSearch.trim() || undefined,
+        category: "Raw Ingredients",
+        page,
+        limit: 10,
+      });
+    }
+  }, [tab, productSearch, categoryFilter, ingredientSearch, page, getProducts]);
 
   // Dialogs
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editingIngredient, setEditingIngredient] = useState<Ingredient | null>(null);
   const [isAddIngredientOpen, setIsAddIngredientOpen] = useState(false);
   const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
@@ -100,94 +144,111 @@ const ProductsPage = () => {
   const categoryFilterOptions = useMemo(
     () => [
       { label: t("All Categories"), value: "all" },
-      ...PRODUCT_CATEGORIES.map((c) => ({ label: t(c), value: c })),
+      ...categories.map((c) => ({ label: c.name, value: c.id })),
     ],
-    [t],
+    [categories, t],
   );
 
-  const filteredProducts = useMemo(() => {
-    const q = productSearch.toLowerCase().trim();
-    return products.filter((product) => {
-      const matchesCategory =
-        categoryFilter === "all" || product.category === categoryFilter;
-      if (!matchesCategory) return false;
-      if (!q) return true;
-      return (
-        product.name.toLowerCase().includes(q) ||
-        product.category.toLowerCase().includes(q)
-      );
-    });
-  }, [products, productSearch, categoryFilter]);
+  const filteredProducts = products;
 
   const filteredIngredients = useMemo(() => {
-    const q = ingredientSearch.toLowerCase().trim();
-    if (!q) return ingredients;
-    return ingredients.filter((ingredient) =>
-      ingredient.name.toLowerCase().includes(q),
-    );
-  }, [ingredients, ingredientSearch]);
+    if (tab !== "recipes") return [];
+    return products.map((p) => ({
+      id: p.id,
+      name: p.name,
+      description: p.description || "",
+      imageUrl: p.imageUrl,
+      price: p.price,
+      quantity: p.quantity ?? 0,
+      unit: p.unit || "Piece(s)",
+      isExtra: false,
+    }));
+  }, [products, tab]);
+
+  const ingredientOptions = useMemo(() => {
+    return ingredients.map((p) => ({
+      id: p.id,
+      name: p.name,
+      description: p.description || "",
+      imageUrl: p.imageUrl,
+      price: p.price,
+      quantity: p.quantity ?? 0,
+      unit: p.unit || "Piece(s)",
+      isExtra: false,
+    }));
+  }, [ingredients]);
 
   // --- Mutations ------------------------------------------------------------
 
-   const toggleProductAvailability = (id: number, available: boolean) =>
-    setProducts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, available } : p)),
-    );
+  const toggleProductAvailability = (id: string, available: boolean) => {
+    toggleProductActive({ productId: id, isActive: available });
+  };
 
   const toggleCategoryActive = (id: string, active: boolean) => {
     toggleCategoryStatus({ categoryId: id, isActive: active });
   };
 
   const handleSaveProduct = (data: ProductFormData) => {
+    const formData = new FormData();
+    formData.append("name", data.name.trim());
+    formData.append("description", data.description.trim());
+    formData.append("price", String(Number(data.price) || 0));
+    formData.append("categoryId", data.category);
+
+    const mappedVariantGroups = data.variantGroups.map((g) => ({
+      name: g.name,
+      required: g.required,
+      options: g.options.map((o) => ({
+        name: o.name,
+        label: o.name,
+        priceAdjustment: Number(o.price) || 0,
+      })),
+    }));
+    formData.append("variantGroups", JSON.stringify(mappedVariantGroups));
+
+    const mappedExtras = data.extras.map((e) => ({
+      name: e.name,
+      price: Number(e.price) || 0,
+    }));
+    formData.append("extras", JSON.stringify(mappedExtras));
+
+    if (data.imageFile) {
+      formData.append("images", data.imageFile);
+    }
+
     if (editingProduct) {
-      const id = editingProduct.id;
-      setProducts((prev) =>
-        prev.map((p) =>
-          p.id === id
-            ? {
-                ...p,
-                name: data.name.trim(),
-                description: data.description.trim(),
-                category: data.category,
-                price: Number(data.price) || p.price,
-                imageUrl: data.imageUrl ?? p.imageUrl,
-              }
-            : p,
-        ),
-      );
+      updateProduct({ productId: editingProduct.id, formData });
     } else {
-      const product: Product = {
-        id: nextId(),
-        name: data.name.trim(),
-        description: data.description.trim(),
-        category: data.category,
-        imageUrl:
-          data.imageUrl ??
-          "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=600&q=80",
-        price: Number(data.price) || 0,
-        available: true,
-      };
-      setProducts((prev) => [product, ...prev]);
+      createProduct(formData);
     }
     // After creating or editing, offer to promote the product over WhatsApp.
     setIsWhatsAppOpen(true);
   };
 
   const handleAddIngredient = (data: IngredientFormData) => {
-    const ingredient: Ingredient = {
-      id: nextId(),
-      name: data.name.trim(),
-      description: data.description.trim(),
-      imageUrl:
-        data.imageUrl ??
-        "https://images.unsplash.com/photo-1546470427-e26264be0b0d?auto=format&fit=crop&w=600&q=80",
-      price: Number(data.price) || 0,
-      quantity: Number(data.quantity) || 0,
-      unit: "Piece(s)",
-      isExtra: data.isExtra,
-      extraCategories: data.extraCategories,
-    };
-    setIngredients((prev) => [ingredient, ...prev]);
+    const rawIngredientsCat = categories.find(
+      (c) => c.name.toLowerCase() === "raw ingredients"
+    );
+    const categoryId = rawIngredientsCat ? rawIngredientsCat.id : "";
+
+    const formData = new FormData();
+    formData.append("name", data.name.trim());
+    formData.append("description", data.description.trim());
+    formData.append("price", String(Number(data.price) || 0));
+    formData.append("categoryId", categoryId);
+    formData.append("stockQty", String(Number(data.quantity) || 0));
+    formData.append("variantGroups", JSON.stringify([]));
+    formData.append("extras", JSON.stringify([]));
+
+    if (data.imageFile) {
+      formData.append("images", data.imageFile);
+    }
+
+    if (editingIngredient) {
+      updateProduct({ productId: editingIngredient.id, formData });
+    } else {
+      createProduct(formData);
+    }
   };
 
   const handleAddCategory = (data: CategoryFormData) => {
@@ -200,10 +261,8 @@ const ProductsPage = () => {
   const handleConfirmDelete = () => {
     if (!deleteTarget) return;
     const { id, kind } = deleteTarget;
-    if (kind === "product")
-      setProducts((prev) => prev.filter((p) => p.id !== id));
-    if (kind === "ingredient")
-      setIngredients((prev) => prev.filter((i) => i.id !== id));
+    if (kind === "product" || kind === "ingredient")
+      deleteProduct({ productId: String(id) });
     if (kind === "category")
       deleteCategory({ categoryId: String(id) });
     setDeleteTarget(null);
@@ -281,7 +340,10 @@ const ProductsPage = () => {
             <div className="flex-1">
               <SearchInputField
                 value={productSearch}
-                onChange={setProductSearch}
+                onChange={(val) => {
+                  setProductSearch(val);
+                  setPage(1);
+                }}
                 placeholder={t("Search products...")}
               />
             </div>
@@ -289,7 +351,10 @@ const ProductsPage = () => {
               <DropdownSelect
                 options={categoryFilterOptions}
                 selected={categoryFilter}
-                onSelect={setCategoryFilter}
+                onSelect={(val) => {
+                  setCategoryFilter(val);
+                  setPage(1);
+                }}
                 onOpenChange={setIsCategoryFilterOpen}
                 placeholder={t("All Categories")}
                 align="end"
@@ -301,6 +366,9 @@ const ProductsPage = () => {
 
           <ProductsTable
             products={filteredProducts}
+            togglingProductId={togglingProductId}
+            isLoading={isFetchingProducts}
+            isMutating={isCreatingProduct || isUpdatingProduct || isDeletingProduct || isTogglingProduct}
             onToggleAvailability={toggleProductAvailability}
             onEdit={(product) => {
               setEditingProduct(product);
@@ -314,6 +382,43 @@ const ProductsPage = () => {
               })
             }
           />
+
+          {/* Pagination Controls */}
+          {pagination && pagination.pages > 1 && (
+            <div className="mt-6 flex items-center justify-center gap-2">
+              <button
+                type="button"
+                disabled={page === 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                className="flex size-9 items-center justify-center rounded-[8px] border border-[#E5E5E5] bg-white text-[#28293D] hover:bg-[#F5F0EA] disabled:opacity-50 disabled:hover:bg-white cursor-pointer"
+              >
+                &lt;
+              </button>
+              {Array.from({ length: pagination.pages }, (_, i) => i + 1).map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setPage(p)}
+                  className={cn(
+                    "flex size-9 items-center justify-center rounded-[8px] text-[14px] font-semibold transition-colors cursor-pointer",
+                    p === page
+                      ? "bg-primary text-white"
+                      : "border border-[#E5E5E5] bg-white text-[#28293D] hover:bg-[#F5F0EA]"
+                  )}
+                >
+                  {p}
+                </button>
+              ))}
+              <button
+                type="button"
+                disabled={page === pagination.pages}
+                onClick={() => setPage((p) => Math.min(pagination.pages, p + 1))}
+                className="flex size-9 items-center justify-center rounded-[8px] border border-[#E5E5E5] bg-white text-[#28293D] hover:bg-[#F5F0EA] disabled:opacity-50 disabled:hover:bg-white cursor-pointer"
+              >
+                &gt;
+              </button>
+            </div>
+          )}
         </>
       )}
 
@@ -322,22 +427,73 @@ const ProductsPage = () => {
           <div className="mb-5">
             <SearchInputField
               value={ingredientSearch}
-              onChange={setIngredientSearch}
+              onChange={(val) => {
+                setIngredientSearch(val);
+                setPage(1);
+              }}
               placeholder={t("Search recipes...")}
             />
           </div>
 
-          <IngredientsTable
-            ingredients={filteredIngredients}
-            onEdit={() => setIsAddIngredientOpen(true)}
-            onDelete={(ingredient) =>
-              setDeleteTarget({
-                id: ingredient.id,
-                name: ingredient.name,
-                kind: "ingredient",
-              })
-            }
-          />
+          {isFetchingProducts ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="size-8 animate-spin text-primary" />
+            </div>
+          ) : (
+            <>
+              <IngredientsTable
+                ingredients={filteredIngredients}
+                onEdit={(ingredient) => {
+                  setEditingIngredient(ingredient);
+                  setIsAddIngredientOpen(true);
+                }}
+                onDelete={(ingredient) =>
+                  setDeleteTarget({
+                    id: ingredient.id,
+                    name: ingredient.name,
+                    kind: "ingredient",
+                  })
+                }
+              />
+
+              {/* Pagination Controls */}
+              {pagination && pagination.pages > 1 && (
+                <div className="mt-6 flex items-center justify-center gap-2">
+                  <button
+                    type="button"
+                    disabled={page === 1}
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    className="flex size-9 items-center justify-center rounded-[8px] border border-[#E5E5E5] bg-white text-[#28293D] hover:bg-[#F5F0EA] disabled:opacity-50 disabled:hover:bg-white cursor-pointer"
+                  >
+                    &lt;
+                  </button>
+                  {Array.from({ length: pagination.pages }, (_, i) => i + 1).map((p) => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setPage(p)}
+                      className={cn(
+                        "flex size-9 items-center justify-center rounded-[8px] text-[14px] font-semibold transition-colors cursor-pointer",
+                        p === page
+                          ? "bg-primary text-white"
+                          : "border border-[#E5E5E5] bg-white text-[#28293D] hover:bg-[#F5F0EA]"
+                      )}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    disabled={page === pagination.pages}
+                    onClick={() => setPage((p) => Math.min(pagination.pages, p + 1))}
+                    className="flex size-9 items-center justify-center rounded-[8px] border border-[#E5E5E5] bg-white text-[#28293D] hover:bg-[#F5F0EA] disabled:opacity-50 disabled:hover:bg-white cursor-pointer"
+                  >
+                    &gt;
+                  </button>
+                </div>
+              )}
+            </>
+          )}
         </>
       )}
 
@@ -366,13 +522,20 @@ const ProductsPage = () => {
           setIsAddProductOpen(open);
           if (!open) setEditingProduct(null);
         }}
-        ingredients={ingredients}
+        ingredients={ingredientOptions}
+        categories={categories}
+        isSaving={isCreatingProduct || isUpdatingProduct}
         onSave={handleSaveProduct}
       />
 
       <AddIngredientDialog
         open={isAddIngredientOpen}
-        onOpenChange={setIsAddIngredientOpen}
+        editingIngredient={editingIngredient}
+        onOpenChange={(open) => {
+          setIsAddIngredientOpen(open);
+          if (!open) setEditingIngredient(null);
+        }}
+        isSaving={isCreatingProduct || isUpdatingProduct}
         onSave={handleAddIngredient}
       />
 
