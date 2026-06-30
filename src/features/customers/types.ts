@@ -3,7 +3,7 @@ export type CustomerRole = "user" | "admin" | "manager" | "subscriber";
 export type CustomerSegment = "STAFF" | "VIP" | "WHOLESALE" | "RETAIL";
 
 export interface Customer {
-  id: number;
+  id: string | number;
   name: string;
   role: CustomerRole;
   email: string;

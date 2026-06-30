@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
   Box,
@@ -11,8 +11,7 @@ import OverviewCard from "@/shared/components/OverviewCard";
 import SearchInputField from "@/shared/components/SearchInputField";
 import TabItem from "@/shared/components/TabItem";
 import DefaultButton from "@/shared/components/DefaultButton";
-import { INVENTORY_VALUE, MOCK_INVENTORY } from "./data";
-import type { InventoryItem } from "./types";
+import { useInventory } from "./hooks/useInventory";
 import StockStatusTable from "./components/StockStatusTable";
 import ExpectedShortagesTable from "./components/ExpectedShortagesTable";
 import { useTranslation } from "@/shared/i18n/useTranslation";
@@ -21,42 +20,62 @@ type InventoryTab = "stock" | "shortages";
 
 const InventoryPage = () => {
   const { t } = useTranslation();
-  const [items, setItems] = useState<InventoryItem[]>(MOCK_INVENTORY);
+  const {
+    items,
+    shortages,
+    stats: backendStats,
+    getInventoryList,
+    getShortagesList,
+    syncInventory,
+    bulkUpdateItemsStock,
+  } = useInventory();
+
   const [activeTab, setActiveTab] = useState<InventoryTab>("stock");
   const [search, setSearch] = useState("");
-  const [adjustments, setAdjustments] = useState<Record<number, number>>({});
+  const [adjustments, setAdjustments] = useState<Record<string | number, number>>({});
 
   const hasAdjustments = Object.keys(adjustments).length > 0;
 
-  const stats = useMemo(
-    () => ({
-      total: items.length,
-      lowStock: items.filter((i) => i.status === "Low Stock").length,
-      outOfStock: items.filter((i) => i.status === "Out Of Stock").length,
-    }),
-    [items],
-  );
+  // Fetch lists on mount
+  useEffect(() => {
+    getInventoryList();
+    getShortagesList();
+  }, [getInventoryList, getShortagesList]);
+
+  // Determine current active source items
+  const activeItems = activeTab === "stock" ? items : shortages;
+
+  const stats = useMemo(() => {
+    const total = backendStats.totalProducts || items.length;
+    const lowStock = backendStats.lowStock ?? items.filter((i) => i.status === "Low Stock").length;
+    const outOfStock = backendStats.outOfStock ?? items.filter((i) => i.status === "Out Of Stock").length;
+    const inventoryValue = backendStats.inventoryValue || 12000;
+    return {
+      total,
+      lowStock,
+      outOfStock,
+      inventoryValue,
+    };
+  }, [backendStats, items]);
 
   const filteredItems = useMemo(() => {
-    if (!search.trim()) return items;
-    return items.filter((i) =>
+    if (!search.trim()) return activeItems;
+    return activeItems.filter((i) =>
       i.name.toLowerCase().includes(search.toLowerCase()),
     );
-  }, [items, search]);
+  }, [activeItems, search]);
 
-  const handleAdjust = (id: number, value: number) => {
+  const handleAdjust = (id: string | number, value: number) => {
     setAdjustments((prev) => ({ ...prev, [id]: value }));
   };
 
   const handleSaveEdits = () => {
     if (!hasAdjustments) return;
-    setItems((prev) =>
-      prev.map((item) =>
-        adjustments[item.id] !== undefined
-          ? { ...item, currentQuantity: adjustments[item.id] }
-          : item,
-      ),
-    );
+    const updatesToUpdate = Object.entries(adjustments).map(([id, quantity]) => ({
+      id,
+      quantity,
+    }));
+    bulkUpdateItemsStock({ updates: updatesToUpdate });
     setAdjustments({});
   };
 
@@ -78,6 +97,7 @@ const InventoryPage = () => {
         <div className="flex items-center gap-4">
           <DefaultButton
             data={{
+              onClick: syncInventory,
               icon: <RefreshCw className="size-4" />,
               buttonText: t("synchronization"),
               className:
@@ -134,7 +154,7 @@ const InventoryPage = () => {
         <OverviewCard
           data={{
             title: t("Inventory Value"),
-            value: `EGP ${INVENTORY_VALUE.toLocaleString()}`,
+            value: `EGP ${stats.inventoryValue.toLocaleString()}`,
             badgeColor: "bg-[#E2F4ED]",
             iconColor: "text-[#059B5A]",
             icon: <MoveUp className="size-5" />,

@@ -18,8 +18,8 @@ const STATUS_STYLES: Record<string, string> = {
 
 interface StockStatusTableProps {
   items: InventoryItem[];
-  adjustments: Record<number, number>;
-  onAdjust: (id: number, value: number) => void;
+  adjustments: Record<string | number, number>;
+  onAdjust: (id: string | number, value: number) => void;
 }
 
 const StockStatusTable = ({

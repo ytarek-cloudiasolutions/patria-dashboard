@@ -5,6 +5,8 @@ import tablesReducer from "@/features/tables/store/tablesSlice";
 import { categoriesReducer } from "@/features/categories";
 import { productsReducer } from "@/features/products";
 import { ordersReducer } from "@/features/orders";
+import { inventoryReducer } from "@/features/inventory/store/inventorySlice";
+import { customersReducer } from "@/features/customers/store/customersSlice";
 
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -13,6 +15,8 @@ const rootReducer = combineReducers({
   categories: categoriesReducer,
   products: productsReducer,
   orders: ordersReducer,
+  inventory: inventoryReducer,
+  customers: customersReducer,
 });
 
 export default rootReducer;

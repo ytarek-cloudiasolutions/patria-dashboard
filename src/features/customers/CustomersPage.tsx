@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import SearchInputField from "@/shared/components/SearchInputField";
@@ -7,7 +7,7 @@ import DeleteDialog from "@/shared/components/DeleteDialog";
 import CustomersOverview from "./components/CustomersOverview";
 import CustomersTable from "./components/CustomersTable";
 import EditCustomerDialog from "./components/EditCustomerDialog";
-import { INITIAL_CUSTOMERS } from "./data";
+import { useCustomers } from "./hooks/useCustomers";
 import type {
   Customer,
   CustomerFormData,
@@ -35,7 +35,16 @@ const DELETE_TYPE_BY_ROLE: Record<
 const CustomersPage = () => {
   const { t } = useTranslation();
   const tierFilterOptions = makeTierFilterOptions(t);
-  const [customers, setCustomers] = useState<Customer[]>(INITIAL_CUSTOMERS);
+
+  const {
+    customers,
+    stats: backendStats,
+    getCustomersList,
+    getCustomerStats,
+    updateCustomerInfo,
+    deleteCustomerInfo,
+  } = useCustomers();
+
   const [search, setSearch] = useState("");
   const [tierFilter, setTierFilter] = useState<string>("all");
   const [isTierFilterOpen, setIsTierFilterOpen] = useState(false);
@@ -47,43 +56,43 @@ const CustomersPage = () => {
     null,
   );
 
-  const filteredCustomers = useMemo(() => {
-    const q = search.toLowerCase().trim();
-    return customers.filter((customer) => {
-      const matchesTier =
-        tierFilter === "all" || customer.tier === (tierFilter as CustomerTier);
-      if (!matchesTier) return false;
-      if (!q) return true;
-      return (
-        customer.name.toLowerCase().includes(q) ||
-        customer.email.toLowerCase().includes(q) ||
-        customer.phone.includes(q)
-      );
+  // Fetch list when search query changes
+  useEffect(() => {
+    getCustomersList({
+      search: search.trim() || undefined,
     });
-  }, [customers, search, tierFilter]);
+  }, [getCustomersList, search]);
+
+  // Fetch stats on mount
+  useEffect(() => {
+    getCustomerStats();
+  }, [getCustomerStats]);
+
+  const filteredCustomers = useMemo(() => {
+    return customers.filter((customer) => {
+      return tierFilter === "all" || customer.tier === (tierFilter as CustomerTier);
+    });
+  }, [customers, tierFilter]);
+
+  const totalRevenue = useMemo(() => {
+    return customers.reduce((sum, c) => sum + (c.lifetimeValue || 0), 0);
+  }, [customers]);
 
   const handleEdit = (customer: Customer) => {
     setEditingCustomer(customer);
     setIsEditOpen(true);
   };
 
-  const handleSaveCustomer = (data: CustomerFormData, id: number) => {
-    setCustomers((prev) =>
-      prev.map((c) =>
-        c.id === id
-          ? {
-              ...c,
-              tier: data.tier,
-              loyaltyPoints: Number(data.loyaltyPoints) || 0,
-            }
-          : c,
-      ),
-    );
+  const handleSaveCustomer = (data: CustomerFormData, id: string | number) => {
+    updateCustomerInfo(String(id), {
+      loyaltyPoints: Number(data.loyaltyPoints) || 0,
+      tier: data.tier.toLowerCase(),
+    });
   };
 
   const handleConfirmDelete = () => {
     if (!deletingCustomer) return;
-    setCustomers((prev) => prev.filter((c) => c.id !== deletingCustomer.id));
+    deleteCustomerInfo(String(deletingCustomer.id));
     setDeletingCustomer(null);
   };
 
@@ -106,14 +115,18 @@ const CustomersPage = () => {
         />
       </div>
 
-      <CustomersOverview />
+      <CustomersOverview
+        totalCustomers={backendStats.total || customers.length}
+        activeCustomersToday={backendStats.active ?? customers.length}
+        totalRevenue={totalRevenue}
+      />
 
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="flex-1">
           <SearchInputField
             value={search}
             onChange={setSearch}
-            placeholder={t("Search products...")}
+            placeholder={t("Search by name or phone...")}
           />
         </div>
         <div className="sm:w-72">

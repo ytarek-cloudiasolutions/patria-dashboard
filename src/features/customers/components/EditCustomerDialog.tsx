@@ -46,7 +46,7 @@ interface EditCustomerDialogProps {
   open: boolean;
   customer?: Customer;
   onOpenChange: (open: boolean) => void;
-  onSave: (data: CustomerFormData, id: number) => void;
+  onSave: (data: CustomerFormData, id: string | number) => void;
 }
 
 const EditCustomerDialog = ({

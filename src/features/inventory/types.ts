@@ -2,7 +2,7 @@ export type StockStatus = "Available" | "Low Stock" | "Out Of Stock";
 export type UrgencyLevel = "Critical" | "Good" | "Sufficient stock";
 
 export interface InventoryItem {
-  id: number;
+  id: string | number;
   name: string;
   image?: string;
   category: string;

@@ -116,14 +116,17 @@ const ProductsPage = () => {
         limit: 10,
       });
     } else if (tab === "recipes") {
+      const rawCat = categories.find(
+        (c) => c.name.toLowerCase() === "raw ingredients",
+      );
       getProducts({
         search: ingredientSearch.trim() || undefined,
-        category: "Raw Ingredients",
+        category: rawCat ? rawCat.id : undefined,
         page,
         limit: 10,
       });
     }
-  }, [tab, productSearch, categoryFilter, ingredientSearch, page, getProducts]);
+  }, [tab, productSearch, categoryFilter, ingredientSearch, page, getProducts, categories]);
 
   // Dialogs
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);

@@ -12,6 +12,9 @@ import { productsActions } from "./productsSlice";
 import { selectProducts } from "./productsSelectors";
 import type { RootState } from "@/app/store";
 import type { Product, Category } from "../types";
+import { getCategories } from "@/features/categories/api/categoriesApi";
+import { mapCategories } from "@/features/categories/utils/categoryMappers";
+import { selectCategories } from "@/features/categories/store/categoriesSelectors";
 import type {
   GetProductsRequest,
   GetProductsResponse,
@@ -115,13 +118,27 @@ function* handleToggleProductActive(
       throw new Error("Product not found");
     }
 
-    const categories: Category[] = yield select(
+    let categories: Category[] = yield select(
       (state: RootState) => state.categories.categories,
     );
+    if (categories.length === 0) {
+      const response: any[] = yield call(getCategories);
+      categories = mapCategories(response || []);
+    }
+
     const selectedCat = categories.find(
-      (c) => c.name === product.category || c.id === product.category,
+      (c) =>
+        c.name.toLowerCase() === product.category.toLowerCase() ||
+        c.id === product.category,
     );
-    const categoryId = selectedCat ? selectedCat.id : product.category;
+    let categoryId = selectedCat ? selectedCat.id : product.category;
+
+    // Validate if it is a 24-character hexadecimal ObjectId. If not, use first category as fallback
+    if (!/^[0-9a-fA-F]{24}$/.test(categoryId)) {
+      if (categories.length > 0) {
+        categoryId = categories[0].id;
+      }
+    }
 
     const formData = new FormData();
     formData.append("name", product.name);
@@ -169,8 +186,18 @@ function* handleToggleProductActive(
 
 function* handleGetIngredients() {
   try {
+    let categories: Category[] = yield select(selectCategories);
+    if (categories.length === 0) {
+      const response: any[] = yield call(getCategories);
+      categories = mapCategories(response || []);
+    }
+    const rawCat = categories.find(
+      (c) => c.name.toLowerCase() === "raw ingredients",
+    );
+    const categoryId = rawCat ? rawCat.id : undefined;
+
     const response: GetProductsResponse = yield call(getProducts, {
-      category: "Raw Ingredients",
+      category: categoryId,
       limit: 100,
     });
     yield put(productsActions.getIngredientsSuccess(response.products || []));
