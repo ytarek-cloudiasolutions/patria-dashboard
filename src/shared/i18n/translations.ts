@@ -406,6 +406,7 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   "Customer reviews": "تقييمات العملاء",
   "Customer feedback on completed orders": "آراء العملاء حول الطلبات المكتملة",
   "Search customer...": "البحث عن عميل...",
+  "Search by name or phone...": "البحث بالاسم أو الهاتف...",
   "All Ratings": "كل التقييمات",
   "5 Stars": "5 نجوم",
   "4 Stars": "4 نجوم",

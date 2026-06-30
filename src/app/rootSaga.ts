@@ -5,6 +5,8 @@ import tablesSaga from "@/features/tables/store/tablesSaga";
 import { categoriesSaga } from "@/features/categories";
 import { productsSaga } from "@/features/products";
 import { ordersSaga } from "@/features/orders";
+import { inventorySaga } from "@/features/inventory/store/inventorySaga";
+import { customersSaga } from "@/features/customers/store/customersSaga";
 
 export default function* rootSaga() {
   yield all([
@@ -14,6 +16,8 @@ export default function* rootSaga() {
     categoriesSaga(),
     productsSaga(),
     ordersSaga(),
+    inventorySaga(),
+    customersSaga(),
   ]);
 }
 

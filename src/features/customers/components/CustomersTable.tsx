@@ -61,14 +61,14 @@ const CustomerActions = ({
   onDelete: (c: Customer) => void;
   onWhatsApp: (c: Customer) => void;
 }) => (
-  <div className="flex items-center gap-3">
+  <div className="flex items-center gap-3 shrink-0">
     <button
       type="button"
       onClick={() => onWhatsApp(customer)}
       aria-label={`Message ${customer.name} on WhatsApp`}
-      className="flex cursor-pointer items-center justify-center"
+      className="flex cursor-pointer items-center justify-center shrink-0"
     >
-      <img src={WhatsAppIcon} alt="" className="size-5" />
+      <img src={WhatsAppIcon} alt="" className="size-5 shrink-0" />
     </button>
     <ActionButton
       data={{
@@ -76,6 +76,7 @@ const CustomerActions = ({
         iconColor: "text-[#000000]",
         ariaLabel: `Edit ${customer.name}`,
         onClick: () => onEdit(customer),
+        className: "shrink-0",
       }}
     />
     <ActionButton
@@ -84,6 +85,7 @@ const CustomerActions = ({
         iconColor: "text-[#C90000]",
         ariaLabel: `Delete ${customer.name}`,
         onClick: () => onDelete(customer),
+        className: "shrink-0",
       }}
     />
   </div>
@@ -206,8 +208,8 @@ const CustomersTable = ({
                     {t(customer.segment)}
                   </p>
                 </TableCell>
-                <TableCell className="pe-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center justify-end">
+                <TableCell className="pe-6 py-4 whitespace-nowrap shrink-0">
+                  <div className="flex items-center justify-end shrink-0">
                     <CustomerActions
                       customer={customer}
                       onEdit={onEdit}
