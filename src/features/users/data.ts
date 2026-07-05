@@ -18,8 +18,9 @@ export const ALL_PERMISSION_PAGES: PermissionPage[] = [
 ];
 
 export const ROLE_DEFAULT_PAGES: Record<UserRole, PermissionPage[]> = {
-  Staff: ["Home", "Order Management"],
-  Manager: [
+  superadmin: [...ALL_PERMISSION_PAGES],
+  admin: [...ALL_PERMISSION_PAGES],
+  manager: [
     "Home",
     "Order Management",
     "Product Catalog",
@@ -27,9 +28,9 @@ export const ROLE_DEFAULT_PAGES: Record<UserRole, PermissionPage[]> = {
     "Offers & Discounts",
     "Branches & Locations",
   ],
-  Admin: [...ALL_PERMISSION_PAGES],
-  User: [],
-  "POS/Cashier": ["Home", "Order Management"],
+  cashier: ["Home", "Order Management"],
+  kitchen: ["Home", "Order Management"],
+  staff: ["Home", "Order Management"],
 };
 
 export const INITIAL_USERS: UserAccount[] = [
@@ -38,7 +39,7 @@ export const INITIAL_USERS: UserAccount[] = [
     name: "Staff Member",
     email: "staff@erb.com",
     phone: "+20 100 000 0001",
-    role: "Staff",
+    role: "staff",
     pages: ["Home", "Order Management"],
   },
   {
@@ -46,7 +47,7 @@ export const INITIAL_USERS: UserAccount[] = [
     name: "Super Admin",
     email: "admin@erb.com",
     phone: "+20 100 000 0002",
-    role: "Admin",
+    role: "admin",
     pages: [...ALL_PERMISSION_PAGES],
   },
   {
@@ -54,7 +55,7 @@ export const INITIAL_USERS: UserAccount[] = [
     name: "Omnia Maher",
     email: "omniagalal8@gmail.com",
     phone: "+20 100 000 0003",
-    role: "User",
+    role: "staff",
     pages: [],
   },
   {
@@ -62,7 +63,7 @@ export const INITIAL_USERS: UserAccount[] = [
     name: "Esraa Abdallah",
     email: "eabdallah@cloudiasolutions.com",
     phone: "+20 100 000 0004",
-    role: "User",
+    role: "staff",
     pages: [],
   },
   {
@@ -70,7 +71,7 @@ export const INITIAL_USERS: UserAccount[] = [
     name: "Manager",
     email: "manager@erb.com",
     phone: "+20 100 000 0005",
-    role: "Manager",
+    role: "manager",
     pages: [
       "Home",
       "Order Management",
@@ -85,7 +86,7 @@ export const INITIAL_USERS: UserAccount[] = [
     name: "Cashier One",
     email: "cashier@erb.com",
     phone: "+20 100 000 0006",
-    role: "POS/Cashier",
+    role: "cashier",
     pages: ["Home", "Order Management"],
   },
   {
@@ -93,25 +94,28 @@ export const INITIAL_USERS: UserAccount[] = [
     name: "Karim Adel",
     email: "karim.adel@erb.com",
     phone: "+20 100 000 0007",
-    role: "Staff",
+    role: "staff",
     pages: ["Home", "Order Management"],
   },
 ];
 
 export const ROLE_FILTER_OPTIONS = [
   { value: "all", label: "All Roles" },
-  { value: "Staff", label: "Staff" },
-  { value: "Manager", label: "Manager" },
-  { value: "Admin", label: "Admin" },
-  { value: "User", label: "User" },
-  { value: "POS/Cashier", label: "POS/Cashier" },
+  { value: "superadmin", label: "Super Admin" },
+  { value: "admin", label: "Admin" },
+  { value: "manager", label: "Manager" },
+  { value: "cashier", label: "Cashier" },
+  { value: "kitchen", label: "Kitchen" },
+  { value: "staff", label: "Staff" },
 ];
 
 export const ROLE_OPTIONS: { value: UserRole; label: string }[] = [
-  { value: "Staff", label: "Staff" },
-  { value: "Manager", label: "Manager" },
-  { value: "Admin", label: "Admin" },
-  { value: "POS/Cashier", label: "POS/Cashier" },
+  { value: "superadmin", label: "Super Admin" },
+  { value: "admin", label: "Admin" },
+  { value: "manager", label: "Manager" },
+  { value: "cashier", label: "Cashier" },
+  { value: "kitchen", label: "Kitchen" },
+  { value: "staff", label: "Staff" },
 ];
 
 export const ROLE_CARD_OPTIONS: {
@@ -120,24 +124,34 @@ export const ROLE_CARD_OPTIONS: {
   description: string;
 }[] = [
   {
-    value: "Staff",
-    label: "Staff",
-    description: "Order management only",
+    value: "superadmin",
+    label: "Super Admin",
+    description: "Full access to everything",
   },
   {
-    value: "Manager",
-    label: "Manager",
-    description: "Orders + Products + Customers",
-  },
-  {
-    value: "Admin",
+    value: "admin",
     label: "Admin",
-    description: "Full access to the store",
+    description: "Users, content, settings",
   },
   {
-    value: "POS/Cashier",
-    label: "POS/Cashier",
-    description: "POS Panel",
+    value: "manager",
+    label: "Manager",
+    description: "Staff, reports, operations",
+  },
+  {
+    value: "cashier",
+    label: "Cashier",
+    description: "Orders and POS shifts",
+  },
+  {
+    value: "kitchen",
+    label: "Kitchen",
+    description: "View and update order status",
+  },
+  {
+    value: "staff",
+    label: "Staff",
+    description: "Limited read-only access",
   },
 ];
 

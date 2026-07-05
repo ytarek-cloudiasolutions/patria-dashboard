@@ -19,18 +19,20 @@ export interface CustomerOption {
 }
 
 export interface Subscription {
-  id: number;
+  id: string | number;
   reference: string;
   customerId: string;
   customerName: string;
   customerEmail: string;
   productId: string;
   productName: string;
+  price: number;
   roast: RoastLevel;
   grind: ProductGrind;
   quantity: number;
   frequency: SubscriptionFrequency;
   nextDelivery: string;
+  nextDeliveryDateRaw?: string;
   paymentStatus: PaymentStatus;
   status: SubscriptionStatus;
 }

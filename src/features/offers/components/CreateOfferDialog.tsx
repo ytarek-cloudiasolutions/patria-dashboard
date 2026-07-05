@@ -6,7 +6,6 @@ import {
   DialogTitle,
 } from "@/shared/components/ui/dialog";
 import { Button } from "@/shared/components/ui/button";
-import { Checkbox } from "@/shared/components/ui/checkbox";
 import { Label } from "@/shared/components/ui/label";
 import { Separator } from "@/shared/components/ui/separator";
 import { Textarea } from "@/shared/components/ui/textarea";
@@ -14,7 +13,7 @@ import DefaultButton from "@/shared/components/DefaultButton";
 import DropdownSelect from "@/shared/components/DropdownSelect";
 import InputField from "@/shared/components/InputField";
 import DatePicker from "@/shared/components/DatePicker";
-import { DISCOUNT_TYPE_OPTIONS, OFFER_PRODUCTS } from "../data";
+import { DISCOUNT_TYPE_OPTIONS } from "../data";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import type { DiscountType, Offer, OfferFormData } from "../types";
 
@@ -78,8 +77,8 @@ const CreateOfferDialog = ({
               description: editingOffer.offerDescription,
               discountType: editingOffer.discountType,
               discountValue: String(editingOffer.offerPercentage),
-              startDate: "",
-              endDate: "",
+              startDate: editingOffer.startDate ? editingOffer.startDate.split("T")[0] : "",
+              endDate: editingOffer.endDate ? editingOffer.endDate.split("T")[0] : "",
               bannerImage: editingOffer.offerImage,
               productIds: [],
             }
@@ -97,14 +96,6 @@ const CreateOfferDialog = ({
     setForm((prev) => ({ ...prev, [key]: value }));
     if (errors[key]) setErrors((prev) => ({ ...prev, [key]: "" }));
   };
-
-  const toggleProduct = (id: number) =>
-    setForm((prev) => ({
-      ...prev,
-      productIds: prev.productIds.includes(id)
-        ? prev.productIds.filter((p) => p !== id)
-        : [...prev.productIds, id],
-    }));
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -132,8 +123,10 @@ const CreateOfferDialog = ({
       offerPercentage: Number(form.discountValue) || 0,
       discountType: form.discountType,
       offerValidPeriod: formatPeriod(form.startDate, form.endDate),
-      numberOfProducts: form.productIds.length,
+      numberOfProducts: 0,
       offerImage: form.bannerImage,
+      startDate: form.startDate,
+      endDate: form.endDate,
     };
     onSaveOffer(offer);
     onOpenChange(false);
@@ -338,54 +331,6 @@ const CreateOfferDialog = ({
                     className="hidden"
                     onChange={handleFileChange}
                   />
-                </div>
-
-                <div className="flex flex-col">
-                  <Label className="mb-2.5 text-[16px] font-medium text-black">
-                    {t("Included Products")}<span className="text-[#C90000]">*</span>
-                  </Label>
-                  <div className="overflow-hidden rounded-[12px] border border-[#CACBD4] bg-[#FAFAF7] pt-2.5">
-                    <p className="relative px-4 pb-2.5 text-[12px] font-medium text-[#28293D] after:absolute after:inset-x-2 after:bottom-0 after:h-px after:bg-[#E5E5E5]">
-                      {t("Select products for this offer")}
-                    </p>
-                    <div className="max-h-44 overflow-y-auto space-y-2">
-                      {OFFER_PRODUCTS.map((product) => {
-                        const checked = form.productIds.includes(product.id);
-                        const id = `offer-product-${product.id}`;
-                        return (
-                          <label
-                            key={product.id}
-                            htmlFor={id}
-                            className="flex cursor-pointer items-center justify-between gap-3 px-4 py-2"
-                          >
-                            <span className="flex items-center gap-1.5">
-                              <div
-                                className={`rounded-[10px] ${checked ? "bg-[#624F1C1A]" : ""}`}
-                              >
-                                <Checkbox
-                                  id={id}
-                                  checked={checked}
-                                  onCheckedChange={() =>
-                                    toggleProduct(product.id)
-                                  }
-                                  className="h-[19.98px] w-[19.98px] cursor-pointer rounded-[5.99px] border-[#8F6900]"
-                                />
-                              </div>
-                              <span className="text-[14px] font-medium text-[#28293D]">
-                                {product.name}
-                              </span>
-                            </span>
-                            <span className="text-[13px] text-[#595959]">
-                              EGP{" "}
-                              <span className="font-semibold text-[#28293D]">
-                                {product.price.toFixed(2)}
-                              </span>
-                            </span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>

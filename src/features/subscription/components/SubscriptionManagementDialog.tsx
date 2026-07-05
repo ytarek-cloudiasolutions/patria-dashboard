@@ -37,7 +37,7 @@ interface SubscriptionManagementDialogProps {
   open: boolean;
   subscription: Subscription | null;
   onOpenChange: (open: boolean) => void;
-  onSave: (id: number, data: ManageSubscriptionFormData) => void;
+  onSave: (id: string | number, data: ManageSubscriptionFormData) => void;
 }
 
 const SubscriptionManagementDialog = ({
@@ -66,7 +66,7 @@ const SubscriptionManagementDialog = ({
         status: subscription.status,
         frequency: subscription.frequency,
         quantity: String(subscription.quantity),
-        nextDelivery: "",
+        nextDelivery: subscription.nextDeliveryDateRaw || "",
       });
       setErrors({});
       setOpenDropdown(null);

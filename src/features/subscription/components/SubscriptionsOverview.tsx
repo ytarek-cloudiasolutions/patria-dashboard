@@ -4,7 +4,7 @@ import { useTranslation } from "@/shared/i18n/useTranslation";
 
 interface SubscriptionsOverviewProps {
   activeSubscribers: number;
-  estimatedMrr: number;
+  estimatedMrr: string;
   upcomingDeliveries: number;
 }
 

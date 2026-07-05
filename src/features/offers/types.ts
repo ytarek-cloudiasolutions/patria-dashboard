@@ -2,7 +2,7 @@ export type OfferStatus = "Active" | "Inactive";
 export type DiscountType = "percentage" | "fixed";
 
 export interface Offer {
-  id: number;
+  id: string | number;
   offerStatus: boolean;
   offerTitle: string;
   offerDescription: string;
@@ -11,6 +11,9 @@ export interface Offer {
   offerValidPeriod: string;
   numberOfProducts: number;
   offerImage?: string;
+  startDate?: string;
+  endDate?: string;
+  usageCount?: number;
 }
 
 export interface OfferProduct {

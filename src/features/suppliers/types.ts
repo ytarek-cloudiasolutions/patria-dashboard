@@ -10,7 +10,7 @@ export type SupplierCategory =
   | "Spices";
 
 export interface Supplier {
-  id: number;
+  id: string | number;
   name: string;
   status: SupplierStatus;
   contactPerson: string;

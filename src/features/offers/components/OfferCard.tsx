@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from "@/shared/components/ui/card";
 import { Separator } from "@/shared/components/ui/separator";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Offer } from "../types";
 import { Switch } from "@/shared/components/ui/switch";
 import { CalendarDays, Megaphone, SquarePen, Trash2 } from "lucide-react";
@@ -18,9 +18,9 @@ import { useTranslation } from "@/shared/i18n/useTranslation";
 
 interface OfferCardProps {
   offer: Offer;
-  onStatusChange?: (offerId: number, newStatus: boolean) => void;
+  onStatusChange?: (offerId: string | number, newStatus: boolean) => void;
   onEdit?: (offer: Offer) => void;
-  onDelete?: (offerId: number) => void;
+  onDelete?: (offerId: string | number) => void;
   onBroadcast?: (offer: Offer) => void;
 }
 
@@ -34,6 +34,10 @@ const OfferCard = ({
   const { t } = useTranslation();
   const [isActive, setIsActive] = useState(offer.offerStatus);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+
+  useEffect(() => {
+    setIsActive(offer.offerStatus);
+  }, [offer.offerStatus]);
 
   const handleStatusChange = (newStatus: boolean) => {
     setIsActive(newStatus);
@@ -105,12 +109,6 @@ const OfferCard = ({
                   </span>
                 </div>
               </div>
-            </Card>
-
-            <Card className="p-2 bg-[#FAFAF7] border border-[#E5E5E5] rounded-[10px]">
-              <span className="text-[#8B8B8B] text-[12px]">
-                {t("Applies to")} {offer.numberOfProducts} {t("product(s)")}
-              </span>
             </Card>
 
             <Separator className="bg-[#CACBD4]" />

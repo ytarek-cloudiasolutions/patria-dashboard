@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Plus, RefreshCw } from "lucide-react";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
@@ -12,12 +12,8 @@ import NewSubscriptionDialog from "./components/NewSubscriptionDialog";
 import SubscriptionManagementDialog from "./components/SubscriptionManagementDialog";
 import CancelSubscriptionDialog from "./components/CancelSubscriptionDialog";
 
-import {
-  CUSTOMER_OPTIONS,
-  INITIAL_SUBSCRIPTIONS,
-  SUBSCRIPTION_PAYMENT_FILTERS,
-  SUBSCRIPTION_PRODUCTS,
-} from "./data";
+import { SUBSCRIPTION_PAYMENT_FILTERS } from "./data";
+import { useSubscription } from "./hooks/useSubscription";
 import type {
   ManageSubscriptionFormData,
   NewSubscriptionFormData,
@@ -25,26 +21,23 @@ import type {
   Subscription,
 } from "./types";
 
-const generateReference = () => {
-  const random = Math.random().toString(16).slice(2, 6);
-  return `#sub-${Date.now()}-${random}`;
-};
-
-const formatNextDelivery = (date: string) => {
-  if (!date) return "—";
-  const parsed = new Date(date);
-  if (Number.isNaN(parsed.getTime())) return date;
-  return parsed.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
-};
-
 const SubscriptionPage = () => {
   const { t } = useTranslation();
-  const [subscriptions, setSubscriptions] = useState<Subscription[]>(
-    INITIAL_SUBSCRIPTIONS,
-  );
+
+  const {
+    subscriptions,
+    stats,
+    users,
+    products,
+    getSubscriptionsList,
+    getSubscriptionStats,
+    createNewSubscription,
+    updateSubscriptionInfo,
+    deleteSubscriptionInfo,
+    getUsersList,
+    getProductsList,
+  } = useSubscription();
+
   const [search, setSearch] = useState("");
   const [paymentFilter, setPaymentFilter] = useState("all");
   const [isPaymentFilterOpen, setIsPaymentFilterOpen] = useState(false);
@@ -55,20 +48,48 @@ const SubscriptionPage = () => {
   const [cancellingSubscription, setCancellingSubscription] =
     useState<Subscription | null>(null);
 
+  // Fetch lists and stats on mount
+  useEffect(() => {
+    getSubscriptionsList();
+    getSubscriptionStats();
+    getUsersList();
+    getProductsList();
+  }, [getSubscriptionsList, getSubscriptionStats, getUsersList, getProductsList]);
+
+  const estimatedMrr = useMemo(() => {
+    const sum = subscriptions
+      .filter((s: Subscription) => s.status === "Active")
+      .reduce((total: number, s: Subscription) => {
+        const unitPrice = s.price || 0;
+        const qty = s.quantity || 1;
+        const freq = (s.frequency || "").toLowerCase();
+        let monthly = 0;
+        if (freq === "weekly") {
+          monthly = (unitPrice * qty * 52) / 12;
+        } else if (freq === "bi-weekly" || freq === "biweekly") {
+          monthly = (unitPrice * qty * 26) / 12;
+        } else if (freq === "monthly") {
+          monthly = unitPrice * qty;
+        } else {
+          monthly = unitPrice * qty * 4;
+        }
+        return total + monthly;
+      }, 0);
+    return `EGP ${Math.round(sum).toLocaleString()}`;
+  }, [subscriptions]);
+
   const overview = useMemo(
     () => ({
-      activeSubscribers: subscriptions.filter((s) => s.status === "Active")
-        .length,
-      estimatedMrr: subscriptions.length,
-      upcomingDeliveries: subscriptions.filter((s) => s.status === "Active")
-        .length,
+      activeSubscribers: stats.active ?? subscriptions.filter((s: Subscription) => s.status === "Active").length,
+      estimatedMrr,
+      upcomingDeliveries: subscriptions.filter((s: Subscription) => s.status === "Active").length,
     }),
-    [subscriptions],
+    [stats, subscriptions, estimatedMrr],
   );
 
   const filteredSubscriptions = useMemo(() => {
     const q = search.toLowerCase().trim();
-    return subscriptions.filter((subscription) => {
+    return subscriptions.filter((subscription: Subscription) => {
       if (
         paymentFilter !== "all" &&
         subscription.paymentStatus !== (paymentFilter as PaymentStatus)
@@ -85,60 +106,34 @@ const SubscriptionPage = () => {
   }, [subscriptions, search, paymentFilter]);
 
   const handleCreateSubscription = (data: NewSubscriptionFormData) => {
-    const customer = CUSTOMER_OPTIONS.find((c) => c.id === data.customerId);
-    const product = SUBSCRIPTION_PRODUCTS.find(
-      (p) => p.id === data.productId,
-    );
-    if (!customer || !product) return;
-
-    const newSubscription: Subscription = {
-      id: Date.now(),
-      reference: generateReference(),
-      customerId: customer.id,
-      customerName: customer.name,
-      customerEmail: customer.email,
-      productId: product.id,
-      productName: product.name,
-      roast: product.roast,
-      grind: product.grind,
+    createNewSubscription({
+      customerId: data.customerId,
+      productId: data.productId,
+      frequency: data.frequency.toLowerCase(),
       quantity: Number(data.quantity) || 1,
-      frequency: data.frequency,
-      nextDelivery: formatNextDelivery(data.firstDelivery),
-      paymentStatus: "Pending",
-      status: "Active",
-    };
-    setSubscriptions((prev) => [newSubscription, ...prev]);
+      nextDeliveryDate: new Date(data.firstDelivery).toISOString(),
+      status: "active",
+      startDate: new Date().toISOString(),
+    });
   };
 
   const handleUpdateSubscription = (
-    id: number,
+    id: string | number,
     data: ManageSubscriptionFormData,
   ) => {
-    setSubscriptions((prev) =>
-      prev.map((subscription) =>
-        subscription.id === id
-          ? {
-              ...subscription,
-              status: data.status,
-              frequency: data.frequency,
-              quantity: Number(data.quantity) || subscription.quantity,
-              nextDelivery: data.nextDelivery
-                ? formatNextDelivery(data.nextDelivery)
-                : subscription.nextDelivery,
-            }
-          : subscription,
-      ),
-    );
+    if (!editingSubscription) return;
+    updateSubscriptionInfo(String(id), {
+      customerId: editingSubscription.customerId,
+      productId: editingSubscription.productId,
+      status: data.status.toLowerCase(),
+      frequency: data.frequency.toLowerCase(),
+      quantity: Number(data.quantity) || 1,
+      nextDeliveryDate: data.nextDelivery ? new Date(data.nextDelivery).toISOString() : undefined,
+    });
   };
 
-  const handleCancelSubscription = (id: number) => {
-    setSubscriptions((prev) =>
-      prev.map((subscription) =>
-        subscription.id === id
-          ? { ...subscription, status: "Cancelled" }
-          : subscription,
-      ),
-    );
+  const handleCancelSubscription = (id: string | number) => {
+    deleteSubscriptionInfo(String(id));
     setCancellingSubscription(null);
   };
 
@@ -212,6 +207,8 @@ const SubscriptionPage = () => {
         open={isNewOpen}
         onOpenChange={setIsNewOpen}
         onSave={handleCreateSubscription}
+        users={users}
+        products={products}
       />
 
       <SubscriptionManagementDialog

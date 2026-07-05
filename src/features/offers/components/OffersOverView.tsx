@@ -3,9 +3,9 @@ import OfferCard from "./OfferCard";
 
 interface OffersOverViewProps {
   offers: Offer[];
-  onStatusChange?: (offerId: number, newStatus: boolean) => void;
+  onStatusChange?: (offerId: string | number, newStatus: boolean) => void;
   onEdit?: (offer: Offer) => void;
-  onDelete?: (offerId: number) => void;
+  onDelete?: (offerId: string | number) => void;
   onBroadcast?: (offer: Offer) => void;
 }
 

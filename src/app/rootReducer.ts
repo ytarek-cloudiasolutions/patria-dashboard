@@ -7,6 +7,10 @@ import { productsReducer } from "@/features/products";
 import { ordersReducer } from "@/features/orders";
 import { inventoryReducer } from "@/features/inventory/store/inventorySlice";
 import { customersReducer } from "@/features/customers/store/customersSlice";
+import { offersReducer } from "@/features/offers/store/offersSlice";
+import { subscriptionReducer } from "@/features/subscription/store/subscriptionSlice";
+import { supplierReducer } from "@/features/suppliers/store/supplierSlice";
+import { userReducer } from "@/features/users/store/userSlice";
 
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -17,6 +21,10 @@ const rootReducer = combineReducers({
   orders: ordersReducer,
   inventory: inventoryReducer,
   customers: customersReducer,
+  offers: offersReducer,
+  subscription: subscriptionReducer,
+  supplier: supplierReducer,
+  user: userReducer,
 });
 
 export default rootReducer;
