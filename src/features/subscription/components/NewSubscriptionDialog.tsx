@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -12,11 +12,7 @@ import DropdownSelect from "@/shared/components/DropdownSelect";
 import InputField from "@/shared/components/InputField";
 import DatePicker from "@/shared/components/DatePicker";
 import { useTranslation } from "@/shared/i18n/useTranslation";
-import {
-  CUSTOMER_OPTIONS,
-  SUBSCRIPTION_FREQUENCY_OPTIONS,
-  SUBSCRIPTION_PRODUCTS,
-} from "../data";
+import { SUBSCRIPTION_FREQUENCY_OPTIONS } from "../data";
 import type {
   NewSubscriptionFormData,
   SubscriptionFrequency,
@@ -32,26 +28,20 @@ const INITIAL_FORM: NewSubscriptionFormData = {
   firstDelivery: "",
 };
 
-const customerOptions = CUSTOMER_OPTIONS.map((c) => ({
-  value: c.id,
-  label: c.name,
-}));
-
-const productOptions = SUBSCRIPTION_PRODUCTS.map((p) => ({
-  value: p.id,
-  label: p.name,
-}));
-
 interface NewSubscriptionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: (data: NewSubscriptionFormData) => void;
+  users: { id: string; name: string; email: string }[];
+  products: { id: string; name: string }[];
 }
 
 const NewSubscriptionDialog = ({
   open,
   onOpenChange,
   onSave,
+  users,
+  products,
 }: NewSubscriptionDialogProps) => {
   const { t } = useTranslation();
   const [form, setForm] = useState<NewSubscriptionFormData>(INITIAL_FORM);
@@ -69,6 +59,20 @@ const NewSubscriptionDialog = ({
       setOpenDropdown(null);
     }
   }, [open]);
+
+  const customerOptions = useMemo(() => {
+    return users.map((c) => ({
+      value: c.id,
+      label: c.name,
+    }));
+  }, [users]);
+
+  const productOptions = useMemo(() => {
+    return products.map((p) => ({
+      value: p.id,
+      label: p.name,
+    }));
+  }, [products]);
 
   const set = <K extends keyof NewSubscriptionFormData>(
     key: K,
@@ -203,12 +207,15 @@ const NewSubscriptionDialog = ({
                   <InputField
                     data={{
                       id: "quantity",
-                      label: { htmlFor: "quantity", labelText: t("Quantity") },
-                      placeholder: "0",
+                      label: {
+                        htmlFor: "quantity",
+                        labelText: t("Quantity"),
+                      },
+                      placeholder: "e.g. 2",
                       required: true,
                       inputProps: {
                         type: "number",
-                        min: "0",
+                        min: "1",
                         value: form.quantity,
                         onChange: (e) => set("quantity", e.target.value),
                       },
@@ -224,14 +231,14 @@ const NewSubscriptionDialog = ({
 
               <div className="flex flex-col">
                 <Label className="mb-2.5 text-[16px] font-medium text-black">
-                  {t("First Delivery Date")}<span className="text-[#C90000]">*</span>
+                  {t("First Delivery")}<span className="text-[#C90000]">*</span>
                 </Label>
                 <DatePicker
                   value={form.firstDelivery}
                   onChange={(date) => set("firstDelivery", date)}
-                  placeholder="DD/MM/YYYY"
+                  placeholder="25/3/2026"
+                  popoverPlacement="top-right"
                   withBackdrop
-                  minDate={new Date().toISOString().slice(0, 10)}
                 />
                 {errors.firstDelivery && (
                   <p className="mt-1 text-[13px] text-[#C90000]">
@@ -242,7 +249,7 @@ const NewSubscriptionDialog = ({
             </div>
           </form>
 
-          {/* Sticky footer */}
+          {/* Footer */}
           <div className="bg-white px-5 pb-5 sm:px-7 sm:pb-6">
             <Separator className="mb-4 bg-[#CACBD4] sm:mb-5" />
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
@@ -250,16 +257,14 @@ const NewSubscriptionDialog = ({
                 data={{
                   buttonText: t("Cancel"),
                   variant: "outline",
-                  type: "button",
                   onClick: () => onOpenChange(false),
-                  className:
-                    "w-full sm:w-auto border-primary text-primary hover:bg-white hover:text-primary",
+                  className: "border-[#CACBD4] hover:bg-[#FAFAF7]",
                 }}
               />
               <Button
-                form={FORM_ID}
                 type="submit"
-                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
+                form={FORM_ID}
+                className="h-11 rounded-[12px] bg-primary px-6 font-semibold text-white shadow-none hover:bg-primary-hover focus-visible:ring-0 focus-visible:ring-offset-0 sm:w-auto"
               >
                 {t("Create Subscription")}
               </Button>

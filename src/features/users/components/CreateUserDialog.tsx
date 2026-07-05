@@ -26,7 +26,7 @@ const INITIAL_FORM: UserFormData = {
   email: "",
   phone: "",
   password: "",
-  role: "Staff",
+  role: "staff",
   virtualShift: "none",
 };
 

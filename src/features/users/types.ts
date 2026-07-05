@@ -1,4 +1,4 @@
-export type UserRole = "Staff" | "Manager" | "Admin" | "User" | "POS/Cashier";
+export type UserRole = "superadmin" | "admin" | "manager" | "cashier" | "kitchen" | "staff";
 
 export type UsersTab = "users" | "app";
 
@@ -14,7 +14,7 @@ export type PermissionPage =
   | "Branches & Locations";
 
 export interface UserAccount {
-  id: number;
+  id: string | number;
   name: string;
   email: string;
   phone: string;

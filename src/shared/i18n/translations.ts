@@ -256,6 +256,12 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   "product(s)": "منتج",
   "Mass Broadcast": "إرسال جماعي",
   "No banner image": "لا توجد صورة غلاف",
+  "Active Promotions": "العروض النشطة",
+  Campaigns: "حملة",
+  "Total Redeemed": "إجمالي الاستخدام",
+  Claims: "مرة استخدام",
+  "Reach Potential": "الوصول المحتمل",
+  "Dynamic Audience": "جمهور متفاعل",
   // Broadcast dialog
   "The notification will be sent to all registered app customers.":
     "سيتم إرسال الإشعار إلى جميع عملاء التطبيق المسجلين.",

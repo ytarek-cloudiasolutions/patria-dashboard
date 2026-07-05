@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 
 import HeaderLayout from "@/layouts/HeaderLayout";
@@ -10,7 +10,7 @@ import { useTranslation } from "@/shared/i18n/useTranslation";
 import SuppliersOverview from "./components/SuppliersOverview";
 import SuppliersTable from "./components/SuppliersTable";
 import SupplierFormModal from "./components/SupplierFormModal";
-import { INITIAL_SUPPLIERS } from "./data";
+import { useSuppliers } from "./hooks/useSuppliers";
 import type {
   Supplier,
   SupplierCategory,
@@ -30,26 +30,36 @@ const parseCategories = (raw: string): SupplierCategory[] =>
 
 const SuppliersPage = () => {
   const { t } = useTranslation();
-  const [suppliers, setSuppliers] = useState<Supplier[]>(INITIAL_SUPPLIERS);
-  const [search, setSearch] = useState("");
+  const {
+    suppliers,
+    getSuppliersList,
+    createNewSupplier,
+    updateSupplierInfo,
+    deleteSupplierInfo,
+  } = useSuppliers();
 
+  const [search, setSearch] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
-
   const [deletingSupplier, setDeletingSupplier] = useState<Supplier | null>(
     null,
   );
+
+  // Fetch list on mount
+  useEffect(() => {
+    getSuppliersList();
+  }, [getSuppliersList]);
 
   const filteredSuppliers = useMemo(() => {
     const q = search.toLowerCase().trim();
     if (!q) return suppliers;
     return suppliers.filter(
-      (s) =>
+      (s: Supplier) =>
         s.name.toLowerCase().includes(q) ||
         s.contactPerson.toLowerCase().includes(q) ||
         s.email.toLowerCase().includes(q) ||
         s.phone.includes(q) ||
-        s.categories.some((c) => c.toLowerCase().includes(q)),
+        s.categories.some((c: string) => c.toLowerCase().includes(q)),
     );
   }, [suppliers, search]);
 
@@ -63,43 +73,33 @@ const SuppliersPage = () => {
     setIsFormOpen(true);
   };
 
-  const handleSave = (data: SupplierFormData, id?: number) => {
+  const handleSave = (data: SupplierFormData, id?: string | number) => {
     const categories = parseCategories(data.categories);
 
     if (id !== undefined) {
-      setSuppliers((prev) =>
-        prev.map((s) =>
-          s.id === id
-            ? {
-                ...s,
-                name: data.supplierName.trim(),
-                contactPerson: data.contactName.trim(),
-                phone: data.phone.trim(),
-                email: data.email.trim(),
-                address: data.address.trim(),
-                categories,
-              }
-            : s,
-        ),
-      );
-    } else {
-      const newSupplier: Supplier = {
-        id: Date.now(),
+      updateSupplierInfo(String(id), {
         name: data.supplierName.trim(),
-        status: "Documented",
         contactPerson: data.contactName.trim(),
         phone: data.phone.trim(),
         email: data.email.trim(),
         address: data.address.trim(),
         categories,
-      };
-      setSuppliers((prev) => [newSupplier, ...prev]);
+      });
+    } else {
+      createNewSupplier({
+        name: data.supplierName.trim(),
+        contactPerson: data.contactName.trim(),
+        phone: data.phone.trim(),
+        email: data.email.trim(),
+        address: data.address.trim(),
+        categories,
+      });
     }
   };
 
   const handleConfirmDelete = () => {
     if (!deletingSupplier) return;
-    setSuppliers((prev) => prev.filter((s) => s.id !== deletingSupplier.id));
+    deleteSupplierInfo(String(deletingSupplier.id));
     setDeletingSupplier(null);
   };
 

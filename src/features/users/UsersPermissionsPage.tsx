@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
@@ -18,12 +18,11 @@ import AppUserDetailsDialog from "./components/AppUserDetailsDialog";
 import BlockCustomerDialog from "./components/BlockCustomerDialog";
 
 import {
-  APP_USERS,
   APP_USER_STATUS_FILTER,
-  INITIAL_USERS,
-  ROLE_DEFAULT_PAGES,
   ROLE_FILTER_OPTIONS,
 } from "./data";
+import { useUsers } from "./hooks/useUsers";
+import { useCustomers } from "@/features/customers/hooks/useCustomers";
 import type {
   AppUser,
   PermissionPage,
@@ -37,11 +36,12 @@ const DELETE_TYPE_BY_ROLE: Record<
   UserRole,
   "admin" | "manager" | "user" | "staff"
 > = {
-  Admin: "admin",
-  Manager: "manager",
-  User: "user",
-  Staff: "staff",
-  "POS/Cashier": "staff",
+  superadmin: "admin",
+  admin: "admin",
+  manager: "manager",
+  cashier: "staff",
+  kitchen: "staff",
+  staff: "staff",
 };
 
 const UsersPermissionsPage = () => {
@@ -49,7 +49,19 @@ const UsersPermissionsPage = () => {
   const [tab, setTab] = useState<UsersTab>("users");
 
   // Users tab
-  const [users, setUsers] = useState<UserAccount[]>(INITIAL_USERS);
+  const {
+    users,
+    getUsersList,
+    createNewUser,
+    updateUserInfo,
+    deleteUserInfo,
+  } = useUsers();
+
+  const {
+    customers,
+    getCustomersList,
+  } = useCustomers();
+
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [isRoleFilterOpen, setIsRoleFilterOpen] = useState(false);
@@ -58,13 +70,32 @@ const UsersPermissionsPage = () => {
   const [isModifyOpen, setIsModifyOpen] = useState(false);
   const [deletingUser, setDeletingUser] = useState<UserAccount | null>(null);
 
+  // Fetch lists on mount
+  useEffect(() => {
+    getUsersList();
+    getCustomersList();
+  }, [getUsersList, getCustomersList]);
+
   // App users tab
-  const [appUsers, setAppUsers] = useState<AppUser[]>(APP_USERS);
+  const [blockedCustomerIds, setBlockedCustomerIds] = useState<Set<string | number>>(new Set());
   const [appSearch, setAppSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [isStatusFilterOpen, setIsStatusFilterOpen] = useState(false);
   const [viewingAppUser, setViewingAppUser] = useState<AppUser | null>(null);
   const [blockingAppUser, setBlockingAppUser] = useState<AppUser | null>(null);
+
+  const appUsers = useMemo<AppUser[]>(() => {
+    return customers.map((c) => ({
+      id: Number(c.id) || Date.now(), // AppUser expects a number id in types.ts, let's keep it safe
+      name: c.name,
+      email: c.email,
+      phone: c.phone || "—",
+      status: blockedCustomerIds.has(c.id) ? "Blocked" : "Active",
+      totalOrders: 0,
+      purchasesValue: c.lifetimeValue || 0,
+      orders: [],
+    }));
+  }, [customers, blockedCustomerIds]);
 
   const filteredUsers = useMemo(() => {
     const q = search.toLowerCase().trim();
@@ -97,8 +128,8 @@ const UsersPermissionsPage = () => {
   const userCounts = useMemo(
     () => ({
       totalUsers: users.length,
-      administrators: users.filter((u) => u.role === "Admin").length,
-      managers: users.filter((u) => u.role === "Manager").length,
+      administrators: users.filter((u) => u.role === "admin" || u.role === "superadmin").length,
+      managers: users.filter((u) => u.role === "manager").length,
     }),
     [users],
   );
@@ -115,16 +146,13 @@ const UsersPermissionsPage = () => {
   // --- Users handlers -------------------------------------------------------
 
   const handleCreate = (data: UserFormData) => {
-    const role = (data.role || "Staff") as UserRole;
-    const newUser: UserAccount = {
-      id: Date.now(),
+    const role = (data.role || "staff") as UserRole;
+    createNewUser({
       name: data.fullName.trim(),
       email: data.email.trim(),
-      phone: data.phone.trim(),
+      password: data.password.trim(),
       role,
-      pages: [...ROLE_DEFAULT_PAGES[role]],
-    };
-    setUsers((prev) => [newUser, ...prev]);
+    });
   };
 
   const handleEdit = (user: UserAccount) => {
@@ -133,18 +161,16 @@ const UsersPermissionsPage = () => {
   };
 
   const handleSaveEdit = (
-    id: number,
+    id: string | number,
     role: UserRole,
-    pages: PermissionPage[],
+    _pages: PermissionPage[],
   ) => {
-    setUsers((prev) =>
-      prev.map((u) => (u.id === id ? { ...u, role, pages } : u)),
-    );
+    updateUserInfo(String(id), { role });
   };
 
   const handleConfirmDelete = () => {
     if (!deletingUser) return;
-    setUsers((prev) => prev.filter((u) => u.id !== deletingUser.id));
+    deleteUserInfo(String(deletingUser.id));
     setDeletingUser(null);
   };
 
@@ -153,14 +179,21 @@ const UsersPermissionsPage = () => {
   const confirmToggleBlock = () => {
     if (!blockingAppUser) return;
     const id = blockingAppUser.id;
-    const nextStatus =
-      blockingAppUser.status === "Active" ? "Blocked" : "Active";
-    setAppUsers((prev) =>
-      prev.map((u) => (u.id === id ? { ...u, status: nextStatus } : u)),
-    );
-    setViewingAppUser((current) =>
-      current && current.id === id ? { ...current, status: nextStatus } : current,
-    );
+    setBlockedCustomerIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+    setViewingAppUser((current) => {
+      if (current && current.id === id) {
+        return {
+          ...current,
+          status: current.status === "Active" ? "Blocked" : "Active",
+        };
+      }
+      return current;
+    });
     setBlockingAppUser(null);
   };
 

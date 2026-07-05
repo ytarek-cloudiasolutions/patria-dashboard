@@ -7,6 +7,10 @@ import { productsSaga } from "@/features/products";
 import { ordersSaga } from "@/features/orders";
 import { inventorySaga } from "@/features/inventory/store/inventorySaga";
 import { customersSaga } from "@/features/customers/store/customersSaga";
+import { offersSaga } from "@/features/offers/store/offersSaga";
+import { subscriptionSaga } from "@/features/subscription/store/subscriptionSaga";
+import { suppliersSaga } from "@/features/suppliers/store/supplierSaga";
+import { userSaga } from "@/features/users/store/userSaga";
 
 export default function* rootSaga() {
   yield all([
@@ -18,6 +22,10 @@ export default function* rootSaga() {
     ordersSaga(),
     inventorySaga(),
     customersSaga(),
+    offersSaga(),
+    subscriptionSaga(),
+    suppliersSaga(),
+    userSaga(),
   ]);
 }
 

@@ -26,7 +26,7 @@ interface ModifyPermissionsDialogProps {
   open: boolean;
   user?: UserAccount;
   onOpenChange: (open: boolean) => void;
-  onSave: (id: number, role: UserRole, pages: PermissionPage[]) => void;
+  onSave: (id: string | number, role: UserRole, pages: PermissionPage[]) => void;
 }
 
 const ModifyPermissionsDialog = ({
@@ -36,7 +36,7 @@ const ModifyPermissionsDialog = ({
   onSave,
 }: ModifyPermissionsDialogProps) => {
   const { t } = useTranslation();
-  const [role, setRole] = useState<UserRole>("Staff");
+  const [role, setRole] = useState<UserRole>("staff");
   const [pages, setPages] = useState<Set<PermissionPage>>(new Set());
   const [backupWarehouse, setBackupWarehouse] = useState("none");
   const [virtualShift, setVirtualShift] = useState("none");
@@ -48,7 +48,7 @@ const ModifyPermissionsDialog = ({
       const initialRole = (
         ROLE_CARD_OPTIONS.some((opt) => opt.value === user.role)
           ? user.role
-          : "Staff"
+          : "staff"
       ) as UserRole;
       setRole(initialRole);
       setPages(new Set(user.pages));

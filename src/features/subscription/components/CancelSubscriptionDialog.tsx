@@ -14,7 +14,7 @@ interface CancelSubscriptionDialogProps {
   open: boolean;
   subscription: Subscription | null;
   onOpenChange: (open: boolean) => void;
-  onConfirm: (subscriptionId: number) => void;
+  onConfirm: (subscriptionId: string | number) => void;
 }
 
 const CancelSubscriptionDialog = ({

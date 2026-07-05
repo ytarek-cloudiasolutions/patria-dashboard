@@ -29,7 +29,7 @@ interface SupplierFormModalProps {
   open: boolean;
   supplier: Supplier | null;
   onClose: () => void;
-  onSave: (data: SupplierFormData, id?: number) => void;
+  onSave: (data: SupplierFormData, id?: string | number) => void;
 }
 
 const SupplierFormModal = ({
