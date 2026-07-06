@@ -15,8 +15,9 @@ export const resolveImageUrl = (path?: string | string[]): string => {
   if (p.startsWith("http://") || p.startsWith("https://") || p.startsWith("data:")) {
     return p;
   }
-  // Fallback for any legacy relative paths still in DB
-  return `${SERVER_ROOT}/${p}`;
+  // Fallback for legacy relative paths: serve via /api/uploads/ so Nginx proxies it
+  const filename = p.replace(/^uploads\//, '');
+  return `${SERVER_ROOT}/api/uploads/${filename}`;
 };
 
 export const mapProduct = (backendProduct: any): Product => {
