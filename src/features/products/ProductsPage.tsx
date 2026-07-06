@@ -198,21 +198,28 @@ const ProductsPage = () => {
     formData.append("price", String(Number(data.price) || 0));
     formData.append("categoryId", data.category);
 
-    const mappedVariantGroups = data.variantGroups.map((g) => ({
-      name: g.name,
-      required: g.required,
-      options: g.options.map((o) => ({
-        name: o.name,
-        label: o.name,
-        priceAdjustment: Number(o.price) || 0,
-      })),
-    }));
+    const mappedVariantGroups = data.variantGroups
+      .filter((g) => g.name.trim())
+      .map((g) => ({
+        name: g.name.trim(),
+        required: g.required,
+        options: g.options
+          .filter((o) => o.name.trim())
+          .map((o) => ({
+            name: o.name.trim(),
+            label: o.name.trim(),
+            priceAdjustment: Number(o.price) || 0,
+          })),
+      }))
+      .filter((g) => g.options.length > 0);
     formData.append("variantGroups", JSON.stringify(mappedVariantGroups));
 
-    const mappedExtras = data.extras.map((e) => ({
-      name: e.name,
-      price: Number(e.price) || 0,
-    }));
+    const mappedExtras = data.extras
+      .filter((e) => e.name.trim())
+      .map((e) => ({
+        name: e.name.trim(),
+        price: Number(e.price) || 0,
+      }));
     formData.append("extras", JSON.stringify(mappedExtras));
 
     if (data.imageFile) {
