@@ -28,13 +28,13 @@ const mapApiWarehouse = (w: any): Warehouse => ({
 const mapApiTransfer = (t: any): InternalTransfer => ({
   id: t._id ?? t.id,
   reference: t.reference ?? `#TRF-${(t._id ?? "").slice(-6).toUpperCase()}`,
-  fromId: t.fromWarehouse?._id ?? t.fromWarehouse ?? "",
-  fromName: t.fromWarehouse?.name ?? "",
-  toId: t.toWarehouse?._id ?? t.toWarehouse ?? "",
-  toName: t.toWarehouse?.name ?? "",
-  items: (t.products ?? t.items ?? []).map((p: any) => ({
-    productId: p.product?._id ?? p.productId ?? "",
-    productName: p.product?.name ?? p.productName ?? "",
+  fromId: t.fromWarehouseId?._id ?? t.fromWarehouseId ?? t.fromWarehouse?._id ?? "",
+  fromName: t.fromWarehouseId?.name ?? t.fromWarehouse?.name ?? "",
+  toId: t.toWarehouseId?._id ?? t.toWarehouseId ?? t.toWarehouse?._id ?? "",
+  toName: t.toWarehouseId?.name ?? t.toWarehouse?.name ?? "",
+  items: (t.items ?? t.products ?? []).map((p: any) => ({
+    productId: p.productId ?? p.product?._id ?? "",
+    productName: p.productName ?? p.product?.name ?? "",
     quantity: p.quantity ?? 0,
     unit: p.unit ?? "kg",
   })),
@@ -81,12 +81,12 @@ const WarehousesPage = () => {
 
   const handleCreateTransfer = (form: TransferFormState) => {
     const items = form.items.filter((item) => item.productId && item.quantity > 0);
-    if (items.length === 0) return;
+    if (!form.fromId || !form.toId || items.length === 0) return;
     createTransfer({
-      fromWarehouse: form.fromId,
-      toWarehouse: form.toId,
-      products: items.map((i) => ({ product: i.productId, quantity: i.quantity, unit: i.unit ?? "kg" })),
-    });
+      fromWarehouseId: form.fromId,
+      toWarehouseId: form.toId,
+      items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
+    } as any);
   };
 
   return (
