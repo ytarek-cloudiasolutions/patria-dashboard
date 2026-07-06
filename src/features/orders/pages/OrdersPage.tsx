@@ -40,7 +40,7 @@ const SOURCE_ICONS: Record<OrderSource, LucideIcon> = {
 
 const OrdersPage = () => {
   const { t } = useTranslation();
-  const { orders, getOrdersList, updateOrderStatusValue, createNewOrder, deleteOrderValue } = useOrders();
+  const { orders, loading, getOrdersList, updateOrderStatusValue, createNewOrder, deleteOrderValue } = useOrders();
   const { products, getProducts } = useProducts();
   const { locations, getLocations } = useLocations();
 
@@ -48,6 +48,11 @@ const OrdersPage = () => {
   const [selectedStatus, setSelectedStatus] =
     useState<OrderStatusFilter>("All statuses");
   const [activeSource, setActiveSource] = useState<OrderSource>("application");
+  const [sourceCounts, setSourceCounts] = useState<Record<OrderSource, number>>({
+    application: 0,
+    pos: 0,
+    call: 0,
+  });
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isCallDialogOpen, setIsCallDialogOpen] = useState(false);
   const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
@@ -58,6 +63,13 @@ const OrdersPage = () => {
   useEffect(() => {
     getOrdersList({ source: activeSource, limit: 100 });
   }, [activeSource, getOrdersList]);
+
+  // Remember the count for each source tab after load
+  useEffect(() => {
+    if (!loading.fetch) {
+      setSourceCounts((prev) => ({ ...prev, [activeSource]: orders.length }));
+    }
+  }, [orders, activeSource, loading.fetch]);
 
   // Fetch products and locations for call orders
   useEffect(() => {
@@ -149,10 +161,10 @@ const OrdersPage = () => {
   }, [orders]);
 
   const tabCounts = useMemo(() => ({
-    application: activeSource === "application" ? orders.length : 0,
-    pos: activeSource === "pos" ? orders.length : 0,
-    call: activeSource === "call" ? orders.length : 0,
-  }), [orders, activeSource]);
+    application: activeSource === "application" ? orders.length : sourceCounts.application,
+    pos: activeSource === "pos" ? orders.length : sourceCounts.pos,
+    call: activeSource === "call" ? orders.length : sourceCounts.call,
+  }), [orders, activeSource, sourceCounts]);
 
   const sources: OrderSource[] = ["application", "pos", "call"];
 
