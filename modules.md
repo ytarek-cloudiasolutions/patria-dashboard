@@ -187,3 +187,30 @@ Jun,11 2026
 18. https://www.figma.com/design/aVTq3BmGJJPZUqlPEywEOn/Patria-Dashboard?node-id=3203-88975&m=dev
 19. https://www.figma.com/design/aVTq3BmGJJPZUqlPEywEOn/Patria-Dashboard?node-id=3194-78400&m=dev
 20. https://www.figma.com/design/aVTq3BmGJJPZUqlPEywEOn/Patria-Dashboard?node-id=3194-79502&m=dev
+
+---
+
+# Delivery Tracking Module
+
+## Features:
+- **Real-Time Operational Dashboard**: Centralized dashboard providing managers with direct visibility into fleet status and delivery progress.
+- **Key Performance Indicators**: Quick-glance metrics panel tracking:
+  - **Active Riders**: Current count of staff on shift.
+  - **On Route**: Number of delivery agents actively making drops.
+  - **Active Orders**: Running total of orders currently in dispatch or transit.
+- **Interactive Map Visualization**: Satellite street-level overview mapping out active delivery routes and rider locations (utilizing a static high-fidelity Alexandria layout until a live navigation provider is selected).
+- **Rider Performance & Load Tracking**: A scrollable fleet directory showcasing individual rider details, including:
+  - Active status badges (On-Route / Active / Delivered).
+  - Assigned load count (number of active orders).
+  - Shift duration/duty time.
+- **Granular Order Progress Timelines**: Detail pane highlighting active orders mapped to each rider. Each order features:
+  - Visual status progress trackers (Order Placed ➔ Preparing ➔ On the Way ➔ Delivered).
+  - Customer contact name, billing amount, item quantities, and pinpoint delivery addresses.
+  - "Show on Map" quick-action routing.
+- **Complete Localization & RTL Support**: Dual-language translation (English and Arabic) with bidirectional layouts for localized administrative operations.
+
+## Figma Links
+1. https://www.figma.com/design/aVTq3BmGJJPZUqlPEywEOn/Patria-Dashboard?node-id=3294-91525
+2. https://www.figma.com/design/aVTq3BmGJJPZUqlPEywEOn/Patria-Dashboard?node-id=3302-92437
+
+

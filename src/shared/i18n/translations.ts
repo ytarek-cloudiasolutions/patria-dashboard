@@ -1023,7 +1023,7 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   Increase: "زيادة",
   Edit: "تعديل",
   "Special instructions...": "تعليمات خاصة...",
-   Extras: "الإضافات",
+  Extras: "الإضافات",
   "Add Extra": "إضافة +",
   "No extras added yet.": "لا توجد إضافات مضافة حالياً.",
   "Tax (14%)": "الضريبة (١٤٪)",
@@ -1340,4 +1340,23 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   "Select orders from the zones to dispatch.": "اختر الطلبات من المناطق لإرسالها.",
   "Send": "إرسال",
   "Unassigned": "غير مُعيّن",
+
+  // Delivery Tracking module
+  "Delivery Tracking": "تتبع التوصيل",
+  "Active Riders": "السائقون النشطون",
+  "On Route": "في الطريق",
+  "Refresh": "تحديث",
+  "Last updated": "آخر تحديث",
+  "Refreshes every 30 seconds": "يتم التحديث كل 30 ثانية",
+  "Active Riders:": "السائقون النشطون:",
+  "Riders": "سائقون",
+  "Back to all riders": "العودة لجميع السائقين",
+  "Location on map": "الموقع على الخريطة",
+  "delivered": "تم توصيلها",
+  "No active orders": "لا توجد طلبات نشطة",
+  "Show on map": "عرض على الخريطة",
+  "Live map coming soon": "الخريطة الحية قريبًا",
+  "Assigned": "تم التعيين",
+  "Order Placed": "تم الطلب",
+
 };

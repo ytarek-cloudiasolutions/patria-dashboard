@@ -38,6 +38,7 @@ import ProductsPage from "@/features/products/ProductsPage";
 import OrdersPage from "@/features/orders/pages/OrdersPage";
 import ShiftManagementPage from "@/features/shifts/ShiftManagementPage";
 import ShiftReportsPage from "@/features/shift-reports/ShiftReportsPage";
+import DeliveryTrackingPage from "@/features/delivery-tracking/DeliveryTrackingPage";
 
 export const router = createBrowserRouter([
   { path: "/sign-up", element: <SignUpPage /> },
@@ -68,6 +69,7 @@ export const router = createBrowserRouter([
       { path: "/locations", element: <LocationsPage /> },
       { path: "/reviews", element: <ReviewsPage /> },
       { path: "/logistics", element: <LogisticsPage /> },
+      { path: "/delivery-tracking", element: <DeliveryTrackingPage /> },
       { path: "/production", element: <ProductionPage /> },
       { path: "/requests", element: <RequestsPage /> },
       { path: "/users-permissions", element: <UsersPermissionsPage /> },
