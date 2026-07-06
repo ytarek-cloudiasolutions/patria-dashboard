@@ -16,10 +16,12 @@ export const getCategories = async () => {
   return response.data;
 };
 
-export const createCategory = async (payload: CreateCategoryRequest) => {
+export const createCategory = async (payload: CreateCategoryRequest | FormData) => {
+  const isFormData = payload instanceof FormData;
   const response = await api.post<CreateCategoryResponse>(
     CATEGORY_ENDPOINTS.CATEGORIES,
     payload,
+    isFormData ? { headers: { "Content-Type": "multipart/form-data" } } : undefined,
   );
   return response.data;
 };

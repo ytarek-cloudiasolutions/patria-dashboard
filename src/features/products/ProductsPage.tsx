@@ -28,7 +28,6 @@ import {
   PRODUCT_CATEGORIES,
 } from "./data";
 import type {
-  Category,
   CategoryFormData,
   Ingredient,
   IngredientFormData,
@@ -51,8 +50,6 @@ const DELETE_TYPE_LABEL: Record<DeleteTarget["kind"], DeleteDialogProps["type"]>
     category: "category",
   };
 
-let seqId = 1000;
-const nextId = () => ++seqId;
 
 const ProductsPage = () => {
   const { t } = useTranslation();
@@ -271,10 +268,14 @@ const ProductsPage = () => {
   };
 
   const handleAddCategory = (data: CategoryFormData) => {
-    createCategory({
-      name: data.name.trim(),
-      image: data.imageUrl || undefined,
-    });
+    if (data.imageFile) {
+      const formData = new FormData();
+      formData.append("name", data.name.trim());
+      formData.append("image", data.imageFile);
+      createCategory(formData as any);
+    } else {
+      createCategory({ name: data.name.trim() });
+    }
   };
 
   const handleConfirmDelete = () => {

@@ -111,6 +111,7 @@ export interface IngredientFormData {
 export interface CategoryFormData {
   name: string;
   imageUrl?: string;
+  imageFile?: File;
 }
 
 // --- Send WhatsApp message --------------------------------------------------

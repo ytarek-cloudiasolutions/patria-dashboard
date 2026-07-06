@@ -30,12 +30,14 @@ const AddCategoryDialog = ({
   const { t } = useTranslation();
   const [name, setName] = useState("");
   const [imageUrl, setImageUrl] = useState<string | undefined>(undefined);
+  const [imageFile, setImageFile] = useState<File | undefined>(undefined);
   const [error, setError] = useState("");
 
   useEffect(() => {
     if (open) {
       setName("");
       setImageUrl(undefined);
+      setImageFile(undefined);
       setError("");
     }
   }, [open]);
@@ -46,7 +48,7 @@ const AddCategoryDialog = ({
       setError(t("Category name is required"));
       return;
     }
-    onSave({ name: name.trim(), imageUrl });
+    onSave({ name: name.trim(), imageUrl, imageFile });
     onOpenChange(false);
   };
 
@@ -71,7 +73,7 @@ const AddCategoryDialog = ({
           >
             <UploadDropzone
               value={imageUrl}
-              onSelect={(_, url) => setImageUrl(url)}
+              onSelect={(file, url) => { setImageFile(file); setImageUrl(url); }}
               title="Click to upload image"
               hint="PNG, JPG up to 5MB"
             />
