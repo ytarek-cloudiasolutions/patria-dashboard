@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import HeaderLayout from "@/layouts/HeaderLayout";
@@ -14,13 +14,34 @@ import DriversTable from "./components/DriversTable";
 import AddDriverDialog from "./components/AddDriverDialog";
 import SendNotificationDialog from "./components/SendNotificationDialog";
 
-import { INITIAL_DRIVERS, INITIAL_ZONES } from "./data";
+import { INITIAL_ZONES } from "./data";
 import type { Driver, DriverFormData, DriverStatus, Zone } from "./types";
+import { useLogistics } from "./hooks/useLogistics";
+
+const mapApiDriver = (d: any): Driver => ({
+  id: d._id as any,
+  name: d.name || "",
+  whatsappPhone: d.phone || d.whatsappPhone || "",
+  vehicleType: d.vehicleType === "car" ? "Car" : d.vehicleType === "van" ? "Van" : "Motorcycle",
+  plateNumber: d.plateNumber || "",
+  zones: d.zones || [],
+  status: d.status === "busy" ? "On-Route" : d.status === "active" ? "Active" : "Off-Duty",
+  ordersToday: d.shiftDeliveriesCount || d.totalDelivered || 0,
+  salaryNow: 0,
+  hourlyRate: 21,
+  dutyTime: d.dutyTime || "00:00:00",
+});
 
 const LogisticsPage = () => {
   const { t } = useTranslation();
+  const { drivers: apiDrivers, getDrivers, createDriver, updateDriver, deleteDriver } = useLogistics();
   const [zones, setZones] = useState<Zone[]>(INITIAL_ZONES);
-  const [drivers, setDrivers] = useState<Driver[]>(INITIAL_DRIVERS);
+  const [drivers, setDrivers] = useState<Driver[]>([]);
+
+  useEffect(() => { getDrivers(); }, [getDrivers]);
+  useEffect(() => {
+    if (apiDrivers && apiDrivers.length > 0) setDrivers(apiDrivers.map(mapApiDriver));
+  }, [apiDrivers]);
   const [search, setSearch] = useState("");
 
   const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(
@@ -133,37 +154,19 @@ const LogisticsPage = () => {
   };
 
   const handleSaveDriver = (data: DriverFormData, id?: number) => {
+    const payload = {
+      name: data.name.trim(),
+      phone: data.whatsappPhone.trim(),
+      whatsappPhone: data.whatsappPhone.trim(),
+      vehicleType: data.vehicleType.toLowerCase() as any,
+      plateNumber: data.plateNumber.trim(),
+      zones: data.zones,
+      status: data.status === "On-Route" ? "busy" : data.status === "Active" ? "active" : "offline",
+    };
     if (id !== undefined) {
-      setDrivers((prev) =>
-        prev.map((d) =>
-          d.id === id
-            ? {
-                ...d,
-                name: data.name.trim(),
-                whatsappPhone: data.whatsappPhone.trim(),
-                vehicleType: data.vehicleType,
-                plateNumber: data.plateNumber.trim(),
-                zones: data.zones,
-                status: data.status,
-              }
-            : d,
-        ),
-      );
+      updateDriver(String(id), payload);
     } else {
-      const newDriver: Driver = {
-        id: Date.now(),
-        name: data.name.trim(),
-        whatsappPhone: data.whatsappPhone.trim(),
-        vehicleType: data.vehicleType,
-        plateNumber: data.plateNumber.trim(),
-        status: data.status,
-        zones: data.zones,
-        ordersToday: 0,
-        salaryNow: 0,
-        hourlyRate: 21,
-        dutyTime: "00:00:00",
-      };
-      setDrivers((prev) => [...prev, newDriver]);
+      createDriver(payload);
     }
   };
 
@@ -185,7 +188,7 @@ const LogisticsPage = () => {
 
   const handleConfirmDelete = () => {
     if (!deletingDriver) return;
-    setDrivers((prev) => prev.filter((d) => d.id !== deletingDriver.id));
+    deleteDriver(String(deletingDriver.id));
     setDeletingDriver(null);
   };
 

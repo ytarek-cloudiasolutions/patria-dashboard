@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowLeftRight, Plus } from "lucide-react";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import HeaderLayout from "@/layouts/HeaderLayout";
@@ -9,13 +9,38 @@ import TransfersTable from "./components/TransfersTable";
 import AddWarehouseModal from "./components/AddWarehouseModal";
 import InternalTransferModal from "./components/InternalTransferModal";
 
-import { INITIAL_TRANSFERS, INITIAL_WAREHOUSES } from "./data";
 import type {
   InternalTransfer,
   TransferFormState,
   Warehouse,
   WarehouseFormData,
 } from "./types";
+import { useWarehouses } from "./hooks/useWarehouses";
+
+const mapApiWarehouse = (w: any): Warehouse => ({
+  id: w._id ?? w.id,
+  shortId: (w._id ?? "").slice(-6).toUpperCase(),
+  name: w.name ?? "",
+  address: w.address ?? w.location ?? "",
+  kind: w.type === "sub" ? "Sub Warehouse" : "Main Warehouse",
+});
+
+const mapApiTransfer = (t: any): InternalTransfer => ({
+  id: t._id ?? t.id,
+  reference: t.reference ?? `#TRF-${(t._id ?? "").slice(-6).toUpperCase()}`,
+  fromId: t.fromWarehouse?._id ?? t.fromWarehouse ?? "",
+  fromName: t.fromWarehouse?.name ?? "",
+  toId: t.toWarehouse?._id ?? t.toWarehouse ?? "",
+  toName: t.toWarehouse?.name ?? "",
+  items: (t.products ?? t.items ?? []).map((p: any) => ({
+    productId: p.product?._id ?? p.productId ?? "",
+    productName: p.product?.name ?? p.productName ?? "",
+    quantity: p.quantity ?? 0,
+    unit: p.unit ?? "kg",
+  })),
+  createdAt: t.createdAt ? new Date(t.createdAt).toLocaleDateString() : "",
+  status: (t.status === "approved" ? "Approved" : t.status === "completed" ? "Completed" : t.status === "rejected" ? "Rejected" : "Pending") as any,
+});
 
 const generateShortId = () =>
   Math.random().toString(36).slice(2, 9).toUpperCase();
@@ -28,10 +53,13 @@ const formatDate = (date: Date) =>
 
 const WarehousesPage = () => {
   const { t } = useTranslation();
-  const [warehouses, setWarehouses] =
-    useState<Warehouse[]>(INITIAL_WAREHOUSES);
-  const [transfers, setTransfers] =
-    useState<InternalTransfer[]>(INITIAL_TRANSFERS);
+  const { warehouses: apiWarehouses, transfers: apiTransfers, getWarehouses, getTransfers, createWarehouse, createTransfer } = useWarehouses();
+  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
+  const [transfers, setTransfers] = useState<InternalTransfer[]>([]);
+
+  useEffect(() => { getWarehouses(); getTransfers(); }, [getWarehouses, getTransfers]);
+  useEffect(() => { if (apiWarehouses?.length) setWarehouses(apiWarehouses.map(mapApiWarehouse)); }, [apiWarehouses]);
+  useEffect(() => { if (apiTransfers?.length) setTransfers(apiTransfers.map(mapApiTransfer)); }, [apiTransfers]);
 
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isTransferOpen, setIsTransferOpen] = useState(false);
@@ -44,38 +72,21 @@ const WarehousesPage = () => {
   }, [warehouses]);
 
   const handleAddWarehouse = (data: WarehouseFormData) => {
-    const newWarehouse: Warehouse = {
-      id: `wh-${Date.now()}`,
-      shortId: generateShortId(),
+    createWarehouse({
       name: data.name.trim(),
       address: data.address.trim(),
-      kind: data.kind,
-    };
-    setWarehouses((prev) => [...prev, newWarehouse]);
+      type: data.kind === "Sub Warehouse" ? "sub" : "main",
+    });
   };
 
   const handleCreateTransfer = (form: TransferFormState) => {
-    const from = warehouses.find((w) => w.id === form.fromId);
-    const to = warehouses.find((w) => w.id === form.toId);
-    if (!from || !to) return;
-
-    const items = form.items.filter(
-      (item) => item.productId && item.quantity > 0,
-    );
+    const items = form.items.filter((item) => item.productId && item.quantity > 0);
     if (items.length === 0) return;
-
-    const newTransfer: InternalTransfer = {
-      id: Date.now(),
-      reference: generateReference(transfers.length),
-      fromId: from.id,
-      fromName: from.name,
-      toId: to.id,
-      toName: to.name,
-      items,
-      createdAt: formatDate(new Date()),
-      status: "Pending",
-    };
-    setTransfers((prev) => [newTransfer, ...prev]);
+    createTransfer({
+      fromWarehouse: form.fromId,
+      toWarehouse: form.toId,
+      products: items.map((i) => ({ product: i.productId, quantity: i.quantity, unit: i.unit ?? "kg" })),
+    });
   };
 
   return (

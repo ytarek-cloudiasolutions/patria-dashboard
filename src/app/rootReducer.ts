@@ -11,6 +11,11 @@ import { offersReducer } from "@/features/offers/store/offersSlice";
 import { subscriptionReducer } from "@/features/subscription/store/subscriptionSlice";
 import { supplierReducer } from "@/features/suppliers/store/supplierSlice";
 import { userReducer } from "@/features/users/store/userSlice";
+import logisticsReducer from "@/features/logistics/store/logisticsSlice";
+import warehousesReducer from "@/features/warehouses/store/warehousesSlice";
+import productionReducer from "@/features/production/store/productionSlice";
+import purchasingReducer from "@/features/purchasing/store/purchasingSlice";
+import shiftsReducer from "@/features/shifts/store/shiftsSlice";
 
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -25,6 +30,11 @@ const rootReducer = combineReducers({
   subscription: subscriptionReducer,
   supplier: supplierReducer,
   user: userReducer,
+  logistics: logisticsReducer,
+  warehouses: warehousesReducer,
+  production: productionReducer,
+  purchasing: purchasingReducer,
+  shifts: shiftsReducer,
 });
 
 export default rootReducer;

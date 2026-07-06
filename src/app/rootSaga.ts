@@ -11,6 +11,11 @@ import { offersSaga } from "@/features/offers/store/offersSaga";
 import { subscriptionSaga } from "@/features/subscription/store/subscriptionSaga";
 import { suppliersSaga } from "@/features/suppliers/store/supplierSaga";
 import { userSaga } from "@/features/users/store/userSaga";
+import logisticsSaga from "@/features/logistics/store/logisticsSaga";
+import warehousesSaga from "@/features/warehouses/store/warehousesSaga";
+import productionSaga from "@/features/production/store/productionSaga";
+import purchasingSaga from "@/features/purchasing/store/purchasingSaga";
+import shiftsSaga from "@/features/shifts/store/shiftsSaga";
 
 export default function* rootSaga() {
   yield all([
@@ -26,6 +31,11 @@ export default function* rootSaga() {
     subscriptionSaga(),
     suppliersSaga(),
     userSaga(),
+    logisticsSaga(),
+    warehousesSaga(),
+    productionSaga(),
+    purchasingSaga(),
+    shiftsSaga(),
   ]);
 }
 

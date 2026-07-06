@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import HeaderLayout from "@/layouts/HeaderLayout";
@@ -10,19 +10,43 @@ import PurchasingTable from "./components/PurchasingTable";
 import CreatePoDialog from "./components/CreatePoDialog";
 import PaymentDialog from "./components/PaymentDialog";
 import {
-  INITIAL_PURCHASE_ORDERS,
   PRODUCT_OPTIONS,
   PURCHASING_STATUS_FILTERS,
   SUPPLIER_OPTIONS,
   WAREHOUSE_OPTIONS,
 } from "./data";
 import type { PoFormState, PoStatus, PurchaseOrder } from "./types";
+import { usePurchasing } from "./hooks/usePurchasing";
+
+const mapApiOrder = (o: any): PurchaseOrder => ({
+  id: o._id ?? o.id,
+  poNumber: o.poNumber ?? `PO-${(o._id ?? "").slice(-6).toUpperCase()}`,
+  kind: "purchase order",
+  supplierId: o.supplier?._id ?? o.supplier ?? "",
+  supplierName: o.supplier?.name ?? o.supplierName ?? "",
+  contactEmail: o.supplier?.email ?? o.contactEmail ?? "",
+  warehouseId: o.warehouse?._id ?? o.warehouse ?? "",
+  warehouseName: o.warehouse?.name ?? o.warehouseName ?? "",
+  totalAmount: o.totalAmount ?? 0,
+  paid: o.paidAmount ?? 0,
+  status: (o.status === "received" ? "Paid" : o.status === "cancelled" ? "Canceled" : o.status === "submitted" ? "Unpaid" : "Pending") as PoStatus,
+  expectedDeliveryDate: o.expectedDeliveryDate ? new Date(o.expectedDeliveryDate).toLocaleDateString() : "",
+  items: (o.items ?? []).map((i: any) => ({
+    productId: i.product?._id ?? i.product ?? i.productId ?? "",
+    productName: i.product?.name ?? i.productName ?? "",
+    quantity: i.quantity ?? 0,
+    unitCost: i.unitPrice ?? i.unitCost ?? 0,
+    unit: i.unit ?? "kg",
+  })),
+});
 
 const ProcurementPage = () => {
   const { t } = useTranslation();
-  const [orders, setOrders] = useState<PurchaseOrder[]>(
-    INITIAL_PURCHASE_ORDERS,
-  );
+  const { purchaseOrders: apiOrders, getPurchaseOrders, createPurchaseOrder, submitPurchaseOrder, cancelPurchaseOrder } = usePurchasing();
+  const [orders, setOrders] = useState<PurchaseOrder[]>([]);
+
+  useEffect(() => { getPurchaseOrders(); }, [getPurchaseOrders]);
+  useEffect(() => { if (apiOrders?.length) setOrders(apiOrders.map(mapApiOrder)); }, [apiOrders]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [isStatusFilterOpen, setIsStatusFilterOpen] = useState(false);
@@ -65,68 +89,29 @@ const ProcurementPage = () => {
   }, [orders]);
 
   const handleSavePo = (form: PoFormState) => {
-    const supplier = SUPPLIER_OPTIONS.find((s) => s.id === form.supplierId);
-    const warehouse = WAREHOUSE_OPTIONS.find((w) => w.id === form.warehouseId);
-    if (!supplier || !warehouse) return;
-
-    const total = form.items.reduce(
-      (sum, item) => sum + item.quantity * item.unitCost,
-      0,
-    );
-
-    const yearMonth = new Date()
-      .toISOString()
-      .slice(0, 7)
-      .replace("-", "");
-    const number = `PO-${yearMonth}-${String(orders.length + 1).padStart(4, "0")}`;
-
     const items = form.items
       .filter((item) => item.productId && item.quantity > 0)
       .map((item) => ({
-        ...item,
-        productId:
-          PRODUCT_OPTIONS.find((p) => p.id === item.productId)?.id ??
-          item.productId,
+        product: item.productId,
+        quantity: item.quantity,
+        unitPrice: item.unitCost,
+        unit: item.unit ?? "kg",
       }));
-
-    const newOrder: PurchaseOrder = {
-      id: Date.now(),
-      poNumber: number,
-      kind: "purchase order",
-      supplierId: supplier.id,
-      supplierName: supplier.label,
-      contactEmail: supplier.email,
-      warehouseId: warehouse.id,
-      warehouseName: warehouse.label,
-      totalAmount: total,
-      paid: 0,
-      status: total > 0 ? "Unpaid" : "Pending",
-      expectedDeliveryDate: form.expectedDeliveryDate,
+    createPurchaseOrder({
+      supplier: form.supplierId,
+      warehouse: form.warehouseId,
       items,
-    };
-    setOrders((prev) => [newOrder, ...prev]);
+      expectedDeliveryDate: form.expectedDeliveryDate,
+      notes: form.notes,
+    });
   };
 
   const handleSubmitToSupplier = (order: PurchaseOrder) => {
-    setOrders((prev) =>
-      prev.map((o) =>
-        o.id === order.id && o.status === "Pending"
-          ? { ...o, status: "Unpaid" }
-          : o,
-      ),
-    );
+    submitPurchaseOrder(String(order.id));
   };
 
-  const handleConfirmPayment = (orderId: number, amount: number) => {
-    setOrders((prev) =>
-      prev.map((o) => {
-        if (o.id !== orderId) return o;
-        const newPaid = o.paid + amount;
-        const newStatus: PoStatus =
-          newPaid >= o.totalAmount ? "Paid" : "Unpaid";
-        return { ...o, paid: newPaid, status: newStatus };
-      }),
-    );
+  const handleConfirmPayment = (orderId: number, _amount: number) => {
+    submitPurchaseOrder(String(orderId));
   };
 
   return (

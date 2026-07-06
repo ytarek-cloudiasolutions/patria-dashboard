@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   RefreshCw,
   Calendar,
@@ -11,9 +11,6 @@ import BranchTab from "./components/BranchTab";
 import EmployeeTab from "./components/EmployeeTab";
 import OverviewTab from "./components/OverviewTab";
 import {
-  OVERVIEW_STATS,
-  DAILY_REVENUE,
-  TOP_PRODUCTS,
   COUPON_PERFORMANCE,
   DELIVERY_PERFORMANCE,
   ROASTING_DISTRIBUTION,
@@ -29,7 +26,8 @@ import {
   REGION_DISTRIBUTION,
   BRANCH_REPORTS,
 } from "./data";
-import type { ReportTab } from "./types";
+import type { DailyRevenuePoint, OverviewStats, ReportTab, TopProduct } from "./types";
+import { api } from "@/config/api";
 
 const TABS: { value: ReportTab; label: string; icon: React.ReactNode }[] = [
   { value: "overview", label: "Overview", icon: <LayoutDashboard size={15} /> },
@@ -42,6 +40,45 @@ const ReportsPage = () => {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [detailedExport, setDetailedExport] = useState(false);
+
+  const [overviewStats, setOverviewStats] = useState<OverviewStats>({
+    totalRevenue: "0",
+    averageDemand: "0",
+    numberOfOrders: 0,
+    numberOfCustomers: 0,
+  });
+  const [dailyRevenue, setDailyRevenue] = useState<DailyRevenuePoint[]>([]);
+  const [topProducts, setTopProducts] = useState<TopProduct[]>([]);
+
+  const fetchOverview = useCallback(() => {
+    const params: Record<string, string> = {};
+    if (dateFrom) params.from = dateFrom;
+    if (dateTo) params.to = dateTo;
+    api.get("/reports/overview", { params }).then((res) => {
+      const d = res.data;
+      const s = d.summary ?? {};
+      setOverviewStats({
+        totalRevenue: `EGP ${(s.totalRevenue ?? 0).toLocaleString()}`,
+        averageDemand: `EGP ${((s.totalRevenue ?? 0) / Math.max(s.totalOrders ?? 1, 1)).toFixed(0)}`,
+        numberOfOrders: s.totalOrders ?? 0,
+        numberOfCustomers: s.totalCustomers ?? 0,
+      });
+      setDailyRevenue(
+        (d.dailyRevenue ?? []).map((r: any) => ({
+          date: r._id ?? r.date ?? "",
+          revenue: r.revenue ?? 0,
+        }))
+      );
+      setTopProducts(
+        (d.topProducts ?? []).slice(0, 10).map((p: any) => ({
+          name: p.name ?? "",
+          quantity: p.quantity ?? 0,
+        }))
+      );
+    }).catch(() => {});
+  }, [dateFrom, dateTo]);
+
+  useEffect(() => { fetchOverview(); }, [fetchOverview]);
 
   return (
     <div>
@@ -58,7 +95,7 @@ const ReportsPage = () => {
           </div>
           <div className="flex items-center gap-3">
             <button
-              onClick={() => console.log("Refresh")}
+              onClick={fetchOverview}
               className="flex h-11 w-11 items-center justify-center rounded-[10px] border border-[#E5E5E5] bg-white text-[#6B6B6B] hover:bg-[#F5F0EA] transition-colors cursor-pointer"
             >
               <RefreshCw size={16} />
@@ -115,9 +152,9 @@ const ReportsPage = () => {
         {/* Tab Content */}
         {activeTab === "overview" && (
           <OverviewTab
-            stats={OVERVIEW_STATS}
-            dailyRevenue={DAILY_REVENUE}
-            topProducts={TOP_PRODUCTS}
+            stats={overviewStats}
+            dailyRevenue={dailyRevenue}
+            topProducts={topProducts}
             couponPerformance={COUPON_PERFORMANCE}
             deliveryPerformance={DELIVERY_PERFORMANCE}
             roastingDistribution={ROASTING_DISTRIBUTION}
