@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Bell, CheckCheck, Trash2, X } from "lucide-react";
 import {
   Sheet,
@@ -9,9 +9,27 @@ import {
 } from "@/shared/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/shared/i18n/useTranslation";
-import { INITIAL_NOTIFICATIONS } from "../data";
-import type { AppNotification, NotificationTab } from "../types";
+import { api } from "@/config/api";
+import type { AppNotification, NotificationCategory, NotificationTab } from "../types";
 import NotificationItem from "./NotificationItem";
+
+const mapCategory = (type: string): NotificationCategory => {
+  if (type === "order" || type === "orders") return "orders";
+  if (type === "stock" || type === "inventory") return "stock";
+  return "system";
+};
+
+const mapNotification = (n: any, idx: number): AppNotification => ({
+  id: n._id ?? idx,
+  category: mapCategory(n.type ?? "system"),
+  title: n.title ?? n.type ?? "Notification",
+  description: n.message ?? "",
+  time: n.createdAt
+    ? new Date(n.createdAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })
+    : "—",
+  read: n.isRead ?? false,
+  resolved: false,
+});
 
 interface NotificationsPanelProps {
   open: boolean;
@@ -27,9 +45,18 @@ const TABS: { value: NotificationTab; label: string }[] = [
 
 const NotificationsPanel = ({ open, onOpenChange }: NotificationsPanelProps) => {
   const { t, dir } = useTranslation();
-  const [notifications, setNotifications] = useState<AppNotification[]>(
-    INITIAL_NOTIFICATIONS,
-  );
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+
+  useEffect(() => {
+    if (!open) return;
+    api
+      .get("/notifications")
+      .then((res) => {
+        const raw: any[] = res.data?.notifications ?? [];
+        setNotifications(raw.map(mapNotification));
+      })
+      .catch(() => {});
+  }, [open]);
   const [activeTab, setActiveTab] = useState<NotificationTab>("all");
 
   const counts = useMemo(
@@ -55,8 +82,12 @@ const NotificationsPanel = ({ open, onOpenChange }: NotificationsPanelProps) => 
     [notifications, activeTab],
   );
 
-  const markAllRead = () =>
+  const markAllRead = () => {
+    notifications.filter((n) => !n.read).forEach((n) => {
+      api.patch(`/notifications/${n.id}/read`).catch(() => {});
+    });
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  };
 
   const clearAll = () => setNotifications([]);
 

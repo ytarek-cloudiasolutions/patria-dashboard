@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import { Badge } from "@/shared/components/ui/badge";
 import { useTranslation } from "@/shared/i18n/useTranslation";
+import { api } from "@/config/api";
 
 import ConnectionStatusCard from "./components/ConnectionStatusCard";
 import GatewaySecurityCard from "./components/GatewaySecurityCard";
@@ -14,8 +15,18 @@ import type { GatewayConnectionStatus } from "./types";
 
 const WhatsAppGatewayPage = () => {
   const { t } = useTranslation();
-  const [status, setStatus] = useState<GatewayConnectionStatus>("connected");
+  const [status, setStatus] = useState<GatewayConnectionStatus>("disconnected");
   const isConnected = status === "connected";
+
+  useEffect(() => {
+    api
+      .get("/whatsapp/status")
+      .then((res) => {
+        const s = res.data?.status ?? res.data?.state ?? "";
+        setStatus(s === "connected" || s === "CONNECTED" ? "connected" : "disconnected");
+      })
+      .catch(() => setStatus("disconnected"));
+  }, []);
 
   return (
     <>
@@ -36,7 +47,6 @@ const WhatsAppGatewayPage = () => {
       </div>
 
       <div className="grid grid-cols-1 items-stretch gap-4 lg:grid-cols-3">
-        {/* Left column */}
         <div className="flex flex-col gap-4 lg:col-span-2">
           <ConnectionStatusCard
             status={status}
@@ -47,7 +57,6 @@ const WhatsAppGatewayPage = () => {
           <TechnicalPerformanceCard metrics={PERFORMANCE_METRICS} />
         </div>
 
-        {/* Right column */}
         <div className="flex flex-col gap-4">
           <HowToLinkCard steps={LINK_STEPS} />
           <GatewaySecurityCard lastAudit={SECURITY_LAST_AUDIT} />

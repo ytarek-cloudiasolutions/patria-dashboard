@@ -1,16 +1,17 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import SearchInputField from "@/shared/components/SearchInputField";
 import DropdownSelect from "@/shared/components/DropdownSelect";
 import DeleteDialog from "@/shared/components/DeleteDialog";
+import { api } from "@/config/api";
+import { showSuccessToast } from "@/shared/utils/toast";
 
 import OverallRatingCard from "./components/OverallRatingCard";
 import RatingDistributionCard from "./components/RatingDistributionCard";
 import HighestRatedCard from "./components/HighestRatedCard";
 import ReviewCard from "./components/ReviewCard";
 import {
-  INITIAL_REVIEWS,
   REVIEW_CATEGORY_FILTERS,
   REVIEW_RATING_FILTERS,
 } from "./data";
@@ -21,9 +22,35 @@ import type {
   ReviewCategory,
 } from "./types";
 
+const VALID_CATEGORIES: ReviewCategory[] = [
+  "Service speed",
+  "Driver friendliness",
+  "Value for money",
+  "Food quality",
+  "Packaging",
+];
+
+const mapReview = (r: any, idx: number): Review => ({
+  id: r._id ?? idx,
+  customerName: r.customerName ?? "Anonymous",
+  customerCode: r.customerPhone ?? "—",
+  orderId: r.orderId?._id ?? r.orderId ?? "—",
+  orderType: r.orderType === "dine_in" ? "Dine-in" : r.orderType === "takeaway" ? "Pickup" : "Delivery",
+  rating: r.rating ?? 0,
+  maxRating: 5,
+  comment: r.comment ?? "",
+  categories: (r.categories ?? []).filter((c: string) =>
+    VALID_CATEGORIES.includes(c as ReviewCategory),
+  ) as ReviewCategory[],
+  createdAt: r.createdAt
+    ? new Date(r.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+    : "—",
+  isHidden: r.isVisible === false,
+});
+
 const ReviewsPage = () => {
   const { t } = useTranslation();
-  const [reviews, setReviews] = useState<Review[]>(INITIAL_REVIEWS);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [search, setSearch] = useState("");
   const [ratingFilter, setRatingFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
@@ -33,6 +60,16 @@ const ReviewsPage = () => {
   });
 
   const [deletingReview, setDeletingReview] = useState<Review | null>(null);
+
+  useEffect(() => {
+    api
+      .get("/reviews", { params: { limit: 100 } })
+      .then((res) => {
+        const raw: any[] = res.data?.data ?? res.data?.reviews ?? [];
+        setReviews(raw.map(mapReview));
+      })
+      .catch(() => {});
+  }, []);
 
   const isScrimActive =
     isAnyDropdownOpen.rating || isAnyDropdownOpen.category;
@@ -95,17 +132,30 @@ const ReviewsPage = () => {
     });
   }, [reviews, search, ratingFilter, categoryFilter]);
 
-  const handleToggleVisibility = (review: Review) => {
-    setReviews((prev) =>
-      prev.map((r) =>
-        r.id === review.id ? { ...r, isHidden: !r.isHidden } : r,
-      ),
-    );
+  const handleToggleVisibility = async (review: Review) => {
+    try {
+      await api.patch(`/reviews/${review.id}/visibility`, {
+        isVisible: review.isHidden,
+      });
+      setReviews((prev) =>
+        prev.map((r) =>
+          r.id === review.id ? { ...r, isHidden: !r.isHidden } : r,
+        ),
+      );
+    } catch {
+      // silently ignore
+    }
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (!deletingReview) return;
-    setReviews((prev) => prev.filter((r) => r.id !== deletingReview.id));
+    try {
+      await api.delete(`/reviews/${deletingReview.id}`);
+      setReviews((prev) => prev.filter((r) => r.id !== deletingReview.id));
+      showSuccessToast(t("Review deleted"));
+    } catch {
+      // silently ignore
+    }
     setDeletingReview(null);
   };
 

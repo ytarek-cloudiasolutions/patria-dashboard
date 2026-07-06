@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   CircleX,
   Plus,
@@ -11,7 +11,8 @@ import DefaultButton from "@/shared/components/DefaultButton";
 import OverviewCard from "@/shared/components/OverviewCard";
 import SearchInputField from "@/shared/components/SearchInputField";
 import DropdownSelect from "@/shared/components/DropdownSelect";
-import { MOCK_COUPONS } from "./data";
+import { api } from "@/config/api";
+import { showErrorToast, showSuccessToast } from "@/shared/utils/toast";
 import type { Coupon } from "./types";
 import CouponsTable from "./components/CouponsTable";
 import CreateCouponDialog from "./components/CreateCouponDialog";
@@ -23,14 +24,42 @@ const CATEGORY_OPTIONS = [
   { label: "Fixed Price (EGP)", value: "fixed" },
 ];
 
+const mapCoupon = (c: any, idx: number): Coupon => ({
+  id: c._id ?? idx,
+  code: c.code ?? "",
+  discountType: c.discountType ?? "percentage",
+  discountValue: c.discountValue ?? 0,
+  minOrderAmount: c.minOrderAmount ?? 0,
+  usageLimit: c.maxUses ?? 0,
+  usedCount: c.usedCount ?? 0,
+  startDate: c.startDate ? c.startDate.split("T")[0] : "",
+  endDate: c.expiryDate ? c.expiryDate.split("T")[0] : "",
+  isActive: c.isActive ?? true,
+});
+
 const CouponsPage = () => {
   const { t } = useTranslation();
-  const [coupons, setCoupons] = useState<Coupon[]>(MOCK_COUPONS);
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCoupon, setEditingCoupon] = useState<Coupon | undefined>();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
+
+  const fetchCoupons = () => {
+    setLoading(true);
+    api
+      .get("/coupons", { params: { limit: 100 } })
+      .then((res) => {
+        const raw: any[] = res.data?.data ?? res.data?.coupons ?? [];
+        setCoupons(raw.map(mapCoupon));
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => { fetchCoupons(); }, []);
 
   const stats = useMemo(
     () => ({
@@ -60,26 +89,60 @@ const CouponsPage = () => {
     setIsDialogOpen(true);
   };
 
-  const handleDeleteCoupon = (couponId: number) => {
-    setCoupons((prev) => prev.filter((c) => c.id !== couponId));
-  };
-
-  const handleStatusChange = (couponId: number, newStatus: boolean) => {
-    setCoupons((prev) =>
-      prev.map((c) => (c.id === couponId ? { ...c, isActive: newStatus } : c)),
-    );
-  };
-
-  const handleSaveCoupon = (coupon: Coupon) => {
-    if (editingCoupon) {
-      setCoupons((prev) =>
-        prev.map((c) => (c.id === editingCoupon.id ? coupon : c)),
-      );
-    } else {
-      setCoupons((prev) => [...prev, coupon]);
+  const handleDeleteCoupon = async (couponId: number) => {
+    try {
+      await api.delete(`/coupons/${couponId}`);
+      setCoupons((prev) => prev.filter((c) => c.id !== couponId));
+      showSuccessToast(t("Coupon deleted"));
+    } catch {
+      showErrorToast(t("Failed to delete coupon"));
     }
-    setIsDialogOpen(false);
-    setEditingCoupon(undefined);
+  };
+
+  const handleStatusChange = async (couponId: number, newStatus: boolean) => {
+    try {
+      const coupon = coupons.find((c) => c.id === couponId);
+      if (!coupon) return;
+      await api.put(`/coupons/${couponId}`, {
+        code: coupon.code,
+        discountType: coupon.discountType,
+        discountValue: coupon.discountValue,
+        isActive: newStatus,
+      });
+      setCoupons((prev) =>
+        prev.map((c) => (c.id === couponId ? { ...c, isActive: newStatus } : c)),
+      );
+    } catch {
+      showErrorToast(t("Failed to update coupon"));
+    }
+  };
+
+  const handleSaveCoupon = async (coupon: Coupon) => {
+    try {
+      const payload = {
+        code: coupon.code,
+        discountType: coupon.discountType,
+        discountValue: coupon.discountValue,
+        minOrderAmount: coupon.minOrderAmount,
+        maxUses: coupon.usageLimit || undefined,
+        startDate: coupon.startDate || undefined,
+        expiryDate: coupon.endDate || undefined,
+        isActive: coupon.isActive,
+      };
+
+      if (editingCoupon) {
+        await api.put(`/coupons/${editingCoupon.id}`, payload);
+        showSuccessToast(t("Coupon updated"));
+      } else {
+        await api.post("/coupons", payload);
+        showSuccessToast(t("Coupon created"));
+      }
+      fetchCoupons();
+      setIsDialogOpen(false);
+      setEditingCoupon(undefined);
+    } catch (err: any) {
+      showErrorToast(err?.response?.data?.message ?? t("Failed to save coupon"));
+    }
   };
 
   return (
@@ -100,7 +163,6 @@ const CouponsPage = () => {
         />
       </div>
 
-      {/* Overview Cards */}
       <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <OverviewCard
           data={{
@@ -144,7 +206,6 @@ const CouponsPage = () => {
         <div className="pointer-events-none fixed inset-0 z-60 bg-black/50" />
       )}
 
-      {/* Search + Filter */}
       <div className="mb-4 flex flex-col gap-3 sm:flex-row">
         <SearchInputField
           value={search}
@@ -162,13 +223,16 @@ const CouponsPage = () => {
         />
       </div>
 
-      {/* Table */}
-      <CouponsTable
-        coupons={filtered}
-        onStatusChange={handleStatusChange}
-        onEdit={handleEditCoupon}
-        onDelete={handleDeleteCoupon}
-      />
+      {loading ? (
+        <p className="py-10 text-center text-[13px] text-[#8B8B8B]">{t("Loading...")}</p>
+      ) : (
+        <CouponsTable
+          coupons={filtered}
+          onStatusChange={handleStatusChange}
+          onEdit={handleEditCoupon}
+          onDelete={handleDeleteCoupon}
+        />
+      )}
 
       <CreateCouponDialog
         isOpen={isDialogOpen}
