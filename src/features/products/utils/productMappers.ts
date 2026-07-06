@@ -3,10 +3,6 @@ import type { Product, VariantGroup, ProductExtra } from "../types";
 export const DEFAULT_PRODUCT_IMAGE =
   "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=600&q=80";
 
-// Derive static-files base from the API URL (strip /api suffix)
-const API_BASE = (import.meta.env.VITE_API_URL as string || "http://localhost:5001/api")
-  .replace(/\/api\/?$/, "");
-
 export const resolveImageUrl = (path?: string | string[]): string => {
   if (!path) return DEFAULT_PRODUCT_IMAGE;
   const p = Array.isArray(path) ? path[0] : path;
@@ -14,9 +10,7 @@ export const resolveImageUrl = (path?: string | string[]): string => {
   if (p.startsWith("http://") || p.startsWith("https://") || p.startsWith("data:")) {
     return p;
   }
-  // Strip any leading absolute path artifacts (e.g. "uploads/..." or "/uploads/...")
-  const relative = p.replace(/^.*[/\\](uploads[/\\].+)$/, "$1").replace(/\\/g, "/");
-  return `${API_BASE}/${relative}`;
+  return `https://api.patriacoffeebeans.com/${p}`;
 };
 
 export const mapProduct = (backendProduct: any): Product => {
@@ -52,7 +46,6 @@ export const mapProduct = (backendProduct: any): Product => {
     category: categoryName,
     imageUrl: resolveImageUrl(backendProduct.image || backendProduct.images),
     price: backendProduct.price,
-    costPrice: backendProduct.costPrice ?? undefined,
     available: backendProduct.isActive ?? backendProduct.available ?? true,
     extras,
     variantGroups,

@@ -23,7 +23,6 @@ import {
 } from "./data";
 import { useUsers } from "./hooks/useUsers";
 import { useCustomers } from "@/features/customers/hooks/useCustomers";
-import { api } from "@/config/api";
 import type {
   AppUser,
   PermissionPage,
@@ -180,23 +179,6 @@ const UsersPermissionsPage = () => {
   const confirmToggleBlock = () => {
     if (!blockingAppUser) return;
     const id = blockingAppUser.id;
-    const isCurrentlyBlocked = blockingAppUser.status === "Blocked";
-
-    // Find the original customer record to get the real backend ID
-    const originalCustomer = customers.find(
-      (c) => c.name === blockingAppUser.name,
-    );
-    if (originalCustomer) {
-      api
-        .patch(`/customers/${originalCustomer.id}`, {
-          isBlocked: !isCurrentlyBlocked,
-        })
-        .then(() => getCustomersList())
-        .catch(() => {
-          // silently ignore — local state already reflects the toggle
-        });
-    }
-
     setBlockedCustomerIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);

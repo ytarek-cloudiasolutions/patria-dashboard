@@ -6,7 +6,7 @@ import {
 import { Separator } from "@/shared/components/ui/separator";
 import { Button } from "@/shared/components/ui/button";
 import DefaultButton from "@/shared/components/DefaultButton";
-import type { Coupon, CouponFormData } from "../types";
+import type { Coupon } from "../types";
 import CreateCouponForm from "./CreateCouponForm";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 
@@ -15,7 +15,7 @@ const FORM_ID = "create-coupon-form";
 interface CreateCouponDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onSaveCoupon: (data: CouponFormData) => void;
+  onSaveCoupon: (coupon: Coupon) => void;
   editingCoupon?: Coupon;
 }
 

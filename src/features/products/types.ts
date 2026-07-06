@@ -17,7 +17,6 @@ export interface Product {
   category: string;
   imageUrl: string;
   price: number;
-  costPrice?: number;
   discount?: ProductDiscount;
   available: boolean;
   extras?: ProductExtra[];
@@ -85,7 +84,6 @@ export interface ProductFormData {
   description: string;
   barcode: string;
   price: string;
-  costPrice?: string;
   quantity: string;
   imageUrl?: string;
   imageFile?: File;

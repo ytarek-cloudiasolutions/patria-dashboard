@@ -58,7 +58,6 @@ const INITIAL_FORM: ProductFormData = {
   description: "",
   barcode: "",
   price: "",
-  costPrice: "",
   quantity: "",
   imageUrl: undefined,
   imageFile: undefined,
@@ -112,7 +111,6 @@ const AddProductDialog = ({
             category: categoryId,
             description: editingProduct.description,
             price: String(editingProduct.price),
-            costPrice: editingProduct.costPrice != null ? String(editingProduct.costPrice) : "",
             imageUrl: editingProduct.imageUrl,
             extras: editingProduct.extras ?? [],
             variantGroups: editingProduct.variantGroups ?? [],
@@ -391,7 +389,7 @@ const AddProductDialog = ({
               }}
             />
 
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
               <div>
                 <InputField
                   data={{
@@ -417,23 +415,6 @@ const AddProductDialog = ({
                   </p>
                 )}
               </div>
-              <InputField
-                data={{
-                  id: "product-cost-price",
-                  label: {
-                    htmlFor: "product-cost-price",
-                    labelText: `${t("Cost Price")} ${t("(Optional)")}`,
-                  },
-                  placeholder: "0",
-                  inputProps: {
-                    type: "number",
-                    min: "0",
-                    step: "0.01",
-                    value: form.costPrice ?? "",
-                    onChange: (e) => set("costPrice", e.target.value),
-                  },
-                }}
-              />
               <InputField
                 data={{
                   id: "product-quantity",

@@ -13,6 +13,7 @@ import DefaultButton from "@/shared/components/DefaultButton";
 import DropdownSelect from "@/shared/components/DropdownSelect";
 import InputField from "@/shared/components/InputField";
 import DatePicker from "@/shared/components/DatePicker";
+import { PRODUCT_OPTIONS, SUPPLIER_OPTIONS, WAREHOUSE_OPTIONS } from "../data";
 import type { PoFormState, PoLineItem } from "../types";
 
 const FORM_ID = "create-po-form";
@@ -31,37 +32,34 @@ const INITIAL_FORM: PoFormState = {
   items: [newLineItem()],
 };
 
+const supplierOptions = SUPPLIER_OPTIONS.map((s) => ({
+  value: s.id,
+  label: s.label,
+}));
+
+const warehouseOptions = WAREHOUSE_OPTIONS.map((w) => ({
+  value: w.id,
+  label: w.label,
+}));
+
+const productOptions = PRODUCT_OPTIONS.map((p) => ({
+  value: p.id,
+  label: p.label,
+}));
+
 const formatEgp = (value: number) =>
   `EGP ${value.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
-
-interface DynamicOption {
-  value: string;
-  label: string;
-}
-
-interface DynamicProductOption extends DynamicOption {
-  defaultCost?: number;
-}
 
 interface CreatePoDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: (form: PoFormState) => void;
-  /** Real supplier options from the suppliers store. */
-  supplierOptions?: DynamicOption[];
-  /** Real warehouse options from the warehouses store. */
-  warehouseOptions?: DynamicOption[];
-  /** Real product options from the products store. */
-  productOptions?: DynamicProductOption[];
 }
 
 const CreatePoDialog = ({
   open,
   onOpenChange,
   onSave,
-  supplierOptions = [],
-  warehouseOptions = [],
-  productOptions = [],
 }: CreatePoDialogProps) => {
   const { t } = useTranslation();
   const [form, setForm] = useState<PoFormState>(INITIAL_FORM);
@@ -224,10 +222,10 @@ const CreatePoDialog = ({
                           selected={item.productId}
                           onSelect={(value) => {
                             updateItem(item.id, "productId", value);
-                            const product = productOptions.find(
-                              (p) => p.value === value,
+                            const product = PRODUCT_OPTIONS.find(
+                              (p) => p.id === value,
                             );
-                            if (product && item.unitCost === 0 && product.defaultCost) {
+                            if (product && item.unitCost === 0) {
                               updateItem(
                                 item.id,
                                 "unitCost",

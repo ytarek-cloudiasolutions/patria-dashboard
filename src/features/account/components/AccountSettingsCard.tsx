@@ -9,14 +9,12 @@ interface AccountSettingsCardProps {
   form: AccountFormData;
   onChange: (key: keyof AccountFormData, value: string) => void;
   onSave: () => void;
-  isSaving?: boolean;
 }
 
 const AccountSettingsCard = ({
   form,
   onChange,
   onSave,
-  isSaving = false,
 }: AccountSettingsCardProps) => {
   const { t } = useTranslation();
   return (
@@ -74,11 +72,10 @@ const AccountSettingsCard = ({
         <Button
           type="button"
           onClick={onSave}
-          disabled={isSaving}
-          className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[8px] text-[15px] font-semibold text-white sm:h-13 disabled:opacity-70"
+          className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[8px] text-[15px] font-semibold text-white sm:h-13"
         >
           <Save className="size-4.5" />
-          {isSaving ? t("Saving...") : t("Save Changes")}
+          {t("Save Changes")}
         </Button>
       </CardContent>
     </Card>

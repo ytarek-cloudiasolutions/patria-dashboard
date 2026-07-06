@@ -119,7 +119,7 @@ const SuppliersPage = () => {
         />
       </div>
 
-      <SuppliersOverview suppliers={suppliers} />
+      <SuppliersOverview totalSuppliers={suppliers.length} />
 
       <div className="mb-5">
         <SearchInputField

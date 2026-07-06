@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Plus, RefreshCw } from "lucide-react";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
@@ -13,6 +13,7 @@ import TransactionsTable from "./components/TransactionsTable";
 import AddTransactionDialog from "./components/AddTransactionDialog";
 
 import {
+  INITIAL_TRANSACTIONS,
   PERFORMANCE_INDICATORS,
   REVENUES_VS_EXPENSES_BREAKDOWN,
 } from "./data";
@@ -22,94 +23,64 @@ import type {
   TransactionCategory,
   TransactionFormData,
 } from "./types";
-import type { Transaction as BackendTransaction } from "./store/financialTypes";
-import { useFinancial } from "./hooks/useFinancial";
 
-const formatPercent = (value: number) => `${value.toFixed(1)}%`;
-
-/** Map a backend transaction category string to a local TransactionCategory */
-const mapCategory = (raw?: string): TransactionCategory => {
-  if (!raw) return "Other";
-  const CATEGORY_MAP: Record<string, TransactionCategory> = {
-    salary: "Salary",
-    rent: "Rent",
-    sales: "Sales",
-    utilities: "Utilities",
-    marketing: "Marketing",
-  };
-  return CATEGORY_MAP[raw.toLowerCase()] ?? "Other";
-};
-
-/** Map a backend Transaction to the local FinancialTransaction shape */
-const mapTransaction = (tx: BackendTransaction): FinancialTransaction => {
-  const isSalary = tx.type === "salary";
-  const isExpense = tx.type === "expense" || isSalary;
-
-  return {
-    id: tx._id,
-    statement: tx.description,
-    category: mapCategory(tx.category),
-    amount: isExpense ? -Math.abs(tx.amount) : Math.abs(tx.amount),
-    type: isExpense ? "Expense" : "Income",
-    date: new Date(tx.date).toLocaleDateString("en-US"),
-    status: "Registered",
-    classifiedAsSalary: isSalary,
-  };
-};
+const formatPercent = (value: number) =>
+  `${value.toFixed(1)}%`;
 
 const FinancialHubPage = () => {
   const { t } = useTranslation();
   const [tab, setTab] = useState<FinancialTab>("overview");
+  const [transactions, setTransactions] = useState<FinancialTransaction[]>(
+    INITIAL_TRANSACTIONS,
+  );
   const [isAddOpen, setIsAddOpen] = useState(false);
 
-  const {
-    overview,
-    transactions: backendTransactions,
-    getOverview,
-    getTransactions,
-    createTransaction,
-  } = useFinancial();
+  const overview = useMemo(() => {
+    const revenue = transactions
+      .filter((t) => t.type === "Income")
+      .reduce((sum, t) => sum + t.amount, 0);
+    const expenses = transactions
+      .filter((t) => t.type === "Expense")
+      .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+    const netProfit = revenue - expenses;
+    const profitMargin = revenue === 0 ? 0 : (netProfit / revenue) * 100;
 
-  useEffect(() => {
-    getOverview();
-    getTransactions();
-  }, [getOverview, getTransactions]);
-
-  // Map backend transactions to local shape for UI components
-  const transactions = useMemo(
-    () => backendTransactions.map(mapTransaction),
-    [backendTransactions],
-  );
-
-  const totalRevenue = overview?.totalRevenue ?? 0;
-  const totalExpenses = overview?.totalExpenses ?? 0;
-  const netProfit = overview?.netProfit ?? 0;
-  const profitMargin = overview?.profitMargin ?? 0;
+    return {
+      totalRevenue: revenue,
+      totalExpenses: expenses,
+      netProfit,
+      profitMargin,
+    };
+  }, [transactions]);
 
   const expenseTransactions = useMemo(
     () =>
       transactions.filter(
-        (tx) => tx.type === "Expense" || tx.category === "Sales",
+        (t) => t.type === "Expense" || t.category === "Sales",
       ),
     [transactions],
   );
 
   const salaryTransactions = useMemo(
-    () => transactions.filter((tx) => tx.classifiedAsSalary),
+    () => transactions.filter((t) => t.classifiedAsSalary),
     [transactions],
   );
 
   const handleAddTransaction = (data: TransactionFormData) => {
-    const amount = Math.abs(Number(data.amount) || 0);
-    const isSalaryExpense = data.type === "Expense" && data.classifyAsSalary;
-
-    createTransaction({
-      type: isSalaryExpense ? "salary" : data.type === "Expense" ? "expense" : "income",
-      description: data.statement.trim(),
-      amount,
-      date: data.date || undefined,
-      category: data.category || undefined,
-    });
+    const amount = Number(data.amount) || 0;
+    const newTransaction: FinancialTransaction = {
+      id: Date.now(),
+      statement: data.statement.trim(),
+      category: data.category as TransactionCategory,
+      amount: data.type === "Expense" ? -Math.abs(amount) : Math.abs(amount),
+      type: data.type,
+      date: data.date
+        ? new Date(data.date).toLocaleDateString("en-US")
+        : new Date().toLocaleDateString("en-US"),
+      status: "Registered",
+      classifiedAsSalary: data.classifyAsSalary,
+    };
+    setTransactions((prev) => [newTransaction, ...prev]);
   };
 
   return (
@@ -123,7 +94,6 @@ const FinancialHubPage = () => {
           <button
             type="button"
             aria-label="Refresh"
-            onClick={() => { getOverview(); getTransactions(); }}
             className="flex size-12 cursor-pointer items-center justify-center rounded-[8px] bg-[#FBF6EC] text-primary hover:bg-[#F5F0EA] sm:size-14"
           >
             <RefreshCw className="size-5" />
@@ -139,10 +109,10 @@ const FinancialHubPage = () => {
       </div>
 
       <FinancialOverview
-        totalRevenue={totalRevenue}
-        totalExpenses={totalExpenses}
-        netProfit={netProfit}
-        profitMargin={formatPercent(profitMargin)}
+        totalRevenue={overview.totalRevenue}
+        totalExpenses={overview.totalExpenses}
+        netProfit={overview.netProfit}
+        profitMargin={formatPercent(overview.profitMargin)}
       />
 
       <FinancialTabs active={tab} onChange={setTab} />
@@ -150,8 +120,8 @@ const FinancialHubPage = () => {
       {tab === "overview" ? (
         <>
           <RevenueExpenseBar
-            revenue={totalRevenue + totalExpenses}
-            expenses={totalRevenue + totalExpenses}
+            revenue={overview.totalRevenue + overview.totalExpenses}
+            expenses={overview.totalRevenue + overview.totalExpenses}
           />
 
           <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-2">

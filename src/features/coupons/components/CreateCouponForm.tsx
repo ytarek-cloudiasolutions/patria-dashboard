@@ -12,11 +12,11 @@ import InputField from "@/shared/components/InputField";
 import DatePicker from "@/shared/components/DatePicker";
 import ChevronDown from "@/assets/icons/chevronDown.svg";
 import { useTranslation } from "@/shared/i18n/useTranslation";
-import type { Coupon, CouponFormData } from "../types";
+import type { Coupon } from "../types";
 
 interface CreateCouponFormProps {
   id?: string;
-  onSubmit: (data: CouponFormData) => void;
+  onSubmit: (coupon: Coupon) => void;
   editingCoupon?: Coupon;
 }
 
@@ -29,6 +29,7 @@ const CreateCouponForm = ({
   const [code, setCode] = useState("");
   const [discountType, setDiscountType] = useState<"percentage" | "fixed">("percentage");
   const [discountValue, setDiscountValue] = useState("");
+  const [minOrderAmount, setMinOrderAmount] = useState("0");
   const [usageLimit, setUsageLimit] = useState("0");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -42,9 +43,10 @@ const CreateCouponForm = ({
       setCode(editingCoupon.code);
       setDiscountType(editingCoupon.discountType);
       setDiscountValue(editingCoupon.discountValue.toString());
-      setUsageLimit((editingCoupon.maxUses ?? 0).toString());
-      setStartDate("");
-      setEndDate(editingCoupon.expiryDate ?? "");
+      setMinOrderAmount(editingCoupon.minOrderAmount.toString());
+      setUsageLimit(editingCoupon.usageLimit.toString());
+      setStartDate(editingCoupon.startDate);
+      setEndDate(editingCoupon.endDate);
       setIsActive(editingCoupon.isActive);
     } else {
       resetForm();
@@ -55,6 +57,7 @@ const CreateCouponForm = ({
     setCode("");
     setDiscountType("percentage");
     setDiscountValue("");
+    setMinOrderAmount("0");
     setUsageLimit("0");
     setStartDate("");
     setEndDate("");
@@ -75,7 +78,10 @@ const CreateCouponForm = ({
     } else if (discountType === "percentage" && Number(discountValue) > 100) {
       newErrors.discountValue = "Percentage cannot exceed 100";
     }
-    if (endDate && startDate && endDate <= startDate) {
+    if (!startDate) newErrors.startDate = "Start date is required";
+    if (!endDate) {
+      newErrors.endDate = "End date is required";
+    } else if (startDate && endDate <= startDate) {
       newErrors.endDate = "End date must be after start date";
     }
 
@@ -87,18 +93,20 @@ const CreateCouponForm = ({
     e.preventDefault();
     if (!validate()) return;
 
-    const maxUsesVal = parseInt(usageLimit) || 0;
-
-    const formData: CouponFormData = {
+    const coupon: Coupon = {
+      id: editingCoupon?.id ?? Date.now(),
       code: code.trim().toUpperCase(),
       discountType,
       discountValue: parseFloat(discountValue),
-      maxUses: maxUsesVal > 0 ? maxUsesVal : undefined,
-      expiryDate: endDate || undefined,
+      minOrderAmount: parseFloat(minOrderAmount) || 0,
+      usageLimit: parseInt(usageLimit) || 0,
+      usedCount: editingCoupon?.usedCount ?? 0,
+      startDate,
+      endDate,
       isActive,
     };
 
-    onSubmit(formData);
+    onSubmit(coupon);
     resetForm();
   };
 
@@ -220,8 +228,28 @@ const CreateCouponForm = ({
           </div>
         </div>
 
-        {/* Max Usage */}
+        {/* Min Order + Max Usage */}
         <div className="flex flex-col gap-5 sm:flex-row">
+          <div className="flex-1">
+            <InputField
+              data={{
+                id: "min-order",
+                placeholder: "0",
+                label: {
+                  htmlFor: "min-order",
+                  labelText: t("Min. Order (EGP)"),
+                },
+                inputProps: {
+                  type: "number",
+                  min: "0",
+                  value: minOrderAmount,
+                  onChange: (e) => setMinOrderAmount(e.target.value),
+                },
+              }}
+            />
+            <p className="text-[12px] text-[#8B8B8B] mt-1">{t("Optional")}</p>
+          </div>
+
           <div className="flex-1">
             <InputField
               data={{
@@ -247,7 +275,7 @@ const CreateCouponForm = ({
         <div className="flex flex-col gap-5 sm:flex-row">
           <div className="flex-1">
             <Label className="text-[#000000] text-[16px] font-medium mb-2.5 block">
-              {t("Start Date")}
+              {t("Start Date")}<span className="text-[#C90000]">*</span>
             </Label>
             <DatePicker
               value={startDate}
@@ -260,11 +288,16 @@ const CreateCouponForm = ({
               popoverPlacement="bottom-right"
               withBackdrop
             />
+            {errors.startDate && (
+              <p className="text-[#C90000] text-[13px] mt-1">
+                {errors.startDate}
+              </p>
+            )}
           </div>
 
           <div className="flex-1">
             <Label className="text-[#000000] text-[16px] font-medium mb-2.5 block">
-              {t("End Date")}
+              {t("End Date")}<span className="text-[#C90000]">*</span>
             </Label>
             <DatePicker
               value={endDate}

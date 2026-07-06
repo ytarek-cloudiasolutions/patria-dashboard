@@ -13,7 +13,7 @@ export type TransactionCategory =
 export type TransactionStatus = "Registered" | "Pending";
 
 export interface FinancialTransaction {
-  id: string | number;
+  id: number;
   statement: string;
   category: TransactionCategory;
   amount: number;

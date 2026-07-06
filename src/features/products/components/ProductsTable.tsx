@@ -1,4 +1,4 @@
-import { SquarePen, Trash2, Loader2, ChefHat } from "lucide-react";
+import { SquarePen, Trash2, Loader2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -22,7 +22,6 @@ interface ProductsTableProps {
   onToggleAvailability: (id: string, available: boolean) => void;
   onEdit: (product: Product) => void;
   onDelete: (product: Product) => void;
-  onRecipe?: (product: Product) => void;
 }
 
 const StatusBadge = ({ available }: { available: boolean }) => {
@@ -68,7 +67,6 @@ const RowActions = ({
   onToggleAvailability,
   onEdit,
   onDelete,
-  onRecipe,
   togglingProductId,
   isMutating = false,
 }: {
@@ -76,11 +74,9 @@ const RowActions = ({
   onToggleAvailability: (id: string, available: boolean) => void;
   onEdit: (product: Product) => void;
   onDelete: (product: Product) => void;
-  onRecipe?: (product: Product) => void;
   togglingProductId: string | null;
   isMutating?: boolean;
 }) => {
-  const { t } = useTranslation();
   const isTogglingThis = togglingProductId === product.id;
   return (
     <div className="flex items-center justify-end gap-4">
@@ -95,18 +91,6 @@ const RowActions = ({
           onCheckedChange={(val) => onToggleAvailability(product.id, val)}
           className="data-[state=checked]:bg-[#059B5A] ring-[#059B5A33]"
         />
-      )}
-      {onRecipe && (
-        <button
-          type="button"
-          disabled={isMutating || togglingProductId !== null}
-          onClick={() => onRecipe(product)}
-          aria-label={`${t("Recipe")} ${product.name}`}
-          title={t("Recipe (الريسبي)")}
-          className="cursor-pointer text-[#059B5A] hover:text-[#059B5A]/70 disabled:opacity-50"
-        >
-          <ChefHat className="size-4.5" />
-        </button>
       )}
       <button
         type="button"
@@ -146,7 +130,6 @@ const ProductsTable = ({
   onToggleAvailability,
   onEdit,
   onDelete,
-  onRecipe,
 }: ProductsTableProps) => {
   const { t } = useTranslation();
   return (
@@ -185,7 +168,6 @@ const ProductsTable = ({
                   onToggleAvailability={onToggleAvailability}
                   onEdit={onEdit}
                   onDelete={onDelete}
-                  onRecipe={onRecipe}
                   togglingProductId={togglingProductId}
                   isMutating={isMutating}
                 />

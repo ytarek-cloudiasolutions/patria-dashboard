@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import HeaderLayout from "@/layouts/HeaderLayout";
@@ -9,132 +9,27 @@ import PurchasingOverview from "./components/PurchasingOverview";
 import PurchasingTable from "./components/PurchasingTable";
 import CreatePoDialog from "./components/CreatePoDialog";
 import PaymentDialog from "./components/PaymentDialog";
-
-import { usePurchasing } from "./hooks/usePurchasing";
-import { useSuppliers } from "@/features/suppliers/hooks/useSuppliers";
-import { useProducts } from "@/features/products/hooks/useProducts";
-import { useWarehouses } from "@/features/warehouses/hooks/useWarehouses";
-
-import { PURCHASING_STATUS_FILTERS } from "./data";
-import type { ApiPurchaseOrder } from "./store/purchasingTypes";
+import {
+  INITIAL_PURCHASE_ORDERS,
+  PRODUCT_OPTIONS,
+  PURCHASING_STATUS_FILTERS,
+  SUPPLIER_OPTIONS,
+  WAREHOUSE_OPTIONS,
+} from "./data";
 import type { PoFormState, PoStatus, PurchaseOrder } from "./types";
-
-// Map backend status → UI status
-const mapStatus = (s: ApiPurchaseOrder["status"]): PoStatus => {
-  switch (s) {
-    case "draft":
-      return "Pending";
-    case "submitted":
-      return "Unpaid";
-    case "received":
-      return "Paid";
-    case "cancelled":
-      return "Canceled";
-    default:
-      return "Pending";
-  }
-};
-
-// Map backend ApiPurchaseOrder → local UI PurchaseOrder
-const mapOrder = (o: ApiPurchaseOrder, index: number, paidAmounts: Record<string, number>): PurchaseOrder => {
-  const supplierId =
-    typeof o.supplierId === "object" && o.supplierId !== null
-      ? (o.supplierId as Record<string, unknown>)
-      : null;
-  const warehouseId =
-    typeof o.warehouseId === "object" && o.warehouseId !== null
-      ? (o.warehouseId as Record<string, unknown>)
-      : null;
-
-  return {
-    id: index,
-    poNumber: o.poNumber,
-    kind: "purchase order",
-    supplierId: supplierId ? String(supplierId._id ?? "") : String(o.supplierId ?? ""),
-    supplierName: supplierId ? String(supplierId.name ?? "") : "",
-    contactEmail: supplierId ? String(supplierId.email ?? "") : "",
-    warehouseId: warehouseId ? String(warehouseId._id ?? "") : String(o.warehouseId ?? ""),
-    warehouseName: warehouseId ? String(warehouseId.name ?? "") : "",
-    totalAmount: o.totalAmount ?? 0,
-    paid: paidAmounts[o._id] ?? 0,
-    status: mapStatus(o.status),
-    expectedDeliveryDate: o.createdAt?.slice(0, 10) ?? "",
-    items: (o.items ?? []).map((item, i) => ({
-      id: `li-${index}-${i}`,
-      productId: item.productId,
-      quantity: item.quantity,
-      unitCost: item.unitPrice ?? 0,
-    })),
-  };
-};
 
 const ProcurementPage = () => {
   const { t } = useTranslation();
-
-  const {
-    purchaseOrders,
-    getPurchaseOrders,
-    createPurchaseOrder,
-    submitPurchaseOrder,
-    cancelPurchaseOrder,
-  } = usePurchasing();
-
-  const { suppliers, getSuppliersList } = useSuppliers();
-  const { products, getProducts } = useProducts();
-  const { warehouses: backendWarehouses, getWarehouses } = useWarehouses();
-
-  // Track local payment amounts keyed by backend _id (no payment API in hook)
-  const [paidAmounts, setPaidAmounts] = useState<Record<string, number>>({});
-
+  const [orders, setOrders] = useState<PurchaseOrder[]>(
+    INITIAL_PURCHASE_ORDERS,
+  );
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [isStatusFilterOpen, setIsStatusFilterOpen] = useState(false);
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [paymentTarget, setPaymentTarget] = useState<PurchaseOrder | null>(null);
-
-  useEffect(() => {
-    getPurchaseOrders();
-    getSuppliersList({ limit: 100 });
-    getProducts({ limit: 100 });
-    getWarehouses();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Map backend orders → local UI orders
-  const orders: PurchaseOrder[] = useMemo(
-    () => (purchaseOrders ?? []).map((o, i) => mapOrder(o, i, paidAmounts)),
-    [purchaseOrders, paidAmounts],
-  );
-
-  // Build dropdown options from real backend data
-  const supplierOptions = useMemo(
-    () =>
-      (suppliers ?? []).map((s) => ({
-        value: String(s.id),
-        label: s.name,
-        email: s.email,
-      })),
-    [suppliers],
-  );
-
-  const warehouseOptions = useMemo(
-    () =>
-      (backendWarehouses ?? []).map((w) => ({
-        value: w._id,
-        label: w.name,
-      })),
-    [backendWarehouses],
-  );
-
-  const productOptions = useMemo(
-    () =>
-      (products ?? []).map((p) => ({
-        value: p.id,
-        label: p.name,
-        defaultCost: p.price ?? 0,
-      })),
-    [products],
+  const [paymentTarget, setPaymentTarget] = useState<PurchaseOrder | null>(
+    null,
   );
 
   const filteredOrders = useMemo(() => {
@@ -170,42 +65,68 @@ const ProcurementPage = () => {
   }, [orders]);
 
   const handleSavePo = (form: PoFormState) => {
+    const supplier = SUPPLIER_OPTIONS.find((s) => s.id === form.supplierId);
+    const warehouse = WAREHOUSE_OPTIONS.find((w) => w.id === form.warehouseId);
+    if (!supplier || !warehouse) return;
+
+    const total = form.items.reduce(
+      (sum, item) => sum + item.quantity * item.unitCost,
+      0,
+    );
+
+    const yearMonth = new Date()
+      .toISOString()
+      .slice(0, 7)
+      .replace("-", "");
+    const number = `PO-${yearMonth}-${String(orders.length + 1).padStart(4, "0")}`;
+
     const items = form.items
       .filter((item) => item.productId && item.quantity > 0)
-      .map((item) => {
-        const product = (products ?? []).find((p) => p.id === item.productId);
-        return {
-          productId: item.productId,
-          productName: product?.name ?? item.productId,
-          quantity: item.quantity,
-          unitPrice: item.unitCost,
-        };
-      });
+      .map((item) => ({
+        ...item,
+        productId:
+          PRODUCT_OPTIONS.find((p) => p.id === item.productId)?.id ??
+          item.productId,
+      }));
 
-    if (!form.supplierId || !form.warehouseId || items.length === 0) return;
-
-    createPurchaseOrder({
-      supplierId: form.supplierId,
-      warehouseId: form.warehouseId,
+    const newOrder: PurchaseOrder = {
+      id: Date.now(),
+      poNumber: number,
+      kind: "purchase order",
+      supplierId: supplier.id,
+      supplierName: supplier.label,
+      contactEmail: supplier.email,
+      warehouseId: warehouse.id,
+      warehouseName: warehouse.label,
+      totalAmount: total,
+      paid: 0,
+      status: total > 0 ? "Unpaid" : "Pending",
+      expectedDeliveryDate: form.expectedDeliveryDate,
       items,
-    });
+    };
+    setOrders((prev) => [newOrder, ...prev]);
   };
 
   const handleSubmitToSupplier = (order: PurchaseOrder) => {
-    const backendOrder = (purchaseOrders ?? [])[order.id];
-    if (backendOrder && backendOrder.status === "draft") {
-      submitPurchaseOrder(backendOrder._id);
-    }
+    setOrders((prev) =>
+      prev.map((o) =>
+        o.id === order.id && o.status === "Pending"
+          ? { ...o, status: "Unpaid" }
+          : o,
+      ),
+    );
   };
 
   const handleConfirmPayment = (orderId: number, amount: number) => {
-    const backendOrder = (purchaseOrders ?? [])[orderId];
-    if (!backendOrder) return;
-    // Track payment locally (no payment API in hook)
-    setPaidAmounts((prev) => ({
-      ...prev,
-      [backendOrder._id]: (prev[backendOrder._id] ?? 0) + amount,
-    }));
+    setOrders((prev) =>
+      prev.map((o) => {
+        if (o.id !== orderId) return o;
+        const newPaid = o.paid + amount;
+        const newStatus: PoStatus =
+          newPaid >= o.totalAmount ? "Paid" : "Unpaid";
+        return { ...o, paid: newPaid, status: newStatus };
+      }),
+    );
   };
 
   return (
@@ -245,10 +166,7 @@ const ProcurementPage = () => {
         </div>
         <div className="sm:w-64">
           <DropdownSelect
-            options={PURCHASING_STATUS_FILTERS.map((o) => ({
-              ...o,
-              label: t(o.label),
-            }))}
+            options={PURCHASING_STATUS_FILTERS.map((o) => ({ ...o, label: t(o.label) }))}
             selected={statusFilter}
             onSelect={setStatusFilter}
             onOpenChange={setIsStatusFilterOpen}
@@ -270,9 +188,6 @@ const ProcurementPage = () => {
         open={isCreateOpen}
         onOpenChange={setIsCreateOpen}
         onSave={handleSavePo}
-        supplierOptions={supplierOptions}
-        warehouseOptions={warehouseOptions}
-        productOptions={productOptions}
       />
 
       <PaymentDialog

@@ -1,26 +1,14 @@
 import { Truck, Zap, Users, Star } from "lucide-react";
 import OverviewCard from "@/shared/components/OverviewCard";
 import { useTranslation } from "@/shared/i18n/useTranslation";
-import type { Supplier } from "../types";
+import { SUPPLIER_OVERVIEW } from "../data";
 
 interface SuppliersOverviewProps {
-  suppliers: Supplier[];
+  totalSuppliers: number;
 }
 
-const SuppliersOverview = ({ suppliers }: SuppliersOverviewProps) => {
+const SuppliersOverview = ({ totalSuppliers }: SuppliersOverviewProps) => {
   const { t } = useTranslation();
-
-  const totalSuppliers = suppliers.length;
-  const activeSuppliers = suppliers.filter(
-    (s) => s.status === "Documented",
-  ).length;
-  const pendingSuppliers = suppliers.filter(
-    (s) => s.status === "Pending",
-  ).length;
-  const inactiveSuppliers = suppliers.filter(
-    (s) => s.status === "Inactive",
-  ).length;
-
   return (
     <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
       <OverviewCard
@@ -34,8 +22,8 @@ const SuppliersOverview = ({ suppliers }: SuppliersOverviewProps) => {
       />
       <OverviewCard
         data={{
-          title: t("Active suppliers"),
-          value: activeSuppliers,
+          title: t("Supply speed"),
+          value: SUPPLIER_OVERVIEW.supplySpeed,
           icon: <Zap size={18} />,
           iconColor: "text-[#1A7A45]",
           badgeColor: "bg-[#E0F5EC]",
@@ -43,8 +31,8 @@ const SuppliersOverview = ({ suppliers }: SuppliersOverviewProps) => {
       />
       <OverviewCard
         data={{
-          title: t("Pending suppliers"),
-          value: pendingSuppliers,
+          title: t("Average supply cycle"),
+          value: SUPPLIER_OVERVIEW.averageSupplyCycle,
           icon: <Users size={18} />,
           iconColor: "text-[#5C6EAE]",
           badgeColor: "bg-[#E0E8F5]",
@@ -52,8 +40,8 @@ const SuppliersOverview = ({ suppliers }: SuppliersOverviewProps) => {
       />
       <OverviewCard
         data={{
-          title: t("Inactive suppliers"),
-          value: inactiveSuppliers,
+          title: t("quality assurance"),
+          value: SUPPLIER_OVERVIEW.qualityAssurance,
           icon: <Star size={18} />,
           iconColor: "text-[#7A1A7A]",
           badgeColor: "bg-[#F5E0F5]",

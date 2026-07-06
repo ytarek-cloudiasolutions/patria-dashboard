@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   CircleX,
   Plus,
@@ -11,11 +11,11 @@ import DefaultButton from "@/shared/components/DefaultButton";
 import OverviewCard from "@/shared/components/OverviewCard";
 import SearchInputField from "@/shared/components/SearchInputField";
 import DropdownSelect from "@/shared/components/DropdownSelect";
-import type { Coupon, CouponFormData } from "./types";
+import { MOCK_COUPONS } from "./data";
+import type { Coupon } from "./types";
 import CouponsTable from "./components/CouponsTable";
 import CreateCouponDialog from "./components/CreateCouponDialog";
 import { useTranslation } from "@/shared/i18n/useTranslation";
-import { useCoupons } from "./hooks/useCoupons";
 
 const CATEGORY_OPTIONS = [
   { label: "All Categories", value: "all" },
@@ -25,28 +25,17 @@ const CATEGORY_OPTIONS = [
 
 const CouponsPage = () => {
   const { t } = useTranslation();
-  const {
-    coupons,
-    getCouponsList,
-    createCoupon,
-    updateCoupon,
-    deleteCoupon,
-  } = useCoupons();
-
+  const [coupons, setCoupons] = useState<Coupon[]>(MOCK_COUPONS);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCoupon, setEditingCoupon] = useState<Coupon | undefined>();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
 
-  useEffect(() => {
-    getCouponsList();
-  }, [getCouponsList]);
-
   const stats = useMemo(
     () => ({
       active: coupons.filter((c) => c.isActive).length,
-      usageTimes: coupons.reduce((sum, c) => sum + c.currentUses, 0),
+      usageTimes: coupons.reduce((sum, c) => sum + c.usedCount, 0),
       total: coupons.length,
       inactive: coupons.filter((c) => !c.isActive).length,
     }),
@@ -71,32 +60,23 @@ const CouponsPage = () => {
     setIsDialogOpen(true);
   };
 
-  const handleDeleteCoupon = (couponId: string) => {
-    deleteCoupon(couponId);
+  const handleDeleteCoupon = (couponId: number) => {
+    setCoupons((prev) => prev.filter((c) => c.id !== couponId));
   };
 
-  const handleStatusChange = (couponId: string, newStatus: boolean) => {
-    updateCoupon(couponId, { isActive: newStatus });
+  const handleStatusChange = (couponId: number, newStatus: boolean) => {
+    setCoupons((prev) =>
+      prev.map((c) => (c.id === couponId ? { ...c, isActive: newStatus } : c)),
+    );
   };
 
-  const handleSaveCoupon = (data: CouponFormData) => {
+  const handleSaveCoupon = (coupon: Coupon) => {
     if (editingCoupon) {
-      updateCoupon(editingCoupon._id, {
-        code: data.code,
-        discountType: data.discountType,
-        discountValue: data.discountValue,
-        maxUses: data.maxUses,
-        expiryDate: data.expiryDate,
-        isActive: data.isActive,
-      });
+      setCoupons((prev) =>
+        prev.map((c) => (c.id === editingCoupon.id ? coupon : c)),
+      );
     } else {
-      createCoupon({
-        code: data.code,
-        discountType: data.discountType,
-        discountValue: data.discountValue,
-        maxUses: data.maxUses,
-        expiryDate: data.expiryDate,
-      });
+      setCoupons((prev) => [...prev, coupon]);
     }
     setIsDialogOpen(false);
     setEditingCoupon(undefined);

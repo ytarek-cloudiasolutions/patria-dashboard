@@ -11,17 +11,6 @@ import { offersReducer } from "@/features/offers/store/offersSlice";
 import { subscriptionReducer } from "@/features/subscription/store/subscriptionSlice";
 import { supplierReducer } from "@/features/suppliers/store/supplierSlice";
 import { userReducer } from "@/features/users/store/userSlice";
-import { couponsReducer } from "@/features/coupons/store/couponsSlice";
-import { kitchenReducer } from "@/features/kitchen/store/kitchenSlice";
-import { financialReducer } from "@/features/financial/store/financialSlice";
-import { logisticsReducer } from "@/features/logistics/store/logisticsSlice";
-import { reviewsReducer } from "@/features/reviews/store/reviewsSlice";
-import { warehousesReducer } from "@/features/warehouses/store/warehousesSlice";
-import { purchasingReducer } from "@/features/purchasing/store/purchasingSlice";
-import { productionReducer } from "@/features/production/store/productionSlice";
-import { shiftsReducer } from "@/features/shifts/store/shiftsSlice";
-import { notificationsReducer } from "@/features/notifications/store/notificationsSlice";
-import { dashboardReducer } from "@/features/dashboard/store/dashboardSlice";
 
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -36,17 +25,7 @@ const rootReducer = combineReducers({
   subscription: subscriptionReducer,
   supplier: supplierReducer,
   user: userReducer,
-  coupons: couponsReducer,
-  kitchen: kitchenReducer,
-  financial: financialReducer,
-  logistics: logisticsReducer,
-  reviews: reviewsReducer,
-  warehouses: warehousesReducer,
-  purchasing: purchasingReducer,
-  production: productionReducer,
-  shifts: shiftsReducer,
-  notifications: notificationsReducer,
-  dashboard: dashboardReducer,
 });
 
 export default rootReducer;
+

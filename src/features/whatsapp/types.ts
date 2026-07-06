@@ -1,4 +1,4 @@
-export type GatewayConnectionStatus = "connected" | "disconnected" | "qr_ready" | "loading";
+export type GatewayConnectionStatus = "connected" | "disconnected";
 
 export interface LinkStep {
   id: number;

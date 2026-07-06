@@ -7,20 +7,9 @@ const HEIGHT = 200;
 const WIDTH = 320;
 const PADDING = { top: 16, right: 16, bottom: 28, left: 32 };
 
-interface ChartDataPoint {
-  label: string;
-  value: number;
-}
-
-interface ProductionChartProps {
-  /** Live data computed from real batches. Falls back to static sample data when empty. */
-  data?: ChartDataPoint[];
-}
-
-const ProductionChart = ({ data: propData }: ProductionChartProps) => {
+const ProductionChart = () => {
   const { t } = useTranslation();
-  const data =
-    propData && propData.length > 0 ? propData : PRODUCTION_CHART_DATA;
+  const data = PRODUCTION_CHART_DATA;
   const max = 100;
   const innerW = WIDTH - PADDING.left - PADDING.right;
   const innerH = HEIGHT - PADDING.top - PADDING.bottom;

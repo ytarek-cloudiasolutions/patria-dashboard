@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import SearchInputField from "@/shared/components/SearchInputField";
@@ -9,9 +9,11 @@ import OverallRatingCard from "./components/OverallRatingCard";
 import RatingDistributionCard from "./components/RatingDistributionCard";
 import HighestRatedCard from "./components/HighestRatedCard";
 import ReviewCard from "./components/ReviewCard";
-import { REVIEW_CATEGORY_FILTERS, REVIEW_RATING_FILTERS } from "./data";
-import { useReviews } from "./hooks/useReviews";
-import type { Review as BackendReview } from "./store/reviewsTypes";
+import {
+  INITIAL_REVIEWS,
+  REVIEW_CATEGORY_FILTERS,
+  REVIEW_RATING_FILTERS,
+} from "./data";
 import type {
   HighestRatedItem,
   RatingDistributionRow,
@@ -19,43 +21,9 @@ import type {
   ReviewCategory,
 } from "./types";
 
-// ---------------------------------------------------------------------------
-// Mapper: backend Review → local UI Review
-// ---------------------------------------------------------------------------
-
-const toLocalReview = (r: BackendReview, idx: number): Review => ({
-  id: idx + 1,
-  customerName: r.customerName,
-  customerCode: r.customerPhone ?? "",
-  orderId: r.orderId ?? "",
-  orderType: (r.orderType as Review["orderType"]) ?? "Delivery",
-  rating: r.rating,
-  maxRating: 5,
-  comment: r.comment ?? "",
-  categories: r.categories as ReviewCategory[],
-  createdAt: r.createdAt
-    ? new Date(r.createdAt).toLocaleString()
-    : "",
-  isHidden: !r.isVisible,
-});
-
 const ReviewsPage = () => {
   const { t } = useTranslation();
-
-  const {
-    reviews: hookReviews,
-    reviewStats,
-    getReviews,
-    deleteReview,
-    toggleVisibility,
-  } = useReviews();
-
-  // Local UI state — seeded from the store
-  const [reviews, setReviews] = useState<Review[]>([]);
-
-  // Map local numeric id → backend _id string (for mutations)
-  const idMap = useRef<Map<number, string>>(new Map());
-
+  const [reviews, setReviews] = useState<Review[]>(INITIAL_REVIEWS);
   const [search, setSearch] = useState("");
   const [ratingFilter, setRatingFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
@@ -63,53 +31,24 @@ const ReviewsPage = () => {
     rating: false,
     category: false,
   });
+
   const [deletingReview, setDeletingReview] = useState<Review | null>(null);
 
-  // Fetch on mount
-  useEffect(() => {
-    getReviews();
-  }, [getReviews]);
+  const isScrimActive =
+    isAnyDropdownOpen.rating || isAnyDropdownOpen.category;
 
-  // Sync local state whenever store updates
-  useEffect(() => {
-    if (hookReviews && hookReviews.length > 0) {
-      idMap.current.clear();
-      const mapped: Review[] = hookReviews.map((r: BackendReview, idx: number) => {
-        const localId = idx + 1;
-        idMap.current.set(localId, r._id);
-        return toLocalReview(r, idx);
-      });
-      setReviews(mapped);
-    }
-  }, [hookReviews]);
-
-  const isScrimActive = isAnyDropdownOpen.rating || isAnyDropdownOpen.category;
-
-  // -------------------------------------------------------------------------
-  // Stats derived from hook (with local fallbacks)
-  // -------------------------------------------------------------------------
   const averageRating = useMemo(() => {
-    if (reviewStats?.avgRating != null) return reviewStats.avgRating;
     if (reviews.length === 0) return 0;
-    return reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
-  }, [reviewStats, reviews]);
-
-  const totalRatings = useMemo(() => {
-    return reviewStats?.totalReviews ?? reviews.length;
-  }, [reviewStats, reviews]);
+    const total = reviews.reduce((sum, r) => sum + r.rating, 0);
+    return total / reviews.length;
+  }, [reviews]);
 
   const distribution = useMemo<RatingDistributionRow[]>(() => {
-    if (reviewStats?.distribution) {
-      return [5, 4, 3, 2, 1].map((stars) => ({
-        stars,
-        count: reviewStats.distribution[stars as 1 | 2 | 3 | 4 | 5] ?? 0,
-      }));
-    }
     return [5, 4, 3, 2, 1].map((stars) => ({
       stars,
       count: reviews.filter((r) => r.rating === stars).length,
     }));
-  }, [reviewStats, reviews]);
+  }, [reviews]);
 
   const highestRated = useMemo<HighestRatedItem[]>(() => {
     const counts = new Map<ReviewCategory, number>();
@@ -134,7 +73,10 @@ const ReviewsPage = () => {
   const filteredReviews = useMemo(() => {
     const q = search.toLowerCase().trim();
     return reviews.filter((review) => {
-      if (ratingFilter !== "all" && review.rating !== Number(ratingFilter)) {
+      if (
+        ratingFilter !== "all" &&
+        review.rating !== Number(ratingFilter)
+      ) {
         return false;
       }
       if (
@@ -153,15 +95,7 @@ const ReviewsPage = () => {
     });
   }, [reviews, search, ratingFilter, categoryFilter]);
 
-  // -------------------------------------------------------------------------
-  // Actions — delegate mutations to the hook
-  // -------------------------------------------------------------------------
   const handleToggleVisibility = (review: Review) => {
-    const backendId = idMap.current.get(review.id);
-    if (backendId) {
-      toggleVisibility(backendId, { isVisible: !!review.isHidden });
-    }
-    // Optimistic local update
     setReviews((prev) =>
       prev.map((r) =>
         r.id === review.id ? { ...r, isHidden: !r.isHidden } : r,
@@ -171,10 +105,6 @@ const ReviewsPage = () => {
 
   const handleConfirmDelete = () => {
     if (!deletingReview) return;
-    const backendId = idMap.current.get(deletingReview.id);
-    if (backendId) {
-      deleteReview(backendId);
-    }
     setReviews((prev) => prev.filter((r) => r.id !== deletingReview.id));
     setDeletingReview(null);
   };
@@ -192,7 +122,7 @@ const ReviewsPage = () => {
         />
         <OverallRatingCard
           averageRating={averageRating}
-          totalRatings={totalRatings}
+          totalRatings={reviews.length}
         />
       </div>
 

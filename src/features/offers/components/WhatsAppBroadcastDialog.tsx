@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Search, Upload } from "lucide-react";
 import {
   Dialog,
@@ -13,8 +13,7 @@ import { Input } from "@/shared/components/ui/input";
 import DefaultButton from "@/shared/components/DefaultButton";
 import { Button } from "@/shared/components/ui/button";
 import { useTranslation } from "@/shared/i18n/useTranslation";
-import { CUSTOMER_COUNT_OPTIONS } from "../data";
-import { useCustomers } from "@/features/customers/hooks/useCustomers";
+import { CUSTOMER_COUNT_OPTIONS, MOCK_CUSTOMERS } from "../data";
 import type {
   Customer,
   Offer,
@@ -54,18 +53,6 @@ const WhatsAppBroadcastDialog = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const { customers: rawCustomers, getCustomersList } = useCustomers();
-
-  useEffect(() => {
-    getCustomersList();
-  }, [getCustomersList]);
-
-  const allCustomers: Customer[] = rawCustomers.map((c) => ({
-    id: Number(c.id) || 0,
-    name: c.name,
-    phone: c.phone,
-  }));
 
   const activeTab = form.targetType;
 
@@ -116,7 +103,7 @@ const WhatsAppBroadcastDialog = ({
     }
   };
 
-  const filteredCustomers: Customer[] = allCustomers.filter(
+  const filteredCustomers: Customer[] = MOCK_CUSTOMERS.filter(
     (c) =>
       c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       c.phone.includes(searchQuery),

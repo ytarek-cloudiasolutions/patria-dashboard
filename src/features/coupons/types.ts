@@ -1,12 +1,14 @@
-// Re-export the canonical backend Coupon type from the store
-export type { Coupon } from "./store/couponTypes";
+export type DiscountType = "percentage" | "fixed";
 
-// Shape emitted by CreateCouponForm and consumed by CouponsPage save handler
-export interface CouponFormData {
+export interface Coupon {
+  id: number;
   code: string;
-  discountType: "percentage" | "fixed";
+  discountType: DiscountType;
   discountValue: number;
-  maxUses?: number;
-  expiryDate?: string;
+  minOrderAmount: number;
+  usageLimit: number;
+  usedCount: number;
+  startDate: string;
+  endDate: string;
   isActive: boolean;
 }

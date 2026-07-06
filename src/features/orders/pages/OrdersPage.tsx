@@ -17,9 +17,9 @@ import DefaultButton from "@/shared/components/DefaultButton";
 import OverviewCard from "@/shared/components/OverviewCard";
 import DeleteDialog from "@/shared/components/DeleteDialog";
 import {
+  MOCK_ORDERS,
   ORDER_SOURCE_LABELS,
 } from "../data";
-import { getOrderCounts } from "../api/ordersApi";
 import NewCallOrderDialog from "../components/NewCallOrderDialog";
 import OrderDetailsDialog from "../components/OrderDetailsDialog";
 import OrdersFilters from "../components/OrdersFilters";
@@ -55,10 +55,12 @@ const OrdersPage = () => {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isBulkDeleteOpen, setIsBulkDeleteOpen] = useState(false);
 
-  // Fetch orders whenever the active source tab changes
+  // Fetch initial list once on page mount
   useEffect(() => {
-    getOrdersList({ source: activeSource });
-  }, [getOrdersList, activeSource]);
+    getOrdersList({
+      type: "takeaway",
+    });
+  }, [getOrdersList]);
 
   // Fetch products and locations for call orders
   useEffect(() => {
@@ -113,13 +115,17 @@ const OrdersPage = () => {
   }, [products]);
 
   const displayedOrders = useMemo(() => {
-    return orders;
-  }, [orders]);
+    if (activeSource === "call") {
+      return orders;
+    }
+    return MOCK_ORDERS;
+  }, [orders, activeSource]);
 
   const filteredOrders = useMemo(() => {
     const normalizedSearch = searchValue.trim().toLowerCase();
 
     return displayedOrders.filter((order) => {
+      const matchesSource = order.source === activeSource;
       const matchesStatus =
         selectedStatus === "All statuses" ||
         order.status === selectedStatus;
@@ -133,21 +139,22 @@ const OrdersPage = () => {
           item.name.toLowerCase().includes(normalizedSearch)
         );
 
-      return matchesStatus && matchesSearch;
+      return matchesSource && matchesStatus && matchesSearch;
     });
-  }, [displayedOrders, searchValue, selectedStatus]);
+  }, [activeSource, displayedOrders, searchValue, selectedStatus]);
 
   const summary = useMemo(() => {
-    const revenue = displayedOrders.reduce((sum, o) => sum + (o.status !== "Cancelled" ? o.total : 0), 0);
-    const totalOrders = displayedOrders.length;
-    const pending = displayedOrders.filter(
+    const activeOrders = displayedOrders.filter((o) => o.source === activeSource);
+    const revenue = activeOrders.reduce((sum, o) => sum + (o.status !== "Cancelled" ? o.total : 0), 0);
+    const totalOrders = activeOrders.length;
+    const pending = activeOrders.filter(
       (o) =>
         o.status === "Pending" ||
         o.status === "Preparing" ||
         o.status === "Confirmed" ||
         o.status === "On The Way"
     ).length;
-    const delivered = displayedOrders.filter((o) => o.status === "Delivered").length;
+    const delivered = activeOrders.filter((o) => o.status === "Delivered").length;
 
     return {
       revenue,
@@ -157,22 +164,13 @@ const OrdersPage = () => {
     };
   }, [displayedOrders, activeSource]);
 
-  const [tabCounts, setTabCounts] = useState({ application: 0, pos: 0, call: 0 });
-
-  const EMPTY_COUNTS = { application: 0, pos: 0, call: 0 };
-
-  // Fetch counts on mount and whenever orders change (e.g. after create/delete)
-  useEffect(() => {
-    getOrderCounts()
-      .then((data) => setTabCounts(data ?? EMPTY_COUNTS))
-      .catch(() => {});
-  }, []);
-
-  useEffect(() => {
-    getOrderCounts()
-      .then((data) => setTabCounts(data ?? EMPTY_COUNTS))
-      .catch(() => {});
-  }, [orders.length]);
+  const tabCounts = useMemo(() => {
+    return {
+      application: MOCK_ORDERS.filter((o) => o.source === "application").length,
+      pos: MOCK_ORDERS.filter((o) => o.source === "pos").length,
+      call: orders.filter((o) => o.source === "call").length,
+    };
+  }, [orders]);
 
   const sources: OrderSource[] = ["application", "pos", "call"];
 
@@ -209,7 +207,11 @@ const OrdersPage = () => {
   };
 
   const handleBulkDelete = () => {
-    selectedIds.forEach((id) => deleteOrderValue(id));
+    selectedIds.forEach((id) => {
+      if (activeSource === "call") {
+        deleteOrderValue(id);
+      }
+    });
     setSelectedIds([]);
     setIsBulkDeleteOpen(false);
   };
@@ -224,7 +226,6 @@ const OrdersPage = () => {
 
     const createRequest: CreateOrderRequest = {
       type: order.source === "pos" ? "dine_in" : "takeaway",
-      source: order.source as "application" | "pos" | "call",
       customerName: order.customerName,
       customerPhone: order.customerPhone,
       address: order.address,
@@ -285,7 +286,7 @@ const OrdersPage = () => {
               value={source}
               label={t(ORDER_SOURCE_LABELS[source])}
               icon={SOURCE_ICONS[source]}
-              count={tabCounts?.[source] ?? 0}
+              count={tabCounts[source]}
               isActive={source === activeSource}
               onClick={(value) => handleSourceChange(value as OrderSource)}
             />

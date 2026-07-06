@@ -48,16 +48,10 @@ export const deleteOrder = async (orderId: string) => {
   return response.data;
 };
 
-export const getOrderCounts = async (): Promise<{ application: number; pos: number; call: number }> => {
-  const res = await api.get<{ application: number; pos: number; call: number }>('/orders/counts');
-  return res.data;
-};
-
 export const ordersApi = {
   getOrders,
   createOrder,
   getOrderById,
   updateOrderStatus,
   deleteOrder,
-  getOrderCounts,
 };

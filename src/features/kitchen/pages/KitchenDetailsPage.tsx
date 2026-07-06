@@ -1,13 +1,11 @@
-import { useEffect, useMemo } from "react";
 import { Button } from "@/shared/components/ui/button";
 import { ArrowLeft, ArrowRight } from "lucide-react";
+import { useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import KitchenOrderCard from "../components/KitchenOrderCard";
-import { KITCHENS } from "../data";
-import type { KitchenIcon, KitchenOrder, OrderStatus, OrderType } from "../types";
-import type { KitchenOrder as BackendKitchenOrder } from "../store/kitchenTypes";
-import { useKitchen } from "../hooks/useKitchen";
+import { KITCHENS, KITCHEN_ORDERS } from "../data";
+import type { KitchenIcon } from "../types";
 
 const iconBackgroundMap: Record<KitchenIcon, string> = {
   main: "#F5F0EA",
@@ -15,76 +13,14 @@ const iconBackgroundMap: Record<KitchenIcon, string> = {
   barista: "#FE9A001A",
 };
 
-/** Format a UTC timestamp as a relative "Received X mins ago" string */
-const formatReceivedAt = (createdAt: string): string => {
-  const diffMs = Date.now() - new Date(createdAt).getTime();
-  const diffMins = Math.floor(diffMs / 60_000);
-  if (diffMins < 1) return "Received just now";
-  return `Received ${diffMins} min${diffMins !== 1 ? "s" : ""} ago`;
-};
-
-/** Map backend order status to the local UI status */
-const mapStatus = (status: BackendKitchenOrder["status"]): OrderStatus => {
-  switch (status) {
-    case "preparing":
-      return "preparing";
-    case "ready":
-    case "served":
-      return "delivered";
-    default:
-      // pending | confirmed → show as preparing
-      return "preparing";
-  }
-};
-
-/** Map backend order type to the local UI type */
-const mapOrderType = (type?: string): OrderType => {
-  if (!type) return "takeaway";
-  const lower = type.toLowerCase();
-  if (lower.includes("dine")) return "dine-in";
-  return "takeaway";
-};
-
-const mapBackendOrder = (order: BackendKitchenOrder): KitchenOrder => ({
-  id: order._id,
-  orderNumber: order.orderNumber ? `#${order.orderNumber}` : `#${order._id.slice(-6)}`,
-  receivedAt: formatReceivedAt(order.createdAt),
-  customerType: (typeof order.customer === "string" ? order.customer : order.customer?.name) ?? "Walk-in Customer",
-  customerPhone: "",
-  items: order.items.map((item) => `${item.quantity}x ${item.name}`),
-  type: mapOrderType(order.type),
-  status: mapStatus(order.status),
-});
-
 const KitchenDetailsPage = () => {
   const { t, dir } = useTranslation();
   const navigate = useNavigate();
   const { kitchenId } = useParams<{ kitchenId: string }>();
 
-  const { kitchenOrders, getKitchenOrders } = useKitchen();
-
-  useEffect(() => {
-    getKitchenOrders();
-  }, [getKitchenOrders]);
-
   const kitchen = useMemo(
     () => KITCHENS.find((kitchenItem) => kitchenItem.id === kitchenId),
     [kitchenId],
-  );
-
-  // Map backend orders to local KitchenOrder format
-  const mappedOrders = useMemo(
-    () => kitchenOrders.map(mapBackendOrder),
-    [kitchenOrders],
-  );
-
-  // Count active (non-completed) orders from real data
-  const realActiveOrders = useMemo(
-    () =>
-      kitchenOrders.filter((o) =>
-        ["pending", "confirmed", "preparing"].includes(o.status),
-      ).length,
-    [kitchenOrders],
   );
 
   if (!kitchen) {
@@ -100,6 +36,8 @@ const KitchenDetailsPage = () => {
       </div>
     );
   }
+
+  const kitchenOrders = KITCHEN_ORDERS[kitchen.id] ?? [];
 
   const statusMap = {
     active: {
@@ -163,7 +101,7 @@ const KitchenDetailsPage = () => {
         <div className="flex items-center gap-5">
           <div className="flex flex-col items-center gap-2 py-3">
             <p className="text-[24px] font-normal text-[#28293D]">
-              {realActiveOrders}
+              {kitchen.detailActiveOrders}
             </p>
             <p className="text-[12px] text-[#28293D]">{t("Active Orders")}</p>
           </div>
@@ -182,7 +120,7 @@ const KitchenDetailsPage = () => {
       />
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-        {mappedOrders.map((order) => (
+        {kitchenOrders.map((order) => (
           <KitchenOrderCard key={order.id} order={order} />
         ))}
       </div>

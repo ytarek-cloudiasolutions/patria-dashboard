@@ -20,7 +20,6 @@ import AddCategoryDialog from "./components/AddCategoryDialog";
 import ImportDataDialog from "./components/ImportDataDialog";
 import ScanProductDialog from "./components/ScanProductDialog";
 import WhatsAppOfferDialog from "./components/WhatsAppOfferDialog";
-import RecipeDialog from "./components/RecipeDialog";
 
 import {
   INITIAL_CATEGORIES,
@@ -138,7 +137,6 @@ const ProductsPage = () => {
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isScanOpen, setIsScanOpen] = useState(false);
   const [isWhatsAppOpen, setIsWhatsAppOpen] = useState(false);
-  const [recipeProduct, setRecipeProduct] = useState<Product | null>(null);
 
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
 
@@ -198,9 +196,6 @@ const ProductsPage = () => {
     formData.append("name", data.name.trim());
     formData.append("description", data.description.trim());
     formData.append("price", String(Number(data.price) || 0));
-    if (data.costPrice !== undefined && data.costPrice !== "") {
-      formData.append("costPrice", String(Number(data.costPrice) || 0));
-    }
     formData.append("categoryId", data.category);
 
     const mappedVariantGroups = data.variantGroups.map((g) => ({
@@ -389,7 +384,6 @@ const ProductsPage = () => {
                 kind: "product",
               })
             }
-            onRecipe={(product) => setRecipeProduct(product)}
           />
 
           {/* Pagination Controls */}
@@ -572,17 +566,6 @@ const ProductsPage = () => {
         onOpenChange={setIsWhatsAppOpen}
         onSend={() => setIsWhatsAppOpen(false)}
       />
-
-      {recipeProduct && (
-        <RecipeDialog
-          open={recipeProduct !== null}
-          productId={recipeProduct.id}
-          productName={recipeProduct.name}
-          onOpenChange={(open) => {
-            if (!open) setRecipeProduct(null);
-          }}
-        />
-      )}
 
       <DeleteDialog
         open={!!deleteTarget}

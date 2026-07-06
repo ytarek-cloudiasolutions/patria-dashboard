@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import HeaderLayout from "@/layouts/HeaderLayout";
@@ -10,104 +10,22 @@ import LogisticsOverview from "./components/LogisticsOverview";
 import ZoneAccordion from "./components/ZoneAccordion";
 import DispatchPanel from "./components/DispatchPanel";
 import DriverDutyCard from "./components/DriverDutyCard";
-import DriversTable from "./components/DriverStable";
+import DriversTable from "./components/DriversTable";
 import AddDriverDialog from "./components/AddDriverDialog";
 import SendNotificationDialog from "./components/SendNotificationDialog";
 
-import { useLogistics } from "./hooks/useLogistics";
-import type { Driver as BackendDriver } from "./store/logisticsTypes";
-import type { Driver, DriverFormData, DriverStatus, VehicleType, Zone } from "./types";
-
-// ---------------------------------------------------------------------------
-// Status / vehicle-type mappers between backend (lowercase) and local (Title)
-// ---------------------------------------------------------------------------
-
-const mapStatus = (s: string | undefined): DriverStatus => {
-  switch (s) {
-    case "active":
-      return "Active";
-    case "busy":
-      return "On-Route";
-    case "offline":
-    default:
-      return "Off-Duty";
-  }
-};
-
-const reverseMapStatus = (s: DriverStatus): BackendDriver["status"] => {
-  switch (s) {
-    case "Active":
-      return "active";
-    case "On-Route":
-      return "busy";
-    case "Off-Duty":
-    default:
-      return "offline";
-  }
-};
-
-const mapVehicle = (v: string | undefined): VehicleType => {
-  switch (v) {
-    case "car":
-      return "Car";
-    case "bicycle":
-      return "Motorcycle";
-    case "motorcycle":
-    default:
-      return "Motorcycle";
-  }
-};
-
-const reverseMapVehicle = (v: VehicleType): BackendDriver["vehicleType"] => {
-  switch (v) {
-    case "Car":
-      return "car";
-    case "Van":
-      return "car";
-    case "Motorcycle":
-    default:
-      return "motorcycle";
-  }
-};
-
-/** Convert one backend driver to the local UI Driver shape. */
-const toLocalDriver = (d: BackendDriver, idx: number): Driver => ({
-  id: idx + 1,
-  name: d.name,
-  whatsappPhone: d.whatsappPhone ?? d.phone ?? "",
-  vehicleType: mapVehicle(d.vehicleType),
-  plateNumber: undefined,
-  zones: d.zones ?? [],
-  status: mapStatus(d.status),
-  ordersToday: 0,
-  salaryNow: 0,
-  hourlyRate: 0,
-  dutyTime: "00:00:00",
-});
+import { INITIAL_DRIVERS, INITIAL_ZONES } from "./data";
+import type { Driver, DriverFormData, DriverStatus, Zone } from "./types";
 
 const LogisticsPage = () => {
   const { t } = useTranslation();
-
-  const {
-    drivers: hookDrivers,
-    stats,
-    getDrivers,
-    createDriver,
-    updateDriver,
-    deleteDriver,
-  } = useLogistics();
-
-  // Local UI state for drivers (seeded from store)
-  const [drivers, setDrivers] = useState<Driver[]>([]);
-
-  // Zones remain local (no zones API in the logistics hook)
-  const [zones, setZones] = useState<Zone[]>([]);
-
-  // Map from local numeric id → backend _id string (for mutations)
-  const idMap = useRef<Map<number, string>>(new Map());
-
+  const [zones, setZones] = useState<Zone[]>(INITIAL_ZONES);
+  const [drivers, setDrivers] = useState<Driver[]>(INITIAL_DRIVERS);
   const [search, setSearch] = useState("");
-  const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(new Set());
+
+  const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(
+    new Set(),
+  );
   const [selectedDriverId, setSelectedDriverId] = useState("");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -116,47 +34,19 @@ const LogisticsPage = () => {
   const [deletingDriver, setDeletingDriver] = useState<Driver | null>(null);
   const [notifyingDriver, setNotifyingDriver] = useState<Driver | null>(null);
 
-  // Fetch drivers on mount
-  useEffect(() => {
-    getDrivers();
-  }, [getDrivers]);
-
-  // Sync local state whenever the store updates
-  useEffect(() => {
-    if (hookDrivers && hookDrivers.length > 0) {
-      idMap.current.clear();
-      const mapped: Driver[] = hookDrivers.map((d: BackendDriver, idx: number) => {
-        const localId = idx + 1;
-        idMap.current.set(localId, d._id);
-        return toLocalDriver(d, idx);
-      });
-      setDrivers(mapped);
-    }
-  }, [hookDrivers]);
-
-  // -------------------------------------------------------------------------
-  // Overview stats from hook (falls back to derived values if hook not ready)
-  // -------------------------------------------------------------------------
   const overview = useMemo(() => {
-    const pendingOrders = stats
-      ? stats.waitingOrders
-      : zones.reduce(
-          (sum, zone) => sum + zone.orders.filter((o) => !o.assignedDriverName).length,
-          0,
-        );
-    const officialDrivers = stats
-      ? stats.activeDrivers + stats.offlineDrivers + stats.busyDrivers
-      : drivers.length;
+    const pendingOrders = zones.reduce(
+      (sum, zone) =>
+        sum + zone.orders.filter((o) => !o.assignedDriverName).length,
+      0,
+    );
     return {
       activeZones: zones.length,
-      officialDrivers,
+      officialDrivers: drivers.length,
       pendingOrders,
     };
-  }, [zones, drivers, stats]);
+  }, [zones, drivers]);
 
-  // -------------------------------------------------------------------------
-  // Zone / dispatch helpers (unchanged — zones are local-only UI data)
-  // -------------------------------------------------------------------------
   const filteredZones = useMemo(() => {
     const q = search.toLowerCase().trim();
     if (!q) return zones;
@@ -184,6 +74,8 @@ const LogisticsPage = () => {
     );
     return refs;
   }, [zones, selectedOrderIds]);
+
+  // --- Dispatch -------------------------------------------------------------
 
   const toggleOrder = (id: string) =>
     setSelectedOrderIds((prev) => {
@@ -228,9 +120,8 @@ const LogisticsPage = () => {
     setSelectedDriverId("");
   };
 
-  // -------------------------------------------------------------------------
-  // Driver CRUD — delegate to hook actions
-  // -------------------------------------------------------------------------
+  // --- Drivers --------------------------------------------------------------
+
   const handleOpenAddDriver = () => {
     setEditingDriver(undefined);
     setIsAddDriverOpen(true);
@@ -243,37 +134,43 @@ const LogisticsPage = () => {
 
   const handleSaveDriver = (data: DriverFormData, id?: number) => {
     if (id !== undefined) {
-      const backendId = idMap.current.get(id);
-      if (backendId) {
-        updateDriver(backendId, {
-          name: data.name.trim(),
-          whatsappPhone: data.whatsappPhone.trim(),
-          vehicleType: reverseMapVehicle(data.vehicleType),
-          zones: data.zones,
-          status: reverseMapStatus(data.status),
-        });
-      }
+      setDrivers((prev) =>
+        prev.map((d) =>
+          d.id === id
+            ? {
+                ...d,
+                name: data.name.trim(),
+                whatsappPhone: data.whatsappPhone.trim(),
+                vehicleType: data.vehicleType,
+                plateNumber: data.plateNumber.trim(),
+                zones: data.zones,
+                status: data.status,
+              }
+            : d,
+        ),
+      );
     } else {
-      createDriver({
+      const newDriver: Driver = {
+        id: Date.now(),
         name: data.name.trim(),
         whatsappPhone: data.whatsappPhone.trim(),
-        vehicleType: reverseMapVehicle(data.vehicleType),
+        vehicleType: data.vehicleType,
+        plateNumber: data.plateNumber.trim(),
+        status: data.status,
         zones: data.zones,
-        status: reverseMapStatus(data.status),
-      });
+        ordersToday: 0,
+        salaryNow: 0,
+        hourlyRate: 21,
+        dutyTime: "00:00:00",
+      };
+      setDrivers((prev) => [...prev, newDriver]);
     }
   };
 
-  const handleChangeStatus = (driver: Driver, status: DriverStatus) => {
-    const backendId = idMap.current.get(driver.id);
-    if (backendId) {
-      updateDriver(backendId, { status: reverseMapStatus(status) });
-    }
-    // Optimistic local update
+  const handleChangeStatus = (driver: Driver, status: DriverStatus) =>
     setDrivers((prev) =>
       prev.map((d) => (d.id === driver.id ? { ...d, status } : d)),
     );
-  };
 
   const handleHourlyRateChange = (id: number, rate: number) =>
     setDrivers((prev) =>
@@ -288,10 +185,7 @@ const LogisticsPage = () => {
 
   const handleConfirmDelete = () => {
     if (!deletingDriver) return;
-    const backendId = idMap.current.get(deletingDriver.id);
-    if (backendId) {
-      deleteDriver(backendId);
-    }
+    setDrivers((prev) => prev.filter((d) => d.id !== deletingDriver.id));
     setDeletingDriver(null);
   };
 

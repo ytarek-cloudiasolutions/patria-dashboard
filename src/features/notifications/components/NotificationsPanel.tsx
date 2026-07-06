@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Bell, CheckCheck, Trash2, X } from "lucide-react";
 import {
   Sheet,
@@ -9,9 +9,8 @@ import {
 } from "@/shared/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/shared/i18n/useTranslation";
-import { useNotifications } from "../hooks/useNotifications";
-import type { ApiNotification } from "../store/notificationsTypes";
-import type { AppNotification, NotificationCategory, NotificationTab } from "../types";
+import { INITIAL_NOTIFICATIONS } from "../data";
+import type { AppNotification, NotificationTab } from "../types";
 import NotificationItem from "./NotificationItem";
 
 interface NotificationsPanelProps {
@@ -26,68 +25,12 @@ const TABS: { value: NotificationTab; label: string }[] = [
   { value: "system", label: "System" },
 ];
 
-/** Map backend notification type string to a local UI category. */
-const mapTypeToCategory = (type: string): NotificationCategory => {
-  const lower = type.toLowerCase();
-  if (lower.includes("order")) return "orders";
-  if (
-    lower.includes("stock") ||
-    lower.includes("inventory") ||
-    lower.includes("warehouse") ||
-    lower.includes("restock")
-  ) {
-    return "stock";
-  }
-  return "system";
-};
-
-/** Format an ISO date string into a relative time label. */
-const formatRelativeTime = (iso: string): string => {
-  const diffMs = Date.now() - new Date(iso).getTime();
-  const mins = Math.floor(diffMs / 60_000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
-  return `${Math.floor(hours / 24)}d ago`;
-};
-
-/** Convert one ApiNotification to the local AppNotification shape. */
-const toAppNotification = (n: ApiNotification, idx: number): AppNotification => ({
-  id: idx + 1,
-  category: mapTypeToCategory(n.type),
-  title: n.title,
-  description: n.message ?? n.body ?? "",
-  time: formatRelativeTime(n.createdAt),
-  read: n.isRead,
-  resolved: false,
-});
-
 const NotificationsPanel = ({ open, onOpenChange }: NotificationsPanelProps) => {
   const { t, dir } = useTranslation();
-
-  const {
-    notifications: hookNotifications,
-    getNotifications,
-    markAsRead,
-  } = useNotifications();
-
-  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [notifications, setNotifications] = useState<AppNotification[]>(
+    INITIAL_NOTIFICATIONS,
+  );
   const [activeTab, setActiveTab] = useState<NotificationTab>("all");
-
-  // Fetch on mount (or whenever the panel is opened)
-  useEffect(() => {
-    if (open) {
-      getNotifications();
-    }
-  }, [open, getNotifications]);
-
-  // Sync local state whenever the store data changes
-  useEffect(() => {
-    if (hookNotifications.length > 0) {
-      setNotifications(hookNotifications.map(toAppNotification));
-    }
-  }, [hookNotifications]);
 
   const counts = useMemo(
     () => ({
@@ -112,11 +55,8 @@ const NotificationsPanel = ({ open, onOpenChange }: NotificationsPanelProps) => 
     [notifications, activeTab],
   );
 
-  const markAllRead = () => {
+  const markAllRead = () =>
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-    // Also persist to backend for all currently unread notifications
-    hookNotifications.filter((n) => !n.isRead).forEach((n) => markAsRead(n._id));
-  };
 
   const clearAll = () => setNotifications([]);
 

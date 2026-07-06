@@ -15,18 +15,20 @@ import type { Coupon } from "../types";
 
 interface CouponsTableProps {
   coupons: Coupon[];
-  onStatusChange?: (couponId: string, newStatus: boolean) => void;
+  onStatusChange?: (couponId: number, newStatus: boolean) => void;
   onEdit?: (coupon: Coupon) => void;
-  onDelete?: (couponId: string) => void;
+  onDelete?: (couponId: number) => void;
 }
 
-const formatExpiry = (expiryDate?: string) => {
-  if (!expiryDate) return "No expiry";
-  const date = new Date(expiryDate + "T00:00:00");
-  const day = date.getDate();
-  const month = date.toLocaleString("en-US", { month: "short" });
-  const year = date.getFullYear();
-  return `Expires ${day} ${month} ${year}`;
+const formatDuration = (startDate: string, endDate: string) => {
+  const start = new Date(startDate + "T00:00:00");
+  const end = new Date(endDate + "T00:00:00");
+  const startDay = start.getDate();
+  const startMonth = start.toLocaleString("en-US", { month: "short" });
+  const endDay = end.getDate();
+  const endMonth = end.toLocaleString("en-US", { month: "short" });
+  const endYear = end.getFullYear();
+  return `${startDay} ${startMonth} → ${endDay} ${endMonth} ${endYear}`;
 };
 
 const CouponsTable = ({
@@ -37,9 +39,9 @@ const CouponsTable = ({
 }: CouponsTableProps) => {
   const { t } = useTranslation();
   const [deletingCoupon, setDeletingCoupon] = useState<Coupon | null>(null);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<number | null>(null);
 
-  const handleCopy = (code: string, id: string) => {
+  const handleCopy = (code: string, id: number) => {
     navigator.clipboard.writeText(code);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 1500);
@@ -47,7 +49,7 @@ const CouponsTable = ({
 
   const handleConfirmDelete = () => {
     if (deletingCoupon) {
-      onDelete?.(deletingCoupon._id);
+      onDelete?.(deletingCoupon.id);
       setDeletingCoupon(null);
     }
   };
@@ -78,19 +80,19 @@ const CouponsTable = ({
             </TableRow>
           ) : (
             coupons.map((coupon) => (
-              <TableRow key={coupon._id}>
+              <TableRow key={coupon.id}>
                 <TableCell className="ps-6 py-4">
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-[14px] text-[#28293D] tracking-wide">
                       {coupon.code}
                     </span>
                     <button
-                      onClick={() => handleCopy(coupon.code, coupon._id)}
+                      onClick={() => handleCopy(coupon.code, coupon.id)}
                       className="cursor-pointer text-[#8B8B8B] hover:text-[#28293D] transition-colors"
                       title="Copy code"
                     >
                       <Copy
-                        className={`size-3.5 ${copiedId === coupon._id ? "text-primary" : ""}`}
+                        className={`size-3.5 ${copiedId === coupon.id ? "text-primary" : ""}`}
                       />
                     </button>
                   </div>
@@ -113,19 +115,23 @@ const CouponsTable = ({
                 </TableCell>
 
                 <TableCell>
-                  <span className="text-[14px] text-[#28293D]">-</span>
+                  <span className="text-[14px] text-[#28293D]">
+                    {coupon.minOrderAmount > 0
+                      ? `EGP ${coupon.minOrderAmount.toFixed(2)}`
+                      : "-"}
+                  </span>
                 </TableCell>
 
                 <TableCell>
                   <span className="text-[14px] text-[#28293D]">
-                    {coupon.currentUses} /{" "}
-                    {!coupon.maxUses || coupon.maxUses === 0 ? "∞" : coupon.maxUses}
+                    {coupon.usedCount} /{" "}
+                    {coupon.usageLimit === 0 ? "∞" : coupon.usageLimit}
                   </span>
                 </TableCell>
 
                 <TableCell>
                   <span className="text-[14px] text-[#28293D]" dir="ltr">
-                    {formatExpiry(coupon.expiryDate)}
+                    {formatDuration(coupon.startDate, coupon.endDate)}
                   </span>
                 </TableCell>
 
@@ -134,7 +140,7 @@ const CouponsTable = ({
                     <Switch
                       checked={coupon.isActive}
                       onCheckedChange={(val) =>
-                        onStatusChange?.(coupon._id, val)
+                        onStatusChange?.(coupon.id, val)
                       }
                       className="data-[state=checked]:bg-[#059B5A] ring-[#059B5A33]"
                     />

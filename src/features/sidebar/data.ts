@@ -11,6 +11,7 @@ import {
   Truck,
   MapPin,
   Star,
+  Navigation,
   ShoppingCart,
   Warehouse,
   BarChart2,
@@ -51,6 +52,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { label: "Suppliers", href: "/suppliers", icon: Truck },
       { label: "Locations", href: "/locations", icon: MapPin },
       { label: "Reviews", href: "/reviews", icon: Star },
+      { label: "Delivery Tracking", href: "/delivery-tracking", icon: Navigation },
     ],
   },
   {
