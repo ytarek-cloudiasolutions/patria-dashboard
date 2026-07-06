@@ -8,7 +8,7 @@ import { api } from "@/config/api";
 import TrackingOverview from "./components/TrackingOverview";
 import RiderListPanel from "./components/RiderListPanel";
 import RiderDetailPanel from "./components/RiderDetailPanel";
-import StaticMapPlaceholder from "./components/StaticMapPlaceholder";
+import GoogleMap from "./components/GoogleMap";
 
 import type { Rider } from "./types";
 
@@ -29,6 +29,7 @@ const mapRider = (d: any, idx: number): Rider => ({
   activeOrders: d.activeOrders ?? [],
   totalDelivered: d.totalDelivered ?? d.shiftDeliveriesCount ?? 0,
   dutyTime: d.dutyTime ?? "—",
+  location: d.location?.lat && d.location?.lng ? { lat: d.location.lat, lng: d.location.lng } : undefined,
 });
 
 const DeliveryTrackingPage = () => {
@@ -91,7 +92,11 @@ const DeliveryTrackingPage = () => {
       />
 
       <div className="grid h-[calc(100vh-340px)] min-h-[500px] grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_440px]">
-        <StaticMapPlaceholder />
+        <GoogleMap
+          riders={riders}
+          selectedRider={selectedRider}
+          onSelectRider={setSelectedRider}
+        />
 
         {selectedRider ? (
           <RiderDetailPanel rider={selectedRider} onBack={() => setSelectedRider(null)} />

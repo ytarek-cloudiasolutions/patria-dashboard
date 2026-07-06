@@ -38,4 +38,5 @@ export interface Rider {
   activeOrders: DeliveryOrder[];
   totalDelivered: number;
   dutyTime: string;
+  location?: { lat: number; lng: number };
 }
