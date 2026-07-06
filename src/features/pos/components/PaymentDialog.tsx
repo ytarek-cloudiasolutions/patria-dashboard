@@ -19,7 +19,7 @@ type PaymentDialogProps = {
   open: boolean;
   total: number;
   onOpenChange: (open: boolean) => void;
-  onConfirm: () => void;
+  onConfirm: (method: PaymentMethod) => void;
 };
 
 const paymentOptions: Array<{
@@ -147,7 +147,7 @@ const PaymentDialog = ({
           </Button>
           <Button
             className="h-12 flex-1 rounded-[8px] bg-primary text-[13px] font-semibold text-white hover:opacity-90"
-            onClick={onConfirm}
+            onClick={() => onConfirm(method)}
           >
             {t("Confirm Payment")} {formatEgp(total)}
           </Button>

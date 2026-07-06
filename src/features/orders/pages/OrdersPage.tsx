@@ -17,7 +17,6 @@ import DefaultButton from "@/shared/components/DefaultButton";
 import OverviewCard from "@/shared/components/OverviewCard";
 import DeleteDialog from "@/shared/components/DeleteDialog";
 import {
-  MOCK_ORDERS,
   ORDER_SOURCE_LABELS,
 } from "../data";
 import NewCallOrderDialog from "../components/NewCallOrderDialog";
@@ -55,12 +54,10 @@ const OrdersPage = () => {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isBulkDeleteOpen, setIsBulkDeleteOpen] = useState(false);
 
-  // Fetch initial list once on page mount
+  // Fetch orders when source tab changes
   useEffect(() => {
-    getOrdersList({
-      type: "takeaway",
-    });
-  }, [getOrdersList]);
+    getOrdersList({ source: activeSource, limit: 100 });
+  }, [activeSource, getOrdersList]);
 
   // Fetch products and locations for call orders
   useEffect(() => {
@@ -114,23 +111,16 @@ const OrdersPage = () => {
     });
   }, [products]);
 
-  const displayedOrders = useMemo(() => {
-    if (activeSource === "call") {
-      return orders;
-    }
-    return MOCK_ORDERS;
-  }, [orders, activeSource]);
-
   const filteredOrders = useMemo(() => {
     const normalizedSearch = searchValue.trim().toLowerCase();
 
-    return displayedOrders.filter((order) => {
-      const matchesSource = order.source === activeSource;
+    return orders.filter((order) => {
       const matchesStatus =
         selectedStatus === "All statuses" ||
         order.status === selectedStatus;
       const matchesSearch =
         normalizedSearch.length === 0 ||
+        (order.orderId ?? order.id).toLowerCase().includes(normalizedSearch) ||
         order.id.toLowerCase().includes(normalizedSearch) ||
         order.customerName.toLowerCase().includes(normalizedSearch) ||
         order.customerPhone.toLowerCase().includes(normalizedSearch) ||
@@ -139,38 +129,30 @@ const OrdersPage = () => {
           item.name.toLowerCase().includes(normalizedSearch)
         );
 
-      return matchesSource && matchesStatus && matchesSearch;
+      return matchesStatus && matchesSearch;
     });
-  }, [activeSource, displayedOrders, searchValue, selectedStatus]);
+  }, [orders, searchValue, selectedStatus]);
 
   const summary = useMemo(() => {
-    const activeOrders = displayedOrders.filter((o) => o.source === activeSource);
-    const revenue = activeOrders.reduce((sum, o) => sum + (o.status !== "Cancelled" ? o.total : 0), 0);
-    const totalOrders = activeOrders.length;
-    const pending = activeOrders.filter(
+    const revenue = orders.reduce((sum, o) => sum + (o.status !== "Cancelled" ? o.total : 0), 0);
+    const totalOrders = orders.length;
+    const pending = orders.filter(
       (o) =>
         o.status === "Pending" ||
         o.status === "Preparing" ||
         o.status === "Confirmed" ||
         o.status === "On The Way"
     ).length;
-    const delivered = activeOrders.filter((o) => o.status === "Delivered").length;
+    const delivered = orders.filter((o) => o.status === "Delivered").length;
 
-    return {
-      revenue,
-      totalOrders,
-      pending,
-      delivered,
-    };
-  }, [displayedOrders, activeSource]);
-
-  const tabCounts = useMemo(() => {
-    return {
-      application: MOCK_ORDERS.filter((o) => o.source === "application").length,
-      pos: MOCK_ORDERS.filter((o) => o.source === "pos").length,
-      call: orders.filter((o) => o.source === "call").length,
-    };
+    return { revenue, totalOrders, pending, delivered };
   }, [orders]);
+
+  const tabCounts = useMemo(() => ({
+    application: activeSource === "application" ? orders.length : 0,
+    pos: activeSource === "pos" ? orders.length : 0,
+    call: activeSource === "call" ? orders.length : 0,
+  }), [orders, activeSource]);
 
   const sources: OrderSource[] = ["application", "pos", "call"];
 

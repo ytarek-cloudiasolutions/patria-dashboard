@@ -16,13 +16,19 @@ const mapRider = (d: any, idx: number): Rider => ({
   id: d._id ?? idx,
   name: d.name ?? "—",
   phone: d.phone ?? d.whatsappPhone ?? "—",
-  vehicleType: d.vehicleType === "car" ? "Car" : d.vehicleType === "van" ? "Van" : "Motorcycle",
-  plateNumber: d.plateNumber ?? "—",
-  status: d.status === "busy" ? "On-Route" : d.status === "active" ? "Active" : "Delivered",
+  vehicleType:
+    d.vehicleType === "car" ? "Car"
+    : d.vehicleType === "van" ? "Van"
+    : "Motorcycle",
+  plateNumber: d.plateNumber || "—",
+  status:
+    d.status === "busy" ? "On-Route"
+    : d.status === "active" ? "Active"
+    : "Delivered",
   zone: (d.zones ?? [])[0] ?? "—",
-  activeOrders: [],
-  totalDelivered: d.totalDeliveries ?? 0,
-  dutyTime: "—",
+  activeOrders: d.activeOrders ?? [],
+  totalDelivered: d.totalDelivered ?? d.shiftDeliveriesCount ?? 0,
+  dutyTime: d.dutyTime ?? "—",
 });
 
 const DeliveryTrackingPage = () => {
