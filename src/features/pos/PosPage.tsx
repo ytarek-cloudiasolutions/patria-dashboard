@@ -77,6 +77,7 @@ const PosPage = () => {
   const [isPendingOpen, setPendingOpen] = useState(false);
   const [orderNumber, setOrderNumber] = useState("");
   const [pendingCreatePayload, setPendingCreatePayload] = useState<null | { method: PaymentMethod }>(null);
+  const [loadedOrderId, setLoadedOrderId] = useState<string | null>(null);
   const wasCreatingRef = useRef(false);
 
   useEffect(() => {
@@ -254,6 +255,7 @@ const PosPage = () => {
     setNotes("");
     setCustomer("");
     setSentToKitchen(false);
+    setLoadedOrderId(null);
   };
 
   const finishWithReceipt = () => {
@@ -265,8 +267,25 @@ const PosPage = () => {
 
   const handleCheckout = () => setPaymentOpen(true);
 
-  const confirmPayment = (method: PaymentMethod) => {
+  const confirmPayment = async (method: PaymentMethod) => {
     if (cartItems.length === 0) return;
+
+    // If this is a loaded pending order → just mark it delivered + set payment method
+    if (loadedOrderId) {
+      setPendingCreatePayload({ method });
+      try {
+        const { api } = await import("@/config/api");
+        await api.put(`/orders/${loadedOrderId}`, { status: "delivered", paymentMethod: method });
+        setLoadedOrderId(null);
+        setPendingCreatePayload(null);
+        setPaymentOpen(false);
+        finishWithReceipt();
+      } catch {
+        setPendingCreatePayload(null);
+        showErrorToast("Failed to complete order");
+      }
+      return;
+    }
 
     const orderItems = cartItems.map((item) => ({
       productId: item.productId,
@@ -314,6 +333,7 @@ const PosPage = () => {
     setOrderType("dine-in");
     setSelectedTable(order.table);
     setSentToKitchen(true);
+    setLoadedOrderId(order.id);
     if (order.items && order.items.length > 0) {
       setCartItems(order.items.map((item) => ({
         lineId: nextLineId(),
