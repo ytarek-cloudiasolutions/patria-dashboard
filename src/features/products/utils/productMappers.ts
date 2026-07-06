@@ -11,9 +11,11 @@ export const resolveImageUrl = (path?: string | string[]): string => {
   if (!path) return DEFAULT_PRODUCT_IMAGE;
   const p = Array.isArray(path) ? path[0] : path;
   if (!p) return DEFAULT_PRODUCT_IMAGE;
+  // Backend now returns full URLs — use directly
   if (p.startsWith("http://") || p.startsWith("https://") || p.startsWith("data:")) {
     return p;
   }
+  // Fallback for any legacy relative paths still in DB
   return `${SERVER_ROOT}/${p}`;
 };
 
