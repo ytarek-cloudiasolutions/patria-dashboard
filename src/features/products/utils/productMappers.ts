@@ -1,7 +1,11 @@
 import type { Product, VariantGroup, ProductExtra } from "../types";
+import { ENV } from "@/config/env";
 
 export const DEFAULT_PRODUCT_IMAGE =
   "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=600&q=80";
+
+// Strip the /api suffix to get the server root (e.g. https://api.patriacoffeebeans.com)
+const SERVER_ROOT = (ENV.API_URL || "").replace(/\/api\/?$/, "");
 
 export const resolveImageUrl = (path?: string | string[]): string => {
   if (!path) return DEFAULT_PRODUCT_IMAGE;
@@ -10,7 +14,7 @@ export const resolveImageUrl = (path?: string | string[]): string => {
   if (p.startsWith("http://") || p.startsWith("https://") || p.startsWith("data:")) {
     return p;
   }
-  return `https://api.patriacoffeebeans.com/${p}`;
+  return `${SERVER_ROOT}/${p}`;
 };
 
 export const mapProduct = (backendProduct: any): Product => {
