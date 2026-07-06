@@ -18,6 +18,7 @@ import { formatEgp } from "../utils";
 type PaymentDialogProps = {
   open: boolean;
   total: number;
+  isLoading?: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: (method: PaymentMethod) => void;
 };
@@ -39,6 +40,7 @@ const fieldInput =
 const PaymentDialog = ({
   open,
   total,
+  isLoading = false,
   onOpenChange,
   onConfirm,
 }: PaymentDialogProps) => {
@@ -146,7 +148,8 @@ const PaymentDialog = ({
             {t("Cancel")}
           </Button>
           <Button
-            className="h-12 flex-1 rounded-[8px] bg-primary text-[13px] font-semibold text-white hover:opacity-90"
+            className="h-12 flex-1 rounded-[8px] bg-primary text-[13px] font-semibold text-white hover:opacity-90 disabled:opacity-60"
+            disabled={isLoading}
             onClick={() => onConfirm(method)}
           >
             {t("Confirm Payment")} {formatEgp(total)}

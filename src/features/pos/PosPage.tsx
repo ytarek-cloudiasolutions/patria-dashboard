@@ -314,6 +314,17 @@ const PosPage = () => {
     setOrderType("dine-in");
     setSelectedTable(order.table);
     setSentToKitchen(true);
+    if (order.items && order.items.length > 0) {
+      setCartItems(order.items.map((item) => ({
+        lineId: nextLineId(),
+        productId: item.productId,
+        name: item.name,
+        unitPrice: item.unitPrice,
+        qty: item.qty,
+        extras: [],
+        instructions: "",
+      })));
+    }
     setPendingOpen(false);
   };
 
@@ -392,6 +403,7 @@ const PosPage = () => {
       <PaymentDialog
         open={isPaymentOpen}
         total={totals.total}
+        isLoading={isCreatingOrder}
         onOpenChange={setPaymentOpen}
         onConfirm={confirmPayment}
       />

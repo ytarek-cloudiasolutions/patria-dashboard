@@ -54,6 +54,12 @@ const PendingOrdersDialog = ({
               })
             : "--",
           total: o.total ?? 0,
+          items: (o.items || []).map((item: any) => ({
+            productId: item.productId?._id || item.product?._id || String(item.productId || ""),
+            name: item.productId?.name || item.product?.name || item.name || "Unknown",
+            qty: item.quantity || 1,
+            unitPrice: item.price || item.productId?.price || 0,
+          })),
         }));
         setOrders(mapped);
       })

@@ -85,6 +85,7 @@ export type PendingOrder = {
   itemCount: number;
   time: string;
   total: number;
+  items: Array<{ productId: string; name: string; qty: number; unitPrice: number }>;
 };
 
 /** Totals derived from the current cart. */
