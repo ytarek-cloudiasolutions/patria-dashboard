@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Plus, ScanBarcode, Upload, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import HeaderLayout from "@/layouts/HeaderLayout";
@@ -68,6 +68,8 @@ const ProductsPage = () => {
     isUpdatingProduct,
     isDeletingProduct,
     isTogglingProduct,
+    successMessage: productSuccessMessage,
+    errors: productErrors,
     getProducts,
     getIngredients,
     createProduct,
@@ -107,6 +109,14 @@ const ProductsPage = () => {
     getIngredients();
   }, [getCategories, getIngredients]);
 
+  // Open WhatsApp dialog only after product creation succeeds
+  useEffect(() => {
+    if (prevCreatingRef.current && !isCreatingProduct && !productErrors.create && productSuccessMessage) {
+      setIsWhatsAppOpen(true);
+    }
+    prevCreatingRef.current = isCreatingProduct;
+  }, [isCreatingProduct, productErrors.create, productSuccessMessage]);
+
   useEffect(() => {
     if (tab === "products") {
       getProducts({
@@ -137,6 +147,7 @@ const ProductsPage = () => {
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isScanOpen, setIsScanOpen] = useState(false);
   const [isWhatsAppOpen, setIsWhatsAppOpen] = useState(false);
+  const prevCreatingRef = useRef(false);
 
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
 
@@ -210,8 +221,7 @@ const ProductsPage = () => {
             label: o.name.trim(),
             priceAdjustment: Number(o.price) || 0,
           })),
-      }))
-      .filter((g) => g.options.length > 0);
+      }));
     formData.append("variantGroups", JSON.stringify(mappedVariantGroups));
 
     const mappedExtras = data.extras
@@ -231,8 +241,7 @@ const ProductsPage = () => {
     } else {
       createProduct(formData);
     }
-    // After creating or editing, offer to promote the product over WhatsApp.
-    setIsWhatsAppOpen(true);
+    // WhatsApp dialog opens automatically after confirmed success (see useEffect above)
   };
 
   const handleAddIngredient = (data: IngredientFormData) => {
