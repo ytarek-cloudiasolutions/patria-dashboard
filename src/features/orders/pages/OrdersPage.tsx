@@ -53,6 +53,20 @@ const OrdersPage = () => {
     pos: 0,
     call: 0,
   });
+
+  // Fetch all source counts on mount for accurate initial badges
+  useEffect(() => {
+    import("@/config/api").then(({ api }) => {
+      api.get("/orders/counts").then((res) => {
+        const c = res.data as { application?: number; pos?: number; call?: number };
+        setSourceCounts({
+          application: c.application ?? 0,
+          pos: c.pos ?? 0,
+          call: c.call ?? 0,
+        });
+      }).catch(() => {});
+    });
+  }, []);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isCallDialogOpen, setIsCallDialogOpen] = useState(false);
   const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
