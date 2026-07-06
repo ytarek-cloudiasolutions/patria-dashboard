@@ -1,0 +1,82 @@
+import type { Review } from "./types";
+
+export const INITIAL_REVIEWS: Review[] = [
+  {
+    id: 1,
+    customerName: "Omnia Maher",
+    customerCode: "01209036798",
+    orderId: "ORD-281504",
+    orderType: "Delivery",
+    rating: 4,
+    maxRating: 5,
+    comment: "wow",
+    categories: ["Service speed", "Driver friendliness", "Value for money"],
+    createdAt: "3/31/2026, 2:37:57 PM",
+  },
+  {
+    id: 2,
+    customerName: "Esraa",
+    customerCode: "01209036798",
+    orderId: "ORD-281504",
+    orderType: "Delivery",
+    rating: 3,
+    maxRating: 5,
+    comment: "wow",
+    categories: ["Service speed", "Driver friendliness"],
+    createdAt: "3/31/2026, 2:37:57 PM",
+  },
+  {
+    id: 3,
+    customerName: "Kareem Nabil",
+    customerCode: "01209036798",
+    orderId: "ORD-281504",
+    orderType: "Delivery",
+    rating: 2,
+    maxRating: 5,
+    comment: "Bad taste",
+    categories: [],
+    createdAt: "3/31/2026, 2:37:57 PM",
+  },
+  {
+    id: 4,
+    customerName: "Mennatallah",
+    customerCode: "01209036798",
+    orderId: "ORD-281504",
+    orderType: "Delivery",
+    rating: 4,
+    maxRating: 5,
+    comment: "Great Coffee",
+    categories: ["Service speed", "Driver friendliness", "Value for money"],
+    createdAt: "3/31/2026, 2:37:57 PM",
+  },
+  {
+    id: 5,
+    customerName: "Osama Kahled",
+    customerCode: "01209036798",
+    orderId: "ORD-281504",
+    orderType: "Delivery",
+    rating: 3,
+    maxRating: 5,
+    comment: "wow",
+    categories: ["Service speed", "Driver friendliness"],
+    createdAt: "3/31/2026, 2:37:57 PM",
+  },
+];
+
+export const REVIEW_RATING_FILTERS = [
+  { label: "All Ratings", value: "all" },
+  { label: "5 Stars", value: "5" },
+  { label: "4 Stars", value: "4" },
+  { label: "3 Stars", value: "3" },
+  { label: "2 Stars", value: "2" },
+  { label: "1 Star", value: "1" },
+];
+
+export const REVIEW_CATEGORY_FILTERS = [
+  { label: "All Categories", value: "all" },
+  { label: "Service speed", value: "Service speed" },
+  { label: "Driver friendliness", value: "Driver friendliness" },
+  { label: "Value for money", value: "Value for money" },
+  { label: "Food quality", value: "Food quality" },
+  { label: "Packaging", value: "Packaging" },
+];

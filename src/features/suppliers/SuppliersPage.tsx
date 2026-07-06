@@ -1,0 +1,158 @@
+import { useEffect, useMemo, useState } from "react";
+import { Plus } from "lucide-react";
+
+import HeaderLayout from "@/layouts/HeaderLayout";
+import DefaultButton from "@/shared/components/DefaultButton";
+import SearchInputField from "@/shared/components/SearchInputField";
+import DeleteDialog from "@/shared/components/DeleteDialog";
+import { useTranslation } from "@/shared/i18n/useTranslation";
+
+import SuppliersOverview from "./components/SuppliersOverview";
+import SuppliersTable from "./components/SuppliersTable";
+import SupplierFormModal from "./components/SupplierFormModal";
+import { useSuppliers } from "./hooks/useSuppliers";
+import type {
+  Supplier,
+  SupplierCategory,
+  SupplierFormData,
+} from "./types";
+
+const parseCategories = (raw: string): SupplierCategory[] =>
+  raw
+    .split(",")
+    .map((c) => c.trim())
+    .filter(Boolean)
+    .map(
+      (c) =>
+        (c.charAt(0).toUpperCase() +
+          c.slice(1).toLowerCase()) as SupplierCategory,
+    );
+
+const SuppliersPage = () => {
+  const { t } = useTranslation();
+  const {
+    suppliers,
+    getSuppliersList,
+    createNewSupplier,
+    updateSupplierInfo,
+    deleteSupplierInfo,
+  } = useSuppliers();
+
+  const [search, setSearch] = useState("");
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
+  const [deletingSupplier, setDeletingSupplier] = useState<Supplier | null>(
+    null,
+  );
+
+  // Fetch list on mount
+  useEffect(() => {
+    getSuppliersList();
+  }, [getSuppliersList]);
+
+  const filteredSuppliers = useMemo(() => {
+    const q = search.toLowerCase().trim();
+    if (!q) return suppliers;
+    return suppliers.filter(
+      (s: Supplier) =>
+        s.name.toLowerCase().includes(q) ||
+        s.contactPerson.toLowerCase().includes(q) ||
+        s.email.toLowerCase().includes(q) ||
+        s.phone.includes(q) ||
+        s.categories.some((c: string) => c.toLowerCase().includes(q)),
+    );
+  }, [suppliers, search]);
+
+  const handleOpenAdd = () => {
+    setEditingSupplier(null);
+    setIsFormOpen(true);
+  };
+
+  const handleOpenEdit = (supplier: Supplier) => {
+    setEditingSupplier(supplier);
+    setIsFormOpen(true);
+  };
+
+  const handleSave = (data: SupplierFormData, id?: string | number) => {
+    const categories = parseCategories(data.categories);
+
+    if (id !== undefined) {
+      updateSupplierInfo(String(id), {
+        name: data.supplierName.trim(),
+        contactPerson: data.contactName.trim(),
+        phone: data.phone.trim(),
+        email: data.email.trim(),
+        address: data.address.trim(),
+        categories,
+      });
+    } else {
+      createNewSupplier({
+        name: data.supplierName.trim(),
+        contactPerson: data.contactName.trim(),
+        phone: data.phone.trim(),
+        email: data.email.trim(),
+        address: data.address.trim(),
+        categories,
+      });
+    }
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deletingSupplier) return;
+    deleteSupplierInfo(String(deletingSupplier.id));
+    setDeletingSupplier(null);
+  };
+
+  return (
+    <>
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <HeaderLayout
+          title={t("Suppliers")}
+          description={t("Manage your wholesale partners and vendors")}
+        />
+        <DefaultButton
+          data={{
+            buttonText: t("Add New Supplier"),
+            icon: <Plus className="size-4.5" />,
+            onClick: handleOpenAdd,
+          }}
+        />
+      </div>
+
+      <SuppliersOverview suppliers={suppliers} />
+
+      <div className="mb-5">
+        <SearchInputField
+          value={search}
+          onChange={setSearch}
+          placeholder={t("Search suppliers...")}
+        />
+      </div>
+
+      <SuppliersTable
+        suppliers={filteredSuppliers}
+        onEdit={handleOpenEdit}
+        onDelete={setDeletingSupplier}
+      />
+
+      <SupplierFormModal
+        open={isFormOpen}
+        supplier={editingSupplier}
+        onClose={() => setIsFormOpen(false)}
+        onSave={handleSave}
+      />
+
+      <DeleteDialog
+        open={!!deletingSupplier}
+        onOpenChange={(open) => !open && setDeletingSupplier(null)}
+        data={{
+          item: deletingSupplier?.name ?? "",
+          type: "supplier",
+        }}
+        onConfirm={handleConfirmDelete}
+      />
+    </>
+  );
+};
+
+export default SuppliersPage;
