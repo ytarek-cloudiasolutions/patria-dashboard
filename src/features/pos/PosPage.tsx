@@ -276,7 +276,7 @@ const PosPage = () => {
   const confirmPayment = async (method: PaymentMethod) => {
     if (cartItems.length === 0) return;
 
-    const currentTotal = totals.grand;
+    const currentTotal = totals.total;
 
     // If this is a loaded pending order → just mark it delivered + set payment method
     if (loadedOrderId) {
