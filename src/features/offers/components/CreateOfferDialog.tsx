@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { FileUp } from "lucide-react";
+import { FileUp, Image as ImageIcon } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -28,6 +28,9 @@ const INITIAL_FORM: OfferFormData = {
   endDate: "",
   bannerImage: undefined,
   productIds: [],
+  code: "",
+  usageLimit: "",
+  minOrderAmount: "",
 };
 
 const formatDate = (value: string) => {
@@ -82,6 +85,9 @@ const CreateOfferDialog = ({
               endDate: editingOffer.endDate ? editingOffer.endDate.split("T")[0] : "",
               bannerImage: editingOffer.offerImage,
               productIds: [],
+              code: editingOffer.code || "",
+              usageLimit: editingOffer.usageLimit !== null && editingOffer.usageLimit !== undefined ? String(editingOffer.usageLimit) : "",
+              minOrderAmount: editingOffer.minOrderAmount !== null && editingOffer.minOrderAmount !== undefined ? String(editingOffer.minOrderAmount) : "",
             }
           : INITIAL_FORM,
       );
@@ -131,6 +137,9 @@ const CreateOfferDialog = ({
       offerImage: form.bannerImage,
       startDate: form.startDate,
       endDate: form.endDate,
+      code: form.code?.trim() || undefined,
+      usageLimit: form.usageLimit?.trim() ? Number(form.usageLimit) : null,
+      minOrderAmount: form.minOrderAmount?.trim() ? Number(form.minOrderAmount) : null,
     };
     onSaveOffer(offer, imageFile);
     onOpenChange(false);
@@ -159,8 +168,9 @@ const CreateOfferDialog = ({
             noValidate
             className="flex-1 overflow-y-auto px-5 py-5 sm:px-7 sm:py-6"
           >
-            <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
-              {/* Left column */}
+            {/* Top Area: Name/Description (left) and Banner Image (right) */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-5">
+              {/* Left Column */}
               <div className="flex flex-col gap-5">
                 <div>
                   <InputField
@@ -168,9 +178,9 @@ const CreateOfferDialog = ({
                       id: "offer-name",
                       label: {
                         htmlFor: "offer-name",
-                        labelText: t("Product Name"),
+                        labelText: t("OFFER NAME"),
                       },
-                      placeholder: t("e.g. Artisanal Sourdough"),
+                      placeholder: t("e.g. Summer Sensation 2024"),
                       required: true,
                       inputProps: {
                         value: form.productName,
@@ -185,19 +195,19 @@ const CreateOfferDialog = ({
                   )}
                 </div>
 
-                <div className="flex flex-col">
+                <div className="flex flex-col flex-1">
                   <Label
                     htmlFor="offer-description"
-                    className="mb-2.5 text-[16px] font-medium text-black"
+                    className="mb-2.5 text-[16px] font-semibold text-[#333333] uppercase"
                   >
-                    {t("Description")}<span className="text-[#C90000]">*</span>
+                    {t("DESCRIPTION")}<span className="text-[#C90000]">*</span>
                   </Label>
                   <Textarea
                     id="offer-description"
                     value={form.description}
                     onChange={(e) => set("description", e.target.value)}
-                    placeholder={t("Describe this offer...")}
-                    className="min-h-20 rounded-xl border-[#E5E5E5] px-4.5 py-3 text-[14px] text-[#23252A] placeholder:text-[#8B8B8B] focus-visible:border-primary focus-visible:ring-0"
+                    placeholder={t("Craft a compelling message for your customers...")}
+                    className="flex-1 min-h-[148px] rounded-xl border-[#E5E5E5] px-4.5 py-3 text-[14px] text-[#23252A] placeholder:text-[#8B8B8B] focus-visible:border-primary focus-visible:ring-0"
                   />
                   {errors.description && (
                     <p className="mt-1 text-[13px] text-[#C90000]">
@@ -205,137 +215,181 @@ const CreateOfferDialog = ({
                     </p>
                   )}
                 </div>
-
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:items-start">
-                  <div className="flex flex-col">
-                    <Label
-                      htmlFor="discount-type"
-                      className="mb-2.5 text-[16px] font-medium text-black"
-                    >
-                      {t("Discount Type")}<span className="text-[#C90000]">*</span>
-                    </Label>
-                    <DropdownSelect
-                      options={DISCOUNT_TYPE_OPTIONS.map((o) => ({ ...o, label: t(o.label) }))}
-                      selected={form.discountType}
-                      onSelect={(value) =>
-                        set("discountType", value as DiscountType)
-                      }
-                      onOpenChange={setIsDiscountOpen}
-                      align="start"
-                      className="md:w-full"
-                      contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
-                    />
-                  </div>
-
-                  <div>
-                    <InputField
-                      data={{
-                        id: "discount-value",
-                        label: {
-                          htmlFor: "discount-value",
-                          labelText:
-                            form.discountType === "fixed"
-                              ? t("Discount EGP")
-                              : t("Discount %"),
-                        },
-                        placeholder: t("e.g. 20"),
-                        required: true,
-                        inputProps: {
-                          type: "number",
-                          min: "0",
-                          value: form.discountValue,
-                          onChange: (e) => set("discountValue", e.target.value),
-                        },
-                      }}
-                    />
-                    {errors.discountValue && (
-                      <p className="mt-1 text-[13px] text-[#C90000]">
-                        {errors.discountValue}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:items-start">
-                  <div className="flex flex-col">
-                    <Label className="mb-2.5 text-[16px] font-medium text-black">
-                      {t("Start Date")}<span className="text-[#C90000]">*</span>
-                    </Label>
-                    <DatePicker
-                      value={form.startDate}
-                      onChange={(date) => set("startDate", date)}
-                      placeholder="25/3/2026"
-                      popoverPlacement="bottom-right"
-                      withBackdrop
-                    />
-                    {errors.startDate && (
-                      <p className="mt-1 text-[13px] text-[#C90000]">
-                        {errors.startDate}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="flex flex-col">
-                    <Label className="mb-2.5 text-[16px] font-medium text-black">
-                      {t("End Date")}<span className="text-[#C90000]">*</span>
-                    </Label>
-                    <DatePicker
-                      value={form.endDate}
-                      onChange={(date) => set("endDate", date)}
-                      placeholder="25/3/2026"
-                      popoverPlacement="bottom-right"
-                      minDate={form.startDate || undefined}
-                      withBackdrop
-                    />
-                    {errors.endDate && (
-                      <p className="mt-1 text-[13px] text-[#C90000]">
-                        {errors.endDate}
-                      </p>
-                    )}
-                  </div>
-                </div>
               </div>
 
-              {/* Right column */}
-              <div className="flex flex-col gap-5">
-                <div className="flex flex-col">
-                  <Label className="mb-2.5 text-[16px] font-medium text-black">
-                    {t("Banner image")}{" "}
-                    <span className="text-[13px] font-normal text-[#8B8B8B]">
-                      {t("(Optional)")}
-                    </span>
-                  </Label>
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="flex h-40 w-full cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-[12px] border-2 border-dashed border-[#624F1C] bg-[#F5F0EA4D] text-center"
-                  >
-                    {form.bannerImage ? (
-                      <img
-                        src={form.bannerImage}
-                        alt="Banner preview"
-                        className="size-full object-cover"
-                      />
-                    ) : (
-                      <>
-                        <FileUp className="size-7 text-[#000000]" />
-                        <span className="text-[14px] font-medium text-[#28293D]">
-                          {t("Click to upload image")}
-                        </span>
-                        <span className="text-[12px] text-[#8B8B8B]">
-                          {t("PNG, JPG up to 5MB")}
-                        </span>
-                      </>
-                    )}
-                  </button>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/png,image/jpeg"
-                    className="hidden"
-                    onChange={handleFileChange}
-                  />
-                </div>
+              {/* Right Column */}
+              <div className="flex flex-col">
+                <Label className="mb-2.5 text-[16px] font-semibold text-[#333333] uppercase">
+                  {t("PROMO BANNER IMAGE (OPTIONAL)")}
+                </Label>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex h-[245px] w-full cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-[12px] border-2 border-dashed border-[#624F1C] bg-[#F5F0EA4D] text-center"
+                >
+                  {form.bannerImage ? (
+                    <img
+                      src={form.bannerImage}
+                      alt="Banner preview"
+                      className="size-full object-cover"
+                    />
+                  ) : (
+                    <>
+                      <ImageIcon className="size-8 text-[#8B8B8B]" />
+                      <span className="text-[12px] font-semibold text-[#8B8B8B] uppercase tracking-wider">
+                        {t("Resolution 1200x400 Ideal")}
+                      </span>
+                    </>
+                  )}
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg"
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
+              </div>
+            </div>
+
+            {/* Middle Area: Discount Type, Discount Value, Promo Code, Usage Limit */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5 mt-5">
+              <div className="flex flex-col">
+                <Label
+                  htmlFor="discount-type"
+                  className="mb-2.5 text-[16px] font-semibold text-[#333333] uppercase"
+                >
+                  {t("DISCOUNT TYPE")}<span className="text-[#C90000]">*</span>
+                </Label>
+                <DropdownSelect
+                  options={DISCOUNT_TYPE_OPTIONS.map((o) => ({ ...o, label: t(o.label) }))}
+                  selected={form.discountType}
+                  onSelect={(value) =>
+                    set("discountType", value as DiscountType)
+                  }
+                  onOpenChange={setIsDiscountOpen}
+                  align="start"
+                  className="md:w-full"
+                  contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
+                />
+              </div>
+
+              <div>
+                <InputField
+                  data={{
+                    id: "discount-value",
+                    label: {
+                      htmlFor: "discount-value",
+                      labelText: t("DISCOUNT VALUE"),
+                    },
+                    placeholder: t("e.g. 20"),
+                    required: true,
+                    inputProps: {
+                      type: "number",
+                      min: "0",
+                      value: form.discountValue,
+                      onChange: (e) => set("discountValue", e.target.value),
+                    },
+                  }}
+                />
+                {errors.discountValue && (
+                  <p className="mt-1 text-[13px] text-[#C90000]">
+                    {errors.discountValue}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <InputField
+                  data={{
+                    id: "promo-code",
+                    label: {
+                      htmlFor: "promo-code",
+                      labelText: t("PROMO CODE (OPTIONAL)"),
+                    },
+                    placeholder: t("OBLIQUE20"),
+                    inputProps: {
+                      value: form.code,
+                      onChange: (e) => set("code", e.target.value),
+                    },
+                  }}
+                />
+              </div>
+
+              <div>
+                <InputField
+                  data={{
+                    id: "usage-limit",
+                    label: {
+                      htmlFor: "usage-limit",
+                      labelText: t("USAGE LIMIT (TOTAL USES)"),
+                    },
+                    placeholder: t("Infinite"),
+                    inputProps: {
+                      value: form.usageLimit,
+                      onChange: (e) => set("usageLimit", e.target.value),
+                    },
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Bottom Area: Start Date, End Date, Min Order Amount */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-6 gap-y-5 mt-5">
+              <div className="flex flex-col">
+                <Label className="mb-2.5 text-[16px] font-semibold text-[#333333] uppercase">
+                  {t("START DATE")}<span className="text-[#C90000]">*</span>
+                </Label>
+                <DatePicker
+                  value={form.startDate}
+                  onChange={(date) => set("startDate", date)}
+                  placeholder="dd/mm/yyyy"
+                  popoverPlacement="bottom-right"
+                  withBackdrop
+                />
+                {errors.startDate && (
+                  <p className="mt-1 text-[13px] text-[#C90000]">
+                    {errors.startDate}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex flex-col">
+                <Label className="mb-2.5 text-[16px] font-semibold text-[#333333] uppercase">
+                  {t("END DATE")}<span className="text-[#C90000]">*</span>
+                </Label>
+                <DatePicker
+                  value={form.endDate}
+                  onChange={(date) => set("endDate", date)}
+                  placeholder="dd/mm/yyyy"
+                  popoverPlacement="bottom-right"
+                  minDate={form.startDate || undefined}
+                  withBackdrop
+                />
+                {errors.endDate && (
+                  <p className="mt-1 text-[13px] text-[#C90000]">
+                    {errors.endDate}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <InputField
+                  data={{
+                    id: "min-order-amount",
+                    label: {
+                      htmlFor: "min-order-amount",
+                      labelText: t("MIN. ORDER AMOUNT (EGP)"),
+                    },
+                    placeholder: t("e.g. 100"),
+                    inputProps: {
+                      type: "number",
+                      min: "0",
+                      value: form.minOrderAmount,
+                      onChange: (e) => set("minOrderAmount", e.target.value),
+                    },
+                  }}
+                />
               </div>
             </div>
           </form>
