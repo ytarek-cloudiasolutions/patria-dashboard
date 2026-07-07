@@ -44,11 +44,11 @@ type DeleteTarget = {
 };
 
 const DELETE_TYPE_LABEL: Record<DeleteTarget["kind"], DeleteDialogProps["type"]> =
-  {
-    product: "product",
-    ingredient: "ingredient",
-    category: "category",
-  };
+{
+  product: "product",
+  ingredient: "ingredient",
+  category: "category",
+};
 
 
 const ProductsPage = () => {
@@ -301,21 +301,21 @@ const ProductsPage = () => {
 
   const primaryButton = isRecipes
     ? {
-        text: t("Add New Ingredient"),
-        onClick: () => setIsAddIngredientOpen(true),
-      }
+      text: t("Add New Ingredient"),
+      onClick: () => setIsAddIngredientOpen(true),
+    }
     : isCategories
       ? {
-          text: t("Add New Category"),
-          onClick: () => setIsAddCategoryOpen(true),
-        }
+        text: t("Add New Category"),
+        onClick: () => setIsAddCategoryOpen(true),
+      }
       : {
-          text: t("Add New Product"),
-          onClick: () => {
-            setEditingProduct(null);
-            setIsAddProductOpen(true);
-          },
-        };
+        text: t("Add New Product"),
+        onClick: () => {
+          setEditingProduct(null);
+          setIsAddProductOpen(true);
+        },
+      };
 
   return (
     <>

@@ -14,6 +14,10 @@ export interface Offer {
   startDate?: string;
   endDate?: string;
   usageCount?: number;
+  code?: string;
+  usageLimit?: number | null;
+  minOrderAmount?: number | null;
+  claimsCount?: number;
 }
 
 export interface OfferProduct {
@@ -31,6 +35,9 @@ export interface OfferFormData {
   endDate: string;
   bannerImage?: string;
   productIds: number[];
+  code?: string;
+  usageLimit?: string;
+  minOrderAmount?: string;
 }
 
 export interface BroadcastFormData {

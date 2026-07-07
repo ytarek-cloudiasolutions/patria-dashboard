@@ -1,4 +1,3 @@
-import MediaIcon from "@/assets/images/svgs/media.svg";
 import { Badge } from "@/shared/components/ui/badge";
 import {
   Card,
@@ -11,7 +10,7 @@ import { Separator } from "@/shared/components/ui/separator";
 import { useState, useEffect } from "react";
 import type { Offer } from "../types";
 import { Switch } from "@/shared/components/ui/switch";
-import { CalendarDays, Megaphone, SquarePen, Trash2 } from "lucide-react";
+import { CalendarDays, Megaphone, SquarePen, Trash2, Tag, Users, Image as ImageIcon } from "lucide-react";
 import DefaultButton from "@/shared/components/DefaultButton";
 import DeleteDialog from "@/shared/components/DeleteDialog";
 import { useTranslation } from "@/shared/i18n/useTranslation";
@@ -61,7 +60,7 @@ const OfferCard = ({
             />
           ) : (
             <div className="w-full h-full bg-[#F5F0EA] flex flex-col items-center justify-center gap-1">
-              <img src={MediaIcon} alt="No banner" className="w-10 h-10 opacity-40" />
+              <ImageIcon className="w-10 h-10 text-[#8B8B8B] opacity-40" />
               <span className="text-[12px] text-[#8B8B8B]">{t("No banner image")}</span>
             </div>
           )}
@@ -83,20 +82,21 @@ const OfferCard = ({
                 <CardTitle className="text-[#333333] text-[20px] font-bold">
                   {offer.offerTitle}
                 </CardTitle>
-                <CardDescription className="text-[#8B8B8B] text-[13px] font-normal">
+                <CardDescription className="text-[#8B8B8B] text-[13px] font-normal mt-1">
                   {offer.offerDescription}
                 </CardDescription>
               </div>
 
-              <Badge className="px-2 h-7.75 rounded-[5px] bg-[#F5F0EA] text-[#333333] text-[12px] font-bold">
+              <Badge className="px-2 h-7.75 rounded-[5px] bg-[#F5F0EA] text-[#333333] text-[12px] font-bold whitespace-nowrap">
                 {offer.discountType === "percentage"
                   ? `${offer.offerPercentage}% ${t("OFF")}`
-                  : `${offer.offerPercentage} EGP`}
+                  : `${offer.offerPercentage} EGP OFF`}
               </Badge>
             </div>
           </CardHeader>
 
           <CardContent className="space-y-4">
+            {/* Valid Period box */}
             <Card className="p-2 bg-[#FAFAF7] border border-[#E5E5E5] rounded-[10px]">
               <div className="flex items-center gap-2">
                 <CalendarDays className="size-6 text-[#000000]" />
@@ -104,18 +104,30 @@ const OfferCard = ({
                   <span className="text-[#333333] text-[13px]">
                     {t("Valid Period")}
                   </span>
-                  <span className="text-[#28293D] text-[16px]">
+                  <span className="text-[#28293D] text-[16px] font-semibold">
                     {offer.offerValidPeriod}
                   </span>
                 </div>
               </div>
             </Card>
 
+            {/* Promo Code & Claims info */}
+            <div className="flex items-center justify-between text-[#28293D] text-[13px] font-semibold px-1 py-0.5">
+              <div className="flex items-center gap-1.5">
+                <Tag className="size-4 text-[#8B8B8B]" />
+                <span>{t("Code")}: <span className="font-bold uppercase text-primary">{offer.code || "GLOBAL_AUTO"}</span></span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Users className="size-4 text-[#8B8B8B]" />
+                <span>{offer.claimsCount ?? 0} {t("Claims")}</span>
+              </div>
+            </div>
+
             <Separator className="bg-[#CACBD4]" />
 
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-3">
-                <span className="text-[#333333] text-[13px] font-medium">
+                <span className="text-[#333333] text-[13px] font-semibold uppercase tracking-wider">
                   {t("Active")}
                 </span>
                 <Switch
@@ -126,15 +138,17 @@ const OfferCard = ({
               </div>
 
               <div className="flex items-center gap-3">
-                <DefaultButton
-                  data={{
-                    buttonText: t("Mass Broadcast"),
-                    icon: <Megaphone className="size-4.5" />,
-                    onClick: () => onBroadcast?.(offer),
-                    className:
-                      "h-[34px] px-[8px] gap-[4px] bg-[#EDEDFF] text-[#6A68FF] text-[10px]",
-                  }}
-                />
+                {isActive && (
+                  <DefaultButton
+                    data={{
+                      buttonText: t("Mass Broadcast"),
+                      icon: <Megaphone className="size-4.5" />,
+                      onClick: () => onBroadcast?.(offer),
+                      className:
+                        "h-[34px] px-[12px] gap-[6px] bg-[#EDEDFF] text-[#6A68FF] text-[12px] font-semibold rounded-[5px]",
+                    }}
+                  />
+                )}
 
                 <button
                   onClick={() => onEdit?.(offer)}

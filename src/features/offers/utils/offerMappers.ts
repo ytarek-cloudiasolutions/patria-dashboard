@@ -38,10 +38,14 @@ export const mapOffer = (o: any): Offer => {
     discountType: (o.discountType === "fixed" ? "fixed" : "percentage") as DiscountType,
     offerValidPeriod: formatPeriodFromDates(o.startDate || "", o.endDate || ""),
     numberOfProducts: (o.productIds || o.includedProducts || []).length,
-    offerImage: o.image || o.offerImage,
+    offerImage: o.image || o.offerImage || o.bannerImage,
     startDate: o.startDate,
     endDate: o.endDate,
     usageCount: o.usageCount ?? 0,
+    code: o.code || "",
+    usageLimit: o.usageLimit !== undefined ? o.usageLimit : null,
+    minOrderAmount: o.minOrderAmount !== undefined ? o.minOrderAmount : null,
+    claimsCount: o.claimsCount ?? o.usageCount ?? 0,
   };
 };
 

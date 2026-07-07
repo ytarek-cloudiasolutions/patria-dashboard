@@ -70,7 +70,9 @@ const OffersPage = () => {
       status: newOffer.offerStatus ? "active" : "inactive",
       productIds: [],
       ...(withImage ? {} : { image: newOffer.offerImage?.startsWith("blob:") ? undefined : newOffer.offerImage }),
-      code: newOffer.offerTitle.toUpperCase().replace(/[^A-Z0-9]/g, "") || "OFFER",
+      code: newOffer.code || "",
+      usageLimit: newOffer.usageLimit ?? null,
+      minOrderAmount: newOffer.minOrderAmount ?? null,
     });
 
     if (imageFile) {

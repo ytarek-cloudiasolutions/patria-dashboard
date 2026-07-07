@@ -57,10 +57,18 @@ export const deleteProduct = async (productId: string) => {
   return response.data;
 };
 
+export const toggleProductStatus = async (productId: string) => {
+  const response = await api.patch<UpdateProductResponse>(
+    PRODUCT_ENDPOINTS.TOGGLE(productId),
+  );
+  return response.data;
+};
+
 export const productsApi = {
   getProducts,
   createProduct,
   getProductById,
   updateProduct,
   deleteProduct,
+  toggleProductStatus,
 };
