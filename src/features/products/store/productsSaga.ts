@@ -5,6 +5,7 @@ import {
   createProduct,
   updateProduct,
   deleteProduct,
+  toggleProductStatus,
 } from "../api/productsApi";
 import { getProductErrorMessage } from "../utils/productHelpers";
 import { showErrorToast, showSuccessToast } from "@/shared/utils/toast";
@@ -111,63 +112,10 @@ function* handleToggleProductActive(
   action: PayloadAction<{ productId: string; isActive: boolean }>,
 ) {
   try {
-    const { productId, isActive } = action.payload;
-    const products: Product[] = yield select(selectProducts);
-    const product = products.find((p) => p.id === productId);
-    if (!product) {
-      throw new Error("Product not found");
-    }
-
-    let categories: Category[] = yield select(
-      (state: RootState) => state.categories.categories,
-    );
-    if (categories.length === 0) {
-      const response: any[] = yield call(getCategories);
-      categories = mapCategories(response || []);
-    }
-
-    const selectedCat = categories.find(
-      (c) =>
-        c.name.toLowerCase() === product.category.toLowerCase() ||
-        c.id === product.category,
-    );
-    let categoryId = selectedCat ? selectedCat.id : product.category;
-
-    // Validate if it is a 24-character hexadecimal ObjectId. If not, use first category as fallback
-    if (!/^[0-9a-fA-F]{24}$/.test(categoryId)) {
-      if (categories.length > 0) {
-        categoryId = categories[0].id;
-      }
-    }
-
-    const formData = new FormData();
-    formData.append("name", product.name);
-    formData.append("description", product.description);
-    formData.append("price", String(product.price));
-    formData.append("categoryId", categoryId);
-    formData.append("isActive", String(isActive));
-
-    const mappedVariantGroups = (product.variantGroups || []).map((g: any) => ({
-      name: g.name,
-      required: g.required,
-      options: (g.options || []).map((o: any) => ({
-        name: o.name,
-        label: o.name,
-        priceAdjustment: Number(o.price) || 0,
-      })),
-    }));
-    formData.append("variantGroups", JSON.stringify(mappedVariantGroups));
-
-    const mappedExtras = (product.extras || []).map((e: any) => ({
-      name: e.name,
-      price: Number(e.price) || 0,
-    }));
-    formData.append("extras", JSON.stringify(mappedExtras));
-
+    const { productId } = action.payload;
     const response: UpdateProductResponse = yield call(
-      updateProduct,
+      toggleProductStatus,
       productId,
-      formData,
     );
     const updatedProduct = response.data?.product || (response as any).product || response;
     yield call(showSuccessToast, "Product status updated successfully");
