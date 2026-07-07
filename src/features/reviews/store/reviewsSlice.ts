@@ -6,7 +6,6 @@ import type {
   ReviewsOperation,
   Review,
   ReviewStats,
-  ReviewsPagination,
   GetReviewsRequest,
   GetReviewsResponse,
   CreateReviewRequest,

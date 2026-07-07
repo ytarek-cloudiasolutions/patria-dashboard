@@ -16,6 +16,7 @@ import type {
   WarehouseFormData,
 } from "./types";
 import { useWarehouses } from "./hooks/useWarehouses";
+import { useProducts } from "@/features/products/hooks/useProducts";
 
 const mapApiWarehouse = (w: any): Warehouse => ({
   id: w._id ?? w.id,
@@ -42,24 +43,22 @@ const mapApiTransfer = (t: any): InternalTransfer => ({
   status: (t.status === "approved" ? "Approved" : t.status === "completed" ? "Completed" : t.status === "rejected" ? "Rejected" : "Pending") as any,
 });
 
-const generateShortId = () =>
-  Math.random().toString(36).slice(2, 9).toUpperCase();
-
-const generateReference = (count: number) =>
-  `#TRF-${String(count + 1).padStart(6, "0")}`;
-
-const formatDate = (date: Date) =>
-  `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
 
 const WarehousesPage = () => {
   const { t } = useTranslation();
   const { warehouses: apiWarehouses, transfers: apiTransfers, getWarehouses, getTransfers, createWarehouse, createTransfer } = useWarehouses();
+  const { products: apiProducts, getProducts } = useProducts();
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [transfers, setTransfers] = useState<InternalTransfer[]>([]);
 
-  useEffect(() => { getWarehouses(); getTransfers(); }, [getWarehouses, getTransfers]);
+  useEffect(() => { getWarehouses(); getTransfers(); getProducts({}); }, [getWarehouses, getTransfers, getProducts]);
   useEffect(() => { if (apiWarehouses?.length) setWarehouses(apiWarehouses.map(mapApiWarehouse)); }, [apiWarehouses]);
   useEffect(() => { if (apiTransfers?.length) setTransfers(apiTransfers.map(mapApiTransfer)); }, [apiTransfers]);
+
+  const productOptions = useMemo(() =>
+    (apiProducts ?? []).map((p: any) => ({ value: p.id ?? p._id, label: p.name })),
+    [apiProducts]
+  );
 
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isTransferOpen, setIsTransferOpen] = useState(false);
@@ -139,6 +138,7 @@ const WarehousesPage = () => {
       <InternalTransferModal
         open={isTransferOpen}
         warehouses={warehouses}
+        productOptions={productOptions}
         onOpenChange={setIsTransferOpen}
         onSave={handleCreateTransfer}
       />

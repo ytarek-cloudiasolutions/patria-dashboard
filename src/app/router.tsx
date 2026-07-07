@@ -2,6 +2,7 @@
 import SignInPage from "@/features/auth/pages/SignInPage";
 import SignUpPage from "@/features/auth/pages/SignUpPage";
 import ProtectedRoute from "@/features/auth/components/ProtectedRoute";
+import RoleRoute from "@/features/auth/components/RoleRoute";
 
 import KitchenDetailsPage from "@/features/kitchen/pages/KitchenDetailsPage";
 import KitchenPage from "@/features/kitchen/pages/KitchenPage";
@@ -43,7 +44,16 @@ import DeliveryTrackingPage from "@/features/delivery-tracking/DeliveryTrackingP
 export const router = createBrowserRouter([
   { path: "/sign-up", element: <SignUpPage /> },
   { path: "/sign-in", element: <SignInPage /> },
-  { path: "/pos", element: <PosPage /> },
+  {
+    path: "/pos",
+    element: (
+      <ProtectedRoute>
+        <RoleRoute path="/pos">
+          <PosPage />
+        </RoleRoute>
+      </ProtectedRoute>
+    ),
+  },
   {
     path: "/",
     element: (
@@ -53,34 +63,216 @@ export const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <DashboardPage /> },
-      { path: "/orders", element: <OrdersPage /> },
-      { path: "/tables", element: <TablesPage /> },
-      { path: "/kitchen", element: <KitchenPage /> },
-      { path: "/kitchen/:kitchenId", element: <KitchenDetailsPage /> },
-      { path: "/inventory", element: <InventoryPage /> },
+      {
+        path: "/orders",
+        element: (
+          <RoleRoute path="/orders">
+            <OrdersPage />
+          </RoleRoute>
+        ),
+      },
+      {
+        path: "/tables",
+        element: (
+          <RoleRoute path="/tables">
+            <TablesPage />
+          </RoleRoute>
+        ),
+      },
+      {
+        path: "/kitchen",
+        element: (
+          <RoleRoute path="/kitchen">
+            <KitchenPage />
+          </RoleRoute>
+        ),
+      },
+      {
+        path: "/kitchen/:kitchenId",
+        element: (
+          <RoleRoute path="/kitchen">
+            <KitchenDetailsPage />
+          </RoleRoute>
+        ),
+      },
+      {
+        path: "/inventory",
+        element: (
+          <RoleRoute path="/inventory">
+            <InventoryPage />
+          </RoleRoute>
+        ),
+      },
       { path: "/products", element: <ProductsPage /> },
-      { path: "/offers", element: <OffersPage /> },
-      { path: "/coupons", element: <CouponsPage /> },
-      { path: "/customers", element: <CustomersPage /> },
-      { path: "/suppliers", element: <SuppliersPage /> },
-      { path: "/purchasing", element: <ProcurementPage /> },
-      { path: "/warehouses", element: <WarehousesPage /> },
-      { path: "/subscriptions", element: <SubscriptionPage /> },
-      { path: "/locations", element: <LocationsPage /> },
-      { path: "/reviews", element: <ReviewsPage /> },
-      { path: "/logistics", element: <LogisticsPage /> },
-      { path: "/delivery-tracking", element: <DeliveryTrackingPage /> },
-      { path: "/production", element: <ProductionPage /> },
-      { path: "/requests", element: <RequestsPage /> },
-      { path: "/users-permissions", element: <UsersPermissionsPage /> },
-      { path: "/shift-management", element: <ShiftManagementPage /> },
-      { path: "/financial-hub", element: <FinancialHubPage /> },
-      { path: "/reports", element: <ReportsPage /> },
-      { path: "/shift-reports", element: <ShiftReportsPage /> },
-      { path: "/pricing", element: <PricingPage /> },
-      { path: "/settings", element: <SettingsPage /> },
+      {
+        path: "/offers",
+        element: (
+          <RoleRoute path="/offers">
+            <OffersPage />
+          </RoleRoute>
+        ),
+      },
+      {
+        path: "/coupons",
+        element: (
+          <RoleRoute path="/coupons">
+            <CouponsPage />
+          </RoleRoute>
+        ),
+      },
+      {
+        path: "/customers",
+        element: (
+          <RoleRoute path="/customers">
+            <CustomersPage />
+          </RoleRoute>
+        ),
+      },
+      {
+        path: "/suppliers",
+        element: (
+          <RoleRoute path="/suppliers">
+            <SuppliersPage />
+          </RoleRoute>
+        ),
+      },
+      {
+        path: "/purchasing",
+        element: (
+          <RoleRoute path="/purchasing">
+            <ProcurementPage />
+          </RoleRoute>
+        ),
+      },
+      {
+        path: "/warehouses",
+        element: (
+          <RoleRoute path="/warehouses">
+            <WarehousesPage />
+          </RoleRoute>
+        ),
+      },
+      {
+        path: "/subscriptions",
+        element: (
+          <RoleRoute path="/subscriptions">
+            <SubscriptionPage />
+          </RoleRoute>
+        ),
+      },
+      {
+        path: "/locations",
+        element: (
+          <RoleRoute path="/locations">
+            <LocationsPage />
+          </RoleRoute>
+        ),
+      },
+      {
+        path: "/reviews",
+        element: (
+          <RoleRoute path="/reviews">
+            <ReviewsPage />
+          </RoleRoute>
+        ),
+      },
+      {
+        path: "/logistics",
+        element: (
+          <RoleRoute path="/logistics">
+            <LogisticsPage />
+          </RoleRoute>
+        ),
+      },
+      {
+        path: "/delivery-tracking",
+        element: (
+          <RoleRoute path="/delivery-tracking">
+            <DeliveryTrackingPage />
+          </RoleRoute>
+        ),
+      },
+      {
+        path: "/production",
+        element: (
+          <RoleRoute path="/production">
+            <ProductionPage />
+          </RoleRoute>
+        ),
+      },
+      {
+        path: "/requests",
+        element: (
+          <RoleRoute path="/requests">
+            <RequestsPage />
+          </RoleRoute>
+        ),
+      },
+      {
+        path: "/users-permissions",
+        element: (
+          <RoleRoute path="/users-permissions">
+            <UsersPermissionsPage />
+          </RoleRoute>
+        ),
+      },
+      {
+        path: "/shift-management",
+        element: (
+          <RoleRoute path="/shift-management">
+            <ShiftManagementPage />
+          </RoleRoute>
+        ),
+      },
+      {
+        path: "/financial-hub",
+        element: (
+          <RoleRoute path="/financial-hub">
+            <FinancialHubPage />
+          </RoleRoute>
+        ),
+      },
+      {
+        path: "/reports",
+        element: (
+          <RoleRoute path="/reports">
+            <ReportsPage />
+          </RoleRoute>
+        ),
+      },
+      {
+        path: "/shift-reports",
+        element: (
+          <RoleRoute path="/shift-reports">
+            <ShiftReportsPage />
+          </RoleRoute>
+        ),
+      },
+      {
+        path: "/pricing",
+        element: (
+          <RoleRoute path="/pricing">
+            <PricingPage />
+          </RoleRoute>
+        ),
+      },
+      {
+        path: "/settings",
+        element: (
+          <RoleRoute path="/settings">
+            <SettingsPage />
+          </RoleRoute>
+        ),
+      },
       { path: "/account", element: <MyAccountPage /> },
-      { path: "/whatsapp-gateway", element: <WhatsAppGatewayPage /> },
+      {
+        path: "/whatsapp-gateway",
+        element: (
+          <RoleRoute path="/whatsapp-gateway">
+            <WhatsAppGatewayPage />
+          </RoleRoute>
+        ),
+      },
     ],
   },
 ]);

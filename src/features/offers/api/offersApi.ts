@@ -14,18 +14,22 @@ export const getOffers = async (params?: GetOffersRequest) => {
   return response.data;
 };
 
-export const createOffer = async (data: CreateOfferRequest) => {
+export const createOffer = async (data: CreateOfferRequest | FormData) => {
+  const isFormData = data instanceof FormData;
   const response = await api.post<{ offer: any }>(
     OFFER_ENDPOINTS.OFFERS,
     data,
+    isFormData ? { headers: { "Content-Type": "multipart/form-data" } } : undefined,
   );
   return response.data;
 };
 
-export const updateOffer = async (id: string, data: CreateOfferRequest) => {
+export const updateOffer = async (id: string, data: CreateOfferRequest | FormData) => {
+  const isFormData = data instanceof FormData;
   const response = await api.put<{ offer: any }>(
     OFFER_ENDPOINTS.OFFER_BY_ID(id),
     data,
+    isFormData ? { headers: { "Content-Type": "multipart/form-data" } } : undefined,
   );
   return response.data;
 };

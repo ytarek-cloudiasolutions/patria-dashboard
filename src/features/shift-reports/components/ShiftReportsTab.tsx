@@ -56,7 +56,7 @@ const ShiftReportsTab = ({ onMenuOpenChange }: ShiftReportsTabProps) => {
             id: idx + 1,
             employee: name,
             role,
-            shift: "—",
+            shift: "-",
             start: fmt(openedAt),
             end: fmt(closedAt),
             duration: openedAt ? formatDuration(openedAt, closedAt || undefined) : "—",
@@ -118,7 +118,7 @@ const ShiftReportsTab = ({ onMenuOpenChange }: ShiftReportsTabProps) => {
                 <tr key={row.id} className="border-t border-[#F0EEEA]">
                   <td className={`${TD} font-bold`}>{row.employee}</td>
                   <td className={TD}>{t(row.role)}</td>
-                  <td className={TD}>{row.shift === "-" || row.shift === "—" ? "-" : t(row.shift)}</td>
+                  <td className={TD}>{row.shift === "-" ? "-" : t(row.shift)}</td>
                   <td className={`${TD} text-[#595959]`}>{row.start}</td>
                   <td className={`${TD} text-[#595959]`}>{row.end}</td>
                   <td className={TD}>{row.duration}</td>

@@ -129,8 +129,7 @@ const MyAccountPage = () => {
         <AccountSettingsCard
           form={form}
           onChange={handleChange}
-          onSave={handleSave}
-          isSaving={isSaving}
+          onSave={handleSave as any}
         />
 
         <div className="flex flex-col gap-4">

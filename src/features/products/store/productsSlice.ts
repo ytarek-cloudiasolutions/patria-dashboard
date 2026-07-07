@@ -8,7 +8,6 @@ import type {
   GetProductsRequest,
   Pagination,
 } from "./productTypes";
-import type { Product } from "../types";
 
 const initialLoading: ProductsLoadingState = {
   fetch: false,

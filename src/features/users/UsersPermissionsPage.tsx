@@ -72,7 +72,7 @@ const UsersPermissionsPage = () => {
 
   // Fetch lists on mount
   useEffect(() => {
-    getUsersList();
+    getUsersList({ limit: 500 });
     getCustomersList();
   }, [getUsersList, getCustomersList]);
 

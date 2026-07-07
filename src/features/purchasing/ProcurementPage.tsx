@@ -10,10 +10,7 @@ import PurchasingTable from "./components/PurchasingTable";
 import CreatePoDialog from "./components/CreatePoDialog";
 import PaymentDialog from "./components/PaymentDialog";
 import {
-  PRODUCT_OPTIONS,
   PURCHASING_STATUS_FILTERS,
-  SUPPLIER_OPTIONS,
-  WAREHOUSE_OPTIONS,
 } from "./data";
 import type { PoFormState, PoStatus, PurchaseOrder } from "./types";
 import { usePurchasing } from "./hooks/usePurchasing";
@@ -42,7 +39,7 @@ const mapApiOrder = (o: any): PurchaseOrder => ({
 
 const ProcurementPage = () => {
   const { t } = useTranslation();
-  const { purchaseOrders: apiOrders, getPurchaseOrders, createPurchaseOrder, submitPurchaseOrder, cancelPurchaseOrder } = usePurchasing();
+  const { purchaseOrders: apiOrders, getPurchaseOrders, createPurchaseOrder, submitPurchaseOrder } = usePurchasing();
   const [orders, setOrders] = useState<PurchaseOrder[]>([]);
 
   useEffect(() => { getPurchaseOrders(); }, [getPurchaseOrders]);
@@ -92,17 +89,15 @@ const ProcurementPage = () => {
     const items = form.items
       .filter((item) => item.productId && item.quantity > 0)
       .map((item) => ({
-        product: item.productId,
+        productId: item.productId,
+        productName: "",
         quantity: item.quantity,
-        unitPrice: item.unitCost,
-        unit: item.unit ?? "kg",
+        unitPrice: item.unitCost ?? 0,
       }));
     createPurchaseOrder({
-      supplier: form.supplierId,
-      warehouse: form.warehouseId,
+      supplierId: form.supplierId,
+      warehouseId: form.warehouseId,
       items,
-      expectedDeliveryDate: form.expectedDeliveryDate,
-      notes: form.notes,
     });
   };
 

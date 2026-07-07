@@ -12,7 +12,6 @@ import { Separator } from "@/shared/components/ui/separator";
 import DefaultButton from "@/shared/components/DefaultButton";
 import DropdownSelect from "@/shared/components/DropdownSelect";
 import InputField from "@/shared/components/InputField";
-import { TRANSFER_PRODUCT_OPTIONS } from "../data";
 import type { TransferFormState, TransferLineItem, Warehouse } from "../types";
 
 const FORM_ID = "transfer-form";
@@ -29,14 +28,10 @@ const INITIAL_FORM: TransferFormState = {
   items: [newLineItem()],
 };
 
-const productOptions = TRANSFER_PRODUCT_OPTIONS.map((p) => ({
-  value: p.id,
-  label: p.label,
-}));
-
 interface InternalTransferModalProps {
   open: boolean;
   warehouses: Warehouse[];
+  productOptions?: { value: string; label: string }[];
   onOpenChange: (open: boolean) => void;
   onSave: (form: TransferFormState) => void;
 }
@@ -44,6 +39,7 @@ interface InternalTransferModalProps {
 const InternalTransferModal = ({
   open,
   warehouses,
+  productOptions = [],
   onOpenChange,
   onSave,
 }: InternalTransferModalProps) => {

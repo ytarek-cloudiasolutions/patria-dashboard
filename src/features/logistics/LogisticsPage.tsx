@@ -164,9 +164,9 @@ const LogisticsPage = () => {
       status: data.status === "On-Route" ? "busy" : data.status === "Active" ? "active" : "offline",
     };
     if (id !== undefined) {
-      updateDriver(String(id), payload);
+      updateDriver(String(id), payload as any);
     } else {
-      createDriver(payload);
+      createDriver(payload as any);
     }
   };
 

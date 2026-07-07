@@ -59,8 +59,8 @@ const OffersPage = () => {
     toggleOffer(String(offerId));
   };
 
-  const handleSaveOffer = (newOffer: Offer) => {
-    const payload = {
+  const handleSaveOffer = (newOffer: Offer, imageFile?: File) => {
+    const buildPayload = (withImage: boolean) => ({
       name: newOffer.offerTitle,
       description: newOffer.offerDescription,
       discountType: newOffer.discountType,
@@ -69,14 +69,21 @@ const OffersPage = () => {
       endDate: newOffer.endDate ? new Date(newOffer.endDate).toISOString() : new Date().toISOString(),
       status: newOffer.offerStatus ? "active" : "inactive",
       productIds: [],
-      image: newOffer.offerImage || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSm64KFO7e0T7oJ8QGv7IrlV2NUf9oMg3Oy3ZSqvSjPj4Dn4ycGy3x5oNA&s=10",
+      ...(withImage ? {} : { image: newOffer.offerImage?.startsWith("blob:") ? undefined : newOffer.offerImage }),
       code: newOffer.offerTitle.toUpperCase().replace(/[^A-Z0-9]/g, "") || "OFFER",
-    };
+    });
 
-    if (editingOffer) {
-      updateOfferInfo(String(editingOffer.id), payload);
+    if (imageFile) {
+      const fd = new FormData();
+      const plain = buildPayload(true);
+      Object.entries(plain).forEach(([k, v]) => { if (v !== undefined) fd.append(k, String(v)); });
+      fd.append("bannerImage", imageFile);
+      if (editingOffer) { updateOfferInfo(String(editingOffer.id), fd as any); }
+      else { createNewOffer(fd as any); }
     } else {
-      createNewOffer(payload);
+      const payload = buildPayload(false);
+      if (editingOffer) { updateOfferInfo(String(editingOffer.id), payload); }
+      else { createNewOffer(payload); }
     }
     setIsDialogOpen(false);
     setEditingOffer(undefined);

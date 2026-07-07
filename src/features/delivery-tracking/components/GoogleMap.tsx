@@ -56,7 +56,7 @@ function makeMarkerIcon(color: string) {
 const GoogleMap = ({ riders, selectedRider, onSelectRider }: GoogleMapProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
-  const markersRef = useRef<Map<string | number, any>>(new Map());
+  const markersRef = useRef<Map<number, any>>(new Map());
   const infoWindowRef = useRef<any>(null);
 
   useEffect(() => {

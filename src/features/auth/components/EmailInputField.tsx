@@ -1,6 +1,6 @@
 import InputField from "@/shared/components/InputField";
 import { useTranslation } from "@/shared/i18n/useTranslation";
-import type { InputFieldProps } from "@/shared/types/InputField.types";
+import type { InputFieldProps } from "@/shared/types/inputField.types";
 
 type EmailInputFieldProps = Pick<InputFieldProps, "inputProps">;
 

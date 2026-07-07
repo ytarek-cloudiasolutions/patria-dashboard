@@ -16,6 +16,9 @@ import warehousesReducer from "@/features/warehouses/store/warehousesSlice";
 import productionReducer from "@/features/production/store/productionSlice";
 import purchasingReducer from "@/features/purchasing/store/purchasingSlice";
 import shiftsReducer from "@/features/shifts/store/shiftsSlice";
+import { couponsReducer } from "@/features/coupons/store/couponsSlice";
+import { financialReducer } from "@/features/financial/store/financialSlice";
+import kitchenReducer from "@/features/kitchen/store/kitchenSlice";
 
 const rootReducer = combineReducers({
   auth: authReducer,
@@ -35,6 +38,9 @@ const rootReducer = combineReducers({
   production: productionReducer,
   purchasing: purchasingReducer,
   shifts: shiftsReducer,
+  coupons: couponsReducer,
+  financial: financialReducer,
+  kitchen: kitchenReducer,
 });
 
 export default rootReducer;

@@ -54,7 +54,7 @@ function* handleCreateUser(
         user: response.user,
       }),
     );
-    yield put(userActions.getUsersRequest());
+    yield put(userActions.getUsersRequest({ limit: 500 }));
   } catch (error) {
     const errorMsg = getUserErrorMessage(error);
     yield call(showErrorToast, errorMsg);
@@ -78,7 +78,7 @@ function* handleUpdateUser(
         user: response.user,
       }),
     );
-    yield put(userActions.getUsersRequest());
+    yield put(userActions.getUsersRequest({ limit: 500 }));
   } catch (error) {
     const errorMsg = getUserErrorMessage(error);
     yield call(showErrorToast, errorMsg);

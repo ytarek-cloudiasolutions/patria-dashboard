@@ -50,7 +50,7 @@ const formatPeriod = (start: string, end: string) => {
 interface CreateOfferDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onSaveOffer: (offer: Offer) => void;
+  onSaveOffer: (offer: Offer, imageFile?: File) => void;
   editingOffer?: Offer;
 }
 
@@ -66,6 +66,7 @@ const CreateOfferDialog = ({
     Partial<Record<keyof OfferFormData, string>>
   >({});
   const [isDiscountOpen, setIsDiscountOpen] = useState(false);
+  const [imageFile, setImageFile] = useState<File | undefined>(undefined);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -99,7 +100,10 @@ const CreateOfferDialog = ({
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) set("bannerImage", URL.createObjectURL(file));
+    if (file) {
+      setImageFile(file);
+      set("bannerImage", URL.createObjectURL(file));
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -128,7 +132,7 @@ const CreateOfferDialog = ({
       startDate: form.startDate,
       endDate: form.endDate,
     };
-    onSaveOffer(offer);
+    onSaveOffer(offer, imageFile);
     onOpenChange(false);
   };
 

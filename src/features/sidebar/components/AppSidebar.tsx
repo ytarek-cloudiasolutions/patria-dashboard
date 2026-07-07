@@ -1,4 +1,5 @@
 import { ShoppingCart, LogOut, Store } from "lucide-react";
+import { useSelector } from "react-redux";
 
 import {
   Sidebar,
@@ -15,6 +16,8 @@ import { ScrollArea } from "@/shared/components/ui/scroll-area";
 
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/shared/i18n/useTranslation";
+import { selectUserRole } from "@/features/auth/store/authSelectors";
+import { isRouteAllowed } from "@/features/auth/routeAccess";
 import { NAV_SECTIONS } from "../data";
 
 interface AppSidebarProps {
@@ -31,6 +34,12 @@ const AppSidebar = ({
   onLogout,
 }: AppSidebarProps) => {
   const { t, dir } = useTranslation();
+  const role = useSelector(selectUserRole);
+
+  const visibleSections = NAV_SECTIONS.map((section) => ({
+    ...section,
+    items: section.items.filter((item) => isRouteAllowed(item.href, role)),
+  })).filter((section) => section.items.length > 0);
 
   return (
     <Sidebar
@@ -68,7 +77,7 @@ const AppSidebar = ({
       {/* Navigation */}
       <SidebarContent className="overflow-hidden bg-white">
         <ScrollArea dir={dir} className="h-full w-full">
-          {NAV_SECTIONS.map((section) => (
+          {visibleSections.map((section) => (
             <SidebarGroup key={section.title}>
               {section.title && (
                 <SidebarGroupLabel className="text-[10px] tracking-widest font-bold text-[#595959]">
