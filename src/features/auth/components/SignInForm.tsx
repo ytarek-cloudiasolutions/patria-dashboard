@@ -1,5 +1,4 @@
 import HeaderLayout from "@/layouts/HeaderLayout";
-import AuthRedirectSection from "./AuthRedirectSection";
 import EmailInputField from "./EmailInputField";
 import FormButton from "./FormButton";
 import PasswordInputField from "./PasswordInputField";
@@ -127,11 +126,6 @@ const SignInForm = () => {
         </div>
         <div className="flex flex-col gap-4">
           <FormButton buttonText={t("Sign In")} disabled={isLoginLoading} />
-          <AuthRedirectSection
-            actionLinkHref="/sign-up"
-            promptText={t("Don't have an account?")}
-            actionLinkText={t("Create account")}
-          />
         </div>
       </form>
     </div>
