@@ -76,7 +76,11 @@ const OffersPage = () => {
     if (imageFile) {
       const fd = new FormData();
       const plain = buildPayload(true);
-      Object.entries(plain).forEach(([k, v]) => { if (v !== undefined) fd.append(k, String(v)); });
+      Object.entries(plain).forEach(([k, v]) => {
+        if (v === undefined) return;
+        if (Array.isArray(v)) return; // skip arrays in FormData
+        fd.append(k, String(v));
+      });
       fd.append("bannerImage", imageFile);
       if (editingOffer) { updateOfferInfo(String(editingOffer.id), fd as any); }
       else { createNewOffer(fd as any); }
