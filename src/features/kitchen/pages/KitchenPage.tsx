@@ -1,27 +1,34 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import DeleteDialog from "@/shared/components/DeleteDialog";
-import KitchenCard from "../components/KitchenCard";
-import { KITCHENS } from "../data";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import { useTranslation } from "@/shared/i18n/useTranslation";
-import type { Kitchen } from "../types";
+
+const KITCHEN_STATIONS = [
+  {
+    id: "barista",
+    name: "Barista",
+    description: "Coffee & beverages station",
+    color: "#F9A825",
+    bg: "#FE9A001A",
+  },
+  {
+    id: "pastry",
+    name: "Pastry & Bakery",
+    description: "Pastries and baked goods station",
+    color: "#A856F7",
+    bg: "#F3E9FA",
+  },
+  {
+    id: "hot_food",
+    name: "Hot Food",
+    description: "Hot meals kitchen station",
+    color: "#E53935",
+    bg: "#FEECEC",
+  },
+];
 
 const KitchenPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [selectedKitchen, setSelectedKitchen] = useState<Kitchen | null>(null);
-
-  const handleDelete = (kitchen: Kitchen) => {
-    setSelectedKitchen(kitchen);
-    setIsDeleteOpen(true);
-  };
-
-  const handleConfirmDelete = () => {
-    setIsDeleteOpen(false);
-    setSelectedKitchen(null);
-  };
 
   return (
     <section>
@@ -31,25 +38,37 @@ const KitchenPage = () => {
           description={t("Manage kitchen stations and oversee live operations")}
         />
       </div>
+
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:gap-7.5 xl:grid-cols-3">
-        {KITCHENS.map((kitchen) => (
-          <KitchenCard
-            key={kitchen.id}
-            kitchen={kitchen}
-            onOpenKitchen={(kitchenId) => navigate(`/kitchen/${kitchenId}`)}
-            onDeleteKitchen={handleDelete}
-          />
+        {KITCHEN_STATIONS.map((station) => (
+          <button
+            key={station.id}
+            onClick={() => navigate(`/kitchen/${station.id}`)}
+            className="flex flex-col gap-4 rounded-[16px] border border-[#E5E5E5] bg-white p-6 text-start shadow-sm transition hover:shadow-md cursor-pointer"
+          >
+            <div
+              className="flex size-14 items-center justify-center rounded-full text-[22px] font-bold"
+              style={{ backgroundColor: station.bg, color: station.color }}
+            >
+              {station.name[0]}
+            </div>
+            <div>
+              <h3 className="text-[18px] font-semibold text-[#28293D]">
+                {t(station.name)}
+              </h3>
+              <p className="mt-1 text-[13px] text-[#8B8B8B]">
+                {t(station.description)}
+              </p>
+            </div>
+            <span
+              className="self-start rounded-full px-3 py-1 text-[12px] font-medium"
+              style={{ backgroundColor: station.bg, color: station.color }}
+            >
+              {t("View Orders")}
+            </span>
+          </button>
         ))}
       </div>
-
-      {selectedKitchen && (
-        <DeleteDialog
-          open={isDeleteOpen}
-          onOpenChange={setIsDeleteOpen}
-          data={{ item: selectedKitchen.name, type: "kitchen" }}
-          onConfirm={handleConfirmDelete}
-        />
-      )}
     </section>
   );
 };

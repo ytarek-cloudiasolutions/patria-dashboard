@@ -272,9 +272,13 @@ const ProductsPage = () => {
       const formData = new FormData();
       formData.append("name", data.name.trim());
       formData.append("image", data.imageFile);
+      if (data.kitchenType) formData.append("kitchenType", data.kitchenType);
       createCategory(formData as any);
     } else {
-      createCategory({ name: data.name.trim() });
+      createCategory({
+        name: data.name.trim(),
+        ...(data.kitchenType ? { kitchenType: data.kitchenType } : {}),
+      });
     }
   };
 

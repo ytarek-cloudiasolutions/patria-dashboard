@@ -48,7 +48,7 @@ const kitchenSlice = createSlice({
   name: "kitchen",
   initialState,
   reducers: {
-    getKitchenOrdersRequest: (state) => {
+    getKitchenOrdersRequest: (state, _action: PayloadAction<{ kitchenType?: string } | undefined>) => {
       setOperationLoading(state, "fetch");
     },
     getKitchenOrdersSuccess: (

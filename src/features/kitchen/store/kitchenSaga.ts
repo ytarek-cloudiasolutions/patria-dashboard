@@ -25,10 +25,12 @@ const getKitchenErrorMessage = (error: unknown): string => {
   return "Something went wrong";
 };
 
-function* handleGetKitchenOrders() {
+function* handleGetKitchenOrders(action: PayloadAction<{ kitchenType?: string } | undefined>) {
   try {
+    const kitchenType = action.payload?.kitchenType;
     const response: GetKitchenOrdersResponse = yield call(
       kitchenApi.getKitchenOrders,
+      kitchenType,
     );
     yield put(kitchenActions.getKitchenOrdersSuccess(response));
   } catch (error) {

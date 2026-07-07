@@ -108,10 +108,13 @@ export interface IngredientFormData {
 
 // --- Add Category form ------------------------------------------------------
 
+export type KitchenType = 'barista' | 'pastry' | 'hot_food' | null;
+
 export interface CategoryFormData {
   name: string;
   imageUrl?: string;
   imageFile?: File;
+  kitchenType?: KitchenType;
 }
 
 // --- Send WhatsApp message --------------------------------------------------

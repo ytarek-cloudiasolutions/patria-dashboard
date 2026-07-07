@@ -5,12 +5,21 @@ import {
   DialogTitle,
 } from "@/shared/components/ui/dialog";
 import { Button } from "@/shared/components/ui/button";
+import { Label } from "@/shared/components/ui/label";
 import { Separator } from "@/shared/components/ui/separator";
 import DefaultButton from "@/shared/components/DefaultButton";
 import InputField from "@/shared/components/InputField";
+import DropdownSelect from "@/shared/components/DropdownSelect";
 import { useTranslation } from "@/shared/i18n/useTranslation";
-import type { CategoryFormData } from "../types";
+import type { CategoryFormData, KitchenType } from "../types";
 import UploadDropzone from "./UploadDropzone";
+
+const KITCHEN_OPTIONS = [
+  { value: "", label: "No Kitchen" },
+  { value: "barista", label: "Barista" },
+  { value: "pastry", label: "Pastry & Bakery" },
+  { value: "hot_food", label: "Hot Food" },
+];
 
 const FORM_ID = "add-category-form";
 
@@ -31,6 +40,7 @@ const AddCategoryDialog = ({
   const [name, setName] = useState("");
   const [imageUrl, setImageUrl] = useState<string | undefined>(undefined);
   const [imageFile, setImageFile] = useState<File | undefined>(undefined);
+  const [kitchenType, setKitchenType] = useState<string>("");
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -38,6 +48,7 @@ const AddCategoryDialog = ({
       setName("");
       setImageUrl(undefined);
       setImageFile(undefined);
+      setKitchenType("");
       setError("");
     }
   }, [open]);
@@ -48,7 +59,12 @@ const AddCategoryDialog = ({
       setError(t("Category name is required"));
       return;
     }
-    onSave({ name: name.trim(), imageUrl, imageFile });
+    onSave({
+      name: name.trim(),
+      imageUrl,
+      imageFile,
+      kitchenType: (kitchenType || null) as KitchenType,
+    });
     onOpenChange(false);
   };
 
@@ -100,6 +116,22 @@ const AddCategoryDialog = ({
               {error && (
                 <p className="mt-1 text-[13px] text-[#C90000]">{error}</p>
               )}
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label className="text-[16px] font-medium text-black">
+                {t("Kitchen Station")}
+                <span className="ml-1 text-[13px] font-normal text-[#8B8B8B]">({t("Optional")})</span>
+              </Label>
+              <DropdownSelect
+                options={KITCHEN_OPTIONS.map((o) => ({ ...o, label: t(o.label) }))}
+                selected={kitchenType}
+                onSelect={setKitchenType}
+                placeholder={t("Select kitchen")}
+                align="start"
+                className="w-full"
+                contentClassName="w-[var(--radix-dropdown-menu-trigger-width)]"
+              />
             </div>
           </form>
 

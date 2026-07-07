@@ -17,8 +17,8 @@ export const useKitchen = () => {
   const errors = useSelector(selectKitchenErrors);
   const successMessage = useSelector(selectKitchenSuccessMessage);
 
-  const getKitchenOrders = useCallback(() => {
-    dispatch(kitchenActions.getKitchenOrdersRequest());
+  const getKitchenOrders = useCallback((kitchenType?: string) => {
+    dispatch(kitchenActions.getKitchenOrdersRequest(kitchenType ? { kitchenType } : undefined));
   }, [dispatch]);
 
   const updateOrderStatus = useCallback(

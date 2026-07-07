@@ -5,8 +5,10 @@ import type {
   UpdateKitchenOrderStatusResponse,
 } from "../store/kitchenTypes";
 
-export const getKitchenOrders = async () => {
-  const response = await api.get<GetKitchenOrdersResponse>("/kitchen/orders");
+export const getKitchenOrders = async (kitchenType?: string) => {
+  const response = await api.get<GetKitchenOrdersResponse>("/kitchen/orders", {
+    params: kitchenType ? { kitchenType } : undefined,
+  });
   return response.data;
 };
 
