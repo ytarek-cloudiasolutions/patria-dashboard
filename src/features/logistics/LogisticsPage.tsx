@@ -10,7 +10,7 @@ import LogisticsOverview from "./components/LogisticsOverview";
 import ZoneAccordion from "./components/ZoneAccordion";
 import DispatchPanel from "./components/DispatchPanel";
 import DriverDutyCard from "./components/DriverDutyCard";
-import DriversTable from "./components/DriversTable";
+import DriversTable from "./components/DriverStable";
 import AddDriverDialog from "./components/AddDriverDialog";
 import SendNotificationDialog from "./components/SendNotificationDialog";
 

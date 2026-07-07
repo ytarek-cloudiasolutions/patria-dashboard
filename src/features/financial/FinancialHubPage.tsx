@@ -12,7 +12,7 @@ import RevenueExpenseBar from "./components/RevenueExpenseBar";
 import RevenueBreakdownCard from "./components/RevenueBreakdownCard";
 import PerformanceIndicatorsCard from "./components/PerformanceIndicatorsCard";
 import TransactionsTable from "./components/TransactionsTable";
-import AddTransactionDialog from "./components/AddTransactionDialog";
+import AddTransactionDialog from "./components/AddTransactiondialog";
 
 import { REVENUES_VS_EXPENSES_BREAKDOWN, PERFORMANCE_INDICATORS } from "./data";
 import type {
