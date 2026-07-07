@@ -78,7 +78,9 @@ const PosPage = () => {
   const [orderNumber, setOrderNumber] = useState("");
   const [pendingCreatePayload, setPendingCreatePayload] = useState<null | { method: PaymentMethod }>(null);
   const [loadedOrderId, setLoadedOrderId] = useState<string | null>(null);
+  const [shiftOrders, setShiftOrders] = useState<Array<{ method: PaymentMethod; total: number }>>([]);
   const wasCreatingRef = useRef(false);
+  const pendingPaymentRef = useRef<{ method: PaymentMethod; total: number } | null>(null);
 
   useEffect(() => {
     getProducts({ limit: 100 });
@@ -101,6 +103,10 @@ const PosPage = () => {
         setPendingCreatePayload(null);
         // saga already shows error toast
       } else if (successMessage) {
+        if (pendingPaymentRef.current) {
+          setShiftOrders((prev) => [...prev, pendingPaymentRef.current!]);
+          pendingPaymentRef.current = null;
+        }
         setPendingCreatePayload(null);
         setPaymentOpen(false);
         finishWithReceipt();
@@ -270,6 +276,8 @@ const PosPage = () => {
   const confirmPayment = async (method: PaymentMethod) => {
     if (cartItems.length === 0) return;
 
+    const currentTotal = totals.grand;
+
     // If this is a loaded pending order → just mark it delivered + set payment method
     if (loadedOrderId) {
       setPendingCreatePayload({ method });
@@ -279,6 +287,7 @@ const PosPage = () => {
         setLoadedOrderId(null);
         setPendingCreatePayload(null);
         setPaymentOpen(false);
+        setShiftOrders((prev) => [...prev, { method, total: currentTotal }]);
         finishWithReceipt();
       } catch {
         setPendingCreatePayload(null);
@@ -294,6 +303,7 @@ const PosPage = () => {
       notes: item.instructions || undefined,
     }));
 
+    pendingPaymentRef.current = { method, total: currentTotal };
     setPendingCreatePayload({ method });
     createNewOrder({
       type: orderType === "dine-in" ? "dine_in" : "takeaway",
@@ -467,6 +477,7 @@ const PosPage = () => {
       <ShiftSummaryDialog
         open={isShiftSummaryOpen}
         onOpenChange={setShiftSummaryOpen}
+        shiftOrders={shiftOrders}
       />
     </>
   );

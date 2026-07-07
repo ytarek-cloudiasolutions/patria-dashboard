@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Banknote, CreditCard, WalletCards } from "lucide-react";
 
 import { Button } from "@/shared/components/ui/button";
@@ -9,13 +10,15 @@ import {
   DialogTitle,
 } from "@/shared/components/ui/dialog";
 import { useTranslation } from "@/shared/i18n/useTranslation";
-import { SHIFT_PAYMENT_SUMMARY, SHIFT_SUMMARY } from "../data";
 import type { PaymentMethod } from "../types";
 import { formatEgp } from "../utils";
+
+type ShiftOrder = { method: PaymentMethod; total: number };
 
 type ShiftSummaryDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  shiftOrders: ShiftOrder[];
 };
 
 const methodIcons: Record<PaymentMethod, typeof WalletCards> = {
@@ -24,11 +27,28 @@ const methodIcons: Record<PaymentMethod, typeof WalletCards> = {
   mix: WalletCards,
 };
 
+const METHOD_LABELS: Record<PaymentMethod, string> = {
+  cash: "Cash",
+  card: "Visa/Card",
+  mix: "Mix",
+};
+
 const ShiftSummaryDialog = ({
   open,
   onOpenChange,
+  shiftOrders,
 }: ShiftSummaryDialogProps) => {
   const { t } = useTranslation();
+
+  const summary = useMemo(() => {
+    const totals: Record<PaymentMethod, number> = { cash: 0, card: 0, mix: 0 };
+    let grandTotal = 0;
+    for (const o of shiftOrders) {
+      totals[o.method] = (totals[o.method] || 0) + o.total;
+      grandTotal += o.total;
+    }
+    return { totals, grandTotal, orderCount: shiftOrders.length };
+  }, [shiftOrders]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -49,7 +69,7 @@ const ShiftSummaryDialog = ({
                 {t("Number of Orders")}
               </p>
               <p className="text-[24px] font-bold leading-7 text-[#333333]">
-                {SHIFT_SUMMARY.orderCount}
+                {summary.orderCount}
               </p>
             </div>
             <div className="text-end">
@@ -57,26 +77,25 @@ const ShiftSummaryDialog = ({
                 {t("Total")}
               </p>
               <p className="text-[24px] font-bold leading-7 text-[#00A662]">
-                {formatEgp(SHIFT_SUMMARY.total)}
+                {formatEgp(summary.grandTotal)}
               </p>
             </div>
           </div>
 
           <div className="grid grid-cols-3 gap-4">
-            {SHIFT_PAYMENT_SUMMARY.map((summary) => {
-              const Icon = methodIcons[summary.method];
-
+            {(["cash", "card", "mix"] as PaymentMethod[]).map((method) => {
+              const Icon = methodIcons[method];
               return (
                 <div
-                  key={summary.method}
+                  key={method}
                   className="flex h-[110px] flex-col items-center justify-center gap-1.5 rounded-[8px] border border-[#DFDFDF] bg-white text-center"
                 >
                   <Icon className="size-5 text-[#333333]" />
                   <p className="text-[11px] text-[#595959]">
-                    {t(summary.label)}
+                    {t(METHOD_LABELS[method])}
                   </p>
                   <p className="text-[12px] font-bold text-[#333333]">
-                    {formatEgp(summary.amount)}
+                    {formatEgp(summary.totals[method])}
                   </p>
                 </div>
               );
