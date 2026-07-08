@@ -1,188 +1,249 @@
-import { useCallback, useEffect, useState } from "react";
-import {
-  RefreshCw,
-  Calendar,
-  LayoutDashboard,
-  Users,
-  MapPin,
-} from "lucide-react";
+import { useState } from "react";
+import { RefreshCw } from "lucide-react";
+import HeaderLayout from "@/layouts/HeaderLayout";
+import DefaultButton from "@/shared/components/DefaultButton";
+import DropdownSelect from "@/shared/components/DropdownSelect";
+import { useTranslation } from "@/shared/i18n/useTranslation";
+import { useInventory } from "@/features/inventory/hooks/useInventory";
+import type { StockStatus } from "@/features/inventory/types";
 
-import BranchTab from "./components/BranchTab";
-import EmployeeTab from "./components/EmployeeTab";
-import OverviewTab from "./components/OverviewTab";
-import {
-  COUPON_PERFORMANCE,
-  DELIVERY_PERFORMANCE,
-  ROASTING_DISTRIBUTION,
-  GRINDING_DISTRIBUTION,
-  EOD_SESSIONS,
-  EMPLOYEE_STATS,
-  EMPLOYEE_REVENUE_SHARES,
-  EMPLOYEE_REQUEST_COUNTS,
-  EMPLOYEE_REPORTS,
-  SHIFT_DETAILS,
-  BRANCH_STATS,
-  REGION_REVENUES,
-  REGION_DISTRIBUTION,
-  BRANCH_REPORTS,
-} from "./data";
-import type { DailyRevenuePoint, OverviewStats, ReportTab, TopProduct } from "./types";
-import { api } from "@/config/api";
+import ReportsTabs from "./components/ReportsTabs";
+import OrdersReportTab from "./components/OrdersReportTab";
+import SalesReportTab from "./components/SalesReportTab";
+import InventoryReportTab from "./components/InventoryReportTab";
+import DiscountsReportTab from "./components/DiscountsReportTab";
+import type { ReportsTab, OrderType } from "./types";
 
-const TABS: { value: ReportTab; label: string; icon: React.ReactNode }[] = [
-  { value: "overview", label: "Overview", icon: <LayoutDashboard size={15} /> },
-  { value: "employee", label: "Employee reports", icon: <Users size={15} /> },
-  { value: "branch", label: "Branch reports", icon: <MapPin size={15} /> },
+const ORDER_TYPES: { value: OrderType; label: string }[] = [
+  { value: "All Types", label: "All Types" },
+  { value: "Dine-In", label: "Dine-In" },
+  { value: "Takeaway", label: "Takeaway" },
+  { value: "Delivery", label: "Delivery" },
+  { value: "Call", label: "Call" },
 ];
 
 const ReportsPage = () => {
-  const [activeTab, setActiveTab] = useState<ReportTab>("overview");
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
-  const [detailedExport, setDetailedExport] = useState(false);
+  const { t } = useTranslation();
+  const [tab, setTab] = useState<ReportsTab>("orders");
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  const [overviewStats, setOverviewStats] = useState<OverviewStats>({
-    totalRevenue: "0",
-    averageDemand: "0",
-    numberOfOrders: 0,
-    numberOfCustomers: 0,
-  });
-  const [dailyRevenue, setDailyRevenue] = useState<DailyRevenuePoint[]>([]);
-  const [topProducts, setTopProducts] = useState<TopProduct[]>([]);
+  // Shared Filter States
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [orderType, setOrderType] = useState<OrderType>("All Types");
+  const [categoryFilter, setCategoryFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState<"All" | StockStatus>("All");
+  const [warehouse, setWarehouse] = useState("All");
 
-  const fetchOverview = useCallback(() => {
-    const params: Record<string, string> = {};
-    if (dateFrom) params.from = dateFrom;
-    if (dateTo) params.to = dateTo;
-    api.get("/reports/overview", { params }).then((res) => {
-      const d = res.data;
-      const s = d.summary ?? {};
-      setOverviewStats({
-        totalRevenue: `EGP ${(s.totalRevenue ?? 0).toLocaleString()}`,
-        averageDemand: `EGP ${((s.totalRevenue ?? 0) / Math.max(s.totalOrders ?? 1, 1)).toFixed(0)}`,
-        numberOfOrders: s.totalOrders ?? 0,
-        numberOfCustomers: s.totalCustomers ?? 0,
-      });
-      setDailyRevenue(
-        (d.dailyRevenue ?? []).map((r: any) => ({
-          date: r._id ?? r.date ?? "",
-          revenue: r.revenue ?? 0,
-        }))
-      );
-      setTopProducts(
-        (d.topProducts ?? []).slice(0, 10).map((p: any) => ({
-          name: p.name ?? "",
-          quantity: p.quantity ?? 0,
-        }))
-      );
-    }).catch(() => {});
-  }, [dateFrom, dateTo]);
+  // Get categories from inventory items
+  const { items } = useInventory();
+  const categories = [
+    "All",
+    ...Array.from(new Set(items.map((i) => i.category).filter(Boolean))),
+  ];
 
-  useEffect(() => { fetchOverview(); }, [fetchOverview]);
+  const handleRefresh = () => {
+    setRefreshKey((prev) => prev + 1);
+  };
 
   return (
-    <div>
-      <div className="mx-auto max-w-[1200px]">
-        {/* Page Header */}
-        <div className="mb-6 flex items-start justify-between">
-          <div>
-            <h1 className="text-[28px] font-bold text-[#28293D]">
-              Reports and Statistics
-            </h1>
-            <p className="mt-0.5 text-[13px] text-[#6B6B6B]">
-              Detailed Performance Data
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={fetchOverview}
-              className="flex h-11 w-11 items-center justify-center rounded-[10px] border border-[#E5E5E5] bg-white text-[#6B6B6B] hover:bg-[#F5F0EA] transition-colors cursor-pointer"
-            >
-              <RefreshCw size={16} />
-            </button>
-          </div>
-        </div>
+    <>
+      {/* Page Header */}
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <HeaderLayout
+          title={t("Reports and Statistics")}
+          description={t("Detailed Performance Data")}
+        />
+        <DefaultButton
+          data={{
+            buttonText: "",
+            onClick: handleRefresh,
+            icon: <RefreshCw className="size-5" />,
+            className:
+              "bg-[#F5F0EA] text-[#8F6900] hover:bg-[#F5F0EA]/80 h-14 w-14 min-w-0 px-0 rounded-[8px]",
+          }}
+        />
+      </div>
 
-        {/* Date Range Filters */}
-        <div className="mb-6 grid grid-cols-2 gap-4">
-          {[
-            { placeholder: "From", value: dateFrom, onChange: setDateFrom },
-            { placeholder: "To", value: dateTo, onChange: setDateTo },
-          ].map((field) => (
-            <div key={field.placeholder} className="relative flex items-center">
+      {/* Filters Container (Above the Tabs) */}
+      <div className="mb-6 w-full">
+        {tab === "orders" && (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3 w-full">
+            <div className="flex flex-col gap-1.5 w-full">
+              <label className="text-[12px] font-medium text-[#333333]">
+                {t("From")}
+              </label>
               <input
                 type="date"
-                value={field.value}
-                onChange={(e) => field.onChange(e.target.value)}
-                placeholder={field.placeholder}
-                className="h-12 w-full rounded-[10px] border border-[#E5E5E5] bg-white pl-4 pr-10 text-[14px] text-[#28293D] placeholder:text-[#AAAAAA] outline-none focus:border-[#5C4A0E] transition-colors"
-              />
-              <Calendar
-                size={16}
-                className="pointer-events-none absolute right-4 text-[#6B6B6B]"
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+                className="h-[50px] w-full rounded-[12px] border border-[#E5E5E5] bg-white px-4 text-[14px] text-[#333333] focus:outline-none focus:ring-2 focus:ring-primary/30"
               />
             </div>
-          ))}
-        </div>
-
-        {/* Tabs - styled like FinancialHubPage */}
-        <div className="mb-4 grid grid-cols-3 gap-x-1.5 gap-y-1">
-          {TABS.map((tab) => (
-            <button
-              key={tab.value}
-              type="button"
-              onClick={() => setActiveTab(tab.value)}
-              className={`relative h-auto w-full cursor-pointer rounded-none pb-3 text-center text-[16px] font-semibold transition-colors flex items-center justify-center gap-2 ${
-                activeTab === tab.value
-                  ? "text-[#333333] font-medium"
-                  : "text-[#8B8B8B] hover:text-[#8B8B8B]"
-              }`}
-            >
-              {tab.icon}
-              {tab.label}
-              <span
-                className={`absolute right-0 bottom-0 left-0 h-0.5 transition-all ${
-                  activeTab === tab.value ? "bg-primary" : "bg-[#8B8B8B]"
-                }`}
+            <div className="flex flex-col gap-1.5 w-full">
+              <label className="text-[12px] font-medium text-[#333333]">
+                {t("To")}
+              </label>
+              <input
+                type="date"
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                className="h-[50px] w-full rounded-[12px] border border-[#E5E5E5] bg-white px-4 text-[14px] text-[#333333] focus:outline-none focus:ring-2 focus:ring-primary/30"
               />
-            </button>
-          ))}
-        </div>
+            </div>
+            <div className="flex flex-col gap-1.5 w-full">
+              <label className="text-[12px] font-medium text-[#333333]">
+                {t("Type")}
+              </label>
+              <DropdownSelect
+                options={ORDER_TYPES.map((opt) => ({ value: opt.value, label: t(opt.label) }))}
+                selected={orderType}
+                onSelect={(val) => setOrderType(val as OrderType)}
+                className="h-[50px] w-full md:w-full"
+                contentClassName="w-[var(--radix-dropdown-menu-trigger-width)] md:w-[var(--radix-dropdown-menu-trigger-width)]"
+                align="start"
+              />
+            </div>
+          </div>
+        )}
 
-        {/* Tab Content */}
-        {activeTab === "overview" && (
-          <OverviewTab
-            stats={overviewStats}
-            dailyRevenue={dailyRevenue}
-            topProducts={topProducts}
-            couponPerformance={COUPON_PERFORMANCE}
-            deliveryPerformance={DELIVERY_PERFORMANCE}
-            roastingDistribution={ROASTING_DISTRIBUTION}
-            grindingDistribution={GRINDING_DISTRIBUTION}
-            eodSessions={EOD_SESSIONS}
-            detailedExport={detailedExport}
-            onToggleDetailedExport={() => setDetailedExport((p) => !p)}
+        {tab === "sales" && (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 w-full">
+            <div className="flex flex-col gap-1.5 w-full">
+              <label className="text-[12px] font-medium text-[#333333]">
+                {t("From")}
+              </label>
+              <input
+                type="date"
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+                className="h-[50px] w-full rounded-[12px] border border-[#E5E5E5] bg-white px-4 text-[14px] text-[#333333] focus:outline-none focus:ring-2 focus:ring-primary/30"
+              />
+            </div>
+            <div className="flex flex-col gap-1.5 w-full">
+              <label className="text-[12px] font-medium text-[#333333]">
+                {t("To")}
+              </label>
+              <input
+                type="date"
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                className="h-[50px] w-full rounded-[12px] border border-[#E5E5E5] bg-white px-4 text-[14px] text-[#333333] focus:outline-none focus:ring-2 focus:ring-primary/30"
+              />
+            </div>
+          </div>
+        )}
+
+        {tab === "inventory" && (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 w-full">
+            <div className="flex flex-col gap-1.5 w-full">
+              <label className="text-[12px] font-medium text-[#333333]">
+                {t("Category")}
+              </label>
+              <DropdownSelect
+                options={categories.map((c) => ({ value: c, label: c === "All" ? t("All Categories") : c }))}
+                selected={categoryFilter}
+                onSelect={(val) => setCategoryFilter(val)}
+                className="h-[50px] w-full md:w-full"
+                contentClassName="w-[var(--radix-dropdown-menu-trigger-width)] md:w-[var(--radix-dropdown-menu-trigger-width)]"
+                align="start"
+              />
+            </div>
+            <div className="flex flex-col gap-1.5 w-full">
+              <label className="text-[12px] font-medium text-[#333333]">
+                {t("Stock Status")}
+              </label>
+              <DropdownSelect
+                options={[
+                  { value: "All", label: t("All Status") },
+                  { value: "Available", label: t("Available") },
+                  { value: "Low Stock", label: t("Low Stock") },
+                  { value: "Out Of Stock", label: t("Out Of Stock") },
+                ]}
+                selected={statusFilter}
+                onSelect={(val) => setStatusFilter(val as "All" | StockStatus)}
+                className="h-[50px] w-full md:w-full"
+                contentClassName="w-[var(--radix-dropdown-menu-trigger-width)] md:w-[var(--radix-dropdown-menu-trigger-width)]"
+                align="start"
+              />
+            </div>
+          </div>
+        )}
+
+        {tab === "discounts" && (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3 w-full">
+            <div className="flex flex-col gap-1.5 w-full">
+              <label className="text-[12px] font-medium text-[#333333]">
+                {t("From")}
+              </label>
+              <input
+                type="date"
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+                className="h-[50px] w-full rounded-[12px] border border-[#E5E5E5] bg-white px-4 text-[14px] text-[#333333] focus:outline-none focus:ring-2 focus:ring-primary/30"
+              />
+            </div>
+            <div className="flex flex-col gap-1.5 w-full">
+              <label className="text-[12px] font-medium text-[#333333]">
+                {t("To")}
+              </label>
+              <input
+                type="date"
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                className="h-[50px] w-full rounded-[12px] border border-[#E5E5E5] bg-white px-4 text-[14px] text-[#333333] focus:outline-none focus:ring-2 focus:ring-primary/30"
+              />
+            </div>
+            <div className="flex flex-col gap-1.5 w-full">
+              <label className="text-[12px] font-medium text-[#333333]">
+                {t("Warehouse")}
+              </label>
+              <DropdownSelect
+                options={[{ value: "All", label: t("All") }]}
+                selected={warehouse}
+                onSelect={(val) => setWarehouse(val)}
+                className="h-[50px] w-full md:w-full"
+                contentClassName="w-[var(--radix-dropdown-menu-trigger-width)] md:w-[var(--radix-dropdown-menu-trigger-width)]"
+                align="start"
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Tabs */}
+      <ReportsTabs active={tab} onChange={setTab} />
+
+      {/* Tab Content */}
+      <div key={refreshKey}>
+        {tab === "orders" && (
+          <OrdersReportTab
+            fromDate={fromDate}
+            toDate={toDate}
+            orderType={orderType}
           />
         )}
-        {activeTab === "employee" && (
-          <EmployeeTab
-            stats={EMPLOYEE_STATS}
-            revenueShares={EMPLOYEE_REVENUE_SHARES}
-            requestCounts={EMPLOYEE_REQUEST_COUNTS}
-            reports={EMPLOYEE_REPORTS}
-            shiftDetails={SHIFT_DETAILS}
+        {tab === "sales" && (
+          <SalesReportTab
+            fromDate={fromDate}
+            toDate={toDate}
           />
         )}
-        {activeTab === "branch" && (
-          <BranchTab
-            stats={BRANCH_STATS}
-            regionRevenues={REGION_REVENUES}
-            regionDistribution={REGION_DISTRIBUTION}
-            reports={BRANCH_REPORTS}
+        {tab === "inventory" && (
+          <InventoryReportTab
+            categoryFilter={categoryFilter}
+            statusFilter={statusFilter}
+          />
+        )}
+        {tab === "discounts" && (
+          <DiscountsReportTab
+            fromDate={fromDate}
+            toDate={toDate}
+            warehouse={warehouse}
           />
         )}
       </div>
-    </div>
+    </>
   );
 };
 
