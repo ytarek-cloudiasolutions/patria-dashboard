@@ -1,5 +1,6 @@
 import * as React from "react";
 import { Dialog as DialogPrimitive } from "radix-ui";
+import { XIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/shared/components/ui/button";
@@ -70,9 +71,10 @@ function DialogContent({
           <DialogPrimitive.Close data-slot="dialog-close" asChild>
             <Button
               variant="ghost"
-              className="absolute top-2 right-2"
+              className="absolute top-2 right-2 rtl:left-2 rtl:right-auto cursor-pointer"
               size="icon-sm"
             >
+              <XIcon />
               <span className="sr-only">Close</span>
             </Button>
           </DialogPrimitive.Close>

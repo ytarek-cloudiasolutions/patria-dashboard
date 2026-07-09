@@ -120,7 +120,7 @@ const OrderDetailsDialog = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        showCloseButton={false}
+        showCloseButton={true}
         className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[8px] bg-white p-0 ring-0 sm:max-w-140 lg:max-w-174"
       >
         <div ref={printRef} className="flex max-h-[calc(100vh-2rem)] flex-col">
