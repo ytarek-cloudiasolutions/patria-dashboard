@@ -8,6 +8,8 @@ import type { KitchenOrder } from "../store/kitchenTypes";
 import { Badge } from "@/shared/components/ui/badge";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { Clock3, UserRound } from "lucide-react";
+import { getSocket } from "@/shared/lib/socket";
+import { playNotificationSound } from "@/shared/lib/notificationSound";
 
 const KITCHEN_STATIONS: Record<string, { name: string; color: string; bg: string }> = {
   barista: { name: "Barista", color: "#F9A825", bg: "#FE9A001A" },
@@ -119,6 +121,26 @@ const KitchenDetailsPage = () => {
     fetchOrders();
     const interval = setInterval(fetchOrders, 30000);
     return () => clearInterval(interval);
+  }, [fetchOrders]);
+
+  // Live updates: play a sound and refresh the board when the kitchen gets a new
+  // order or new items are added to an order already sent to this station.
+  useEffect(() => {
+    const socket = getSocket();
+    socket.emit("kitchen:join", {});
+
+    const handleUpdate = () => {
+      playNotificationSound();
+      fetchOrders();
+    };
+
+    socket.on("kitchen:new-order", handleUpdate);
+    socket.on("kitchen:items-added", handleUpdate);
+
+    return () => {
+      socket.off("kitchen:new-order", handleUpdate);
+      socket.off("kitchen:items-added", handleUpdate);
+    };
   }, [fetchOrders]);
 
   if (!station) {

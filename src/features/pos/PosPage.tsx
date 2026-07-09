@@ -78,6 +78,9 @@ const PosPage = () => {
   const [orderNumber, setOrderNumber] = useState("");
   const [pendingCreatePayload, setPendingCreatePayload] = useState<null | { method: PaymentMethod }>(null);
   const [loadedOrderId, setLoadedOrderId] = useState<string | null>(null);
+  // Line IDs already confirmed on the backend order — used to detect newly
+  // added items on a loaded pending order that still need to be sent to the kitchen.
+  const [sentLineIds, setSentLineIds] = useState<Set<string>>(new Set());
   const [shiftOrders, setShiftOrders] = useState<Array<{ method: PaymentMethod; total: number }>>([]);
   const wasCreatingRef = useRef(false);
   const pendingPaymentRef = useRef<{ method: PaymentMethod; total: number } | null>(null);
@@ -249,6 +252,9 @@ const PosPage = () => {
           instructions,
         },
       ]);
+      // Adding a new product to an already-loaded pending order means there's
+      // something new to send to the kitchen — flip the cart back to that state.
+      if (loadedOrderId) setSentToKitchen(false);
     }
 
     setCustomizeOpen(false);
@@ -262,6 +268,7 @@ const PosPage = () => {
     setCustomer("");
     setSentToKitchen(false);
     setLoadedOrderId(null);
+    setSentLineIds(new Set());
   };
 
   const finishWithReceipt = () => {
@@ -269,7 +276,31 @@ const PosPage = () => {
     setReceiptOpen(true);
   };
 
-  const handleSendToKitchen = () => setSentToKitchen(true);
+  const handleSendToKitchen = async () => {
+    if (loadedOrderId) {
+      const newItems = cartItems.filter((item) => !sentLineIds.has(item.lineId));
+      if (newItems.length > 0) {
+        try {
+          const { api } = await import("@/config/api");
+          await api.patch(`/orders/${loadedOrderId}/items`, {
+            items: newItems.map((item) => ({
+              productId: item.productId,
+              name: item.name,
+              quantity: item.qty,
+              price: item.unitPrice,
+              notes: item.instructions || undefined,
+            })),
+          });
+          setSentLineIds((prev) => new Set([...prev, ...newItems.map((item) => item.lineId)]));
+          showSuccessToast("Sent to kitchen");
+        } catch {
+          showErrorToast("Failed to send items to kitchen");
+          return;
+        }
+      }
+    }
+    setSentToKitchen(true);
+  };
 
   const handleCheckout = () => setPaymentOpen(true);
 
@@ -345,7 +376,7 @@ const PosPage = () => {
     setSentToKitchen(true);
     setLoadedOrderId(order.id);
     if (order.items && order.items.length > 0) {
-      setCartItems(order.items.map((item) => ({
+      const loadedItems = order.items.map((item) => ({
         lineId: nextLineId(),
         productId: item.productId,
         name: item.name,
@@ -353,7 +384,12 @@ const PosPage = () => {
         qty: item.qty,
         extras: [],
         instructions: "",
-      })));
+      }));
+      setCartItems(loadedItems);
+      // These items already exist on the backend order — only items added after this count as "new"
+      setSentLineIds(new Set(loadedItems.map((item) => item.lineId)));
+    } else {
+      setSentLineIds(new Set());
     }
     setPendingOpen(false);
   };

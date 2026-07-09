@@ -31,6 +31,8 @@ import { useProducts } from "@/features/products/hooks/useProducts";
 import { useLocations } from "@/features/locations/hooks/useLocations";
 import type { CreateOrderRequest } from "../store/orderTypes";
 import { showSuccessToast } from "@/shared/utils/toast";
+import { getSocket } from "@/shared/lib/socket";
+import { playNotificationSound } from "@/shared/lib/notificationSound";
 
 const SOURCE_ICONS: Record<OrderSource, LucideIcon> = {
   application: Smartphone,
@@ -76,6 +78,24 @@ const OrdersPage = () => {
   // Fetch orders when source tab changes
   useEffect(() => {
     getOrdersList({ source: activeSource, limit: 100 });
+  }, [activeSource, getOrdersList]);
+
+  // Live updates: play a sound and refresh the list when a new order comes in
+  // or an existing order gets new items sent to the kitchen.
+  useEffect(() => {
+    const socket = getSocket();
+    const handleUpdate = () => {
+      playNotificationSound();
+      getOrdersList({ source: activeSource, limit: 100 });
+    };
+
+    socket.on("newOrder", handleUpdate);
+    socket.on("orderUpdated", handleUpdate);
+
+    return () => {
+      socket.off("newOrder", handleUpdate);
+      socket.off("orderUpdated", handleUpdate);
+    };
   }, [activeSource, getOrdersList]);
 
   // Remember the count for each source tab after load
