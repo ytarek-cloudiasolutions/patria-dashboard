@@ -1,6 +1,7 @@
 import { ORDER_STREAM_ICON } from "../data";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import type { LiveOrder, OrderStatus } from "../types";
+import { useNavigate } from "react-router-dom";
 
 interface LiveOrderStreamProps {
   orders: LiveOrder[];
@@ -18,6 +19,7 @@ const formatAmount = (amount: number) =>
 
 const LiveOrderStream = ({ orders }: LiveOrderStreamProps) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const StreamIcon = ORDER_STREAM_ICON;
 
   return (
@@ -28,6 +30,7 @@ const LiveOrderStream = ({ orders }: LiveOrderStreamProps) => {
         </h2>
         <button
           type="button"
+          onClick={() => navigate("/orders")}
           className="text-[16px] font-semibold text-primary cursor-pointer"
         >
           {t("View History")}
