@@ -39,11 +39,13 @@ const getTodayDateString = () => {
   return `${year}-${month}-${day}`;
 };
 
-const getStartOfMonthFiveDateString = () => {
+const getSevenDaysAgoDateString = () => {
   const d = new Date();
+  d.setDate(d.getDate() - 7);
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, "0");
-  return `${year}-${month}-05`;
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 };
 
 const mapOrderStatus = (s: string): LiveOrder["status"] => {
@@ -63,7 +65,7 @@ const DashboardPage = () => {
   const [liveOrders, setLiveOrders] = useState<LiveOrder[]>([]);
   const [indicators, setIndicators] = useState<PerformanceIndicator[]>([]);
   const [dateRange, setDateRange] = useState({
-    from: getStartOfMonthFiveDateString(),
+    from: getSevenDaysAgoDateString(),
     to: getTodayDateString(),
   });
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
