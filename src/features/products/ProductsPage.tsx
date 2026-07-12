@@ -17,6 +17,7 @@ import CategoriesTable from "./components/CategoriesTable";
 import AddProductDialog from "./components/AddProductDialog";
 import AddIngredientDialog from "./components/AddIngredientDialog";
 import AddCategoryDialog from "./components/AddCategoryDialog";
+import CategoryProductsDialog from "./components/CategoryProductsDialog";
 import ImportDataDialog from "./components/ImportDataDialog";
 import ScanProductDialog from "./components/ScanProductDialog";
 import WhatsAppOfferDialog from "./components/WhatsAppOfferDialog";
@@ -28,6 +29,7 @@ import {
   PRODUCT_CATEGORIES,
 } from "./data";
 import type {
+  Category,
   CategoryFormData,
   Ingredient,
   IngredientFormData,
@@ -144,6 +146,7 @@ const ProductsPage = () => {
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isScanOpen, setIsScanOpen] = useState(false);
   const [isWhatsAppOpen, setIsWhatsAppOpen] = useState(false);
+  const [selectedCategoryForProducts, setSelectedCategoryForProducts] = useState<Category | null>(null);
   const prevCreatingRef = useRef(false);
 
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
@@ -535,6 +538,9 @@ const ProductsPage = () => {
               kind: "category",
             })
           }
+          onRowClick={(category) => {
+            setSelectedCategoryForProducts(category);
+          }}
         />
       )}
 
@@ -568,6 +574,19 @@ const ProductsPage = () => {
         onOpenChange={setIsAddCategoryOpen}
         isSaving={isCreatingCategory}
         onSave={handleAddCategory}
+      />
+
+      <CategoryProductsDialog
+        open={!!selectedCategoryForProducts}
+        onOpenChange={(open) => {
+          if (!open) setSelectedCategoryForProducts(null);
+        }}
+        category={selectedCategoryForProducts}
+        onEditProduct={(product) => {
+          setSelectedCategoryForProducts(null);
+          setEditingProduct(product);
+          setIsAddProductOpen(true);
+        }}
       />
 
       <ImportDataDialog

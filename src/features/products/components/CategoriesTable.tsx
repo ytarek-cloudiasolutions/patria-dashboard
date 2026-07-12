@@ -18,6 +18,7 @@ interface CategoriesTableProps {
   isMutating?: boolean;
   onToggleActive: (id: string, active: boolean) => void;
   onDelete: (category: Category) => void;
+  onRowClick?: (category: Category) => void;
 }
 
 const RowActions = ({
@@ -35,7 +36,7 @@ const RowActions = ({
 }) => {
   const isTogglingThis = togglingCategoryId === category.id;
   return (
-    <div className="flex items-center justify-end gap-4">
+    <div className="flex items-center justify-end gap-4" onClick={(e) => e.stopPropagation()}>
       {isTogglingThis ? (
         <div className="flex size-9 items-center justify-center">
           <Loader2 className="size-4.5 animate-spin text-[#059B5A]" />
@@ -76,6 +77,7 @@ const CategoriesTable = ({
   isMutating = false,
   onToggleActive,
   onDelete,
+  onRowClick,
 }: CategoriesTableProps) => {
   const { t } = useTranslation();
   return (
@@ -91,7 +93,8 @@ const CategoriesTable = ({
             {categories.map((category) => (
               <div
                 key={category.id}
-                className="flex items-center gap-3 rounded-2xl border border-[#E5E5E5] bg-white px-4 py-4"
+                onClick={() => onRowClick?.(category)}
+                className="flex items-center gap-3 rounded-2xl border border-[#E5E5E5] bg-white px-4 py-4 cursor-pointer hover:bg-[#FAFAF8] transition-colors"
               >
                 <Thumb category={category} />
                 <div className="min-w-0 flex-1">
@@ -152,7 +155,11 @@ const CategoriesTable = ({
             ) : (
               <>
                 {categories.map((category) => (
-                  <TableRow key={category.id} className="hover:bg-[#FAFAF8]">
+                  <TableRow
+                    key={category.id}
+                    onClick={() => onRowClick?.(category)}
+                    className="hover:bg-[#FAFAF8] cursor-pointer"
+                  >
                     <TableCell className="ps-6 py-4">
                       <Thumb category={category} />
                     </TableCell>
