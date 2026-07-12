@@ -7,9 +7,11 @@ import {
   Wallet,
   Users,
   DollarSign,
+  Bell,
+  CalendarDays,
 } from "lucide-react";
 import { api } from "@/config/api";
-import { DASHBOARD_DATE, ORDER_STREAM_ICON, PRODUCT_PANEL_ICON } from "./data";
+import { DASHBOARD_DATE } from "./data";
 import type {
   DashboardMetric,
   LiveOrder,
@@ -25,6 +27,26 @@ import RevenueTrendChart from "./components/RevenueTrendChart";
 import TopSoldProducts from "./components/TopSoldProducts";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import { useTranslation } from "@/shared/i18n/useTranslation";
+import DefaultButton from "@/shared/components/DefaultButton";
+import DatePicker from "@/shared/components/DatePicker";
+import CustomerNotificationDialog from "./components/CustomerNotificationDialog";
+
+const getTodayDateString = () => {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const getSevenDaysAgoDateString = () => {
+  const d = new Date();
+  d.setDate(d.getDate() - 7);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
 
 const mapOrderStatus = (s: string): LiveOrder["status"] => {
   switch ((s ?? "").toLowerCase()) {
@@ -42,12 +64,19 @@ const DashboardPage = () => {
   const [topProducts, setTopProducts] = useState<SoldProduct[]>([]);
   const [liveOrders, setLiveOrders] = useState<LiveOrder[]>([]);
   const [indicators, setIndicators] = useState<PerformanceIndicator[]>([]);
+  const [dateRange, setDateRange] = useState({
+    from: getSevenDaysAgoDateString(),
+    to: getTodayDateString(),
+  });
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
 
   useEffect(() => {
     const load = async () => {
       try {
         const [overviewRes, ordersRes] = await Promise.all([
-          api.get("/reports/overview"),
+          api.get("/reports/overview", {
+            params: { from: dateRange.from, to: dateRange.to },
+          }),
           api.get("/orders", { params: { limit: 6, sort: "-createdAt" } }),
         ]);
 
@@ -169,7 +198,7 @@ const DashboardPage = () => {
     };
 
     load();
-  }, []);
+  }, [dateRange.from, dateRange.to]);
 
   const today = new Date().toLocaleDateString("en-US", {
     weekday: "long",
@@ -180,10 +209,45 @@ const DashboardPage = () => {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <HeaderLayout
-        title={`${t("Welcome back")}, ${t("Admin")}`}
-        description={`${t("Real-time business performance metrics")} — ${today || DASHBOARD_DATE}`}
-        className="mb-5 sm:mb-7"
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-5 sm:mb-7">
+        <HeaderLayout
+          title={`${t("Welcome back")}, ${t("Admin")}`}
+          description={`${t("Real-time business performance metrics")} — ${today || DASHBOARD_DATE}`}
+          className="mb-0"
+        />
+        <div className="flex flex-wrap items-center gap-3.5">
+          <DefaultButton
+            data={{
+              buttonText: t("Customer Notification"),
+              onClick: () => setIsNotificationOpen(true),
+              icon: <Bell className="size-4.5 text-white" />,
+            }}
+          />
+
+          <div className="flex h-12.5 items-center rounded-full border border-[#E1E1E5] bg-white px-4.5 shadow-sm text-[14px]">
+            <DatePicker
+              value={dateRange.from}
+              onChange={(from) => setDateRange((prev) => ({ ...prev, from }))}
+              placeholder={t("From")}
+              popoverPlacement="bottom-right"
+              buttonClassName="border-0 bg-transparent h-auto p-0 shadow-none hover:bg-transparent text-[14px] font-semibold text-[#28293D] cursor-pointer w-auto inline-flex gap-1.5 flex-row-reverse [&>svg]:size-4.5 [&>svg]:text-primary"
+            />
+            <span className="mx-2 h-4 w-px bg-[#E1E1E5]" />
+            <DatePicker
+              value={dateRange.to}
+              onChange={(to) => setDateRange((prev) => ({ ...prev, to }))}
+              placeholder={t("To")}
+              popoverPlacement="bottom-right"
+              minDate={dateRange.from || undefined}
+              buttonClassName="border-0 bg-transparent h-auto p-0 shadow-none hover:bg-transparent text-[14px] font-semibold text-[#28293D] cursor-pointer w-auto inline-flex gap-1.5 flex-row-reverse [&>svg]:size-4.5 [&>svg]:text-primary"
+            />
+          </div>
+        </div>
+      </div>
+
+      <CustomerNotificationDialog
+        open={isNotificationOpen}
+        onOpenChange={setIsNotificationOpen}
       />
 
       <DashboardMetrics metrics={metrics} />

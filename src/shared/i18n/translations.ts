@@ -61,6 +61,12 @@ export const AR_TRANSLATIONS: Record<string, string> = {
 
   // Dashboard
   "Welcome back": "مرحباً بعودتك",
+  "Customer Notification": "إشعار للعملاء",
+  "Send Notification to All Customers": "إشعار لكل العملاء",
+  "The notification will reach all customers who downloaded the app": "سيصل الإشعار لكل العملاء اللي نزّلوا التطبيق",
+  "e.g., Special offer today": "مثال: عرض خاص اليوم",
+  "Write the message here...": "...اكتب الرسالة هنا",
+  "Send to All": "إرسال للجميع",
   Admin: "المُشْرِف",
   "Real-time business performance metrics":
     "مؤشرات أداء الأعمال في الوقت الفعلي",
