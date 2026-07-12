@@ -45,7 +45,7 @@ const ScanProductDialog = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        showCloseButton={false}
+        showCloseButton={true}
         className="w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-6 ring-0 sm:max-w-110"
       >
         <DialogTitle className="text-[20px] font-bold text-[#28293D]">

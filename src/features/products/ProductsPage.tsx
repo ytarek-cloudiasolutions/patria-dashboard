@@ -262,6 +262,7 @@ const ProductsPage = () => {
     formData.append("price", String(Number(data.price) || 0));
     formData.append("categoryId", categoryId);
     formData.append("stockQty", String(Number(data.quantity) || 0));
+    formData.append("unit", data.unit || "g");
     formData.append("variantGroups", JSON.stringify([]));
     formData.append("extras", JSON.stringify([]));
 

@@ -100,6 +100,7 @@ export interface IngredientFormData {
   barcode: string;
   price: string;
   quantity: string;
+  unit: string;
   imageUrl?: string;
   imageFile?: File;
   isExtra: boolean;

@@ -14,6 +14,7 @@ import InputField from "@/shared/components/InputField";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import type { IngredientFormData, Ingredient } from "../types";
 import UploadDropzone from "./UploadDropzone";
+import DropdownSelect from "@/shared/components/DropdownSelect";
 
 const FORM_ID = "add-ingredient-form";
 
@@ -23,6 +24,7 @@ const INITIAL_FORM: IngredientFormData = {
   barcode: "",
   price: "",
   quantity: "",
+  unit: "g",
   imageUrl: undefined,
   imageFile: undefined,
   isExtra: false,
@@ -49,6 +51,7 @@ const AddIngredientDialog = ({
   const [errors, setErrors] = useState<
     Partial<Record<keyof IngredientFormData, string>>
   >({});
+  const [isUnitOpen, setIsUnitOpen] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -60,6 +63,7 @@ const AddIngredientDialog = ({
             barcode: "",
             price: String(editingIngredient.price),
             quantity: String(editingIngredient.quantity),
+            unit: editingIngredient.unit || "g",
             imageUrl: editingIngredient.imageUrl,
             imageFile: undefined,
             isExtra: editingIngredient.isExtra ?? false,
@@ -68,6 +72,7 @@ const AddIngredientDialog = ({
         : INITIAL_FORM,
     );
     setErrors({});
+    setIsUnitOpen(false);
   }, [open, editingIngredient]);
 
   const set = <K extends keyof IngredientFormData>(
@@ -98,6 +103,10 @@ const AddIngredientDialog = ({
         showCloseButton={false}
         className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-150"
       >
+        {isUnitOpen && (
+          <div className="pointer-events-none fixed inset-0 z-60 bg-black/40" />
+        )}
+
         <div className="flex max-h-[calc(100vh-2rem)] flex-col">
           <div className="px-5 pt-5 sm:px-7 sm:pt-7">
             <DialogTitle className="text-[20px] font-semibold text-[#28293D] sm:text-[22px]">
@@ -192,7 +201,7 @@ const AddIngredientDialog = ({
               }}
             />
 
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
               <div>
                 <InputField
                   data={{
@@ -218,6 +227,30 @@ const AddIngredientDialog = ({
                   </p>
                 )}
               </div>
+
+              <div className="flex flex-col">
+                <Label
+                  className="mb-2.5 text-[16px] font-medium text-black"
+                >
+                  {t("Price Unit")}
+                </Label>
+                <DropdownSelect
+                  options={[
+                    { value: "g", label: t("Gram (g)") },
+                    { value: "kg", label: t("Kilogram (kg)") },
+                    { value: "L", label: t("Liter (L)") },
+                    { value: "ml", label: t("Milliliter (ml)") },
+                    { value: "pcs", label: t("Piece (pcs)") },
+                  ]}
+                  selected={form.unit}
+                  onSelect={(val) => set("unit", val)}
+                  onOpenChange={setIsUnitOpen}
+                  align="start"
+                  className="w-full md:w-full sm:w-full h-12.5 rounded-xl font-normal text-[#23252A]"
+                  contentClassName="w-[var(--radix-dropdown-menu-trigger-width)] md:w-[var(--radix-dropdown-menu-trigger-width)]"
+                />
+              </div>
+
               <div>
                 <InputField
                   data={{
