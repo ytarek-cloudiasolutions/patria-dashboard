@@ -13,6 +13,7 @@ export interface Pagination {
   page: number;
   limit: number;
   pages: number;
+  totalPages?: number;
 }
 
 export interface GetOrdersResponse {

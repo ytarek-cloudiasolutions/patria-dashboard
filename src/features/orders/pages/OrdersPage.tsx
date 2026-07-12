@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { cn } from "@/lib/utils";
 import {
   Smartphone,
   CheckCheck,
@@ -27,6 +28,7 @@ import type { Order, OrderSource, OrderStatus, OrderStatusFilter, ProductOption 
 import TabItem from "@/shared/components/TabItem";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { useOrders } from "../hooks/useOrders";
+import { mapOrderStatusToBackend } from "../utils/orderMappers";
 import { useProducts } from "@/features/products/hooks/useProducts";
 import { useLocations } from "@/features/locations/hooks/useLocations";
 import type { CreateOrderRequest } from "../store/orderTypes";
@@ -42,7 +44,15 @@ const SOURCE_ICONS: Record<OrderSource, LucideIcon> = {
 
 const OrdersPage = () => {
   const { t } = useTranslation();
-  const { orders, loading, getOrdersList, updateOrderStatusValue, createNewOrder, deleteOrderValue } = useOrders();
+  const {
+    orders,
+    pagination,
+    loading,
+    getOrdersList,
+    updateOrderStatusValue,
+    createNewOrder,
+    deleteOrderValue,
+  } = useOrders();
   const { products, getProducts } = useProducts();
   const { locations, getLocations } = useLocations();
 
@@ -55,6 +65,7 @@ const OrdersPage = () => {
     pos: 0,
     call: 0,
   });
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Fetch all source counts on mount for accurate initial badges
   useEffect(() => {
@@ -75,10 +86,15 @@ const OrdersPage = () => {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isBulkDeleteOpen, setIsBulkDeleteOpen] = useState(false);
 
-  // Fetch orders when source tab changes
+  // Fetch orders when source, status or page changes
   useEffect(() => {
-    getOrdersList({ source: activeSource, limit: 100 });
-  }, [activeSource, getOrdersList]);
+    getOrdersList({
+      source: activeSource,
+      limit: 100,
+      page: currentPage,
+      status: selectedStatus === "All statuses" ? undefined : mapOrderStatusToBackend(selectedStatus),
+    });
+  }, [activeSource, selectedStatus, currentPage, getOrdersList]);
 
   // Live updates: play a sound and refresh the list when a new order comes in
   // or an existing order gets new items sent to the kitchen.
@@ -86,7 +102,12 @@ const OrdersPage = () => {
     const socket = getSocket();
     const handleUpdate = () => {
       playNotificationSound();
-      getOrdersList({ source: activeSource, limit: 100 });
+      getOrdersList({
+        source: activeSource,
+        limit: 100,
+        page: currentPage,
+        status: selectedStatus === "All statuses" ? undefined : mapOrderStatusToBackend(selectedStatus),
+      });
     };
 
     socket.on("newOrder", handleUpdate);
@@ -96,14 +117,17 @@ const OrdersPage = () => {
       socket.off("newOrder", handleUpdate);
       socket.off("orderUpdated", handleUpdate);
     };
-  }, [activeSource, getOrdersList]);
+  }, [activeSource, selectedStatus, currentPage, getOrdersList]);
 
   // Remember the count for each source tab after load
   useEffect(() => {
     if (!loading.fetch) {
-      setSourceCounts((prev) => ({ ...prev, [activeSource]: orders.length }));
+      setSourceCounts((prev) => ({
+        ...prev,
+        [activeSource]: pagination?.total ?? orders.length,
+      }));
     }
-  }, [orders, activeSource, loading.fetch]);
+  }, [orders, activeSource, pagination, loading.fetch]);
 
   // Fetch products and locations for call orders
   useEffect(() => {
@@ -181,7 +205,7 @@ const OrdersPage = () => {
 
   const summary = useMemo(() => {
     const revenue = orders.reduce((sum, o) => sum + (o.status !== "Cancelled" ? o.total : 0), 0);
-    const totalOrders = orders.length;
+    const totalOrders = pagination?.total ?? orders.length;
     const pending = orders.filter(
       (o) =>
         o.status === "Pending" ||
@@ -192,19 +216,25 @@ const OrdersPage = () => {
     const delivered = orders.filter((o) => o.status === "Delivered").length;
 
     return { revenue, totalOrders, pending, delivered };
-  }, [orders]);
+  }, [orders, pagination]);
 
   const tabCounts = useMemo(() => ({
-    application: activeSource === "application" ? orders.length : sourceCounts.application,
-    pos: activeSource === "pos" ? orders.length : sourceCounts.pos,
-    call: activeSource === "call" ? orders.length : sourceCounts.call,
-  }), [orders, activeSource, sourceCounts]);
+    application: activeSource === "application" ? (pagination?.total ?? orders.length) : sourceCounts.application,
+    pos: activeSource === "pos" ? (pagination?.total ?? orders.length) : sourceCounts.pos,
+    call: activeSource === "call" ? (pagination?.total ?? orders.length) : sourceCounts.call,
+  }), [orders, pagination, activeSource, sourceCounts]);
 
   const sources: OrderSource[] = ["application", "pos", "call"];
 
   const handleSourceChange = (source: OrderSource) => {
     setActiveSource(source);
     setSelectedIds([]);
+    setCurrentPage(1);
+  };
+
+  const handleStatusChange = (status: OrderStatusFilter) => {
+    setSelectedStatus(status);
+    setCurrentPage(1);
   };
 
   const updateStatus = (orderId: string, status: OrderStatus) => {
@@ -303,7 +333,7 @@ const OrdersPage = () => {
           searchValue={searchValue}
           selectedStatus={selectedStatus}
           onSearchChange={setSearchValue}
-          onStatusChange={setSelectedStatus}
+          onStatusChange={handleStatusChange}
           onStatusMenuOpenChange={setIsStatusMenuOpen}
         />
 
@@ -370,6 +400,43 @@ const OrdersPage = () => {
           onAssignDriver={assignDriver}
           onStatusMenuOpenChange={setIsStatusMenuOpen}
         />
+
+        {/* Pagination Controls */}
+        {pagination && (pagination.totalPages || pagination.pages || 1) > 1 && (
+          <div className="mt-6 flex items-center justify-center gap-2">
+            <button
+              type="button"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              className="flex size-9 items-center justify-center rounded-[8px] border border-[#E5E5E5] bg-white text-[#28293D] hover:bg-[#F5F0EA] disabled:opacity-50 disabled:hover:bg-white cursor-pointer"
+            >
+              &lt;
+            </button>
+            {Array.from({ length: pagination.totalPages || pagination.pages || 1 }, (_, i) => i + 1).map((p) => (
+              <button
+                key={p}
+                type="button"
+                onClick={() => setCurrentPage(p)}
+                className={cn(
+                  "flex size-9 items-center justify-center rounded-[8px] text-[14px] font-semibold transition-colors cursor-pointer",
+                  p === currentPage
+                    ? "bg-primary text-white"
+                    : "border border-[#E5E5E5] bg-white text-[#28293D] hover:bg-[#F5F0EA]"
+                )}
+              >
+                {p}
+              </button>
+            ))}
+            <button
+              type="button"
+              disabled={currentPage === (pagination.totalPages || pagination.pages || 1)}
+              onClick={() => setCurrentPage((p) => Math.min(pagination.totalPages || pagination.pages || 1, p + 1))}
+              className="flex size-9 items-center justify-center rounded-[8px] border border-[#E5E5E5] bg-white text-[#28293D] hover:bg-[#F5F0EA] disabled:opacity-50 disabled:hover:bg-white cursor-pointer"
+            >
+              &gt;
+            </button>
+          </div>
+        )}
       </div>
 
       <OrderDetailsDialog

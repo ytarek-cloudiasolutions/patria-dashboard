@@ -45,7 +45,7 @@ export const mapOrder = (o: any): Order => {
   const timeStr = dateObj.toLocaleTimeString("en-US", {
     hour: "2-digit",
     minute: "2-digit",
-    hour12: false,
+    hour12: true,
   });
 
   const items = (o.items || []).map((item: any, idx: number) => {
@@ -79,7 +79,7 @@ export const mapOrder = (o: any): Order => {
     customerName: o.customerId?.name || o.customer?.name || o.customerName || "Walk-in Customer",
     customerPhone: o.customerId?.phone || o.customer?.phone || o.customerPhone || "",
     customerEmail: o.customerId?.email || o.customer?.email || o.customerEmail || "",
-    address: o.customer?.address || o.address || "In Store",
+    address: o.customer?.address || o.address || ((o.type || "").toLowerCase() === "takeaway" ? "Takeaway" : "In Store"),
     zone: o.zone || "",
     date: dateStr,
     time: timeStr,

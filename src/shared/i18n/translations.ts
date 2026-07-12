@@ -114,6 +114,7 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   Note: "ملاحظة",
   Paid: "مدفوع",
   "Waiting for payment": "في انتظار الدفع",
+  "In Store": "داخل المطعم",
   Order: "طلب",
   "Customer Details": "بيانات العميل",
   Subtotal: "المجموع الفرعي",

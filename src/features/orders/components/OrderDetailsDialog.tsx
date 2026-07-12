@@ -161,9 +161,19 @@ const OrderDetailsDialog = ({
                   <p className="mt-1 text-[12px] text-[#8B8B8B]">
                     {order.time}
                   </p>
-                  <div className="mt-2 flex justify-end">
-                    <OrdersStatusBadge status={order.status} />
-                  </div>
+                  {order.paymentState !== "None" && (
+                    <div className="mt-2 flex justify-end">
+                      <span
+                        className={`inline-flex h-5 items-center justify-center rounded-full border px-2 text-[10px] font-semibold ${
+                          order.paymentState === "Paid"
+                            ? "border-[#00A86B] bg-[#E2F4ED] text-[#00A86B]"
+                            : "border-[#C7861E] bg-[#FFF7E6] text-[#C7861E]"
+                        }`}
+                      >
+                        {order.paymentState === "Paid" ? t("Paid") : t("Pending")}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -175,7 +185,7 @@ const OrderDetailsDialog = ({
                   <span className="text-[10px] font-bold uppercase text-[#595959]">
                     {t("Address")}:{" "}
                   </span>
-                  {order.address}
+                  {t(order.address)}
                 </p>
               </div>
 
@@ -188,7 +198,7 @@ const OrderDetailsDialog = ({
                         {t("Zone")}
                       </p>
                       <p className="text-[13px] text-[#333333]">
-                        {order.zone ?? "-"}
+                        {order.zone || "-"}
                       </p>
                     </div>
                     <div className="text-right">
@@ -212,11 +222,20 @@ const OrderDetailsDialog = ({
                 {order.items.map((item) => (
                   <div
                     key={item.id}
-                    className="flex min-h-10 items-center justify-between rounded-[8px] border border-[#E5E5E5] bg-white px-3 gap-3"
+                    className="flex min-h-12 items-center justify-between rounded-[8px] border border-[#E5E5E5] bg-white px-3 py-2 gap-3"
                   >
-                    <span className="truncate text-[13px] font-medium text-[#333333] sm:text-[14px]">
-                      {item.quantity}X {item.name}
-                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[13px] font-medium text-[#333333] sm:text-[14px]">
+                        {item.quantity}X {item.name}
+                      </p>
+                      {item.note && (
+                        <p className="mt-1">
+                          <span className="inline-flex h-5 items-center rounded-full border border-[#C7861E]/30 bg-[#FFF7E6] px-2 text-[10px] font-semibold text-[#C7861E]">
+                            {t("Extra")}: {item.note}
+                          </span>
+                        </p>
+                      )}
+                    </div>
                     <span className="shrink-0 text-[12px] font-semibold text-[#28293D]">
                       {formatCurrency(item.unitPrice)}
                     </span>
