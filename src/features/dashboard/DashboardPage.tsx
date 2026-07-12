@@ -39,13 +39,11 @@ const getTodayDateString = () => {
   return `${year}-${month}-${day}`;
 };
 
-const getSevenDaysAgoDateString = () => {
+const getStartOfMonthFiveDateString = () => {
   const d = new Date();
-  d.setDate(d.getDate() - 7);
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+  return `${year}-${month}-05`;
 };
 
 const mapOrderStatus = (s: string): LiveOrder["status"] => {
@@ -65,7 +63,7 @@ const DashboardPage = () => {
   const [liveOrders, setLiveOrders] = useState<LiveOrder[]>([]);
   const [indicators, setIndicators] = useState<PerformanceIndicator[]>([]);
   const [dateRange, setDateRange] = useState({
-    from: getSevenDaysAgoDateString(),
+    from: getStartOfMonthFiveDateString(),
     to: getTodayDateString(),
   });
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
@@ -75,7 +73,7 @@ const DashboardPage = () => {
       try {
         const [overviewRes, ordersRes] = await Promise.all([
           api.get("/reports/overview", {
-            params: { from: dateRange.from, to: dateRange.to },
+            params: { startDate: dateRange.from, endDate: dateRange.to },
           }),
           api.get("/orders", { params: { limit: 6, sort: "-createdAt" } }),
         ]);
