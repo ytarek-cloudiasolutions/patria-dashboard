@@ -23,6 +23,7 @@ interface CallCustomerStepProps {
   onZoneChange: (value: string) => void;
   onZoneMenuOpenChange?: (open: boolean) => void;
   deliveryZones: DeliveryZone[];
+  isSearching?: boolean;
 }
 
 const CallCustomerStep = ({
@@ -41,6 +42,7 @@ const CallCustomerStep = ({
   onZoneChange,
   onZoneMenuOpenChange,
   deliveryZones,
+  isSearching = false,
 }: CallCustomerStepProps) => {
   const { t } = useTranslation();
 
@@ -65,15 +67,17 @@ const CallCustomerStep = ({
               value: phoneQuery,
               dir: "ltr",
               onChange: (e) => onPhoneQueryChange(e.target.value),
+              disabled: isSearching,
             }}
           />
           <Button
             type="button"
+            disabled={isSearching}
             onClick={onSearch}
-            className="flex h-12.5 shrink-0 cursor-pointer items-center gap-2 rounded-[8px] px-5 text-[14px] font-semibold text-white"
+            className="flex h-12.5 shrink-0 cursor-pointer items-center gap-2 rounded-[8px] px-5 text-[14px] font-semibold text-white disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Search className="size-4" />
-            {t("Search")}
+            {isSearching ? t("Searching...") : t("Search")}
           </Button>
         </div>
       </div>

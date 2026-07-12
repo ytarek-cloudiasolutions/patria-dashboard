@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { api } from "@/config/api";
 
 import {
   Dialog,
@@ -50,6 +51,7 @@ const NewCallOrderDialog = ({
   const [isZoneMenuOpen, setIsZoneMenuOpen] = useState(false);
 
   const [cart, setCart] = useState<CartLineItem[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const payment = useOrderPayment("40");
 
   const subtotal = cartSubtotal(cart);
@@ -66,6 +68,7 @@ const NewCallOrderDialog = ({
     setZoneId("");
     setCart([]);
     payment.reset();
+    setIsSearching(false);
   };
 
   useEffect(() => {
@@ -73,17 +76,68 @@ const NewCallOrderDialog = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     const normalized = phoneQuery.replace(/\s/g, "");
-    const found = CUSTOMER_DIRECTORY[normalized] ?? null;
+    if (!normalized) return;
+
+    setIsSearching(true);
     setSearched(true);
-    setExisting(found);
-    if (found) {
-      setName(found.name);
-      setPhone(found.phone);
-      setAddress(found.lastAddress);
-    } else {
+    try {
+      const response = await api.get(`/customers/by-phone/${normalized}`);
+      const customer = response.data?.customer || response.data;
+      if (customer) {
+        const foundCustomer: CustomerLookup = {
+          name: customer.name,
+          phone: customer.phone,
+          lastAddress: "",
+          tier: customer.tier || "bronze",
+        };
+
+        const addr = customer.addresses?.find((a: any) => a.isDefault) || customer.addresses?.[0];
+        if (addr) {
+          const addressStr = [
+            addr.buildingName ? `Building ${addr.buildingName}` : "",
+            addr.street ? `Street ${addr.street}` : "",
+            addr.floor ? `Floor ${addr.floor}` : "",
+            addr.apartmentNo ? `Apt ${addr.apartmentNo}` : "",
+            addr.area || addr.zone || ""
+          ].filter(Boolean).join(", ");
+
+          foundCustomer.lastAddress = addressStr;
+          setAddress(addressStr);
+
+          const matchedZone = deliveryZones.find(
+            (z) => z.name.toLowerCase() === (addr.zone || "").toLowerCase()
+          );
+          if (matchedZone) {
+            handleZoneChange(matchedZone.id);
+          } else {
+            setZoneId("");
+          }
+        } else {
+          setAddress("");
+          setZoneId("");
+        }
+
+        setExisting(foundCustomer);
+        setName(customer.name || "");
+        setPhone(customer.phone || "");
+      } else {
+        setExisting(null);
+        setPhone(phoneQuery);
+        setName("");
+        setAddress("");
+        setZoneId("");
+      }
+    } catch (err) {
+      console.error("Customer lookup failed:", err);
+      setExisting(null);
       setPhone(phoneQuery);
+      setName("");
+      setAddress("");
+      setZoneId("");
+    } finally {
+      setIsSearching(false);
     }
   };
 
@@ -216,6 +270,7 @@ const NewCallOrderDialog = ({
                 onZoneChange={handleZoneChange}
                 onZoneMenuOpenChange={setIsZoneMenuOpen}
                 deliveryZones={deliveryZones}
+                isSearching={isSearching}
               />
             )}
             {step === 1 && (
