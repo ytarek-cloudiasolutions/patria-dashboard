@@ -277,6 +277,8 @@ const PosPage = () => {
   };
 
   const handleSendToKitchen = async () => {
+    if (cartItems.length === 0) return;
+
     if (loadedOrderId) {
       const newItems = cartItems.filter((item) => !sentLineIds.has(item.lineId));
       if (newItems.length > 0) {
@@ -297,6 +299,33 @@ const PosPage = () => {
           showErrorToast("Failed to send items to kitchen");
           return;
         }
+      }
+    } else {
+      // Brand-new dine-in order: actually create it now so the kitchen board
+      // and Pending Orders pick it up. Payment method is set later at checkout.
+      try {
+        const { createOrder } = await import("@/features/orders/api/ordersApi");
+        const { order } = await createOrder({
+          type: orderType === "dine-in" ? "dine_in" : "takeaway",
+          source: "pos",
+          customerName: customer || "Walk-in Customer",
+          customerPhone: "",
+          address: orderType === "dine-in" ? resolvedTable : undefined,
+          items: cartItems.map((item) => ({
+            productId: item.productId,
+            quantity: item.qty,
+            price: item.unitPrice,
+            notes: item.instructions || undefined,
+          })),
+          notes: notes || undefined,
+        });
+        const newOrderId = order._id || order.id;
+        setLoadedOrderId(newOrderId);
+        setSentLineIds(new Set(cartItems.map((item) => item.lineId)));
+        showSuccessToast("Sent to kitchen");
+      } catch {
+        showErrorToast("Failed to send order to kitchen");
+        return;
       }
     }
     setSentToKitchen(true);
@@ -355,7 +384,11 @@ const PosPage = () => {
 
   const handleReceiptClose = (open: boolean) => {
     setReceiptOpen(open);
-    if (!open) completeOrder();
+    if (!open) {
+      const wasTakeaway = orderType === "takeaway";
+      completeOrder();
+      if (wasTakeaway) navigate("/orders");
+    }
   };
 
   // --- Sidebar actions ------------------------------------------------------
