@@ -105,8 +105,7 @@ const ProductsPage = () => {
 
   useEffect(() => {
     getCategories();
-    getIngredients();
-  }, [getCategories, getIngredients]);
+  }, [getCategories]);
 
   // Open WhatsApp dialog only after product creation succeeds
   useEffect(() => {
@@ -122,17 +121,14 @@ const ProductsPage = () => {
         search: productSearch.trim() || undefined,
         category: categoryFilter !== "all" ? categoryFilter : undefined,
         page,
-        limit: 10,
+        limit: 100,
       });
     } else if (tab === "recipes") {
-      const rawCat = categories.find(
-        (c) => c.name.toLowerCase() === "raw ingredients",
-      );
       getProducts({
         search: ingredientSearch.trim() || undefined,
-        category: rawCat ? rawCat.id : undefined,
+        category: "6a3927888bbe5f4d11bde590",
         page,
-        limit: 10,
+        limit: 100,
       });
     }
   }, [tab, productSearch, categoryFilter, ingredientSearch, page, getProducts, categories]);
@@ -149,6 +145,12 @@ const ProductsPage = () => {
   const [selectedCategoryForProducts, setSelectedCategoryForProducts] = useState<Category | null>(null);
   const prevCreatingRef = useRef(false);
 
+  useEffect(() => {
+    if (isAddProductOpen) {
+      getIngredients();
+    }
+  }, [isAddProductOpen, getIngredients]);
+
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
 
   const isProducts = tab === "products";
@@ -163,7 +165,11 @@ const ProductsPage = () => {
     [categories, t],
   );
 
-  const filteredProducts = products;
+  const filteredProducts = useMemo(() => {
+    return products.filter(
+      (p) => (p.category || "").toLowerCase() !== "raw ingredients"
+    );
+  }, [products]);
 
   const filteredIngredients = useMemo(() => {
     if (tab !== "recipes") return [];
