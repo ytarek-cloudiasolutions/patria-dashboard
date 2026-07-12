@@ -130,107 +130,105 @@ const CategoryProductsDialog = ({
                 <Loader2 className="size-8 animate-spin text-primary" />
               </div>
             ) : (
-              <div className="rounded-[8px] border border-[#E5E5E5] overflow-x-auto">
-                <Table>
-                  <TableHeader className="bg-[#FAFAF8]">
-                    <TableRow>
-                      <TableHead className="ps-4 py-3 text-start text-[11px] font-bold uppercase text-[#595959]">
-                        {t("Product")}
-                      </TableHead>
-                      <TableHead className="px-4 py-3 text-start text-[11px] font-bold uppercase text-[#595959]">
-                        {t("Price")}
-                      </TableHead>
-                      <TableHead className="px-4 py-3 text-center text-[11px] font-bold uppercase text-[#595959]">
-                        {t("Stock")}
-                      </TableHead>
-                      <TableHead className="px-4 py-3 text-center text-[11px] font-bold uppercase text-[#595959]">
-                        {t("Status")}
-                      </TableHead>
-                      <TableHead className="pe-4 py-3 text-end text-[11px] font-bold uppercase text-[#595959] w-[80px]">
-                        {t("Edit")}
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {products.map((product) => (
-                      <TableRow key={product.id} className="hover:bg-[#FAFAF8]">
-                        {/* Thumbnail & Name */}
-                        <TableCell className="ps-4 py-3.5">
-                          <div className="flex items-center gap-3 min-w-0">
-                            <img
-                              src={product.imageUrl}
-                              alt=""
-                              className="size-10 shrink-0 rounded-[8px] object-cover"
-                            />
-                            <span className="truncate text-[13.5px] font-medium text-[#28293D] sm:text-[14px]">
-                              {product.name}
-                            </span>
-                          </div>
-                        </TableCell>
-
-                        {/* Price */}
-                        <TableCell className="px-4 py-3.5">
-                          <span className="text-[13.5px] font-semibold text-[#28293D]" dir="ltr">
-                            {formatEgp(product.price)}
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="ps-6 py-4 text-start">
+                      {t("Product")}
+                    </TableHead>
+                    <TableHead className="px-6 py-4 text-start">
+                      {t("Price")}
+                    </TableHead>
+                    <TableHead className="px-6 py-4 text-center">
+                      {t("Stock")}
+                    </TableHead>
+                    <TableHead className="px-6 py-4 text-center">
+                      {t("Status")}
+                    </TableHead>
+                    <TableHead className="pe-6 py-4 text-end w-[80px]">
+                      {t("Edit")}
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {products.map((product) => (
+                    <TableRow key={product.id} className="hover:bg-[#FAFAF8]">
+                      {/* Thumbnail & Name */}
+                      <TableCell className="ps-6 py-4">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <img
+                            src={product.imageUrl}
+                            alt=""
+                            className="size-12 shrink-0 rounded-[10px] object-cover"
+                          />
+                          <span className="truncate text-[14px] font-semibold text-[#28293D]">
+                            {product.name}
                           </span>
-                        </TableCell>
+                        </div>
+                      </TableCell>
 
-                        {/* Stock */}
-                        <TableCell className="px-4 py-3.5 text-center">
-                          <div className="flex items-center justify-center">
-                            {product.quantity === 0 ? (
-                              <span className="flex size-6 items-center justify-center rounded-full bg-[#FFF0F0] text-[12px] font-bold text-[#D90000]">
-                                0
-                              </span>
-                            ) : (
-                              <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-[#EFEDE8] px-1.5 text-[12px] font-semibold text-[#7A6A4F]">
-                                {product.quantity}
-                              </span>
-                            )}
-                          </div>
-                        </TableCell>
+                      {/* Price */}
+                      <TableCell className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-[14px] font-semibold text-[#28293D]" dir="ltr">
+                          {formatEgp(product.price)}
+                        </span>
+                      </TableCell>
 
-                        {/* Status */}
-                        <TableCell className="px-4 py-3.5 text-center">
-                          <div className="flex items-center justify-center">
-                            <Badge
-                              className={`h-5.5 rounded-full border px-2.5 py-0 text-[11px] font-semibold ${
-                                product.available
-                                  ? "bg-[#E2F4ED] text-[#059B5A] border-[#059B5A33]"
-                                  : "bg-[#DCDCDC] text-[#23252A] border-[#595959]"
-                              }`}
-                            >
-                              {product.available ? t("Active") : t("Inactive")}
-                            </Badge>
-                          </div>
-                        </TableCell>
+                      {/* Stock */}
+                      <TableCell className="px-6 py-4 whitespace-nowrap text-center">
+                        <div className="flex items-center justify-center">
+                          {product.quantity === 0 ? (
+                            <span className="flex size-6 items-center justify-center rounded-full bg-[#FFF0F0] text-[12px] font-bold text-[#D90000]">
+                              0
+                            </span>
+                          ) : (
+                            <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-[#EFEDE8] px-1.5 text-[12px] font-semibold text-[#7A6A4F]">
+                              {product.quantity}
+                            </span>
+                          )}
+                        </div>
+                      </TableCell>
 
-                        {/* Actions */}
-                        <TableCell className="pe-4 py-3.5 text-end">
-                          <button
-                            type="button"
-                            onClick={() => onEditProduct(product)}
-                            className="cursor-pointer text-[#595959] hover:text-primary transition-colors"
+                      {/* Status */}
+                      <TableCell className="px-6 py-4 whitespace-nowrap text-center">
+                        <div className="flex items-center justify-center">
+                          <Badge
+                            className={`h-6 rounded-full border px-3 py-0 text-[12px] font-semibold ${
+                              product.available
+                                ? "bg-[#E2F4ED] text-[#059B5A] border-[#059B5A]"
+                                : "bg-[#DCDCDC] text-[#23252A] border-[#595959]"
+                            }`}
                           >
-                            <SquarePen className="size-4.5" />
-                          </button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                            {product.available ? t("Active") : t("Inactive")}
+                          </Badge>
+                        </div>
+                      </TableCell>
 
-                    {products.length === 0 && (
-                      <TableRow>
-                        <TableCell
-                          colSpan={5}
-                          className="py-12 text-center text-[13.5px] text-[#8B8B8B]"
+                      {/* Actions */}
+                      <TableCell className="pe-6 py-4 whitespace-nowrap text-end">
+                        <button
+                          type="button"
+                          onClick={() => onEditProduct(product)}
+                          className="cursor-pointer text-[#000000] hover:text-primary transition-colors"
                         >
-                          {t("No products found.")}
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
+                          <SquarePen className="size-4.5" />
+                        </button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+
+                  {products.length === 0 && (
+                    <TableRow>
+                      <TableCell
+                        colSpan={5}
+                        className="py-12 text-center text-[13.5px] text-[#8B8B8B]"
+                      >
+                        {t("No products found.")}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
             )}
           </div>
         </div>
