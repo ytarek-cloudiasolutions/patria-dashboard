@@ -13,7 +13,8 @@ import DefaultButton from "@/shared/components/DefaultButton";
 import DropdownSelect from "@/shared/components/DropdownSelect";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/shared/i18n/useTranslation";
-import { CUSTOMER_CATEGORY_OPTIONS, PRICE_LIST_PRODUCTS } from "../data";
+import { CUSTOMER_CATEGORY_OPTIONS } from "../data";
+import { getProducts } from "@/features/products/api/productsApi";
 import type { PriceListFormData, PriceListProduct } from "../types";
 
 const FORM_ID = "new-price-list-form";
@@ -36,6 +37,7 @@ const NewPriceListDialog = ({
   const [search, setSearch] = useState("");
   const [added, setAdded] = useState<PriceListProduct[]>([]);
   const [error, setError] = useState("");
+  const [catalog, setCatalog] = useState<PriceListProduct[]>([]);
 
   useEffect(() => {
     if (open) {
@@ -45,16 +47,30 @@ const NewPriceListDialog = ({
       setSearch("");
       setAdded([]);
       setError("");
+      // Real products with real MongoDB ids — the picker used to show a
+      // hardcoded mock catalog, so whatever was "added" here had no valid
+      // productId and the backend silently saved an empty item list.
+      getProducts({ limit: 200 })
+        .then((res) =>
+          setCatalog(
+            (res.products || []).map((p) => ({
+              id: p._id ?? p.id,
+              name: p.name ?? "",
+              price: 0,
+            })),
+          ),
+        )
+        .catch(() => setCatalog([]));
     }
   }, [open]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return PRICE_LIST_PRODUCTS;
-    return PRICE_LIST_PRODUCTS.filter((p) =>
+    if (!q) return catalog;
+    return catalog.filter((p) =>
       p.name.toLowerCase().includes(q),
     );
-  }, [search]);
+  }, [search, catalog]);
 
   const isAdded = (id: string) => added.some((p) => p.id === id);
 

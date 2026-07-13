@@ -68,7 +68,7 @@ function mapPriceList(l: any): WholesalePriceList {
   return {
     id: l._id as unknown as number,
     name: l.name ?? "",
-    customerSegment: l.description ?? "",
+    customerSegment: l.customerRole ?? "",
     products,
     authorized: l.isActive !== false,
   };
@@ -131,13 +131,13 @@ export async function createPriceList(
 ): Promise<WholesalePriceList> {
   const body = {
     name: data.name,
-    description: data.customerSegment,
-    // products from the dialog use mock string IDs, not valid MongoDB ObjectIds,
-    // so items are sent empty; the list can be edited with real products later
-    items: [],
+    customerRole: data.customerSegment,
+    // Matches ERB's Pricelist.prices shape server-side (see PriceList model
+    // items schema: { productId, price }) — the picker now sources real
+    // products with real ids, so these are no longer dropped on save.
+    items: data.products.map((p) => ({ productId: p.id, price: p.price })),
   };
   const { data: res } = await api.post("/pricing/pricelists", body);
-  // Merge customerSegment back since description is used as customerSegment
   const list = mapPriceList((res as { priceList: unknown }).priceList);
   return { ...list, products: data.products, authorized: true };
 }
