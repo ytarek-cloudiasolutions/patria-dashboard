@@ -60,6 +60,13 @@ export const getProducts = async () => {
   return response.data;
 };
 
+export const runRenewals = async () => {
+  const response = await api.get<any>(
+    SUBSCRIPTION_ENDPOINTS.RENEWALS,
+  );
+  return response.data;
+};
+
 export const subscriptionApi = {
   getSubscriptions,
   createSubscription,
@@ -69,5 +76,6 @@ export const subscriptionApi = {
   deleteSubscription,
   getUsers,
   getProducts,
+  runRenewals,
 };
 export default subscriptionApi;

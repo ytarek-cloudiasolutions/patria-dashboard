@@ -39,7 +39,8 @@ export type SubscriptionOperation =
   | "delete"
   | "stats"
   | "users"
-  | "products";
+  | "products"
+  | "renewals";
 
 export interface SubscriptionLoadingState {
   fetch: boolean;
@@ -49,6 +50,7 @@ export interface SubscriptionLoadingState {
   stats: boolean;
   users: boolean;
   products: boolean;
+  renewals: boolean;
 }
 
 export interface SubscriptionErrorState {
@@ -59,6 +61,7 @@ export interface SubscriptionErrorState {
   stats: string | null;
   users: string | null;
   products: string | null;
+  renewals: string | null;
 }
 
 export interface SubscriptionState {

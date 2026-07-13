@@ -144,6 +144,20 @@ function* handleGetProducts() {
   }
 }
 
+function* handleRunRenewals() {
+  try {
+    const response: unknown = yield call(subscriptionApi.runRenewals);
+    yield call(showSuccessToast, "Renewals executed successfully");
+    yield put(subscriptionActions.runRenewalsSuccess(response));
+    yield put(subscriptionActions.getSubscriptionsRequest());
+    yield put(subscriptionActions.getSubscriptionStatsRequest());
+  } catch (error) {
+    const errorMsg = getSubscriptionErrorMessage(error);
+    yield call(showErrorToast, errorMsg);
+    yield put(subscriptionActions.runRenewalsFailure(errorMsg));
+  }
+}
+
 export function* subscriptionSaga() {
   yield all([
     takeLatest(
@@ -168,6 +182,7 @@ export function* subscriptionSaga() {
     ),
     takeLatest(subscriptionActions.getUsersRequest.type, handleGetUsers),
     takeLatest(subscriptionActions.getProductsRequest.type, handleGetProducts),
+    takeLatest(subscriptionActions.runRenewalsRequest.type, handleRunRenewals),
   ]);
 }
 export default subscriptionSaga;

@@ -23,6 +23,7 @@ const initialLoading: SubscriptionLoadingState = {
   stats: false,
   users: false,
   products: false,
+  renewals: false,
 };
 
 const initialErrors: SubscriptionErrorState = {
@@ -33,6 +34,7 @@ const initialErrors: SubscriptionErrorState = {
   stats: null,
   users: null,
   products: null,
+  renewals: null,
 };
 
 const initialState: SubscriptionState = {
@@ -180,6 +182,17 @@ const subscriptionSlice = createSlice({
     },
     getProductsFailure: (state, action: PayloadAction<string>) => {
       setOperationFailure(state, "products", action.payload);
+    },
+
+    runRenewalsRequest: (state) => {
+      setOperationLoading(state, "renewals");
+    },
+    runRenewalsSuccess: (state, _action: PayloadAction<any>) => {
+      state.loading.renewals = false;
+      state.successMessage = "Renewals executed successfully";
+    },
+    runRenewalsFailure: (state, action: PayloadAction<string>) => {
+      setOperationFailure(state, "renewals", action.payload);
     },
 
     clearSubscriptionMessages: (state) => {

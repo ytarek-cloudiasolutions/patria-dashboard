@@ -7,7 +7,7 @@ import RoleRoute from "@/features/auth/components/RoleRoute";
 import KitchenDetailsPage from "@/features/kitchen/pages/KitchenDetailsPage";
 import KitchenPage from "@/features/kitchen/pages/KitchenPage";
 
-import ReportsPage from "@/features/reports/ReportsPage";
+
 import RequestsPage from "@/features/requests/RequestsPage";
 
 import { createBrowserRouter } from "react-router-dom";
@@ -40,6 +40,7 @@ import OrdersPage from "@/features/orders/pages/OrdersPage";
 import ShiftManagementPage from "@/features/shifts/ShiftManagementPage";
 import ShiftReportsPage from "@/features/shift-reports/ShiftReportsPage";
 import DeliveryTrackingPage from "@/features/delivery-tracking/DeliveryTrackingPage";
+import ReportsPage from "@/features/reports/ReportsPage";
 
 export const router = createBrowserRouter([
   { path: "/sign-up", element: <SignUpPage /> },

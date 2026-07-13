@@ -36,6 +36,7 @@ const SubscriptionPage = () => {
     deleteSubscriptionInfo,
     getUsersList,
     getProductsList,
+    runRenewals,
   } = useSubscription();
 
   const [search, setSearch] = useState("");
@@ -154,9 +155,9 @@ const SubscriptionPage = () => {
               buttonText: t("Run Renewls"),
               icon: <RefreshCw className="size-4.5" />,
               variant: "outline",
-              onClick: () => {},
+              onClick: runRenewals,
               className:
-                "border-[#E5E5E5] bg-[#FBF6EC] text-primary hover:bg-[#F5F0EA] hover:text-primary",
+                "border-[#E5E5E5] bg-[#FBF6EC] text-primary hover:bg-[#FBF6EC] hover:text-primary",
             }}
           />
           <DefaultButton

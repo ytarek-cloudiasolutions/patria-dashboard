@@ -71,6 +71,10 @@ export const useSubscription = () => {
     dispatch(subscriptionActions.clearSubscriptionMessages());
   }, [dispatch]);
 
+  const runRenewals = useCallback(() => {
+    dispatch(subscriptionActions.runRenewalsRequest());
+  }, [dispatch]);
+
   return {
     subscriptions,
     stats,
@@ -88,6 +92,7 @@ export const useSubscription = () => {
     getUsersList,
     getProductsList,
     clearMessages,
+    runRenewals,
   };
 };
 export default useSubscription;
