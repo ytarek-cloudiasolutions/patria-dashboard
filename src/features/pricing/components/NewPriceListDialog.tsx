@@ -15,18 +15,20 @@ import { cn } from "@/lib/utils";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { CUSTOMER_CATEGORY_OPTIONS } from "../data";
 import { getProducts } from "@/features/products/api/productsApi";
-import type { PriceListFormData, PriceListProduct } from "../types";
+import type { PriceListFormData, PriceListProduct, WholesalePriceList } from "../types";
 
 const FORM_ID = "new-price-list-form";
 
 interface NewPriceListDialogProps {
   open: boolean;
+  list?: WholesalePriceList | null;
   onOpenChange: (open: boolean) => void;
   onSave: (data: PriceListFormData) => void;
 }
 
 const NewPriceListDialog = ({
   open,
+  list,
   onOpenChange,
   onSave,
 }: NewPriceListDialogProps) => {
@@ -41,28 +43,41 @@ const NewPriceListDialog = ({
 
   useEffect(() => {
     if (open) {
-      setName("");
-      setCategory("Wholesale");
+      if (list) {
+        setName(list.name);
+        setCategory(list.customerSegment || "Wholesale");
+        setAdded(list.products || []);
+      } else {
+        setName("");
+        setCategory("Wholesale");
+        setAdded([]);
+      }
       setIsCategoryOpen(false);
       setSearch("");
-      setAdded([]);
       setError("");
-      // Real products with real MongoDB ids — the picker used to show a
-      // hardcoded mock catalog, so whatever was "added" here had no valid
-      // productId and the backend silently saved an empty item list.
       getProducts({ limit: 200 })
-        .then((res) =>
-          setCatalog(
-            (res.products || []).map((p) => ({
-              id: p._id ?? p.id,
-              name: p.name ?? "",
-              price: 0,
-            })),
-          ),
-        )
+        .then((res) => {
+          const mappedProducts = (res.products || []).map((p) => ({
+            id: p._id ?? p.id,
+            name: p.name ?? "",
+            price: p.price ?? 0,
+          }));
+          setCatalog(mappedProducts);
+          if (list) {
+            setAdded((prev) =>
+              prev.map((item) => {
+                const found = mappedProducts.find((p) => p.id === item.id);
+                return {
+                  ...item,
+                  name: item.name || found?.name || "",
+                };
+              }),
+            );
+          }
+        })
         .catch(() => setCatalog([]));
     }
-  }, [open]);
+  }, [open, list]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -78,7 +93,7 @@ const NewPriceListDialog = ({
     setAdded((prev) =>
       prev.some((p) => p.id === product.id)
         ? prev.filter((p) => p.id !== product.id)
-        : [...prev, { ...product, price: 0 }],
+        : [...prev, { ...product, price: product.price }],
     );
 
   const setPrice = (id: string, price: number) =>
@@ -112,7 +127,7 @@ const NewPriceListDialog = ({
         <div className="flex max-h-[calc(100vh-2rem)] min-w-0 flex-col">
           <div className="px-5 pt-5 sm:px-7 sm:pt-7">
             <DialogTitle className="text-[20px] font-bold text-[#28293D] sm:text-[22px]">
-              {t("New price list")}
+              {list ? t("Edit price list") : t("New price list")}
             </DialogTitle>
           </div>
 
@@ -221,7 +236,7 @@ const NewPriceListDialog = ({
                         className="flex items-center gap-2 rounded-[8px] border border-[#EDEBE7] bg-white px-3 py-2"
                       >
                         <span className="flex-1 truncate text-[13px] font-medium text-[#28293D]">
-                          {product.name}
+                          {product.name || catalog.find((p) => p.id === product.id)?.name || ""}
                         </span>
                         <Input
                           type="number"
@@ -271,7 +286,7 @@ const NewPriceListDialog = ({
                 type="submit"
                 className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
               >
-                {t("Create List")}
+                {list ? t("Save Changes") : t("Create List")}
               </Button>
             </div>
           </div>

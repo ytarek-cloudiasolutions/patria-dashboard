@@ -14,6 +14,7 @@ import { useTranslation } from "@/shared/i18n/useTranslation";
 import { ADJUSTMENT_TYPE_OPTIONS, RULE_TYPE_OPTIONS } from "../data";
 import type {
   AdjustmentType,
+  PricingRule,
   PricingRuleFormData,
   PricingRuleType,
 } from "../types";
@@ -30,12 +31,14 @@ const INITIAL_FORM: PricingRuleFormData = {
 
 interface CreatePricingRuleDialogProps {
   open: boolean;
+  rule?: PricingRule | null;
   onOpenChange: (open: boolean) => void;
   onSave: (data: PricingRuleFormData) => void;
 }
 
 const CreatePricingRuleDialog = ({
   open,
+  rule,
   onOpenChange,
   onSave,
 }: CreatePricingRuleDialogProps) => {
@@ -50,11 +53,21 @@ const CreatePricingRuleDialog = ({
 
   useEffect(() => {
     if (open) {
-      setForm(INITIAL_FORM);
+      if (rule) {
+        setForm({
+          name: rule.name,
+          type: rule.type,
+          adjustmentType: rule.adjustmentType,
+          value: String(rule.value),
+          minimumQuantity: String(rule.minimumQuantity),
+        });
+      } else {
+        setForm(INITIAL_FORM);
+      }
       setErrors({});
       setOpenDropdown(null);
     }
-  }, [open]);
+  }, [open, rule]);
 
   const set = <K extends keyof PricingRuleFormData>(
     key: K,
@@ -101,7 +114,7 @@ const CreatePricingRuleDialog = ({
           {/* Header */}
           <div className="px-5 pt-5 sm:px-7 sm:pt-7">
             <DialogTitle className="text-[20px] font-semibold text-[#28293D] sm:text-[22px]">
-              {t("Create Pricing Rule")}
+              {rule ? t("Edit Pricing Rule") : t("Create Pricing Rule")}
             </DialogTitle>
           </div>
 
@@ -268,7 +281,7 @@ const CreatePricingRuleDialog = ({
                 type="submit"
                 className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
               >
-                {t("Create Strategy Rule")}
+                {rule ? t("Save Changes") : t("Create Strategy Rule")}
               </Button>
             </div>
           </div>

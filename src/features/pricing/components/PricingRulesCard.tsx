@@ -1,4 +1,4 @@
-import { SquareArrowOutUpRight, Target, Trash2 } from "lucide-react";
+import { Pencil, Target, Trash2 } from "lucide-react";
 import { Badge } from "@/shared/components/ui/badge";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { useTranslation } from "@/shared/i18n/useTranslation";
@@ -53,7 +53,7 @@ const PricingRulesCard = ({
                   onClick={() => onEdit?.(rule)}
                   className="inline-flex size-9 cursor-pointer items-center justify-center rounded-[8px] text-[#000000] hover:bg-white"
                 >
-                  <SquareArrowOutUpRight size={18} />
+                  <Pencil size={18} />
                 </button>
                 <button
                   type="button"

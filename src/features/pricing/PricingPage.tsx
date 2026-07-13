@@ -1,8 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, WalletCards } from "lucide-react";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
 import { useTranslation } from "@/shared/i18n/useTranslation";
+import DeleteDialog from "@/shared/components/DeleteDialog";
 
 import CreatePricingRuleDialog from "./components/CreatePricingRuleDialog";
 import NewPriceListDialog from "./components/NewPriceListDialog";
@@ -11,14 +12,21 @@ import PricingOverview from "./components/PricingOverview";
 import PricingRulesCard from "./components/PricingRulesCard";
 import WholesalePriceListsCard from "./components/WholesalePriceListsCard";
 
-import { INITIAL_PRICING_RULES, INITIAL_WHOLESALE_LISTS } from "./data";
+import {
+  fetchPricing,
+  createPricingRule,
+  updatePricingRule,
+  deletePricingRule,
+  createPriceList,
+  updatePriceList,
+  deletePriceList,
+  type PricingStats,
+} from "./api/pricingApi";
 import type {
-  AdjustmentType,
   PriceListFormData,
   PricingDateRange as PricingDateRangeType,
   PricingRule,
   PricingRuleFormData,
-  PricingRuleType,
   WholesalePriceList,
 } from "./types";
 
@@ -28,49 +36,80 @@ const PricingPage = () => {
     from: "",
     to: "",
   });
-  const [rules, setRules] = useState<PricingRule[]>(INITIAL_PRICING_RULES);
-  const [wholesaleLists, setWholesaleLists] = useState<WholesalePriceList[]>(
-    INITIAL_WHOLESALE_LISTS,
-  );
+  const [rules, setRules] = useState<PricingRule[]>([]);
+  const [wholesaleLists, setWholesaleLists] = useState<WholesalePriceList[]>([]);
+  const [stats, setStats] = useState<PricingStats>({
+    activeRulesCount: 0,
+    priceListsCount: 0,
+    avgDiscountRate: 0,
+    monthlyRevenue: 0,
+  });
+
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isPriceListOpen, setIsPriceListOpen] = useState(false);
 
-  const averageDiscountRate = useMemo(() => {
-    if (rules.length === 0) return 12.4;
-    const discounts = rules.map((r) => Math.abs(r.value)).filter((v) => v > 0);
-    if (discounts.length === 0) return 12.4;
-    return discounts.reduce((sum, v) => sum + v, 0) / discounts.length;
-  }, [rules]);
+  const [editingRule, setEditingRule] = useState<PricingRule | null>(null);
+  const [editingList, setEditingList] = useState<WholesalePriceList | null>(null);
 
-  const handleCreateRule = (data: PricingRuleFormData) => {
-    const newRule: PricingRule = {
-      id: Date.now(),
-      name: data.name.trim(),
-      type: data.type as PricingRuleType,
-      adjustmentType: data.adjustmentType as AdjustmentType,
-      value: Number(data.value) || 0,
-      minimumQuantity: Number(data.minimumQuantity) || 0,
-    };
-    setRules((prev) => [newRule, ...prev]);
+  const [ruleToDelete, setRuleToDelete] = useState<PricingRule | null>(null);
+  const [listToDelete, setListToDelete] = useState<WholesalePriceList | null>(null);
+
+  const loadPricingData = () => {
+    fetchPricing()
+      .then((res) => {
+        setRules(res.rules);
+        setWholesaleLists(res.priceLists);
+        setStats(res.stats);
+      })
+      .catch(() => {});
   };
 
-  const handleDeleteRule = (rule: PricingRule) => {
-    setRules((prev) => prev.filter((r) => r.id !== rule.id));
+  useEffect(() => {
+    loadPricingData();
+  }, []);
+
+  const handleSaveRule = (data: PricingRuleFormData) => {
+    if (editingRule) {
+      updatePricingRule(editingRule.id, data).then(() => {
+        loadPricingData();
+        setEditingRule(null);
+      });
+    } else {
+      createPricingRule(data).then(() => {
+        loadPricingData();
+      });
+    }
   };
 
-  const handleCreateList = (data: PriceListFormData) => {
-    const newList: WholesalePriceList = {
-      id: Date.now(),
-      name: data.name,
-      customerSegment: data.customerSegment,
-      products: data.products,
-      authorized: true,
-    };
-    setWholesaleLists((prev) => [newList, ...prev]);
+  const handleSaveList = (data: PriceListFormData) => {
+    if (editingList) {
+      updatePriceList(editingList.id, data).then(() => {
+        loadPricingData();
+        setEditingList(null);
+      });
+    } else {
+      createPriceList(data).then(() => {
+        loadPricingData();
+      });
+    }
   };
 
-  const handleDeleteList = (list: WholesalePriceList) => {
-    setWholesaleLists((prev) => prev.filter((l) => l.id !== list.id));
+  const handleConfirmDeleteRule = () => {
+    if (ruleToDelete) {
+      deletePricingRule(String(ruleToDelete.id)).then(() => {
+        loadPricingData();
+        setRuleToDelete(null);
+      });
+    }
+  };
+
+  const handleConfirmDeleteList = () => {
+    if (listToDelete) {
+      deletePriceList(String(listToDelete.id)).then(() => {
+        loadPricingData();
+        setListToDelete(null);
+      });
+    }
   };
 
   return (
@@ -88,14 +127,17 @@ const PricingPage = () => {
               icon: <WalletCards className="size-4.5" />,
               onClick: () => setIsPriceListOpen(true),
               className:
-                "border-transparent bg-[#F5F0EA] text-primary hover:bg-[#EFE7DA] hover:text-primary",
+                "border-transparent bg-[#F5F0EA] text-primary hover:bg-[#F5F0EA]",
             }}
           />
           <DefaultButton
             data={{
               buttonText: t("New Pricing Rule"),
               icon: <Plus className="size-4.5" />,
-              onClick: () => setIsCreateOpen(true),
+              onClick: () => {
+                setEditingRule(null);
+                setIsCreateOpen(true);
+              },
             }}
           />
         </div>
@@ -104,30 +146,76 @@ const PricingPage = () => {
       <PricingDateRange value={dateRange} onChange={setDateRange} />
 
       <PricingOverview
-        activeRules={rules.length}
-        wholesaleLists={wholesaleLists.length}
-        averageDiscountRate={averageDiscountRate}
-        revenueImpact="Monthly +18%"
+        activeRules={stats.activeRulesCount}
+        wholesaleLists={stats.priceListsCount}
+        averageDiscountRate={stats.avgDiscountRate}
+        revenueImpact={`EGP ${stats.monthlyRevenue.toLocaleString(undefined, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })}`}
       />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <PricingRulesCard rules={rules} onDelete={handleDeleteRule} />
+        <PricingRulesCard
+          rules={rules}
+          onEdit={(rule) => {
+            setEditingRule(rule);
+            setIsCreateOpen(true);
+          }}
+          onDelete={setRuleToDelete}
+        />
         <WholesalePriceListsCard
           lists={wholesaleLists}
-          onDelete={handleDeleteList}
+          onEdit={(list) => {
+            setEditingList(list);
+            setIsPriceListOpen(true);
+          }}
+          onDelete={setListToDelete}
         />
       </div>
 
       <CreatePricingRuleDialog
         open={isCreateOpen}
-        onOpenChange={setIsCreateOpen}
-        onSave={handleCreateRule}
+        rule={editingRule}
+        onOpenChange={(open) => {
+          setIsCreateOpen(open);
+          if (!open) setEditingRule(null);
+        }}
+        onSave={handleSaveRule}
       />
 
       <NewPriceListDialog
         open={isPriceListOpen}
-        onOpenChange={setIsPriceListOpen}
-        onSave={handleCreateList}
+        list={editingList}
+        onOpenChange={(open) => {
+          setIsPriceListOpen(open);
+          if (!open) setEditingList(null);
+        }}
+        onSave={handleSaveList}
+      />
+
+      <DeleteDialog
+        open={ruleToDelete !== null}
+        onOpenChange={(open) => {
+          if (!open) setRuleToDelete(null);
+        }}
+        data={{
+          item: ruleToDelete?.name ?? "",
+          type: "pricing rule",
+        }}
+        onConfirm={handleConfirmDeleteRule}
+      />
+
+      <DeleteDialog
+        open={listToDelete !== null}
+        onOpenChange={(open) => {
+          if (!open) setListToDelete(null);
+        }}
+        data={{
+          item: listToDelete?.name ?? "",
+          type: "price list",
+        }}
+        onConfirm={handleConfirmDeleteList}
       />
     </>
   );

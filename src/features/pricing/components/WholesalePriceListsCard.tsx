@@ -2,7 +2,7 @@ import {
   Banknote,
   BadgeCheck,
   Package,
-  SquareArrowOutUpRight,
+  Pencil,
   Trash2,
 } from "lucide-react";
 import { Card, CardContent } from "@/shared/components/ui/card";
@@ -56,7 +56,7 @@ const WholesalePriceListsCard = ({
                     onClick={() => onEdit?.(list)}
                     className="cursor-pointer text-[#000000] hover:text-primary"
                   >
-                    <SquareArrowOutUpRight size={18} />
+                    <Pencil size={18} />
                   </button>
                   <button
                     type="button"

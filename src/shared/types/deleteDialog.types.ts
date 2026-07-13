@@ -22,6 +22,8 @@ export interface DeleteDialogProps {
     | "staff"
     | "review"
     | "driver"
+    | "pricing rule"
+    | "price list"
     | "shift";
   /**
    * When true, render the type before the name (e.g.

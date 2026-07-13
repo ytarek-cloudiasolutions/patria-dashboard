@@ -126,6 +126,24 @@ export async function deletePricingRule(id: string): Promise<void> {
   await api.delete(`/pricing/rules/${id}`);
 }
 
+export async function updatePricingRule(
+  id: string | number,
+  data: PricingRuleFormData,
+): Promise<PricingRule> {
+  const body = {
+    name: data.name.trim(),
+    type:
+      RULE_TYPE_TO_BACKEND[data.type as PricingRuleType] ?? "bulk_discount",
+    adjustmentType:
+      ADJ_TYPE_TO_BACKEND[data.adjustmentType as AdjustmentType] ??
+      "percentage",
+    value: Number(data.value) || 0,
+    minQuantity: Number(data.minimumQuantity) || 0,
+  };
+  const { data: res } = await api.put(`/pricing/rules/${id}`, body);
+  return mapRule((res as { rule: unknown }).rule);
+}
+
 export async function createPriceList(
   data: PriceListFormData,
 ): Promise<WholesalePriceList> {
@@ -144,4 +162,18 @@ export async function createPriceList(
 
 export async function deletePriceList(id: string): Promise<void> {
   await api.delete(`/pricing/pricelists/${id}`);
+}
+
+export async function updatePriceList(
+  id: string | number,
+  data: PriceListFormData,
+): Promise<WholesalePriceList> {
+  const body = {
+    name: data.name,
+    customerRole: data.customerSegment,
+    items: data.products.map((p) => ({ productId: p.id, price: p.price })),
+  };
+  const { data: res } = await api.put(`/pricing/pricelists/${id}`, body);
+  const list = mapPriceList((res as { priceList: unknown }).priceList);
+  return { ...list, products: data.products, authorized: true };
 }
