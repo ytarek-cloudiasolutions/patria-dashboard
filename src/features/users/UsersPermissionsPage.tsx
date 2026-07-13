@@ -22,7 +22,6 @@ import {
   ROLE_FILTER_OPTIONS,
 } from "./data";
 import { useUsers } from "./hooks/useUsers";
-import { useCustomers } from "@/features/customers/hooks/useCustomers";
 import type {
   AppUser,
   PermissionPage,
@@ -57,11 +56,6 @@ const UsersPermissionsPage = () => {
     deleteUserInfo,
   } = useUsers();
 
-  const {
-    customers,
-    getCustomersList,
-  } = useCustomers();
-
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [isRoleFilterOpen, setIsRoleFilterOpen] = useState(false);
@@ -73,8 +67,7 @@ const UsersPermissionsPage = () => {
   // Fetch lists on mount
   useEffect(() => {
     getUsersList({ limit: 500 });
-    getCustomersList();
-  }, [getUsersList, getCustomersList]);
+  }, [getUsersList]);
 
   // App users tab
   const [blockedCustomerIds, setBlockedCustomerIds] = useState<Set<string | number>>(new Set());
@@ -84,8 +77,16 @@ const UsersPermissionsPage = () => {
   const [viewingAppUser, setViewingAppUser] = useState<AppUser | null>(null);
   const [blockingAppUser, setBlockingAppUser] = useState<AppUser | null>(null);
 
+  const staffUsers = useMemo(() => {
+    return users.filter((u) => u._type !== "customer");
+  }, [users]);
+
+  const customerUsers = useMemo(() => {
+    return users.filter((u) => u._type === "customer");
+  }, [users]);
+
   const appUsers = useMemo<AppUser[]>(() => {
-    return customers.map((c) => ({
+    return customerUsers.map((c) => ({
       id: Number(c.id) || Date.now(), // AppUser expects a number id in types.ts, let's keep it safe
       name: c.name,
       email: c.email,
@@ -95,11 +96,11 @@ const UsersPermissionsPage = () => {
       purchasesValue: c.lifetimeValue || 0,
       orders: [],
     }));
-  }, [customers, blockedCustomerIds]);
+  }, [customerUsers, blockedCustomerIds]);
 
   const filteredUsers = useMemo(() => {
     const q = search.toLowerCase().trim();
-    return users.filter((user) => {
+    return staffUsers.filter((user) => {
       const matchesRole =
         roleFilter === "all" || user.role === (roleFilter as UserRole);
       if (!matchesRole) return false;
@@ -110,7 +111,7 @@ const UsersPermissionsPage = () => {
         user.phone.includes(q)
       );
     });
-  }, [users, search, roleFilter]);
+  }, [staffUsers, search, roleFilter]);
 
   const filteredAppUsers = useMemo(() => {
     const q = appSearch.toLowerCase().trim();
@@ -127,11 +128,11 @@ const UsersPermissionsPage = () => {
 
   const userCounts = useMemo(
     () => ({
-      totalUsers: users.length,
-      administrators: users.filter((u) => u.role === "admin" || u.role === "superadmin").length,
-      managers: users.filter((u) => u.role === "manager").length,
+      totalUsers: staffUsers.length,
+      administrators: staffUsers.filter((u) => u.role === "admin" || u.role === "superadmin").length,
+      managers: staffUsers.filter((u) => u.role === "manager").length,
     }),
-    [users],
+    [staffUsers],
   );
 
   const appCounts = useMemo(
@@ -235,7 +236,7 @@ const UsersPermissionsPage = () => {
 
       <UsersTabs
         active={tab}
-        usersCount={users.length}
+        usersCount={staffUsers.length}
         appUsersCount={appUsers.length}
         onChange={setTab}
       />

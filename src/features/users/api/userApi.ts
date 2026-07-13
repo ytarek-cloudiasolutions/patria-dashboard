@@ -7,7 +7,7 @@ import type {
 
 export const getUsers = async (params?: { page?: number; limit?: number }) => {
   const response = await api.get<GetUsersResponse>(
-    USER_ENDPOINTS.USERS,
+    USER_ENDPOINTS.ALL_USERS,
     { params },
   );
   return response.data;

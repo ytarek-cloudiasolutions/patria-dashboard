@@ -20,6 +20,9 @@ export interface UserAccount {
   phone: string;
   role: UserRole;
   pages: PermissionPage[];
+  _type?: "staff" | "customer";
+  lifetimeValue?: number;
+  isActive?: boolean;
 }
 
 export interface UserFormData {

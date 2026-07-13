@@ -25,6 +25,9 @@ export const mapUserAccount = (u: any): UserAccount => {
     phone: u.phone || "",
     role,
     pages: ROLE_DEFAULT_PAGES[role] || [],
+    _type: u._type || "staff",
+    lifetimeValue: u.lifetimeValue || 0,
+    isActive: u.isActive !== undefined ? u.isActive : true,
   };
 };
 
