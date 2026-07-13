@@ -50,13 +50,48 @@ export const mapOrder = (o: any): Order => {
 
   const items = (o.items || []).map((item: any, idx: number) => {
     const product = item.productId || item.product || {};
+    const notesStr = item.notes || "";
+    const selectedExtras: { name: string; price: number }[] = [];
+    const unmatchedNotes: string[] = [];
+    const availableExtras = product.extras || [];
+
+    if (item.selectedExtras && item.selectedExtras.length > 0) {
+      selectedExtras.push(...item.selectedExtras.map((e: any) => ({
+        name: e.name || "",
+        price: e.price || 0,
+      })));
+      if (notesStr) {
+        unmatchedNotes.push(notesStr);
+      }
+    } else if (availableExtras.length > 0 && notesStr) {
+      const noteParts = notesStr.split(",").map((s: string) => s.trim());
+      for (const part of noteParts) {
+        if (!part) continue;
+        const matchingExtra = availableExtras.find(
+          (ext: any) => ext.name.trim().toLowerCase() === part.toLowerCase()
+        );
+        if (matchingExtra) {
+          selectedExtras.push({
+            name: matchingExtra.name,
+            price: matchingExtra.price || 0,
+          });
+        } else {
+          unmatchedNotes.push(part);
+        }
+      }
+    } else if (notesStr) {
+      unmatchedNotes.push(notesStr);
+    }
+
     return {
       id: product._id || product.id || String(idx),
       productId: product._id || product.id,
       name: product.name || "Unknown Product",
       quantity: item.quantity || 0,
       unitPrice: item.price || product.price || 0,
-      note: item.notes || "",
+      note: unmatchedNotes.join(", "),
+      selectedVariants: item.selectedVariants || [],
+      selectedExtras,
     };
   });
 

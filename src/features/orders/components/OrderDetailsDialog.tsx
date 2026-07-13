@@ -45,7 +45,7 @@ const OrderDetailsDialog = ({
   if (!order) return null;
 
   const displayId = order.orderId || order.id;
-  const grossTotal = order.total + order.deliveryFee;
+  const grossTotal = order.total;
   const finalTotal = Math.max(grossTotal - adminDiscount, 0);
 
   const handleApplyDiscount = async (discount: number, reason: string) => {
@@ -90,12 +90,37 @@ const OrderDetailsDialog = ({
         <div class="row"><span>نوع الطلب:</span><span>${order.address || "محل"}</span></div>
         <div class="row customer-info"><span>العميل:</span><span>${order.customerName}</span></div>
         <div class="divider"></div>
-        ${order.items.map(item => `
-          <div class="row">
-            <span>${item.name} × ${item.quantity}</span>
-            <span>${formatCurrency(item.unitPrice)}</span>
-          </div>
-        `).join("")}
+        ${order.items.map(item => {
+          const variantTotalAdjustment = item.selectedVariants?.reduce((sum, v) => sum + (v.priceAdjustment || 0), 0) || 0;
+          const extraTotalAdjustment = item.selectedExtras?.reduce((sum, e) => sum + (e.price || 0), 0) || 0;
+          const baseUnitPrice = item.unitPrice - variantTotalAdjustment - extraTotalAdjustment;
+          const displayBasePrice = item.quantity * baseUnitPrice;
+
+          return `
+            <div class="row">
+              <span>${item.name} × ${item.quantity}</span>
+              <span>${formatCurrency(displayBasePrice)}</span>
+            </div>
+            ${item.selectedVariants && item.selectedVariants.length > 0 ?
+              item.selectedVariants.map(v => `
+                <div class="row" style="font-size: 10px; color: #555; padding-right: 8px; margin: 2px 0;">
+                  <span>- ${v.group}: ${v.option}</span>
+                  ${(v.priceAdjustment || 0) > 0 ? `<span>+${formatCurrency(item.quantity * (v.priceAdjustment || 0))}</span>` : "<span></span>"}
+                </div>
+              `).join("")
+              : ""
+            }
+            ${item.selectedExtras && item.selectedExtras.length > 0 ?
+              item.selectedExtras.map(e => `
+                <div class="row" style="font-size: 10px; color: #555; padding-right: 8px; margin: 2px 0;">
+                  <span>- Extra: ${e.name}</span>
+                  ${(e.price || 0) > 0 ? `<span>+${formatCurrency(item.quantity * (e.price || 0))}</span>` : "<span></span>"}
+                </div>
+              `).join("")
+              : ""
+            }
+          `;
+        }).join("")}
         <div class="divider"></div>
         <div class="row"><span>المجموع الفرعي:</span><span>${formatCurrency(order.subtotal)}</span></div>
         ${order.deliveryFee > 0 ? `<div class="row"><span>رسوم التوصيل:</span><span>${formatCurrency(order.deliveryFee)}</span></div>` : ""}
@@ -219,28 +244,70 @@ const OrderDetailsDialog = ({
                 {t("Orders")}
               </p>
               <div className="space-y-2.5 sm:space-y-3">
-                {order.items.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex min-h-12 items-center justify-between rounded-[8px] border border-[#E5E5E5] bg-white px-3 py-2 gap-3"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-[13px] font-medium text-[#333333] sm:text-[14px]">
-                        {item.quantity}X {item.name}
-                      </p>
-                      {item.note && (
-                        <p className="mt-1">
-                          <span className="inline-flex h-5 items-center rounded-full border border-[#C7861E]/30 bg-[#FFF7E6] px-2 text-[10px] font-semibold text-[#C7861E]">
-                            {t("Extra")}: {item.note}
-                          </span>
+                {order.items.map((item) => {
+                  const variantTotalAdjustment = item.selectedVariants?.reduce((sum, v) => sum + (v.priceAdjustment || 0), 0) || 0;
+                  const extraTotalAdjustment = item.selectedExtras?.reduce((sum, e) => sum + (e.price || 0), 0) || 0;
+                  const baseUnitPrice = item.unitPrice - variantTotalAdjustment - extraTotalAdjustment;
+                  const displayBasePrice = item.quantity * baseUnitPrice;
+
+                  return (
+                    <div
+                      key={item.id}
+                      className="flex flex-col rounded-[8px] border border-[#E5E5E5] bg-white px-3 py-2.5 gap-2"
+                    >
+                      <div className="flex items-center justify-between gap-3 w-full">
+                        <p className="truncate text-[13px] font-medium text-[#333333] sm:text-[14px]">
+                          {item.quantity}X {item.name}
                         </p>
+                        <span className="shrink-0 text-[12px] font-semibold text-[#28293D]">
+                          {formatCurrency(displayBasePrice)}
+                        </span>
+                      </div>
+
+                      {item.selectedVariants && item.selectedVariants.length > 0 && (
+                        <div className="space-y-1.5 w-full">
+                          {item.selectedVariants.map((v, idx) => (
+                            <div key={idx} className="flex items-center justify-between gap-3 w-full">
+                              <span className="inline-flex h-5 items-center rounded-full border border-[#C7861E]/30 bg-[#FFF7E6] px-2 text-[10px] font-semibold text-[#C7861E]">
+                                {v.group}: {v.option}
+                              </span>
+                              {(v.priceAdjustment || 0) > 0 && (
+                                <span className="shrink-0 text-[12px] font-semibold text-[#28293D]">
+                                  +{formatCurrency(item.quantity * (v.priceAdjustment || 0))}
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {item.selectedExtras && item.selectedExtras.length > 0 && (
+                        <div className="space-y-1.5 w-full">
+                          {item.selectedExtras.map((e, idx) => (
+                            <div key={idx} className="flex items-center justify-between gap-3 w-full">
+                              <span className="inline-flex h-5 items-center rounded-full border border-[#C7861E]/30 bg-[#FFF7E6] px-2 text-[10px] font-semibold text-[#C7861E]">
+                                {t("Extra")}: {e.name}
+                              </span>
+                              {(e.price || 0) > 0 && (
+                                <span className="shrink-0 text-[12px] font-semibold text-[#28293D]">
+                                  +{formatCurrency(item.quantity * (e.price || 0))}
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {item.note && (
+                        <div className="flex items-center justify-between gap-3 w-full">
+                          <span className="inline-flex h-5 items-center rounded-full border border-[#C7861E]/30 bg-[#FFF7E6] px-2 text-[10px] font-semibold text-[#C7861E]">
+                            {t("Notes")}: {item.note}
+                          </span>
+                        </div>
                       )}
                     </div>
-                    <span className="shrink-0 text-[12px] font-semibold text-[#28293D]">
-                      {formatCurrency(item.unitPrice)}
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </section>
 

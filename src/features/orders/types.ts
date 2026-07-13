@@ -26,6 +26,15 @@ export interface OrderLineItem {
   quantity: number;
   unitPrice: number;
   note?: string;
+  selectedVariants?: {
+    group: string;
+    option: string;
+    priceAdjustment: number;
+  }[];
+  selectedExtras?: {
+    name: string;
+    price: number;
+  }[];
 }
 
 export interface Order {

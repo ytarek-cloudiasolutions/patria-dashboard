@@ -77,7 +77,7 @@ const OrdersPage = () => {
           pos: c.pos ?? 0,
           call: c.call ?? 0,
         });
-      }).catch(() => {});
+      }).catch(() => { });
     });
   }, []);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);

@@ -187,13 +187,13 @@ const PosPage = () => {
       prev.map((item) =>
         item.lineId === lineId
           ? {
-              ...item,
-              extras: item.extras.map((extra) =>
-                extra.id === extraId
-                  ? { ...extra, selected: !extra.selected }
-                  : extra,
-              ),
-            }
+            ...item,
+            extras: item.extras.map((extra) =>
+              extra.id === extraId
+                ? { ...extra, selected: !extra.selected }
+                : extra,
+            ),
+          }
           : item,
       ),
     );

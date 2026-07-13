@@ -179,11 +179,10 @@ const ProductCustomizationModal = ({
                             [group.id]: option.id,
                           }))
                         }
-                        className={`flex h-12 items-center justify-center rounded-[8px] border px-2 text-center text-[12px] transition-colors ${
-                          active
+                        className={`flex h-12 items-center justify-center rounded-[8px] border px-2 text-center text-[12px] transition-colors ${active
                             ? "border-primary bg-[#F5F0EA] font-bold text-[#8F6900]"
                             : "border-[#E5E5E5] bg-white font-medium text-[#333333]"
-                        }`}
+                          }`}
                       >
                         {t(option.name)} +EGP {option.price}
                       </button>
