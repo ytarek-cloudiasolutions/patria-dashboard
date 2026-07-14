@@ -11,6 +11,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/shared/components/ui/sidebar";
 import { ScrollArea } from "@/shared/components/ui/scroll-area";
 
@@ -35,6 +36,28 @@ const AppSidebar = ({
 }: AppSidebarProps) => {
   const { t, dir } = useTranslation();
   const role = useSelector(selectUserRole);
+  const { setOpenMobile, isMobile } = useSidebar();
+
+  const handleNavigate = (href: string) => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+    onNavigate?.(href);
+  };
+
+  const handleOpenPOS = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+    onOpenPOS?.();
+  };
+
+  const handleLogout = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+    onLogout?.();
+  };
 
   const visibleSections = NAV_SECTIONS.map((section) => ({
     ...section,
@@ -66,7 +89,7 @@ const AppSidebar = ({
 
         {/* Open POS Button */}
         <button
-          onClick={onOpenPOS}
+          onClick={handleOpenPOS}
           className="flex w-full items-center justify-center gap-2 rounded-[5px] bg-primary px-4 py-2.5 text-[12px] font-semibold text-white cursor-pointer sm:gap-3 sm:px-6 sm:py-3 transition-opacity hover:opacity-90"
         >
           <ShoppingCart size={17} className="shrink-0" />
@@ -101,7 +124,7 @@ const AppSidebar = ({
                           "data-[active=true]:font-semibold data-[active=true]:bg-primary data-[active=true]:text-white",
                         )}
                       >
-                        <button onClick={() => onNavigate?.(item.href)}>
+                        <button onClick={() => handleNavigate(item.href)}>
                           <Icon
                             size={16}
                             className={cn(
@@ -129,7 +152,7 @@ const AppSidebar = ({
               asChild
               className="flex w-full items-center gap-1.5 rounded-[16px] text-[12px] text-[#595959] hover:bg-[#F5F0EA] transition-colors cursor-pointer"
             >
-              <button onClick={onLogout}>
+              <button onClick={handleLogout}>
                 <LogOut size={16} className="shrink-0" />
                 <span>{t("Logout")}</span>
               </button>
