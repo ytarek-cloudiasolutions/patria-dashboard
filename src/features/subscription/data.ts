@@ -99,9 +99,13 @@ export const SUBSCRIPTION_PAYMENT_FILTERS = [
   { value: "Failed", label: "Failed" },
 ];
 
+// Values must match the backend's SUBSCRIPTION_FREQUENCY enum exactly after
+// SubscriptionPage's `.toLowerCase()` — the "bi-weekly" hyphen used to send
+// a string the backend's Joi schema (which requires "bi_weekly") always
+// rejected with a 400, so picking that option on create/edit always failed.
 export const SUBSCRIPTION_FREQUENCY_OPTIONS = [
   { value: "Weekly", label: "Weekly" },
-  { value: "bi-weekly", label: "bi-weekly" },
+  { value: "bi_weekly", label: "Bi-weekly" },
   { value: "Monthly", label: "Monthly" },
 ];
 

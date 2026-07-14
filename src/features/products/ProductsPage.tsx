@@ -214,6 +214,7 @@ const ProductsPage = () => {
     formData.append("description", data.description.trim());
     formData.append("price", String(Number(data.price) || 0));
     formData.append("categoryId", data.category);
+    formData.append("stockQty", String(Number(data.quantity) || 0));
 
     const mappedVariantGroups = data.variantGroups
       .filter((g) => g.name.trim())

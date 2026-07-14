@@ -67,7 +67,7 @@ const SubscriptionPage = () => {
         let monthly = 0;
         if (freq === "weekly") {
           monthly = (unitPrice * qty * 52) / 12;
-        } else if (freq === "bi-weekly" || freq === "biweekly") {
+        } else if (freq === "bi-weekly" || freq === "biweekly" || freq === "bi_weekly") {
           monthly = (unitPrice * qty * 26) / 12;
         } else if (freq === "monthly") {
           monthly = unitPrice * qty;
