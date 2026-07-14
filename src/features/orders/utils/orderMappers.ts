@@ -52,35 +52,81 @@ export const mapOrder = (o: any): Order => {
     const product = item.productId || item.product || {};
     const notesStr = item.notes || "";
     const selectedExtras: { name: string; price: number }[] = [];
+    const selectedVariants: { group: string; option: string; priceAdjustment: number }[] = [];
     const unmatchedNotes: string[] = [];
     const availableExtras = product.extras || [];
+    const availableVariantGroups = product.variantGroups || [];
 
     if (item.selectedExtras && item.selectedExtras.length > 0) {
       selectedExtras.push(...item.selectedExtras.map((e: any) => ({
         name: e.name || "",
         price: e.price || 0,
       })));
-      if (notesStr) {
-        unmatchedNotes.push(notesStr);
-      }
-    } else if (availableExtras.length > 0 && notesStr) {
+    }
+
+    if (item.selectedVariants && item.selectedVariants.length > 0) {
+      selectedVariants.push(...item.selectedVariants.map((v: any) => ({
+        group: v.group || v.groupName || "",
+        option: v.option || v.optionName || "",
+        priceAdjustment: v.priceAdjustment || v.price || 0,
+      })));
+    }
+
+    if (notesStr) {
       const noteParts = notesStr.split(",").map((s: string) => s.trim());
       for (const part of noteParts) {
         if (!part) continue;
+
+        // Try to match variant if there is a colon (e.g. "Size: Large" or "الحجم: كبير")
+        let isVariantMatched = false;
+        if (part.includes(":")) {
+          const colonIndex = part.indexOf(":");
+          const groupName = part.substring(0, colonIndex).trim();
+          const optionName = part.substring(colonIndex + 1).trim();
+
+          const matchedGroup = availableVariantGroups.find(
+            (g: any) => g.name.trim().toLowerCase() === groupName.toLowerCase()
+          );
+          if (matchedGroup) {
+            const matchedOption = matchedGroup.options.find(
+              (opt: any) => opt.name.trim().toLowerCase() === optionName.toLowerCase()
+            );
+            if (matchedOption) {
+              const alreadyAdded = selectedVariants.some(
+                (v) => v.group.toLowerCase() === matchedGroup.name.toLowerCase()
+              );
+              if (!alreadyAdded) {
+                selectedVariants.push({
+                  group: matchedGroup.name,
+                  option: matchedOption.name,
+                  priceAdjustment: matchedOption.priceAdjustment || matchedOption.price || 0,
+                });
+              }
+              isVariantMatched = true;
+            }
+          }
+        }
+
+        if (isVariantMatched) continue;
+
+        // Try to match extra
         const matchingExtra = availableExtras.find(
           (ext: any) => ext.name.trim().toLowerCase() === part.toLowerCase()
         );
         if (matchingExtra) {
-          selectedExtras.push({
-            name: matchingExtra.name,
-            price: matchingExtra.price || 0,
-          });
+          const alreadyAdded = selectedExtras.some(
+            (e) => e.name.toLowerCase() === matchingExtra.name.toLowerCase()
+          );
+          if (!alreadyAdded) {
+            selectedExtras.push({
+              name: matchingExtra.name,
+              price: matchingExtra.price || 0,
+            });
+          }
         } else {
           unmatchedNotes.push(part);
         }
       }
-    } else if (notesStr) {
-      unmatchedNotes.push(notesStr);
     }
 
     return {
@@ -90,7 +136,7 @@ export const mapOrder = (o: any): Order => {
       quantity: item.quantity || 0,
       unitPrice: item.price || product.price || 0,
       note: unmatchedNotes.join(", "),
-      selectedVariants: item.selectedVariants || [],
+      selectedVariants,
       selectedExtras,
     };
   });

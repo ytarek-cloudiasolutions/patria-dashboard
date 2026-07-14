@@ -56,9 +56,11 @@ export const cartToOrderItems = (cart: CartLineItem[]): OrderLineItem[] =>
       name: e.name,
       price: e.price,
     })),
-    note:
-      line.specialRequest ??
-      (line.extras.length > 0
-        ? line.extras.map((extra) => extra.name).join(", ")
-        : undefined),
+    note: [
+      line.specialRequest,
+      ...line.variantSelections.map((v) => `${v.groupName}: ${v.optionName}`),
+      ...line.extras.map((extra) => extra.name),
+    ]
+      .filter(Boolean)
+      .join(", ") || undefined,
   }));
