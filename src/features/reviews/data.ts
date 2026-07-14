@@ -79,4 +79,5 @@ export const REVIEW_CATEGORY_FILTERS = [
   { label: "Value for money", value: "Value for money" },
   { label: "Food quality", value: "Food quality" },
   { label: "Packaging", value: "Packaging" },
+  { label: "Cleanliness", value: "Cleanliness" },
 ];

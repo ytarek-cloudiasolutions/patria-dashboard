@@ -28,12 +28,13 @@ const VALID_CATEGORIES: ReviewCategory[] = [
   "Value for money",
   "Food quality",
   "Packaging",
+  "Cleanliness",
 ];
 
 const mapReview = (r: any, idx: number): Review => ({
   id: r._id ?? idx,
-  customerName: r.customerName ?? "Anonymous",
-  customerCode: r.customerPhone ?? "—",
+  customerName: r.customerId?.name ?? r.customerName ?? "Anonymous",
+  customerCode: r.customerId?.phone ?? r.customerPhone ?? "—",
   orderId: r.orderId?._id ?? r.orderId ?? "—",
   orderType: r.orderType === "dine_in" ? "Dine-in" : r.orderType === "takeaway" ? "Pickup" : "Delivery",
   rating: r.rating ?? 0,
@@ -52,6 +53,7 @@ const ReviewsPage = () => {
   const { t } = useTranslation();
   const [allReviews, setAllReviews] = useState<Review[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [stats, setStats] = useState<any>(null);
   const [search, setSearch] = useState("");
   const [ratingFilter, setRatingFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
@@ -73,6 +75,9 @@ const ReviewsPage = () => {
         const raw: any[] = res.data?.data ?? res.data?.reviews ?? [];
         const mapped = raw.map(mapReview);
         setReviews(mapped);
+        if (res.data?.stats) {
+          setStats(res.data.stats);
+        }
         if (ratingFilter === "all") {
           setAllReviews(mapped);
         }
@@ -84,19 +89,32 @@ const ReviewsPage = () => {
     isAnyDropdownOpen.rating || isAnyDropdownOpen.category;
 
   const averageRating = useMemo(() => {
+    if (stats?.avgRating !== undefined) return stats.avgRating;
     if (allReviews.length === 0) return 0;
     const total = allReviews.reduce((sum, r) => sum + r.rating, 0);
     return total / allReviews.length;
-  }, [allReviews]);
+  }, [allReviews, stats]);
 
   const distribution = useMemo<RatingDistributionRow[]>(() => {
+    if (stats?.distribution) {
+      return [5, 4, 3, 2, 1].map((stars) => ({
+        stars,
+        count: stats.distribution[stars] ?? 0,
+      }));
+    }
     return [5, 4, 3, 2, 1].map((stars) => ({
       stars,
       count: allReviews.filter((r) => r.rating === stars).length,
     }));
-  }, [allReviews]);
+  }, [allReviews, stats]);
 
   const highestRated = useMemo<HighestRatedItem[]>(() => {
+    if (stats?.highestRated) {
+      return (stats.highestRated as any[]).map((item) => ({
+        label: item.name as ReviewCategory,
+        count: item.count,
+      }));
+    }
     const counts = new Map<ReviewCategory, number>();
     allReviews.forEach((review) => {
       review.categories.forEach((category) => {
@@ -109,12 +127,13 @@ const ReviewsPage = () => {
       "Value for money",
       "Food quality",
       "Packaging",
+      "Cleanliness",
     ];
     return fixedOrder
       .filter((label) => (counts.get(label) ?? 0) > 0)
       .slice(0, 3)
       .map((label) => ({ label, count: counts.get(label) ?? 0 }));
-  }, [allReviews]);
+  }, [allReviews, stats]);
 
   const filteredReviews = useMemo(() => {
     const q = search.toLowerCase().trim();
@@ -181,7 +200,7 @@ const ReviewsPage = () => {
         />
         <OverallRatingCard
           averageRating={averageRating}
-          totalRatings={allReviews.length}
+          totalRatings={stats?.totalReviews ?? allReviews.length}
         />
       </div>
 

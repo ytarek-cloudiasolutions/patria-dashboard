@@ -3,7 +3,8 @@ export type ReviewCategory =
   | "Driver friendliness"
   | "Value for money"
   | "Food quality"
-  | "Packaging";
+  | "Packaging"
+  | "Cleanliness";
 
 export type OrderType = "Delivery" | "Pickup" | "Dine-in";
 

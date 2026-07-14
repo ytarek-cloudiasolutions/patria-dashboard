@@ -431,6 +431,7 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   "Value for money": "القيمة مقابل السعر",
   "Food quality": "جودة الطعام",
   Packaging: "التغليف",
+  Cleanliness: "النظافة",
   "No reviews match your filters.": "لا توجد تقييمات تطابق الفلاتر.",
   // Review cards
   "Highest Rated": "الأعلى تقييماً",
