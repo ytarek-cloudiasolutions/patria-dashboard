@@ -56,21 +56,21 @@ const ReviewCard = ({
         </div>
 
         {/* Order id + type */}
-        <div className="flex items-center gap-3">
-          <span className="text-[13px] font-semibold text-[#28293D]" dir="ltr">
+        <div className="flex items-center gap-2 min-w-0 w-full">
+          <span className="truncate text-[13px] font-semibold text-[#28293D]" dir="ltr" title={review.orderId}>
             {review.orderId}
           </span>
           <span
             aria-hidden="true"
-            className="inline-block size-0.5 rounded-full bg-[#595959]"
+            className="inline-block size-0.5 shrink-0 rounded-full bg-[#595959]"
           />
-          <Badge className="h-5 rounded-full border border-current bg-[#EDF4FB] px-2 text-[10px] font-semibold tracking-wide text-[#004EF9]">
+          <Badge className="h-5 shrink-0 rounded-full border border-current bg-[#EDF4FB] px-2 text-[10px] font-semibold tracking-wide text-[#004EF9]">
             {review.orderType}
           </Badge>
         </div>
 
         {/* Comment */}
-        <div className="rounded-[10px] bg-white border border-[#E5E5E5] p-3 text-[13px] text-[#000000]">
+        <div className="break-words rounded-[10px] bg-white border border-[#E5E5E5] p-3 text-[13px] text-[#000000]">
           "{review.comment}"
         </div>
 
