@@ -50,6 +50,7 @@ const mapReview = (r: any, idx: number): Review => ({
 
 const ReviewsPage = () => {
   const { t } = useTranslation();
+  const [allReviews, setAllReviews] = useState<Review[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [search, setSearch] = useState("");
   const [ratingFilter, setRatingFilter] = useState("all");
@@ -62,34 +63,42 @@ const ReviewsPage = () => {
   const [deletingReview, setDeletingReview] = useState<Review | null>(null);
 
   useEffect(() => {
+    const params: { limit: number; rating?: number } = { limit: 100 };
+    if (ratingFilter !== "all") {
+      params.rating = Number(ratingFilter);
+    }
     api
-      .get("/reviews", { params: { limit: 100 } })
+      .get("/reviews", { params })
       .then((res) => {
         const raw: any[] = res.data?.data ?? res.data?.reviews ?? [];
-        setReviews(raw.map(mapReview));
+        const mapped = raw.map(mapReview);
+        setReviews(mapped);
+        if (ratingFilter === "all") {
+          setAllReviews(mapped);
+        }
       })
       .catch(() => {});
-  }, []);
+  }, [ratingFilter]);
 
   const isScrimActive =
     isAnyDropdownOpen.rating || isAnyDropdownOpen.category;
 
   const averageRating = useMemo(() => {
-    if (reviews.length === 0) return 0;
-    const total = reviews.reduce((sum, r) => sum + r.rating, 0);
-    return total / reviews.length;
-  }, [reviews]);
+    if (allReviews.length === 0) return 0;
+    const total = allReviews.reduce((sum, r) => sum + r.rating, 0);
+    return total / allReviews.length;
+  }, [allReviews]);
 
   const distribution = useMemo<RatingDistributionRow[]>(() => {
     return [5, 4, 3, 2, 1].map((stars) => ({
       stars,
-      count: reviews.filter((r) => r.rating === stars).length,
+      count: allReviews.filter((r) => r.rating === stars).length,
     }));
-  }, [reviews]);
+  }, [allReviews]);
 
   const highestRated = useMemo<HighestRatedItem[]>(() => {
     const counts = new Map<ReviewCategory, number>();
-    reviews.forEach((review) => {
+    allReviews.forEach((review) => {
       review.categories.forEach((category) => {
         counts.set(category, (counts.get(category) ?? 0) + 1);
       });
@@ -105,17 +114,11 @@ const ReviewsPage = () => {
       .filter((label) => (counts.get(label) ?? 0) > 0)
       .slice(0, 3)
       .map((label) => ({ label, count: counts.get(label) ?? 0 }));
-  }, [reviews]);
+  }, [allReviews]);
 
   const filteredReviews = useMemo(() => {
     const q = search.toLowerCase().trim();
     return reviews.filter((review) => {
-      if (
-        ratingFilter !== "all" &&
-        review.rating !== Number(ratingFilter)
-      ) {
-        return false;
-      }
       if (
         categoryFilter !== "all" &&
         !review.categories.includes(categoryFilter as ReviewCategory)
@@ -130,7 +133,7 @@ const ReviewsPage = () => {
         review.comment.toLowerCase().includes(q)
       );
     });
-  }, [reviews, search, ratingFilter, categoryFilter]);
+  }, [reviews, search, categoryFilter]);
 
   const handleToggleVisibility = async (review: Review) => {
     try {
@@ -138,6 +141,11 @@ const ReviewsPage = () => {
         isVisible: review.isHidden,
       });
       setReviews((prev) =>
+        prev.map((r) =>
+          r.id === review.id ? { ...r, isHidden: !r.isHidden } : r,
+        ),
+      );
+      setAllReviews((prev) =>
         prev.map((r) =>
           r.id === review.id ? { ...r, isHidden: !r.isHidden } : r,
         ),
@@ -152,6 +160,7 @@ const ReviewsPage = () => {
     try {
       await api.delete(`/reviews/${deletingReview.id}`);
       setReviews((prev) => prev.filter((r) => r.id !== deletingReview.id));
+      setAllReviews((prev) => prev.filter((r) => r.id !== deletingReview.id));
       showSuccessToast(t("Review deleted"));
     } catch {
       // silently ignore
@@ -172,7 +181,7 @@ const ReviewsPage = () => {
         />
         <OverallRatingCard
           averageRating={averageRating}
-          totalRatings={reviews.length}
+          totalRatings={allReviews.length}
         />
       </div>
 
