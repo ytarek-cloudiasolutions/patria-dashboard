@@ -47,6 +47,15 @@ export const cartToOrderItems = (cart: CartLineItem[]): OrderLineItem[] =>
     name: line.name,
     quantity: line.quantity,
     unitPrice: line.unitPrice,
+    selectedVariants: line.variantSelections.map((v) => ({
+      group: v.groupName,
+      option: v.optionName,
+      priceAdjustment: v.price,
+    })),
+    selectedExtras: line.extras.map((e) => ({
+      name: e.name,
+      price: e.price,
+    })),
     note:
       line.specialRequest ??
       (line.extras.length > 0

@@ -280,6 +280,8 @@ const OrdersPage = () => {
       quantity: item.quantity,
       price: item.unitPrice,
       notes: item.note || undefined,
+      selectedVariants: item.selectedVariants,
+      selectedExtras: item.selectedExtras,
     }));
 
     const createRequest: CreateOrderRequest = {

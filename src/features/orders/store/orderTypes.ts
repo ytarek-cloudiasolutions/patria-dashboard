@@ -38,6 +38,15 @@ export interface CreateOrderRequest {
     quantity: number;
     price: number;
     notes?: string;
+    selectedVariants?: {
+      group: string;
+      option: string;
+      priceAdjustment: number;
+    }[];
+    selectedExtras?: {
+      name: string;
+      price: number;
+    }[];
   }[];
   couponCode?: string;
   notes?: string;
