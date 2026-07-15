@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { FileUp, Image as ImageIcon } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Check, FileUp, Image as ImageIcon, Plus, Search } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -13,9 +13,16 @@ import DefaultButton from "@/shared/components/DefaultButton";
 import DropdownSelect from "@/shared/components/DropdownSelect";
 import InputField from "@/shared/components/InputField";
 import DatePicker from "@/shared/components/DatePicker";
+import { cn } from "@/lib/utils";
 import { DISCOUNT_TYPE_OPTIONS } from "../data";
 import { useTranslation } from "@/shared/i18n/useTranslation";
+import { getProducts } from "@/features/products/api/productsApi";
 import type { DiscountType, Offer, OfferFormData } from "../types";
+
+interface SimpleProduct {
+  id: string;
+  name: string;
+}
 
 const FORM_ID = "create-offer-form";
 
@@ -71,6 +78,8 @@ const CreateOfferDialog = ({
   const [isDiscountOpen, setIsDiscountOpen] = useState(false);
   const [imageFile, setImageFile] = useState<File | undefined>(undefined);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [catalog, setCatalog] = useState<SimpleProduct[]>([]);
+  const [productSearch, setProductSearch] = useState("");
 
   useEffect(() => {
     if (isOpen) {
@@ -84,7 +93,7 @@ const CreateOfferDialog = ({
               startDate: editingOffer.startDate ? editingOffer.startDate.split("T")[0] : "",
               endDate: editingOffer.endDate ? editingOffer.endDate.split("T")[0] : "",
               bannerImage: editingOffer.offerImage,
-              productIds: [],
+              productIds: editingOffer.productIds ?? [],
               code: editingOffer.code || "",
               usageLimit: editingOffer.usageLimit !== null && editingOffer.usageLimit !== undefined ? String(editingOffer.usageLimit) : "",
               minOrderAmount: editingOffer.minOrderAmount !== null && editingOffer.minOrderAmount !== undefined ? String(editingOffer.minOrderAmount) : "",
@@ -93,8 +102,38 @@ const CreateOfferDialog = ({
       );
       setErrors({});
       setIsDiscountOpen(false);
+      setProductSearch("");
+      // Real products with real MongoDB ids — this picker didn't exist
+      // before, so an offer's productIds was always hardcoded to [] and the
+      // discount silently applied storewide regardless of what an admin
+      // intended.
+      getProducts({ limit: 200 })
+        .then((res) =>
+          setCatalog(
+            (res.products || []).map((p) => ({
+              id: p._id ?? p.id,
+              name: p.name ?? "",
+            })),
+          ),
+        )
+        .catch(() => setCatalog([]));
     }
   }, [isOpen, editingOffer]);
+
+  const filteredCatalog = useMemo(() => {
+    const q = productSearch.trim().toLowerCase();
+    if (!q) return catalog;
+    return catalog.filter((p) => p.name.toLowerCase().includes(q));
+  }, [catalog, productSearch]);
+
+  const toggleProduct = (productId: string) => {
+    setForm((prev) => ({
+      ...prev,
+      productIds: prev.productIds.includes(productId)
+        ? prev.productIds.filter((id) => id !== productId)
+        : [...prev.productIds, productId],
+    }));
+  };
 
   const set = <K extends keyof OfferFormData>(
     key: K,
@@ -133,13 +172,14 @@ const CreateOfferDialog = ({
       offerPercentage: Number(form.discountValue) || 0,
       discountType: form.discountType,
       offerValidPeriod: formatPeriod(form.startDate, form.endDate),
-      numberOfProducts: 0,
+      numberOfProducts: form.productIds.length,
       offerImage: form.bannerImage,
       startDate: form.startDate,
       endDate: form.endDate,
       code: form.code?.trim() || undefined,
       usageLimit: form.usageLimit?.trim() ? Number(form.usageLimit) : null,
       minOrderAmount: form.minOrderAmount?.trim() ? Number(form.minOrderAmount) : null,
+      productIds: form.productIds,
     };
     onSaveOffer(offer, imageFile);
     onOpenChange(false);
@@ -391,6 +431,57 @@ const CreateOfferDialog = ({
                   }}
                 />
               </div>
+            </div>
+
+            {/* Applicable Products — empty selection means the offer applies storewide */}
+            <div className="mt-5 flex flex-col">
+              <Label className="mb-2.5 text-[16px] font-semibold text-[#333333] uppercase">
+                {t("APPLICABLE PRODUCTS (OPTIONAL — LEAVE EMPTY FOR ALL PRODUCTS)")}
+              </Label>
+              <div className="relative mb-3">
+                <Search className="pointer-events-none absolute top-1/2 start-3 size-4 -translate-y-1/2 text-[#8B8B8B]" />
+                <input
+                  value={productSearch}
+                  onChange={(e) => setProductSearch(e.target.value)}
+                  placeholder={t("Search for a product...")}
+                  className="h-11 w-full rounded-[8px] border border-[#E5E5E5] bg-white ps-9 pe-3 text-[13px] text-[#28293D] outline-none placeholder:text-[#8B8B8B] focus:border-primary/50"
+                />
+              </div>
+              <div className="max-h-48 space-y-1.5 overflow-y-auto rounded-[10px] border border-[#E5E5E5] p-2">
+                {filteredCatalog.map((product) => {
+                  const selected = form.productIds.includes(product.id);
+                  return (
+                    <button
+                      key={product.id}
+                      type="button"
+                      onClick={() => toggleProduct(product.id)}
+                      className={cn(
+                        "flex w-full cursor-pointer items-center justify-between rounded-[8px] border px-3 py-2.5 text-[13px] transition-colors",
+                        selected
+                          ? "border-[#059B5A] bg-[#E9F8F1] text-[#059B5A]"
+                          : "border-transparent text-[#28293D] hover:bg-[#FAFAF7]",
+                      )}
+                    >
+                      {product.name}
+                      {selected ? (
+                        <Check className="size-4" />
+                      ) : (
+                        <Plus className="size-4 text-[#8B8B8B]" />
+                      )}
+                    </button>
+                  );
+                })}
+                {filteredCatalog.length === 0 && (
+                  <p className="py-4 text-center text-[13px] text-[#8B8B8B]">
+                    {t("No products found.")}
+                  </p>
+                )}
+              </div>
+              {form.productIds.length > 0 && (
+                <p className="mt-2 text-[12px] text-[#8B8B8B]">
+                  {form.productIds.length} {t("product(s) selected")}
+                </p>
+              )}
             </div>
           </form>
 

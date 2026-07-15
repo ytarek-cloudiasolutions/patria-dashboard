@@ -68,7 +68,7 @@ const OffersPage = () => {
       startDate: newOffer.startDate ? new Date(newOffer.startDate).toISOString() : new Date().toISOString(),
       endDate: newOffer.endDate ? new Date(newOffer.endDate).toISOString() : new Date().toISOString(),
       status: newOffer.offerStatus ? "active" : "inactive",
-      productIds: [],
+      productIds: newOffer.productIds ?? [],
       ...(withImage ? {} : { image: newOffer.offerImage?.startsWith("blob:") ? undefined : newOffer.offerImage }),
       code: newOffer.code || "",
       usageLimit: newOffer.usageLimit ?? null,
@@ -80,7 +80,14 @@ const OffersPage = () => {
       const plain = buildPayload(true);
       Object.entries(plain).forEach(([k, v]) => {
         if (v === undefined) return;
-        if (Array.isArray(v)) return; // skip arrays in FormData
+        // FormData can't carry a real array — JSON-stringify it, matching
+        // offerController.parseFormJsonFields on the backend, which parses
+        // it back. Was previously skipped entirely, so productIds always
+        // saved empty whenever a banner image was attached.
+        if (Array.isArray(v)) {
+          fd.append(k, JSON.stringify(v));
+          return;
+        }
         fd.append(k, String(v));
       });
       fd.append("bannerImage", imageFile);
