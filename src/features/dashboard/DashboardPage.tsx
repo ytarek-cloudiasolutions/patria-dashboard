@@ -183,10 +183,10 @@ const DashboardPage = () => {
             amount: o.total ?? 0,
             time: o.createdAt
               ? new Date(o.createdAt).toLocaleTimeString("en-US", {
-                  hour: "numeric",
-                  minute: "2-digit",
-                  hour12: true,
-                })
+                hour: "numeric",
+                minute: "2-digit",
+                hour12: true,
+              })
               : "--",
             status: mapOrderStatus(o.status),
           };

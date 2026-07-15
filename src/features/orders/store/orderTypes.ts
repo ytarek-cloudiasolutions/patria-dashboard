@@ -6,6 +6,7 @@ export interface GetOrdersRequest {
   status?: string;
   type?: string;
   source?: string;
+  search?: string;
 }
 
 export interface Pagination {

@@ -87,14 +87,19 @@ const OrdersPage = () => {
   const [isBulkDeleteOpen, setIsBulkDeleteOpen] = useState(false);
 
   // Fetch orders when source, status or page changes
+  // Fetch orders when source, status, search, or page changes
   useEffect(() => {
-    getOrdersList({
-      source: activeSource,
-      limit: 100,
-      page: currentPage,
-      status: selectedStatus === "All statuses" ? undefined : mapOrderStatusToBackend(selectedStatus),
-    });
-  }, [activeSource, selectedStatus, currentPage, getOrdersList]);
+    const delayDebounceId = setTimeout(() => {
+      getOrdersList({
+        source: activeSource,
+        limit: 100,
+        page: currentPage,
+        status: selectedStatus === "All statuses" ? undefined : mapOrderStatusToBackend(selectedStatus),
+        search: searchValue.trim() || undefined,
+      });
+    }, 300);
+    return () => clearTimeout(delayDebounceId);
+  }, [activeSource, selectedStatus, currentPage, searchValue, getOrdersList]);
 
   // Live updates: play a sound and refresh the list when a new order comes in
   // or an existing order gets new items sent to the kitchen.
@@ -107,6 +112,7 @@ const OrdersPage = () => {
         limit: 100,
         page: currentPage,
         status: selectedStatus === "All statuses" ? undefined : mapOrderStatusToBackend(selectedStatus),
+        search: searchValue.trim() || undefined,
       });
     };
 
@@ -182,26 +188,8 @@ const OrdersPage = () => {
   }, [products]);
 
   const filteredOrders = useMemo(() => {
-    const normalizedSearch = searchValue.trim().toLowerCase();
-
-    return orders.filter((order) => {
-      const matchesStatus =
-        selectedStatus === "All statuses" ||
-        order.status === selectedStatus;
-      const matchesSearch =
-        normalizedSearch.length === 0 ||
-        (order.orderId ?? order.id).toLowerCase().includes(normalizedSearch) ||
-        order.id.toLowerCase().includes(normalizedSearch) ||
-        order.customerName.toLowerCase().includes(normalizedSearch) ||
-        order.customerPhone.toLowerCase().includes(normalizedSearch) ||
-        order.paymentMethod.toLowerCase().includes(normalizedSearch) ||
-        order.items.some((item) =>
-          item.name.toLowerCase().includes(normalizedSearch)
-        );
-
-      return matchesStatus && matchesSearch;
-    });
-  }, [orders, searchValue, selectedStatus]);
+    return orders;
+  }, [orders]);
 
   const summary = useMemo(() => {
     const revenue = orders.reduce((sum, o) => sum + (o.status !== "Cancelled" ? o.total : 0), 0);
