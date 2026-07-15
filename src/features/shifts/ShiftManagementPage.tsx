@@ -28,12 +28,12 @@ const ShiftManagementPage = () => {
   };
 
   const handleSave = (data: ShiftFormData, id?: string) => {
-    saveShift(data, id);
+    saveShift(data, id).catch(() => {});
   };
 
   const handleConfirmDelete = () => {
     if (!deletingShift) return;
-    removeShift(deletingShift.id);
+    removeShift(deletingShift.id).catch(() => {});
     setDeletingShift(null);
   };
 
