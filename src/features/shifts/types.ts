@@ -1,5 +1,5 @@
 export interface Shift {
-  id: number;
+  id: string;
   name: string;
   /** 12-hour clock string, e.g. "08:00 AM". */
   startTime: string;

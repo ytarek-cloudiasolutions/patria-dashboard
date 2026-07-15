@@ -21,7 +21,7 @@ interface NewShiftDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   editingShift?: Shift;
-  onSave: (data: ShiftFormData, id?: number) => void;
+  onSave: (data: ShiftFormData, id?: string) => void;
 }
 
 const DEFAULT_START = "08:00 AM";

@@ -7,12 +7,12 @@ import { useTranslation } from "@/shared/i18n/useTranslation";
 import ShiftCard from "./components/ShiftCard";
 import NewShiftDialog from "./components/NewShiftDialog";
 import DeleteShiftDialog from "./components/DeleteShiftDialog";
-import { INITIAL_SHIFTS } from "./data";
+import { useShiftTemplates } from "./hooks/useShiftTemplates";
 import type { Shift, ShiftFormData } from "./types";
 
 const ShiftManagementPage = () => {
   const { t } = useTranslation();
-  const [shifts, setShifts] = useState<Shift[]>(INITIAL_SHIFTS);
+  const { shifts, saveShift, removeShift } = useShiftTemplates();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingShift, setEditingShift] = useState<Shift | undefined>();
   const [deletingShift, setDeletingShift] = useState<Shift | null>(null);
@@ -27,19 +27,13 @@ const ShiftManagementPage = () => {
     setIsDialogOpen(true);
   };
 
-  const handleSave = (data: ShiftFormData, id?: number) => {
-    if (id !== undefined) {
-      setShifts((prev) =>
-        prev.map((shift) => (shift.id === id ? { ...shift, ...data } : shift)),
-      );
-    } else {
-      setShifts((prev) => [...prev, { id: Date.now(), ...data }]);
-    }
+  const handleSave = (data: ShiftFormData, id?: string) => {
+    saveShift(data, id);
   };
 
   const handleConfirmDelete = () => {
     if (!deletingShift) return;
-    setShifts((prev) => prev.filter((shift) => shift.id !== deletingShift.id));
+    removeShift(deletingShift.id);
     setDeletingShift(null);
   };
 
