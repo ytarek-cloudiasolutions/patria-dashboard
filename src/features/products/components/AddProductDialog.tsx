@@ -365,6 +365,9 @@ const AddProductDialog = ({
                 options={[
                   { value: "ready", label: t("Ready-made (sold directly)") },
                   { value: "manufactured", label: t("Manufactured (from components – automatically deducted)") },
+                  { value: "manufactured_work_order", label: t("Manufactured via work order") },
+                  { value: "raw_material", label: t("Raw materials") },
+                  { value: "service", label: t("Service") },
                 ]}
                 selected={form.productType}
                 onSelect={(value) => set("productType", value)}
