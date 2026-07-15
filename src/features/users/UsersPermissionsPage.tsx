@@ -87,13 +87,13 @@ const UsersPermissionsPage = () => {
 
   const appUsers = useMemo<AppUser[]>(() => {
     return customerUsers.map((c) => ({
-      id: Number(c.id) || Date.now(), // AppUser expects a number id in types.ts, let's keep it safe
+      id: String(c.id),
       name: c.name,
       email: c.email,
       phone: c.phone || "—",
       status: blockedCustomerIds.has(c.id) ? "Blocked" : "Active",
-      totalOrders: 0,
-      purchasesValue: c.lifetimeValue || 0,
+      totalOrders: c.totalOrders || 0,
+      purchasesValue: c.totalPurchases || c.lifetimeValue || 0,
       orders: [],
     }));
   }, [customerUsers, blockedCustomerIds]);

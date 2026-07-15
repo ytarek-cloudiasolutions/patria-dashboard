@@ -36,10 +36,30 @@ export const deleteUser = async (id: string) => {
   return response.data;
 };
 
+export interface CustomerOrderRaw {
+  _id: string;
+  orderId?: string;
+  createdAt: string;
+  items?: { quantity?: number }[];
+  total?: number;
+  status: string;
+}
+
+export const getOrdersByCustomer = async (
+  customerId: string,
+): Promise<CustomerOrderRaw[]> => {
+  const response = await api.get<{ data: CustomerOrderRaw[] }>(
+    `/orders/customer/${customerId}`,
+    { params: { limit: 100 } },
+  );
+  return response.data.data;
+};
+
 export const userApi = {
   getUsers,
   createUser,
   updateUser,
   deleteUser,
+  getOrdersByCustomer,
 };
 export default userApi;

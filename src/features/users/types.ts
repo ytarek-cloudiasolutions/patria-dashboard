@@ -23,6 +23,8 @@ export interface UserAccount {
   _type?: "staff" | "customer";
   lifetimeValue?: number;
   isActive?: boolean;
+  totalOrders?: number;
+  totalPurchases?: number;
 }
 
 export interface UserFormData {
@@ -46,7 +48,9 @@ export type AppUserStatus = "Active" | "Blocked";
 
 export type AppUserOrderStatus =
   | "Pending"
+  | "Preparing"
   | "Confirmed"
+  | "On The Way"
   | "Delivered"
   | "Cancelled";
 
@@ -60,7 +64,7 @@ export interface AppUserOrder {
 }
 
 export interface AppUser {
-  id: number;
+  id: string;
   name: string;
   email: string;
   phone: string;

@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Ban, Mail, Phone } from "lucide-react";
 import {
   Dialog,
@@ -15,7 +16,8 @@ import {
 } from "@/shared/components/ui/table";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { cn } from "@/lib/utils";
-import type { AppUser, AppUserOrderStatus } from "../types";
+import userApi from "../api/userApi";
+import type { AppUser, AppUserOrder, AppUserOrderStatus } from "../types";
 
 interface AppUserDetailsDialogProps {
   user: AppUser | null;
@@ -31,9 +33,26 @@ const formatEgp = (value: number) =>
 
 const ORDER_STATUS_STYLES: Record<AppUserOrderStatus, string> = {
   Pending: "border-[#B58A00] text-[#B58A00]",
+  Preparing: "border-[#B58A00] text-[#B58A00]",
   Confirmed: "border-[#3357B5] text-[#3357B5]",
+  "On The Way": "border-[#3357B5] text-[#3357B5]",
   Delivered: "border-[#059B5A] text-[#059B5A]",
   Cancelled: "border-[#C90000] text-[#C90000]",
+};
+
+const toOrderStatus = (raw: string): AppUserOrderStatus => {
+  switch (raw) {
+    case "pending": return "Pending";
+    case "preparing": return "Preparing";
+    case "confirmed": return "Confirmed";
+    case "ready": return "On The Way";
+    case "served":
+    case "completed":
+    case "delivered": return "Delivered";
+    case "cancelled":
+    case "canceled": return "Cancelled";
+    default: return "Pending";
+  }
 };
 
 const AppUserDetailsDialog = ({
@@ -42,6 +61,35 @@ const AppUserDetailsDialog = ({
   onBlock,
 }: AppUserDetailsDialogProps) => {
   const { t } = useTranslation();
+  const [orders, setOrders] = useState<AppUserOrder[]>([]);
+
+  useEffect(() => {
+    if (!user) {
+      setOrders([]);
+      return;
+    }
+    let cancelled = false;
+    userApi.getOrdersByCustomer(user.id).then((raw) => {
+      if (cancelled) return;
+      setOrders(
+        raw.map((o) => {
+          const created = new Date(o.createdAt);
+          return {
+            id: o.orderId || o._id,
+            date: created.toLocaleDateString(),
+            time: created.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+            products: (o.items || []).reduce((sum, i) => sum + (i.quantity || 0), 0),
+            total: o.total || 0,
+            status: toOrderStatus(o.status),
+          };
+        }),
+      );
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
   if (!user) return null;
 
   const isActive = user.status === "Active";
@@ -154,7 +202,7 @@ const AppUserDetailsDialog = ({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {user.orders.map((order) => (
+                  {orders.map((order) => (
                     <TableRow key={order.id}>
                       <TableCell className="ps-4 py-3 text-[12px] font-bold text-[#28293D]">
                         {order.id}
@@ -183,7 +231,7 @@ const AppUserDetailsDialog = ({
                       </TableCell>
                     </TableRow>
                   ))}
-                  {user.orders.length === 0 && (
+                  {orders.length === 0 && (
                     <TableRow>
                       <TableCell
                         colSpan={5}

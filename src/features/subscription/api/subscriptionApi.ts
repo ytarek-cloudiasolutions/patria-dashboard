@@ -61,7 +61,7 @@ export const getProducts = async () => {
 };
 
 export const runRenewals = async () => {
-  const response = await api.get<any>(
+  const response = await api.post<any>(
     SUBSCRIPTION_ENDPOINTS.RENEWALS,
   );
   return response.data;

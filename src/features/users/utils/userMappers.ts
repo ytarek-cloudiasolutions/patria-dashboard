@@ -28,6 +28,8 @@ export const mapUserAccount = (u: any): UserAccount => {
     _type: u._type || "staff",
     lifetimeValue: u.lifetimeValue || 0,
     isActive: u.isActive !== undefined ? u.isActive : true,
+    totalOrders: u.totalOrders || 0,
+    totalPurchases: u.totalPurchases || 0,
   };
 };
 
