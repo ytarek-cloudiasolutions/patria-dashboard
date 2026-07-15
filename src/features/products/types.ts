@@ -23,6 +23,7 @@ export interface Product {
   variantGroups?: VariantGroup[];
   quantity?: number;
   unit?: string;
+  productType?: string;
 }
 
 // --- Ingredients (Recipes tab) ---------------------------------------------
@@ -85,6 +86,7 @@ export interface ProductFormData {
   barcode: string;
   price: string;
   quantity: string;
+  productType: string;
   imageUrl?: string;
   imageFile?: File;
   variantGroups: VariantGroup[];

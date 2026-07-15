@@ -59,6 +59,7 @@ const INITIAL_FORM: ProductFormData = {
   barcode: "",
   price: "",
   quantity: "",
+  productType: "ready",
   imageUrl: undefined,
   imageFile: undefined,
   variantGroups: [],
@@ -93,6 +94,7 @@ const AddProductDialog = ({
   >({});
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [isRecipeOpen, setIsRecipeOpen] = useState(false);
+  const [isItemTypeOpen, setIsItemTypeOpen] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -114,12 +116,14 @@ const AddProductDialog = ({
             imageUrl: editingProduct.imageUrl,
             extras: editingProduct.extras ?? [],
             variantGroups: editingProduct.variantGroups ?? [],
+            productType: editingProduct.productType ?? "ready",
           }
         : INITIAL_FORM,
     );
     setErrors({});
     setIsCategoryOpen(false);
     setIsRecipeOpen(false);
+    setIsItemTypeOpen(false);
   }, [open, editingProduct, categories]);
 
   const set = <K extends keyof ProductFormData>(
@@ -277,7 +281,7 @@ const AddProductDialog = ({
         showCloseButton={false}
         className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-160"
       >
-        {(isCategoryOpen || isRecipeOpen) && (
+        {(isCategoryOpen || isRecipeOpen || isItemTypeOpen) && (
           <div className="pointer-events-none fixed inset-0 z-60 bg-black/40" />
         )}
 
@@ -351,6 +355,28 @@ const AddProductDialog = ({
                   </p>
                 )}
               </div>
+            </div>
+
+            <div className="flex flex-col">
+              <Label className="mb-2.5 text-[16px] font-medium text-black">
+                {t("Item Type")}
+              </Label>
+              <DropdownSelect
+                options={[
+                  { value: "ready", label: t("Ready-made (sold directly)") },
+                  { value: "manufactured", label: t("Manufactured (from components – automatically deducted)") },
+                  { value: "work_order", label: t("Manufactured via work order") },
+                  { value: "raw_material", label: t("Raw materials") },
+                  { value: "service", label: t("Service") },
+                ]}
+                selected={form.productType}
+                onSelect={(value) => set("productType", value)}
+                onOpenChange={setIsItemTypeOpen}
+                placeholder={t("Select item type")}
+                align="start"
+                className="md:w-full"
+                contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
+              />
             </div>
 
             <div className="flex flex-col">

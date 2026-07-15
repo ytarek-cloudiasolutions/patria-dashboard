@@ -1088,6 +1088,12 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   "New Order": "طلب جديد",
 
   // Products module
+  "Item Type": "طبيعة الصنف",
+  "Ready-made (sold directly)": "جاهز (يُباع مباشرةً)",
+  "Manufactured (from components – automatically deducted)": "مصنّع (من مكونات – يُخصم تلقائياً)",
+  "Manufactured via work order": "مصنّع بأمر تشغيل",
+  "Raw materials": "مواد خام",
+  "Service": "خدمة",
   "(Editable)": "(قابل للتعديل)",
   "Add Group": "إضافة مجموعة",
   "Add Ingredient": "إضافة المكوّن",
