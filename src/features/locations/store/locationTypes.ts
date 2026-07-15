@@ -23,6 +23,8 @@ export interface CreateLocationRequest {
   deliveryFee: number;
   minOrderAmount: number;
   isActive: boolean;
+  centerLat?: number;
+  centerLng?: number;
 }
 
 export interface UpdateLocationRequest {

@@ -8,6 +8,8 @@ export interface DeliveryZone {
   minOrderAmount: number;
   isActive: boolean;
   status: ZoneStatus;
+  centerLat?: number;
+  centerLng?: number;
   createdAt: string;
   updatedAt: string;
   __v: number;
@@ -18,6 +20,8 @@ export interface ZoneFormData {
   deliveryFee: string;
   minOrderAmount: string;
   status: ZoneStatus;
+  centerLat?: number;
+  centerLng?: number;
 }
 
 export interface LocationStats {

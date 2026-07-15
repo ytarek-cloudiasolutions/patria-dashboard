@@ -3,6 +3,7 @@ import InputField from "@/shared/components/InputField";
 import DropdownSelect from "@/shared/components/DropdownSelect";
 import { Label } from "@/shared/components/ui/label";
 import { useTranslation } from "@/shared/i18n/useTranslation";
+import ZoneNameAutocomplete from "./ZoneNameAutocomplete";
 import type { DeliveryZone, ZoneFormData, ZoneStatus } from "../types";
 
 interface AddZoneFormProps {
@@ -42,6 +43,8 @@ const AddZoneForm = ({
         deliveryFee: String(editingZone.deliveryFee),
         minOrderAmount: String(editingZone.minOrderAmount),
         status: editingZone.status,
+        centerLat: editingZone.centerLat,
+        centerLng: editingZone.centerLng,
       });
     } else {
       setForm(INITIAL_FORM);
@@ -83,16 +86,16 @@ const AddZoneForm = ({
   return (
     <form id={id} onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
       <div>
-        <InputField
-          data={{
-            id: "zone-name",
-            label: { htmlFor: "zone-name", labelText: t("Zone Name / Area") },
-            placeholder: t("e.g. Kafr Abdo, Semouha"),
-            required: true,
-            inputProps: {
-              value: form.name,
-              onChange: (e) => set("name", e.target.value),
-            },
+        <ZoneNameAutocomplete
+          id="zone-name"
+          label={t("Zone Name / Area")}
+          placeholder={t("e.g. Kafr Abdo, Semouha")}
+          required
+          value={form.name}
+          onChange={(value) => set("name", value)}
+          onPlaceSelect={({ name, lat, lng }) => {
+            setForm((prev) => ({ ...prev, name, centerLat: lat, centerLng: lng }));
+            if (errors.name) setErrors((prev) => ({ ...prev, name: "" }));
           }}
         />
         {errors.name && (

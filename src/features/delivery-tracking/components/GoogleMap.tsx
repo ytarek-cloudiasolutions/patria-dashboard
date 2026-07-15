@@ -1,18 +1,11 @@
 import { useEffect, useRef } from "react";
 import type { Rider } from "../types";
+import { loadGoogleMaps } from "@/shared/utils/googleMaps";
 
 interface GoogleMapProps {
   riders: Rider[];
   selectedRider: Rider | null;
   onSelectRider: (rider: Rider) => void;
-}
-
-declare global {
-  interface Window {
-    google: any;
-    __gmaps_loading?: boolean;
-    __gmaps_callbacks?: Array<() => void>;
-  }
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -22,24 +15,6 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 const CAIRO_CENTER = { lat: 30.0444, lng: 31.2357 };
-
-function loadGoogleMaps(apiKey: string): Promise<void> {
-  return new Promise((resolve) => {
-    if (window.google?.maps) { resolve(); return; }
-    if (!window.__gmaps_callbacks) window.__gmaps_callbacks = [];
-    window.__gmaps_callbacks.push(resolve);
-    if (window.__gmaps_loading) return;
-    window.__gmaps_loading = true;
-    (window as any).__gmaps_init = () => {
-      window.__gmaps_callbacks?.forEach((cb) => cb());
-      window.__gmaps_callbacks = [];
-    };
-    const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=__gmaps_init`;
-    script.async = true;
-    document.head.appendChild(script);
-  });
-}
 
 function makeMarkerIcon(color: string) {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="40" viewBox="0 0 32 40">
