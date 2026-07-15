@@ -13,8 +13,13 @@ import DefaultButton from "@/shared/components/DefaultButton";
 import DropdownSelect from "@/shared/components/DropdownSelect";
 import InputField from "@/shared/components/InputField";
 import DatePicker from "@/shared/components/DatePicker";
-import { PRODUCT_OPTIONS, SUPPLIER_OPTIONS, WAREHOUSE_OPTIONS } from "../data";
-import type { PoFormState, PoLineItem } from "../types";
+import type {
+  PoFormState,
+  PoLineItem,
+  ProductOption,
+  SupplierOption,
+  WarehouseOption,
+} from "../types";
 
 const FORM_ID = "create-po-form";
 
@@ -32,21 +37,6 @@ const INITIAL_FORM: PoFormState = {
   items: [newLineItem()],
 };
 
-const supplierOptions = SUPPLIER_OPTIONS.map((s) => ({
-  value: s.id,
-  label: s.label,
-}));
-
-const warehouseOptions = WAREHOUSE_OPTIONS.map((w) => ({
-  value: w.id,
-  label: w.label,
-}));
-
-const productOptions = PRODUCT_OPTIONS.map((p) => ({
-  value: p.id,
-  label: p.label,
-}));
-
 const formatEgp = (value: number) =>
   `EGP ${value.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
 
@@ -54,18 +44,32 @@ interface CreatePoDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: (form: PoFormState) => void;
+  suppliers: SupplierOption[];
+  warehouses: WarehouseOption[];
+  products: ProductOption[];
 }
 
 const CreatePoDialog = ({
   open,
   onOpenChange,
   onSave,
+  suppliers,
+  warehouses,
+  products,
 }: CreatePoDialogProps) => {
   const { t } = useTranslation();
   const [form, setForm] = useState<PoFormState>(INITIAL_FORM);
   const [openDropdown, setOpenDropdown] = useState<
     "supplier" | "warehouse" | "product" | null
   >(null);
+
+  // Real data fetched by the parent page (products/suppliers/warehouses APIs)
+  // — this dialog used to derive these from hardcoded mock ids, so every PO
+  // submitted a fake, non-ObjectId supplierId/warehouseId/productId and the
+  // backend always rejected it with "Supplier not found".
+  const supplierOptions = suppliers.map((s) => ({ value: s.id, label: s.label }));
+  const warehouseOptions = warehouses.map((w) => ({ value: w.id, label: w.label }));
+  const productOptions = products.map((p) => ({ value: p.id, label: p.label }));
 
   useEffect(() => {
     if (open) {
@@ -222,7 +226,7 @@ const CreatePoDialog = ({
                           selected={item.productId}
                           onSelect={(value) => {
                             updateItem(item.id, "productId", value);
-                            const product = PRODUCT_OPTIONS.find(
+                            const product = products.find(
                               (p) => p.id === value,
                             );
                             if (product && item.unitCost === 0) {

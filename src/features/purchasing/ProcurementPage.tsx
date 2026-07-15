@@ -12,25 +12,38 @@ import PaymentDialog from "./components/PaymentDialog";
 import {
   PURCHASING_STATUS_FILTERS,
 } from "./data";
-import type { PoFormState, PoStatus, PurchaseOrder } from "./types";
+import type {
+  PoFormState,
+  PoStatus,
+  ProductOption,
+  PurchaseOrder,
+  SupplierOption,
+  WarehouseOption,
+} from "./types";
 import { usePurchasing } from "./hooks/usePurchasing";
+import { useSuppliers } from "@/features/suppliers/hooks/useSuppliers";
+import { useWarehouses } from "@/features/warehouses/hooks/useWarehouses";
+import { useProducts } from "@/features/products/hooks/useProducts";
 
 const mapApiOrder = (o: any): PurchaseOrder => ({
   id: o._id ?? o.id,
   poNumber: o.poNumber ?? `PO-${(o._id ?? "").slice(-6).toUpperCase()}`,
   kind: "purchase order",
-  supplierId: o.supplier?._id ?? o.supplier ?? "",
-  supplierName: o.supplier?.name ?? o.supplierName ?? "",
-  contactEmail: o.supplier?.email ?? o.contactEmail ?? "",
-  warehouseId: o.warehouse?._id ?? o.warehouse ?? "",
-  warehouseName: o.warehouse?.name ?? o.warehouseName ?? "",
+  // Backend model field is `supplierId`/`warehouseId` (populated in place
+  // by .populate()), not `supplier`/`warehouse` — those keys never existed
+  // in the response, so name/email always rendered blank for real orders.
+  supplierId: o.supplierId?._id ?? o.supplierId ?? "",
+  supplierName: o.supplierId?.name ?? o.supplierName ?? "",
+  contactEmail: o.supplierId?.email ?? o.contactEmail ?? "",
+  warehouseId: o.warehouseId?._id ?? o.warehouseId ?? "",
+  warehouseName: o.warehouseId?.name ?? o.warehouseName ?? "",
   totalAmount: o.totalAmount ?? 0,
   paid: o.paidAmount ?? 0,
   status: (o.status === "received" ? "Paid" : o.status === "cancelled" ? "Canceled" : o.status === "submitted" ? "Unpaid" : "Pending") as PoStatus,
   expectedDeliveryDate: o.expectedDeliveryDate ? new Date(o.expectedDeliveryDate).toLocaleDateString() : "",
   items: (o.items ?? []).map((i: any) => ({
-    productId: i.product?._id ?? i.product ?? i.productId ?? "",
-    productName: i.product?.name ?? i.productName ?? "",
+    productId: i.productId?._id ?? i.productId ?? "",
+    productName: i.productId?.name ?? i.productName ?? "",
     quantity: i.quantity ?? 0,
     unitCost: i.unitPrice ?? i.unitCost ?? 0,
     unit: i.unit ?? "kg",
@@ -42,8 +55,41 @@ const ProcurementPage = () => {
   const { purchaseOrders: apiOrders, getPurchaseOrders, createPurchaseOrder, submitPurchaseOrder } = usePurchasing();
   const [orders, setOrders] = useState<PurchaseOrder[]>([]);
 
+  // Real suppliers/warehouses/products for the Create PO dialog — it used
+  // to source these from hardcoded mock ids (e.g. "bean", "arabica"), so
+  // every submitted PO sent a fake, non-ObjectId id and the backend always
+  // rejected it with "Supplier not found".
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { suppliers: apiSuppliers, getSuppliersList } = useSuppliers() as any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { warehouses: apiWarehouses, getWarehouses } = useWarehouses() as any;
+  const { products: apiProducts, getProducts } = useProducts();
+
   useEffect(() => { getPurchaseOrders(); }, [getPurchaseOrders]);
   useEffect(() => { if (apiOrders?.length) setOrders(apiOrders.map(mapApiOrder)); }, [apiOrders]);
+  useEffect(() => {
+    getSuppliersList();
+    getWarehouses();
+    getProducts({});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supplierOptions: SupplierOption[] = (apiSuppliers ?? []).map((s: any) => ({
+    id: s._id ?? s.id,
+    label: s.name,
+    email: s.email ?? "",
+  }));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const warehouseOptions: WarehouseOption[] = (apiWarehouses ?? []).map((w: any) => ({
+    id: w._id ?? w.id,
+    label: w.name,
+  }));
+  const productOptions: ProductOption[] = (apiProducts ?? []).map((p) => ({
+    id: p.id,
+    label: p.name,
+    defaultCost: p.price ?? 0,
+  }));
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [isStatusFilterOpen, setIsStatusFilterOpen] = useState(false);
@@ -90,13 +136,19 @@ const ProcurementPage = () => {
       .filter((item) => item.productId && item.quantity > 0)
       .map((item) => ({
         productId: item.productId,
-        productName: "",
+        productName: productOptions.find((p) => p.id === item.productId)?.label ?? "",
         quantity: item.quantity,
-        unitPrice: item.unitCost ?? 0,
+        // Backend reads `item.unitCost` to compute each line's subtotal
+        // (purchaseController.js createPurchaseOrder) — this was sending
+        // `unitPrice`, a key the backend never reads, so every PO's
+        // subtotal/totalAmount silently computed as 0 regardless of what
+        // unit cost was entered.
+        unitCost: item.unitCost ?? 0,
       }));
     createPurchaseOrder({
       supplierId: form.supplierId,
       warehouseId: form.warehouseId,
+      expectedDeliveryDate: form.expectedDeliveryDate || undefined,
       items,
     });
   };
@@ -168,6 +220,9 @@ const ProcurementPage = () => {
         open={isCreateOpen}
         onOpenChange={setIsCreateOpen}
         onSave={handleSavePo}
+        suppliers={supplierOptions}
+        warehouses={warehouseOptions}
+        products={productOptions}
       />
 
       <PaymentDialog

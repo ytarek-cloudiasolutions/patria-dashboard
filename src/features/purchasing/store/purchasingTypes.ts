@@ -42,11 +42,15 @@ export interface GetPurchaseOrdersResponse {
 export interface CreatePurchaseOrderRequest {
   supplierId: string;
   warehouseId: string;
+  expectedDeliveryDate?: string;
   items: Array<{
     productId: string;
     productName: string;
     quantity: number;
-    unitPrice: number;
+    // Backend (purchaseController.createPurchaseOrder) reads `unitCost` to
+    // compute each line's subtotal — was `unitPrice`, a key the backend
+    // never read, so every PO's subtotal/totalAmount computed as 0.
+    unitCost: number;
   }>;
   notes?: string;
 }
