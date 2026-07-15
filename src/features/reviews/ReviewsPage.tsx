@@ -65,25 +65,35 @@ const ReviewsPage = () => {
   const [deletingReview, setDeletingReview] = useState<Review | null>(null);
 
   useEffect(() => {
-    const params: { limit: number; rating?: number } = { limit: 100 };
-    if (ratingFilter !== "all") {
-      params.rating = Number(ratingFilter);
-    }
-    api
-      .get("/reviews", { params })
-      .then((res) => {
-        const raw: any[] = res.data?.data ?? res.data?.reviews ?? [];
-        const mapped = raw.map(mapReview);
-        setReviews(mapped);
-        if (res.data?.stats) {
-          setStats(res.data.stats);
-        }
-        if (ratingFilter === "all") {
-          setAllReviews(mapped);
-        }
-      })
-      .catch(() => {});
-  }, [ratingFilter]);
+    const delayDebounceId = setTimeout(() => {
+      const params: any = { limit: 100 };
+      if (ratingFilter !== "all") {
+        params.rating = Number(ratingFilter);
+      }
+      if (categoryFilter !== "all") {
+        params.category = categoryFilter;
+      }
+      if (search.trim()) {
+        params.search = search.trim();
+      }
+      api
+        .get("/reviews", { params })
+        .then((res) => {
+          const raw: any[] = res.data?.data ?? res.data?.reviews ?? [];
+          const mapped = raw.map(mapReview);
+          setReviews(mapped);
+          if (res.data?.stats) {
+            setStats(res.data.stats);
+          }
+          if (ratingFilter === "all" && categoryFilter === "all" && !search.trim()) {
+            setAllReviews(mapped);
+          }
+        })
+        .catch(() => {});
+    }, 300);
+
+    return () => clearTimeout(delayDebounceId);
+  }, [ratingFilter, categoryFilter, search]);
 
   const isScrimActive =
     isAnyDropdownOpen.rating || isAnyDropdownOpen.category;
@@ -136,23 +146,8 @@ const ReviewsPage = () => {
   }, [allReviews, stats]);
 
   const filteredReviews = useMemo(() => {
-    const q = search.toLowerCase().trim();
-    return reviews.filter((review) => {
-      if (
-        categoryFilter !== "all" &&
-        !review.categories.includes(categoryFilter as ReviewCategory)
-      ) {
-        return false;
-      }
-      if (!q) return true;
-      return (
-        review.customerName.toLowerCase().includes(q) ||
-        review.customerCode.includes(q) ||
-        review.orderId.toLowerCase().includes(q) ||
-        review.comment.toLowerCase().includes(q)
-      );
-    });
-  }, [reviews, search, categoryFilter]);
+    return reviews;
+  }, [reviews]);
 
   const handleToggleVisibility = async (review: Review) => {
     try {
