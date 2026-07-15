@@ -293,7 +293,6 @@ const PosPage = () => {
               notes: item.instructions || undefined,
             })),
           });
-          setSentLineIds((prev) => new Set([...prev, ...newItems.map((item) => item.lineId)]));
           showSuccessToast("Sent to kitchen");
         } catch {
           showErrorToast("Failed to send items to kitchen");
@@ -305,7 +304,7 @@ const PosPage = () => {
       // and Pending Orders pick it up. Payment method is set later at checkout.
       try {
         const { createOrder } = await import("@/features/orders/api/ordersApi");
-        const { order } = await createOrder({
+        await createOrder({
           type: orderType === "dine-in" ? "dine_in" : "takeaway",
           source: "pos",
           customerName: customer || "Walk-in Customer",
@@ -319,16 +318,19 @@ const PosPage = () => {
           })),
           notes: notes || undefined,
         });
-        const newOrderId = order._id || order.id;
-        setLoadedOrderId(newOrderId);
-        setSentLineIds(new Set(cartItems.map((item) => item.lineId)));
         showSuccessToast("Sent to kitchen");
       } catch {
         showErrorToast("Failed to send order to kitchen");
         return;
       }
     }
-    setSentToKitchen(true);
+
+    // Free up the screen for the next order immediately — payment for a
+    // dine-in table happens later (from Pending Orders), it shouldn't block
+    // starting a new order. Also avoids a stale loadedOrderId lingering
+    // across a table switch and silently merging the next table's items
+    // into this one's order.
+    completeOrder();
   };
 
   const handleCheckout = () => setPaymentOpen(true);
