@@ -1,18 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Check, FileUp, Image as ImageIcon, Plus, Search } from "lucide-react";
+import { Check, ChevronDown, CornerDownRight, FileUp } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogTitle,
 } from "@/shared/components/ui/dialog";
-import { Button } from "@/shared/components/ui/button";
-import { Label } from "@/shared/components/ui/label";
-import { Separator } from "@/shared/components/ui/separator";
-import { Textarea } from "@/shared/components/ui/textarea";
-import DefaultButton from "@/shared/components/DefaultButton";
-import DropdownSelect from "@/shared/components/DropdownSelect";
-import InputField from "@/shared/components/InputField";
 import DatePicker from "@/shared/components/DatePicker";
+import DropdownSelect from "@/shared/components/DropdownSelect";
 import { cn } from "@/lib/utils";
 import { DISCOUNT_TYPE_OPTIONS } from "../data";
 import { useTranslation } from "@/shared/i18n/useTranslation";
@@ -22,6 +16,7 @@ import type { DiscountType, Offer, OfferFormData } from "../types";
 interface SimpleProduct {
   id: string;
   name: string;
+  category: string;
 }
 
 const FORM_ID = "create-offer-form";
@@ -79,7 +74,9 @@ const CreateOfferDialog = ({
   const [imageFile, setImageFile] = useState<File | undefined>(undefined);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [catalog, setCatalog] = useState<SimpleProduct[]>([]);
-  const [productSearch, setProductSearch] = useState("");
+  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(
+    new Set(),
+  );
 
   useEffect(() => {
     if (isOpen) {
@@ -90,41 +87,67 @@ const CreateOfferDialog = ({
               description: editingOffer.offerDescription,
               discountType: editingOffer.discountType,
               discountValue: String(editingOffer.offerPercentage),
-              startDate: editingOffer.startDate ? editingOffer.startDate.split("T")[0] : "",
-              endDate: editingOffer.endDate ? editingOffer.endDate.split("T")[0] : "",
+              startDate: editingOffer.startDate
+                ? editingOffer.startDate.split("T")[0]
+                : "",
+              endDate: editingOffer.endDate
+                ? editingOffer.endDate.split("T")[0]
+                : "",
               bannerImage: editingOffer.offerImage,
-              productIds: editingOffer.productIds ?? [],
+              productIds: (editingOffer.productIds ?? []).map((p: any) =>
+                typeof p === "string" ? p : (p._id ?? p.id ?? ""),
+              ).filter(Boolean),
               code: editingOffer.code || "",
-              usageLimit: editingOffer.usageLimit !== null && editingOffer.usageLimit !== undefined ? String(editingOffer.usageLimit) : "",
-              minOrderAmount: editingOffer.minOrderAmount !== null && editingOffer.minOrderAmount !== undefined ? String(editingOffer.minOrderAmount) : "",
+              usageLimit:
+                editingOffer.usageLimit !== null &&
+                editingOffer.usageLimit !== undefined
+                  ? String(editingOffer.usageLimit)
+                  : "",
+              minOrderAmount:
+                editingOffer.minOrderAmount !== null &&
+                editingOffer.minOrderAmount !== undefined
+                  ? String(editingOffer.minOrderAmount)
+                  : "",
             }
           : INITIAL_FORM,
       );
       setErrors({});
       setIsDiscountOpen(false);
-      setProductSearch("");
-      // Real products with real MongoDB ids — this picker didn't exist
-      // before, so an offer's productIds was always hardcoded to [] and the
-      // discount silently applied storewide regardless of what an admin
-      // intended.
+      setImageFile(undefined);
       getProducts({ limit: 200 })
-        .then((res) =>
-          setCatalog(
-            (res.products || []).map((p) => ({
+        .then((res) => {
+          const EXCLUDED_CATEGORIES = ["raw ingredients", "ingredients"];
+          const items = (res.products || [])
+            .filter(
+              (p) =>
+                !(p as any).isIngredient &&
+                !EXCLUDED_CATEGORIES.includes(
+                  (p.category ?? "").toLowerCase(),
+                ),
+            )
+            .map((p) => ({
               id: p._id ?? p.id,
               name: p.name ?? "",
-            })),
-          ),
-        )
+              category: p.category ?? "Other",
+            }));
+          setCatalog(items);
+          // Collapse all categories by default
+          const cats = new Set(items.map((p) => p.category));
+          setCollapsedCategories(cats);
+        })
         .catch(() => setCatalog([]));
     }
   }, [isOpen, editingOffer]);
 
-  const filteredCatalog = useMemo(() => {
-    const q = productSearch.trim().toLowerCase();
-    if (!q) return catalog;
-    return catalog.filter((p) => p.name.toLowerCase().includes(q));
-  }, [catalog, productSearch]);
+  const groupedCatalog = useMemo(() => {
+    const groups: Record<string, SimpleProduct[]> = {};
+    catalog.forEach((p) => {
+      const cat = p.category || "Other";
+      if (!groups[cat]) groups[cat] = [];
+      groups[cat].push(p);
+    });
+    return groups;
+  }, [catalog]);
 
   const toggleProduct = (productId: string) => {
     setForm((prev) => ({
@@ -133,6 +156,36 @@ const CreateOfferDialog = ({
         ? prev.productIds.filter((id) => id !== productId)
         : [...prev.productIds, productId],
     }));
+  };
+
+  const toggleCategoryProducts = (products: SimpleProduct[]) => {
+    const productIds = products.map((p) => p.id);
+    const allSelected = productIds.every((id) =>
+      form.productIds.includes(id),
+    );
+    setForm((prev) => ({
+      ...prev,
+      productIds: allSelected
+        ? prev.productIds.filter((id) => !productIds.includes(id))
+        : [...new Set([...prev.productIds, ...productIds])],
+    }));
+  };
+
+  const selectAll = () => {
+    setForm((prev) => ({ ...prev, productIds: catalog.map((p) => p.id) }));
+  };
+
+  const deselectAll = () => {
+    setForm((prev) => ({ ...prev, productIds: [] }));
+  };
+
+  const toggleCategoryCollapse = (category: string) => {
+    setCollapsedCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(category)) next.delete(category);
+      else next.add(category);
+      return next;
+    });
   };
 
   const set = <K extends keyof OfferFormData>(
@@ -154,7 +207,7 @@ const CreateOfferDialog = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const next: Partial<Record<keyof OfferFormData, string>> = {};
-    if (!form.productName.trim()) next.productName = "Product name is required";
+    if (!form.productName.trim()) next.productName = "Offer name is required";
     if (!form.description.trim()) next.description = "Description is required";
     if (!form.discountValue.trim() || Number(form.discountValue) <= 0) {
       next.discountValue = "Enter a valid discount";
@@ -177,8 +230,8 @@ const CreateOfferDialog = ({
       startDate: form.startDate,
       endDate: form.endDate,
       code: form.code?.trim() || undefined,
-      usageLimit: form.usageLimit?.trim() ? Number(form.usageLimit) : null,
-      minOrderAmount: form.minOrderAmount?.trim() ? Number(form.minOrderAmount) : null,
+      usageLimit: form.usageLimit?.trim() ? Number(form.usageLimit) : 0,
+      minOrderAmount: form.minOrderAmount?.trim() ? Number(form.minOrderAmount) : 0,
       productIds: form.productIds,
     };
     onSaveOffer(offer, imageFile);
@@ -189,96 +242,52 @@ const CreateOfferDialog = ({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-200"
+        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[986px] sm:max-w-[986px] overflow-hidden rounded-[12px] bg-white p-0 ring-0"
       >
         {isDiscountOpen && (
           <div className="pointer-events-none fixed inset-0 z-60 bg-black/40" />
         )}
 
-        <div className="flex max-h-[calc(100vh-2rem)] flex-col">
-          <div className="px-5 pt-5 sm:px-7 sm:pt-7">
-            <DialogTitle className="text-[20px] font-semibold text-[#28293D] sm:text-[22px]">
+        {/* Scrollable wrapper */}
+        <div className="flex max-h-[calc(100vh-2rem)] flex-col overflow-y-auto">
+          <div className="flex flex-col gap-8 p-6">
+            {/* ── Header ── */}
+            <DialogTitle className="text-[24px] font-semibold tracking-[0.02em] text-[#333333] [font-style:normal]">
               {editingOffer ? t("Edit Offer") : t("Create New Offer")}
             </DialogTitle>
-          </div>
 
-          <form
-            id={FORM_ID}
-            onSubmit={handleSubmit}
-            noValidate
-            className="flex-1 overflow-y-auto px-5 py-5 sm:px-7 sm:py-6"
-          >
-            {/* Top Area: Name/Description (left) and Banner Image (right) */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-5">
-              {/* Left Column */}
-              <div className="flex flex-col gap-5">
-                <div>
-                  <InputField
-                    data={{
-                      id: "offer-name",
-                      label: {
-                        htmlFor: "offer-name",
-                        labelText: t("OFFER NAME"),
-                      },
-                      placeholder: t("e.g. Summer Sensation 2024"),
-                      required: true,
-                      inputProps: {
-                        value: form.productName,
-                        onChange: (e) => set("productName", e.target.value),
-                      },
-                    }}
-                  />
-                  {errors.productName && (
-                    <p className="mt-1 text-[13px] text-[#C90000]">
-                      {errors.productName}
-                    </p>
-                  )}
-                </div>
-
-                <div className="flex flex-col flex-1">
-                  <Label
-                    htmlFor="offer-description"
-                    className="mb-2.5 text-[16px] font-semibold text-[#333333] uppercase"
-                  >
-                    {t("DESCRIPTION")}<span className="text-[#C90000]">*</span>
-                  </Label>
-                  <Textarea
-                    id="offer-description"
-                    value={form.description}
-                    onChange={(e) => set("description", e.target.value)}
-                    placeholder={t("Craft a compelling message for your customers...")}
-                    className="flex-1 min-h-[148px] rounded-xl border-[#E5E5E5] px-4.5 py-3 text-[14px] text-[#23252A] placeholder:text-[#8B8B8B] focus-visible:border-primary focus-visible:ring-0"
-                  />
-                  {errors.description && (
-                    <p className="mt-1 text-[13px] text-[#C90000]">
-                      {errors.description}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Right Column */}
-              <div className="flex flex-col">
-                <Label className="mb-2.5 text-[16px] font-semibold text-[#333333] uppercase">
-                  {t("PROMO BANNER IMAGE (OPTIONAL)")}
-                </Label>
+            {/* ── Body: Banner + Included Products (gap 32px) ── */}
+            <div className="flex flex-col gap-8">
+              {/* Banner Image Section */}
+              <div className="flex flex-col gap-3">
+                <p className="text-[16px] font-semibold tracking-[0.02em] text-[#28293D]">
+                  {t("Banner image")}{" "}
+                  <span className="text-[13px] font-medium tracking-[0.02em] text-[#595959]">
+                    ({t("Optional")})
+                  </span>
+                </p>
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex h-[245px] w-full cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-[12px] border-2 border-dashed border-[#624F1C] bg-[#F5F0EA4D] text-center"
+                  className="flex w-full cursor-pointer flex-col items-center justify-center gap-6 overflow-hidden rounded-[16px] border-2 border-dashed border-[#624F1C] bg-[rgba(245,240,234,0.3)] py-6 text-center transition-colors hover:bg-[rgba(245,240,234,0.5)]"
                 >
                   {form.bannerImage ? (
                     <img
                       src={form.bannerImage}
                       alt="Banner preview"
-                      className="size-full object-cover"
+                      className="max-h-48 w-full object-cover"
                     />
                   ) : (
                     <>
-                      <ImageIcon className="size-8 text-[#8B8B8B]" />
-                      <span className="text-[12px] font-semibold text-[#8B8B8B] uppercase tracking-wider">
-                        {t("Resolution 1200x400 Ideal")}
-                      </span>
+                      <FileUp className="size-6 text-[#8B8B8B]" />
+                      <div className="flex flex-col items-center gap-1">
+                        <span className="text-[14px] font-semibold leading-[1.07em] tracking-[0.02em] text-[#333333]">
+                          {t("Click to upload image")}
+                        </span>
+                        <span className="text-[12px] leading-[1.4em] tracking-[0.02em] text-[#8B8B8B]">
+                          {t("PNG, JPG up to 5MB")}
+                        </span>
+                      </div>
                     </>
                   )}
                 </button>
@@ -290,221 +299,406 @@ const CreateOfferDialog = ({
                   onChange={handleFileChange}
                 />
               </div>
-            </div>
 
-            {/* Middle Area: Discount Type, Discount Value, Promo Code, Usage Limit */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5 mt-5">
-              <div className="flex flex-col">
-                <Label
-                  htmlFor="discount-type"
-                  className="mb-2.5 text-[16px] font-semibold text-[#333333] uppercase"
-                >
-                  {t("DISCOUNT TYPE")}<span className="text-[#C90000]">*</span>
-                </Label>
-                <DropdownSelect
-                  options={DISCOUNT_TYPE_OPTIONS.map((o) => ({ ...o, label: t(o.label) }))}
-                  selected={form.discountType}
-                  onSelect={(value) =>
-                    set("discountType", value as DiscountType)
-                  }
-                  onOpenChange={setIsDiscountOpen}
-                  align="start"
-                  className="md:w-full"
-                  contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
-                />
-              </div>
-
-              <div>
-                <InputField
-                  data={{
-                    id: "discount-value",
-                    label: {
-                      htmlFor: "discount-value",
-                      labelText: t("DISCOUNT VALUE"),
-                    },
-                    placeholder: t("e.g. 20"),
-                    required: true,
-                    inputProps: {
-                      type: "number",
-                      min: "0",
-                      value: form.discountValue,
-                      onChange: (e) => set("discountValue", e.target.value),
-                    },
-                  }}
-                />
-                {errors.discountValue && (
-                  <p className="mt-1 text-[13px] text-[#C90000]">
-                    {errors.discountValue}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <InputField
-                  data={{
-                    id: "promo-code",
-                    label: {
-                      htmlFor: "promo-code",
-                      labelText: t("PROMO CODE (OPTIONAL)"),
-                    },
-                    placeholder: t("OBLIQUE20"),
-                    inputProps: {
-                      value: form.code,
-                      onChange: (e) => set("code", e.target.value),
-                    },
-                  }}
-                />
-              </div>
-
-              <div>
-                <InputField
-                  data={{
-                    id: "usage-limit",
-                    label: {
-                      htmlFor: "usage-limit",
-                      labelText: t("USAGE LIMIT (TOTAL USES)"),
-                    },
-                    placeholder: t("Infinite"),
-                    inputProps: {
-                      value: form.usageLimit,
-                      onChange: (e) => set("usageLimit", e.target.value),
-                    },
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Bottom Area: Start Date, End Date, Min Order Amount */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-6 gap-y-5 mt-5">
-              <div className="flex flex-col">
-                <Label className="mb-2.5 text-[16px] font-semibold text-[#333333] uppercase">
-                  {t("START DATE")}<span className="text-[#C90000]">*</span>
-                </Label>
-                <DatePicker
-                  value={form.startDate}
-                  onChange={(date) => set("startDate", date)}
-                  placeholder="dd/mm/yyyy"
-                  popoverPlacement="bottom-right"
-                  withBackdrop
-                />
-                {errors.startDate && (
-                  <p className="mt-1 text-[13px] text-[#C90000]">
-                    {errors.startDate}
-                  </p>
-                )}
-              </div>
-
-              <div className="flex flex-col">
-                <Label className="mb-2.5 text-[16px] font-semibold text-[#333333] uppercase">
-                  {t("END DATE")}<span className="text-[#C90000]">*</span>
-                </Label>
-                <DatePicker
-                  value={form.endDate}
-                  onChange={(date) => set("endDate", date)}
-                  placeholder="dd/mm/yyyy"
-                  popoverPlacement="bottom-right"
-                  minDate={form.startDate || undefined}
-                  withBackdrop
-                />
-                {errors.endDate && (
-                  <p className="mt-1 text-[13px] text-[#C90000]">
-                    {errors.endDate}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <InputField
-                  data={{
-                    id: "min-order-amount",
-                    label: {
-                      htmlFor: "min-order-amount",
-                      labelText: t("MIN. ORDER AMOUNT (EGP)"),
-                    },
-                    placeholder: t("e.g. 100"),
-                    inputProps: {
-                      type: "number",
-                      min: "0",
-                      value: form.minOrderAmount,
-                      onChange: (e) => set("minOrderAmount", e.target.value),
-                    },
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Applicable Products — empty selection means the offer applies storewide */}
-            <div className="mt-5 flex flex-col">
-              <Label className="mb-2.5 text-[16px] font-semibold text-[#333333] uppercase">
-                {t("APPLICABLE PRODUCTS (OPTIONAL — LEAVE EMPTY FOR ALL PRODUCTS)")}
-              </Label>
-              <div className="relative mb-3">
-                <Search className="pointer-events-none absolute top-1/2 start-3 size-4 -translate-y-1/2 text-[#8B8B8B]" />
-                <input
-                  value={productSearch}
-                  onChange={(e) => setProductSearch(e.target.value)}
-                  placeholder={t("Search for a product...")}
-                  className="h-11 w-full rounded-[8px] border border-[#E5E5E5] bg-white ps-9 pe-3 text-[13px] text-[#28293D] outline-none placeholder:text-[#8B8B8B] focus:border-primary/50"
-                />
-              </div>
-              <div className="max-h-48 space-y-1.5 overflow-y-auto rounded-[10px] border border-[#E5E5E5] p-2">
-                {filteredCatalog.map((product) => {
-                  const selected = form.productIds.includes(product.id);
-                  return (
-                    <button
-                      key={product.id}
-                      type="button"
-                      onClick={() => toggleProduct(product.id)}
-                      className={cn(
-                        "flex w-full cursor-pointer items-center justify-between rounded-[8px] border px-3 py-2.5 text-[13px] transition-colors",
-                        selected
-                          ? "border-[#059B5A] bg-[#E9F8F1] text-[#059B5A]"
-                          : "border-transparent text-[#28293D] hover:bg-[#FAFAF7]",
-                      )}
-                    >
-                      {product.name}
-                      {selected ? (
-                        <Check className="size-4" />
-                      ) : (
-                        <Plus className="size-4 text-[#8B8B8B]" />
-                      )}
-                    </button>
-                  );
-                })}
-                {filteredCatalog.length === 0 && (
-                  <p className="py-4 text-center text-[13px] text-[#8B8B8B]">
-                    {t("No products found.")}
-                  </p>
-                )}
-              </div>
-              {form.productIds.length > 0 && (
-                <p className="mt-2 text-[12px] text-[#8B8B8B]">
-                  {form.productIds.length} {t("product(s) selected")}
+              {/* Included Products Section */}
+              <div className="flex flex-col gap-3">
+                <p className="text-[16px] font-semibold tracking-[0.02em] text-[#28293D]">
+                  {t("Included Products")}{" "}
+                  <span className="text-[#C90000]">*</span>
                 </p>
-              )}
-            </div>
-          </form>
 
-          <div className="bg-white px-5 pb-5 sm:px-7 sm:pb-6">
-            <Separator className="mb-4 bg-[#CACBD4] sm:mb-5" />
-            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-              <DefaultButton
-                data={{
-                  buttonText: t("Cancel"),
-                  variant: "outline",
-                  type: "button",
-                  onClick: () => onOpenChange(false),
-                  className:
-                    "w-full sm:w-auto border-primary text-primary hover:bg-white hover:text-primary",
-                }}
-              />
-              <Button
+                {/* Product Selection Card */}
+                <div className="flex flex-col gap-[14px] rounded-[16px] border border-[#CACBD4] bg-[#FAFAF7] p-3">
+                  {/* Card Header */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-[12px] font-semibold tracking-[0.02em] text-[#000000]">
+                      {t("Select products for this offer")}
+                    </span>
+                    <div className="flex items-center gap-[10px]">
+                      <button
+                        type="button"
+                        onClick={selectAll}
+                        className="cursor-pointer text-[12px] font-semibold leading-[1.4em] tracking-[0.02em] underline text-[#000000] transition-opacity hover:opacity-70"
+                      >
+                        {t("Select All")}
+                      </button>
+                      <div className="h-4 w-px bg-[#CACBD4]" />
+                      <button
+                        type="button"
+                        onClick={deselectAll}
+                        className="cursor-pointer text-[12px] font-semibold leading-[1.4em] tracking-[0.02em] underline text-[#C90000] transition-opacity hover:opacity-70"
+                      >
+                        {t("Deselect All")}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Product list */}
+                  {catalog.length === 0 ? (
+                    <p className="py-4 text-center text-[13px] text-[#8B8B8B]">
+                      {t("No products found.")}
+                    </p>
+                  ) : (
+                    <div className="flex flex-col gap-[14px]">
+                      {Object.entries(groupedCatalog).map(
+                        ([category, products], idx) => {
+                          const allSelected = products.every((p) =>
+                            form.productIds.includes(p.id),
+                          );
+                          const someSelected = products.some((p) =>
+                            form.productIds.includes(p.id),
+                          );
+                          const isCollapsed =
+                            collapsedCategories.has(category);
+
+                          return (
+                            <div
+                              key={category}
+                              className="flex flex-col gap-[10px]"
+                            >
+                              {idx > 0 && (
+                                <hr className="border-[#CACBD4]" />
+                              )}
+
+                              {/* Category Header row */}
+                              <div className="flex items-center gap-[10px]">
+                                {/* Category checkbox */}
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    toggleCategoryProducts(products)
+                                  }
+                                  className={cn(
+                                    "flex size-5 shrink-0 items-center justify-center rounded-[6px] border transition-colors",
+                                    allSelected
+                                      ? "border-[#8F6900] bg-[#8F6900]"
+                                      : someSelected
+                                        ? "border-[#8F6900] bg-white"
+                                        : "border-[#CACBD4] bg-white",
+                                  )}
+                                >
+                                  {allSelected && (
+                                    <Check className="size-3 text-white" />
+                                  )}
+                                  {someSelected && !allSelected && (
+                                    <div className="h-0.5 w-3 rounded-full bg-[#8F6900]" />
+                                  )}
+                                </button>
+
+                                {/* Name + chevron — clicking anywhere here toggles collapse */}
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    toggleCategoryCollapse(category)
+                                  }
+                                  className="flex flex-1 cursor-pointer items-center justify-between gap-2"
+                                >
+                                  <span className="text-left text-[14px] font-semibold text-[#28293D]">
+                                    {category}
+                                  </span>
+                                  <ChevronDown
+                                    className={cn(
+                                      "size-4 shrink-0 text-[#28293D] transition-transform duration-200",
+                                      isCollapsed && "-rotate-90",
+                                    )}
+                                  />
+                                </button>
+                              </div>
+
+                              {/* Category Items (collapsible) */}
+                              {!isCollapsed && (
+                                <div className="flex flex-col gap-[10px] pl-5">
+                                  {products.map((product, pi) => {
+                                    const selected =
+                                      form.productIds.includes(product.id);
+                                    return (
+                                      <div
+                                        key={product.id}
+                                        className="flex flex-col gap-[10px]"
+                                      >
+                                        {pi > 0 && (
+                                          <hr className="border-[#CACBD4]" />
+                                        )}
+                                        <div className="flex items-center gap-[6px]">
+                                          <CornerDownRight className="size-3 shrink-0 text-[#CACBD4]" />
+                                          <button
+                                            type="button"
+                                            onClick={() =>
+                                              toggleProduct(product.id)
+                                            }
+                                            className="flex flex-1 cursor-pointer items-center gap-[6px]"
+                                          >
+                                            <div
+                                              className={cn(
+                                                "flex size-5 shrink-0 items-center justify-center rounded-[6px] border transition-colors",
+                                                selected
+                                                  ? "border-[#8F6900] bg-[#8F6900]"
+                                                  : "border-[#CACBD4] bg-white",
+                                              )}
+                                            >
+                                              {selected && (
+                                                <Check className="size-3 text-white" />
+                                              )}
+                                            </div>
+                                            <span className="text-left text-[14px] text-[#28293D]">
+                                              {product.name}
+                                            </span>
+                                          </button>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        },
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* ── Form Fields ── */}
+            <form
+              id={FORM_ID}
+              onSubmit={handleSubmit}
+              noValidate
+              className="flex flex-col gap-4"
+            >
+              {/* Offer Name */}
+              <div className="flex flex-col gap-[10px]">
+                <label
+                  htmlFor="offer-name"
+                  className="text-[16px] font-medium text-[#000000]"
+                >
+                  {t("Offer Name")}{" "}
+                  <span className="text-[#C90000]">*</span>
+                </label>
+                <input
+                  id="offer-name"
+                  type="text"
+                  value={form.productName}
+                  onChange={(e) => set("productName", e.target.value)}
+                  placeholder={t("e.g. Artisanal Sourdough")}
+                  className="h-[50px] rounded-[12px] border border-[#E5E5E5] bg-white px-3 text-[16px] text-[#000000] outline-none placeholder:text-[#8B8B8B] focus:border-primary"
+                />
+                {errors.productName && (
+                  <p className="text-[13px] text-[#C90000]">
+                    {errors.productName}
+                  </p>
+                )}
+              </div>
+
+              {/* Description */}
+              <div className="flex flex-col gap-[10px]">
+                <label
+                  htmlFor="offer-description"
+                  className="text-[16px] font-medium text-[#000000]"
+                >
+                  {t("Description")}{" "}
+                  <span className="text-[#C90000]">*</span>
+                </label>
+                <input
+                  id="offer-description"
+                  type="text"
+                  value={form.description}
+                  onChange={(e) => set("description", e.target.value)}
+                  placeholder={t("Describe this offer...")}
+                  className="h-[50px] rounded-[12px] border border-[#E5E5E5] bg-white px-3 text-[16px] text-[#000000] outline-none placeholder:text-[#8B8B8B] focus:border-primary"
+                />
+                {errors.description && (
+                  <p className="text-[13px] text-[#C90000]">
+                    {errors.description}
+                  </p>
+                )}
+              </div>
+
+              {/* Discount Type + Discount Value row */}
+              <div className="flex flex-col gap-4 sm:flex-row">
+                {/* Discount Type */}
+                <div className="flex flex-1 flex-col gap-[10px]">
+                  <label className="text-[16px] font-medium text-[#000000]">
+                    {t("Discount Type")}{" "}
+                    <span className="text-[#C90000]">*</span>
+                  </label>
+                  <DropdownSelect
+                    options={DISCOUNT_TYPE_OPTIONS.map((o) => ({
+                      ...o,
+                      label: t(o.label),
+                    }))}
+                    selected={form.discountType}
+                    onSelect={(value) =>
+                      set("discountType", value as DiscountType)
+                    }
+                    onOpenChange={setIsDiscountOpen}
+                    align="start"
+                    className="h-[50px] w-full rounded-[12px] md:w-full"
+                    contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
+                  />
+                </div>
+
+                {/* Discount Value */}
+                <div className="flex flex-1 flex-col gap-[10px]">
+                  <label
+                    htmlFor="discount-value"
+                    className="text-[16px] font-medium text-[#000000]"
+                  >
+                    {form.discountType === "percentage"
+                      ? t("Discount %")
+                      : t("Discount Value")}
+                  </label>
+                  <input
+                    id="discount-value"
+                    type="number"
+                    min="0"
+                    value={form.discountValue}
+                    onChange={(e) => set("discountValue", e.target.value)}
+                    placeholder="e.g. 20"
+                    className="h-[50px] rounded-[12px] border border-[#E5E5E5] bg-white px-3 text-[16px] text-[#000000] outline-none placeholder:text-[#8B8B8B] focus:border-primary"
+                  />
+                  {errors.discountValue && (
+                    <p className="text-[13px] text-[#C90000]">
+                      {errors.discountValue}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Promo Code + Usage Limit row */}
+              <div className="flex flex-col gap-4 sm:flex-row">
+                {/* Promo Code */}
+                <div className="flex flex-1 flex-col gap-[10px]">
+                  <label
+                    htmlFor="promo-code"
+                    className="text-[16px] font-medium text-[#000000]"
+                  >
+                    {t("Promo Code")}{" "}
+                    <span className="text-[13px] font-medium tracking-[0.02em] text-[#595959]">
+                      ({t("Optional")})
+                    </span>
+                  </label>
+                  <input
+                    id="promo-code"
+                    type="text"
+                    value={form.code}
+                    onChange={(e) => set("code", e.target.value)}
+                    placeholder="e.g. SUMMER20"
+                    className="h-[50px] rounded-[12px] border border-[#E5E5E5] bg-white px-3 text-[16px] text-[#000000] outline-none placeholder:text-[#8B8B8B] focus:border-primary"
+                  />
+                </div>
+
+                {/* Usage Limit */}
+                <div className="flex flex-1 flex-col gap-[10px]">
+                  <label
+                    htmlFor="usage-limit"
+                    className="text-[16px] font-medium text-[#000000]"
+                  >
+                    {t("Usage Limit")}{" "}
+                    <span className="text-[13px] font-medium tracking-[0.02em] text-[#595959]">
+                      ({t("Total Uses")})
+                    </span>
+                  </label>
+                  <input
+                    id="usage-limit"
+                    type="number"
+                    min="0"
+                    value={form.usageLimit}
+                    onChange={(e) => set("usageLimit", e.target.value)}
+                    placeholder={t("Infinite")}
+                    className="h-[50px] rounded-[12px] border border-[#E5E5E5] bg-white px-3 text-[16px] text-[#000000] outline-none placeholder:text-[#8B8B8B] focus:border-primary"
+                  />
+                </div>
+              </div>
+
+              {/* Start Date + End Date row */}
+              <div className="flex flex-col gap-4 sm:flex-row">
+                {/* Start Date */}
+                <div className="flex flex-1 flex-col gap-[10px]">
+                  <label className="text-[16px] font-medium text-[#000000]">
+                    {t("Start Date")}{" "}
+                    <span className="text-[#C90000]">*</span>
+                  </label>
+                  <DatePicker
+                    value={form.startDate}
+                    onChange={(date) => set("startDate", date)}
+                    placeholder="dd/mm/yyyy"
+                    popoverPlacement="bottom-right"
+                    withBackdrop
+                  />
+                  {errors.startDate && (
+                    <p className="text-[13px] text-[#C90000]">
+                      {errors.startDate}
+                    </p>
+                  )}
+                </div>
+
+                {/* End Date */}
+                <div className="flex flex-1 flex-col gap-[10px]">
+                  <label className="text-[16px] font-medium text-[#000000]">
+                    {t("End Date")}{" "}
+                    <span className="text-[#C90000]">*</span>
+                  </label>
+                  <DatePicker
+                    value={form.endDate}
+                    onChange={(date) => set("endDate", date)}
+                    placeholder="dd/mm/yyyy"
+                    popoverPlacement="bottom-right"
+                    minDate={form.startDate || undefined}
+                    withBackdrop
+                  />
+                  {errors.endDate && (
+                    <p className="text-[13px] text-[#C90000]">
+                      {errors.endDate}
+                    </p>
+                  )}
+                </div>
+
+                {/* Min. Order Amount */}
+                <div className="flex flex-1 flex-col gap-[10px]">
+                  <label
+                    htmlFor="min-order-amount"
+                    className="text-[16px] font-medium text-[#000000]"
+                  >
+                    {t("Min. Order Amount")}{" "}
+                    <span className="text-[13px] font-medium tracking-[0.02em] text-[#595959]">
+                      (EGP)
+                    </span>
+                  </label>
+                  <input
+                    id="min-order-amount"
+                    type="number"
+                    min="0"
+                    value={form.minOrderAmount}
+                    onChange={(e) => set("minOrderAmount", e.target.value)}
+                    placeholder="0"
+                    className="h-[50px] rounded-[12px] border border-[#E5E5E5] bg-white px-3 text-[16px] text-[#000000] outline-none placeholder:text-[#8B8B8B] focus:border-primary"
+                  />
+                </div>
+              </div>
+
+            </form>
+          </div>
+
+          {/* ── Footer ── */}
+          <div className="sticky bottom-0 bg-white px-6 pb-6">
+            <hr className="mb-6 border-[#CACBD4]" />
+            <div className="flex justify-end gap-4">
+              <button
+                type="button"
+                onClick={() => onOpenChange(false)}
+                className="h-14 cursor-pointer rounded-[5px] border border-[#8F6900] px-[30px] text-[16px] font-semibold leading-6 tracking-[0.02em] text-[#8F6900] transition-colors hover:bg-[#F5F0EA]"
+              >
+                {t("Cancel")}
+              </button>
+              <button
                 form={FORM_ID}
                 type="submit"
-                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
+                className="h-14 cursor-pointer rounded-[5px] bg-[#8F6900] px-[30px] text-[16px] font-semibold leading-6 tracking-[0.02em] text-white transition-opacity hover:opacity-90"
               >
                 {t("Save offer")}
-              </Button>
+              </button>
             </div>
           </div>
         </div>

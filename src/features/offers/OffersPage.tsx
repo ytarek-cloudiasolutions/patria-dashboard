@@ -71,8 +71,8 @@ const OffersPage = () => {
       productIds: newOffer.productIds ?? [],
       ...(withImage ? {} : { image: newOffer.offerImage?.startsWith("blob:") ? undefined : newOffer.offerImage }),
       code: newOffer.code || "",
-      usageLimit: newOffer.usageLimit ?? null,
-      minOrderAmount: newOffer.minOrderAmount ?? null,
+      usageLimit: newOffer.usageLimit ?? 0,
+      minOrderAmount: newOffer.minOrderAmount ?? 0,
     });
 
     if (imageFile) {

@@ -10,7 +10,7 @@ import { Separator } from "@/shared/components/ui/separator";
 import { useState, useEffect } from "react";
 import type { Offer } from "../types";
 import { Switch } from "@/shared/components/ui/switch";
-import { CalendarDays, Megaphone, SquarePen, Trash2, Tag, Users, Image as ImageIcon } from "lucide-react";
+import { CalendarDays, Megaphone, SquarePen, Trash2, Image as ImageIcon } from "lucide-react";
 import DefaultButton from "@/shared/components/DefaultButton";
 import DeleteDialog from "@/shared/components/DeleteDialog";
 import { useTranslation } from "@/shared/i18n/useTranslation";
@@ -111,16 +111,13 @@ const OfferCard = ({
               </div>
             </Card>
 
-            {/* Promo Code & Claims info */}
-            <div className="flex items-center justify-between text-[#28293D] text-[13px] font-semibold px-1 py-0.5">
-              <div className="flex items-center gap-1.5">
-                <Tag className="size-4 text-[#8B8B8B]" />
-                <span>{t("Code")}: <span className="font-bold uppercase text-primary">{offer.code || "GLOBAL_AUTO"}</span></span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <Users className="size-4 text-[#8B8B8B]" />
-                <span>{offer.claimsCount ?? 0} {t("Claims")}</span>
-              </div>
+            {/* "Applies to N product(s)" box */}
+            <div className="flex items-center gap-2 rounded-[10px] border border-[#E5E5E5] bg-[#FAFAF7] px-2 py-2 text-[13px] text-[#28293D]">
+              {t("Applies to")}{" "}
+              <span className="font-semibold text-[#333333]">
+                {offer.numberOfProducts ?? 0}
+              </span>{" "}
+              {t("product(s)")}
             </div>
 
             <Separator className="bg-[#CACBD4]" />

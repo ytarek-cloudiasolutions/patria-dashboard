@@ -29,6 +29,12 @@ export const formatPeriodFromDates = (start: string, end: string): string => {
 };
 
 export const mapOffer = (o: any): Offer => {
+  // productIds may come back as plain strings OR full product objects
+  const rawIds: any[] = o.productIds || o.includedProducts || [];
+  const productIds: string[] = rawIds.map((p: any) =>
+    typeof p === "string" ? p : (p._id ?? p.id ?? ""),
+  ).filter(Boolean);
+
   return {
     id: o._id || o.id,
     offerStatus: (o.status || "").toLowerCase() === "active",
@@ -37,7 +43,7 @@ export const mapOffer = (o: any): Offer => {
     offerPercentage: o.discountValue ?? 0,
     discountType: (o.discountType === "fixed" ? "fixed" : "percentage") as DiscountType,
     offerValidPeriod: formatPeriodFromDates(o.startDate || "", o.endDate || ""),
-    numberOfProducts: (o.productIds || o.includedProducts || []).length,
+    numberOfProducts: productIds.length,
     offerImage: o.image || o.offerImage || o.bannerImage,
     startDate: o.startDate,
     endDate: o.endDate,
@@ -46,6 +52,7 @@ export const mapOffer = (o: any): Offer => {
     usageLimit: o.usageLimit !== undefined ? o.usageLimit : null,
     minOrderAmount: o.minOrderAmount !== undefined ? o.minOrderAmount : null,
     claimsCount: o.claimsCount ?? o.usageCount ?? 0,
+    productIds,
   };
 };
 
