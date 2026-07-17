@@ -18,6 +18,7 @@ const INITIAL_FORM: ZoneFormData = {
   deliveryFee: "",
   minOrderAmount: "",
   status: "Active",
+  radiusKm: "5",
 };
 
 const AddZoneForm = ({
@@ -45,6 +46,7 @@ const AddZoneForm = ({
         status: editingZone.status,
         centerLat: editingZone.centerLat,
         centerLng: editingZone.centerLng,
+        radiusKm: String(editingZone.radiusKm ?? 5),
       });
     } else {
       setForm(INITIAL_FORM);
@@ -72,6 +74,11 @@ const AddZoneForm = ({
       Number(form.minOrderAmount) < 0
     ) {
       next.minOrderAmount = t("Enter a valid amount");
+    }
+    if (!form.radiusKm.trim()) {
+      next.radiusKm = t("Delivery radius is required");
+    } else if (isNaN(Number(form.radiusKm)) || Number(form.radiusKm) <= 0) {
+      next.radiusKm = t("Enter a valid radius");
     }
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -145,6 +152,30 @@ const AddZoneForm = ({
             </p>
           )}
         </div>
+      </div>
+
+      <div>
+        <InputField
+          data={{
+            id: "radius-km",
+            label: { htmlFor: "radius-km", labelText: t("Delivery Radius (km)") },
+            placeholder: "5",
+            required: true,
+            inputProps: {
+              type: "number",
+              min: "0.1",
+              step: "0.1",
+              value: form.radiusKm,
+              onChange: (e) => set("radiusKm", e.target.value),
+            },
+          }}
+        />
+        <p className="mt-1 text-[12px] text-[#8B8B8B]">
+          {t("Customers outside this radius from the zone center will see \"out of delivery range\" in the app")}
+        </p>
+        {errors.radiusKm && (
+          <p className="mt-1 text-[13px] text-[#C90000]">{errors.radiusKm}</p>
+        )}
       </div>
 
       <div className="flex flex-col">

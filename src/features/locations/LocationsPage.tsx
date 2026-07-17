@@ -55,6 +55,7 @@ const LocationsPage = () => {
       deliveryFee: Number(data.deliveryFee),
       minOrderAmount: Number(data.minOrderAmount),
       isActive: data.status === "Active",
+      radiusKm: Number(data.radiusKm),
       ...(data.centerLat !== undefined ? { centerLat: data.centerLat } : {}),
       ...(data.centerLng !== undefined ? { centerLng: data.centerLng } : {}),
     };

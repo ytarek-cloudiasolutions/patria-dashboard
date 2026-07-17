@@ -10,6 +10,7 @@ export interface DeliveryZone {
   status: ZoneStatus;
   centerLat?: number;
   centerLng?: number;
+  radiusKm?: number;
   createdAt: string;
   updatedAt: string;
   __v: number;
@@ -22,6 +23,7 @@ export interface ZoneFormData {
   status: ZoneStatus;
   centerLat?: number;
   centerLng?: number;
+  radiusKm: string;
 }
 
 export interface LocationStats {

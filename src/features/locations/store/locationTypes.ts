@@ -25,6 +25,7 @@ export interface CreateLocationRequest {
   isActive: boolean;
   centerLat?: number;
   centerLng?: number;
+  radiusKm?: number;
 }
 
 export interface UpdateLocationRequest {
