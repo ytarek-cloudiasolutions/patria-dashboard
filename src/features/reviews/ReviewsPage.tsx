@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Star } from "lucide-react";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import SearchInputField from "@/shared/components/SearchInputField";
@@ -63,8 +64,10 @@ const ReviewsPage = () => {
   });
 
   const [deletingReview, setDeletingReview] = useState<Review | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
     const delayDebounceId = setTimeout(() => {
       const params: any = { limit: 100 };
       if (ratingFilter !== "all") {
@@ -89,7 +92,8 @@ const ReviewsPage = () => {
             setAllReviews(mapped);
           }
         })
-        .catch(() => {});
+        .catch(() => {})
+        .finally(() => setLoading(false));
     }, 300);
 
     return () => clearTimeout(delayDebounceId);
@@ -181,6 +185,14 @@ const ReviewsPage = () => {
     }
     setDeletingReview(null);
   };
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[60vh] w-full items-center justify-center">
+        <Star className="size-16 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <>

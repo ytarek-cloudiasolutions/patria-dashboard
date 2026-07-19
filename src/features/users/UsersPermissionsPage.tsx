@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { Plus } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Plus, UserCircle } from "lucide-react";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
 import DeleteDialog from "@/shared/components/DeleteDialog";
@@ -50,11 +50,23 @@ const UsersPermissionsPage = () => {
   // Users tab
   const {
     users,
+    loading,
     getUsersList,
     createNewUser,
     updateUserInfo,
     deleteUserInfo,
   } = useUsers();
+
+  const [usersLoaded, setUsersLoaded] = useState(false);
+  const usersStarted = useRef(loading.fetch);
+
+  useEffect(() => {
+    if (loading.fetch) {
+      usersStarted.current = true;
+    } else if (usersStarted.current) {
+      setUsersLoaded(true);
+    }
+  }, [loading.fetch]);
 
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
@@ -197,6 +209,16 @@ const UsersPermissionsPage = () => {
     });
     setBlockingAppUser(null);
   };
+
+  const isLoading = !usersLoaded;
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[60vh] w-full items-center justify-center">
+        <UserCircle className="size-16 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <>

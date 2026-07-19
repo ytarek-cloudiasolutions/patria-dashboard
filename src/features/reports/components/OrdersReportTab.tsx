@@ -46,9 +46,10 @@ interface OrdersReportTabProps {
   fromDate: string;
   toDate: string;
   orderType: OrderType;
+  onInitialLoadComplete?: () => void;
 }
 
-const OrdersReportTab = ({ fromDate, toDate, orderType }: OrdersReportTabProps) => {
+const OrdersReportTab = ({ fromDate, toDate, orderType, onInitialLoadComplete }: OrdersReportTabProps) => {
   const { t } = useTranslation();
   const [summary, setSummary] = useState<OrderSummary | null>(null);
   const [orders, setOrders] = useState<OrderRow[]>([]);
@@ -72,7 +73,10 @@ const OrdersReportTab = ({ fromDate, toDate, orderType }: OrdersReportTabProps) 
         setSummary(null);
         setOrders([]);
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setLoading(false);
+        onInitialLoadComplete?.();
+      });
   }, [fromDate, toDate, orderType]);
 
   const handleExportCSV = () => {

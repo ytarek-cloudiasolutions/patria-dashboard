@@ -9,6 +9,7 @@ import { api } from "@/config/api";
 
 interface DailyReportTabProps {
   onMenuOpenChange: (open: boolean) => void;
+  onInitialLoadComplete?: () => void;
 }
 
 const TH = "px-5 py-3 text-[13px] font-semibold text-[#28293D]";
@@ -29,7 +30,7 @@ interface Summary {
   totalDiscounts: number;
 }
 
-const DailyReportTab = ({ onMenuOpenChange }: DailyReportTabProps) => {
+const DailyReportTab = ({ onMenuOpenChange, onInitialLoadComplete }: DailyReportTabProps) => {
   const { t } = useTranslation();
   const [date, setDate] = useState("");
   const [shift, setShift] = useState("Morning");
@@ -64,7 +65,10 @@ const DailyReportTab = ({ onMenuOpenChange }: DailyReportTabProps) => {
         setSummary(null);
         setProducts([]);
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setLoading(false);
+        onInitialLoadComplete?.();
+      });
   }, [date]);
 
   return (

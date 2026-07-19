@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
   Box,
@@ -24,6 +24,7 @@ const InventoryPage = () => {
     items,
     shortages,
     stats: backendStats,
+    loading,
     getInventoryList,
     getShortagesList,
     syncInventory,
@@ -35,6 +36,28 @@ const InventoryPage = () => {
   const [adjustments, setAdjustments] = useState<Record<string | number, number>>({});
 
   const hasAdjustments = Object.keys(adjustments).length > 0;
+
+  const [inventoryLoaded, setInventoryLoaded] = useState(false);
+  const [shortagesLoaded, setShortagesLoaded] = useState(false);
+
+  const inventoryStarted = useRef(loading.fetch);
+  const shortagesStarted = useRef(loading.fetchShortages);
+
+  useEffect(() => {
+    if (loading.fetch) {
+      inventoryStarted.current = true;
+    } else if (inventoryStarted.current) {
+      setInventoryLoaded(true);
+    }
+  }, [loading.fetch]);
+
+  useEffect(() => {
+    if (loading.fetchShortages) {
+      shortagesStarted.current = true;
+    } else if (shortagesStarted.current) {
+      setShortagesLoaded(true);
+    }
+  }, [loading.fetchShortages]);
 
   // Fetch lists on mount
   useEffect(() => {
@@ -78,6 +101,16 @@ const InventoryPage = () => {
     bulkUpdateItemsStock({ updates: updatesToUpdate });
     setAdjustments({});
   };
+
+  const isLoading = !inventoryLoaded || !shortagesLoaded;
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[60vh] w-full items-center justify-center">
+        <Box className="size-16 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <>

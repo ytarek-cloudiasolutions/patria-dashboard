@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Plus } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Plus, Clock } from "lucide-react";
 
 import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
@@ -12,10 +12,21 @@ import type { Shift, ShiftFormData } from "./types";
 
 const ShiftManagementPage = () => {
   const { t } = useTranslation();
-  const { shifts, saveShift, removeShift } = useShiftTemplates();
+  const { shifts, isLoading, saveShift, removeShift } = useShiftTemplates();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingShift, setEditingShift] = useState<Shift | undefined>();
   const [deletingShift, setDeletingShift] = useState<Shift | null>(null);
+
+  const [hasLoaded, setHasLoaded] = useState(false);
+  const loadingStarted = useRef(isLoading);
+
+  useEffect(() => {
+    if (isLoading) {
+      loadingStarted.current = true;
+    } else if (loadingStarted.current) {
+      setHasLoaded(true);
+    }
+  }, [isLoading]);
 
   const handleOpenCreate = () => {
     setEditingShift(undefined);
@@ -36,6 +47,14 @@ const ShiftManagementPage = () => {
     removeShift(deletingShift.id).catch(() => {});
     setDeletingShift(null);
   };
+
+  if (!hasLoaded) {
+    return (
+      <div className="flex min-h-[60vh] w-full items-center justify-center">
+        <Clock className="size-16 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <>

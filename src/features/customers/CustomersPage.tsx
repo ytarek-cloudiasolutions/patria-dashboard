@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Users } from "lucide-react";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import SearchInputField from "@/shared/components/SearchInputField";
@@ -39,11 +40,23 @@ const CustomersPage = () => {
   const {
     customers,
     stats: backendStats,
+    loading,
     getCustomersList,
     getCustomerStats,
     updateCustomerInfo,
     deleteCustomerInfo,
   } = useCustomers();
+
+  const [customersLoaded, setCustomersLoaded] = useState(false);
+  const customersStarted = useRef(loading.fetch);
+
+  useEffect(() => {
+    if (loading.fetch) {
+      customersStarted.current = true;
+    } else if (customersStarted.current) {
+      setCustomersLoaded(true);
+    }
+  }, [loading.fetch]);
 
   const [search, setSearch] = useState("");
   const [tierFilter, setTierFilter] = useState<string>("all");
@@ -100,6 +113,16 @@ const CustomersPage = () => {
     const phone = customer.phone.replace(/\D/g, "");
     window.open(`https://wa.me/${phone}`, "_blank", "noopener,noreferrer");
   };
+
+  const isLoading = !customersLoaded;
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[60vh] w-full items-center justify-center">
+        <Users className="size-16 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <>

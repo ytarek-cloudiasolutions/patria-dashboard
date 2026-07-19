@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { Plus } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Plus, BarChart2 } from "lucide-react";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
@@ -34,9 +34,20 @@ const mapApiDriver = (d: any): Driver => ({
 
 const LogisticsPage = () => {
   const { t } = useTranslation();
-  const { drivers: apiDrivers, getDrivers, createDriver, updateDriver, deleteDriver } = useLogistics();
+  const { drivers: apiDrivers, getDrivers, createDriver, updateDriver, deleteDriver, loading } = useLogistics();
   const [zones, setZones] = useState<Zone[]>(INITIAL_ZONES);
   const [drivers, setDrivers] = useState<Driver[]>([]);
+
+  const [logisticsLoaded, setLogisticsLoaded] = useState(false);
+  const logisticsStarted = useRef(loading.fetch);
+
+  useEffect(() => {
+    if (loading.fetch) {
+      logisticsStarted.current = true;
+    } else if (logisticsStarted.current) {
+      setLogisticsLoaded(true);
+    }
+  }, [loading.fetch]);
 
   useEffect(() => { getDrivers(); }, [getDrivers]);
   useEffect(() => {
@@ -191,6 +202,16 @@ const LogisticsPage = () => {
     deleteDriver(String(deletingDriver.id));
     setDeletingDriver(null);
   };
+
+  const isLoading = !logisticsLoaded;
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[60vh] w-full items-center justify-center">
+        <BarChart2 className="size-16 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <>

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Navigation } from "lucide-react";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
@@ -38,6 +38,7 @@ const DeliveryTrackingPage = () => {
   const [selectedRider, setSelectedRider] = useState<Rider | null>(null);
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [loading, setLoading] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
   const loadRiders = useCallback(() => {
     setLoading(true);
@@ -49,7 +50,10 @@ const DeliveryTrackingPage = () => {
         setLastUpdated(new Date());
       })
       .catch(() => {})
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setLoading(false);
+        setHasLoaded(true);
+      });
   }, []);
 
   useEffect(() => { loadRiders(); }, [loadRiders]);
@@ -68,6 +72,14 @@ const DeliveryTrackingPage = () => {
       second: "2-digit",
       hour12: true,
     });
+
+  if (!hasLoaded) {
+    return (
+      <div className="flex min-h-[60vh] w-full items-center justify-center">
+        <Navigation className="size-16 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <>

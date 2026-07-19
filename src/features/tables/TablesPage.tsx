@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { CalendarPlus, Loader2, Plus, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { CalendarPlus, Loader2, Plus, X, Armchair } from "lucide-react";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
 import DatePicker from "@/shared/components/DatePicker";
@@ -77,6 +77,28 @@ const TablesPage = () => {
   const [isReservationOpen, setIsReservationOpen] = useState(false);
   const [deletingTable, setDeletingTable] = useState<Table | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const [tablesLoaded, setTablesLoaded] = useState(false);
+  const [reservationsLoaded, setReservationsLoaded] = useState(false);
+
+  const tablesStarted = useRef(isFetchingTables);
+  const reservationsStarted = useRef(isFetchingReservations);
+
+  useEffect(() => {
+    if (isFetchingTables) {
+      tablesStarted.current = true;
+    } else if (tablesStarted.current) {
+      setTablesLoaded(true);
+    }
+  }, [isFetchingTables]);
+
+  useEffect(() => {
+    if (isFetchingReservations) {
+      reservationsStarted.current = true;
+    } else if (reservationsStarted.current) {
+      setReservationsLoaded(true);
+    }
+  }, [isFetchingReservations]);
 
   // Fetch tables and reservations on mount
   useEffect(() => {
@@ -182,6 +204,16 @@ const TablesPage = () => {
       tableId: data.table,
     });
   };
+
+  const isLoading = !tablesLoaded || !reservationsLoaded;
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[60vh] w-full items-center justify-center">
+        <Armchair className="size-16 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <>

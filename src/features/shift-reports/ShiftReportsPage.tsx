@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FileUp } from "lucide-react";
+import { FileUp, BarChart3 } from "lucide-react";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
 import { useTranslation } from "@/shared/i18n/useTranslation";
@@ -14,10 +14,18 @@ const ShiftReportsPage = () => {
   const { t } = useTranslation();
   const [tab, setTab] = useState<ShiftReportsTabKey>("daily");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
   return (
     <>
-      {isMenuOpen && (
+      {!hasLoaded && (
+        <div className="flex min-h-[60vh] w-full items-center justify-center">
+          <BarChart3 className="size-16 animate-spin text-primary" />
+        </div>
+      )}
+
+      <div className={!hasLoaded ? "hidden" : ""}>
+        {isMenuOpen && (
         <div className="pointer-events-none fixed inset-0 z-40 bg-black/40" />
       )}
 
@@ -39,11 +47,17 @@ const ShiftReportsPage = () => {
 
       <ShiftReportsTabs active={tab} onChange={setTab} />
 
-      {tab === "daily" && <DailyReportTab onMenuOpenChange={setIsMenuOpen} />}
+      {tab === "daily" && (
+        <DailyReportTab
+          onMenuOpenChange={setIsMenuOpen}
+          onInitialLoadComplete={() => setHasLoaded(true)}
+        />
+      )}
       {tab === "most-selling" && (
         <MostSellingTab onMenuOpenChange={setIsMenuOpen} />
       )}
       {tab === "shifts" && <ShiftReportsTab onMenuOpenChange={setIsMenuOpen} />}
+      </div>
     </>
   );
 };

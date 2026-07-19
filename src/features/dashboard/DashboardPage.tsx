@@ -9,6 +9,7 @@ import {
   DollarSign,
   Bell,
   CalendarDays,
+  LayoutDashboard,
 } from "lucide-react";
 import { api } from "@/config/api";
 import { DASHBOARD_DATE } from "./data";
@@ -69,9 +70,11 @@ const DashboardPage = () => {
     to: getTodayDateString(),
   });
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
+      setIsLoading(true);
       try {
         const [overviewRes, ordersRes] = await Promise.all([
           api.get("/reports/overview", {
@@ -194,6 +197,8 @@ const DashboardPage = () => {
         setLiveOrders(live);
       } catch {
         // silently fail — static fallback via initial empty state
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -206,6 +211,14 @@ const DashboardPage = () => {
     month: "long",
     day: "numeric",
   });
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[60vh] w-full items-center justify-center">
+        <LayoutDashboard className="size-16 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 sm:space-y-6">

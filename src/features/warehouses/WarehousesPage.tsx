@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { ArrowLeftRight, Plus } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowLeftRight, Plus, Warehouse as WarehouseIcon } from "lucide-react";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
@@ -46,8 +46,8 @@ const mapApiTransfer = (t: any): InternalTransfer => ({
 
 const WarehousesPage = () => {
   const { t } = useTranslation();
-  const { warehouses: apiWarehouses, transfers: apiTransfers, getWarehouses, getTransfers, createWarehouse, createTransfer } = useWarehouses();
-  const { products: apiProducts, getProducts } = useProducts();
+  const { warehouses: apiWarehouses, transfers: apiTransfers, getWarehouses, getTransfers, createWarehouse, createTransfer, loading: warehousesLoading } = useWarehouses();
+  const { products: apiProducts, getProducts, isFetchingProducts } = useProducts();
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [transfers, setTransfers] = useState<InternalTransfer[]>([]);
 
@@ -62,6 +62,38 @@ const WarehousesPage = () => {
 
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isTransferOpen, setIsTransferOpen] = useState(false);
+
+  const [warehousesLoaded, setWarehousesLoaded] = useState(false);
+  const [transfersLoaded, setTransfersLoaded] = useState(false);
+  const [productsLoaded, setProductsLoaded] = useState(false);
+
+  const warehousesStarted = useRef(warehousesLoading.fetch);
+  const transfersStarted = useRef(warehousesLoading.fetchTransfers);
+  const productsStarted = useRef(isFetchingProducts);
+
+  useEffect(() => {
+    if (warehousesLoading.fetch) {
+      warehousesStarted.current = true;
+    } else if (warehousesStarted.current) {
+      setWarehousesLoaded(true);
+    }
+  }, [warehousesLoading.fetch]);
+
+  useEffect(() => {
+    if (warehousesLoading.fetchTransfers) {
+      transfersStarted.current = true;
+    } else if (transfersStarted.current) {
+      setTransfersLoaded(true);
+    }
+  }, [warehousesLoading.fetchTransfers]);
+
+  useEffect(() => {
+    if (isFetchingProducts) {
+      productsStarted.current = true;
+    } else if (productsStarted.current) {
+      setProductsLoaded(true);
+    }
+  }, [isFetchingProducts]);
 
   const { mainWarehouses, subWarehouses } = useMemo(() => {
     return {
@@ -87,6 +119,16 @@ const WarehousesPage = () => {
       items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
     } as any);
   };
+
+  const isLoading = !warehousesLoaded || !transfersLoaded || !productsLoaded;
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[60vh] w-full items-center justify-center">
+        <WarehouseIcon className="size-16 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <>

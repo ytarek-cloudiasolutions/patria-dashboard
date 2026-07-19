@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Plus } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Plus, Tag } from "lucide-react";
 import WhatsAppIcon from "@/assets/icons/whatsapp.svg";
 import OffersOverView from "./components/OffersOverView";
 import CreateOfferDialog from "./components/CreateOfferDialog";
@@ -20,12 +20,24 @@ const OffersPage = () => {
 
   const {
     offers,
+    loading,
     getOffersList,
     createNewOffer,
     updateOfferInfo,
     deleteOfferInfo,
     toggleOffer,
   } = useOffers();
+
+  const [offersLoaded, setOffersLoaded] = useState(false);
+  const offersStarted = useRef(loading.fetch);
+
+  useEffect(() => {
+    if (loading.fetch) {
+      offersStarted.current = true;
+    } else if (offersStarted.current) {
+      setOffersLoaded(true);
+    }
+  }, [loading.fetch]);
 
   useEffect(() => {
     getOffersList();
@@ -101,6 +113,16 @@ const OffersPage = () => {
     setIsDialogOpen(false);
     setEditingOffer(undefined);
   };
+
+  const isLoading = !offersLoaded;
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[60vh] w-full items-center justify-center">
+        <Tag className="size-16 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <>

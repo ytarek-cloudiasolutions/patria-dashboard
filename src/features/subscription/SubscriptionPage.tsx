@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { Plus, RefreshCw } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Plus, RefreshCw, UserCircle } from "lucide-react";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
 import SearchInputField from "@/shared/components/SearchInputField";
@@ -37,7 +37,50 @@ const SubscriptionPage = () => {
     getUsersList,
     getProductsList,
     runRenewals,
+    loading,
   } = useSubscription();
+
+  const [subscriptionsLoaded, setSubscriptionsLoaded] = useState(false);
+  const [statsLoaded, setStatsLoaded] = useState(false);
+  const [usersLoaded, setUsersLoaded] = useState(false);
+  const [productsLoaded, setProductsLoaded] = useState(false);
+
+  const subscriptionsStarted = useRef(loading.fetch);
+  const statsStarted = useRef(loading.stats);
+  const usersStarted = useRef(loading.users);
+  const productsStarted = useRef(loading.products);
+
+  useEffect(() => {
+    if (loading.fetch) {
+      subscriptionsStarted.current = true;
+    } else if (subscriptionsStarted.current) {
+      setSubscriptionsLoaded(true);
+    }
+  }, [loading.fetch]);
+
+  useEffect(() => {
+    if (loading.stats) {
+      statsStarted.current = true;
+    } else if (statsStarted.current) {
+      setStatsLoaded(true);
+    }
+  }, [loading.stats]);
+
+  useEffect(() => {
+    if (loading.users) {
+      usersStarted.current = true;
+    } else if (usersStarted.current) {
+      setUsersLoaded(true);
+    }
+  }, [loading.users]);
+
+  useEffect(() => {
+    if (loading.products) {
+      productsStarted.current = true;
+    } else if (productsStarted.current) {
+      setProductsLoaded(true);
+    }
+  }, [loading.products]);
 
   const [search, setSearch] = useState("");
   const [paymentFilter, setPaymentFilter] = useState("all");
@@ -137,6 +180,16 @@ const SubscriptionPage = () => {
     deleteSubscriptionInfo(String(id));
     setCancellingSubscription(null);
   };
+
+  const isLoading = !subscriptionsLoaded || !statsLoaded || !usersLoaded || !productsLoaded;
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[60vh] w-full items-center justify-center">
+        <UserCircle className="size-16 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <>

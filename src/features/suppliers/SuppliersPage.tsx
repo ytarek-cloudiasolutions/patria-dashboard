@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { Plus } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Plus, Truck } from "lucide-react";
 
 import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
@@ -32,11 +32,23 @@ const SuppliersPage = () => {
   const { t } = useTranslation();
   const {
     suppliers,
+    loading,
     getSuppliersList,
     createNewSupplier,
     updateSupplierInfo,
     deleteSupplierInfo,
   } = useSuppliers();
+
+  const [suppliersLoaded, setSuppliersLoaded] = useState(false);
+  const suppliersStarted = useRef(loading.fetch);
+
+  useEffect(() => {
+    if (loading.fetch) {
+      suppliersStarted.current = true;
+    } else if (suppliersStarted.current) {
+      setSuppliersLoaded(true);
+    }
+  }, [loading.fetch]);
 
   const [search, setSearch] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -102,6 +114,16 @@ const SuppliersPage = () => {
     deleteSupplierInfo(String(deletingSupplier.id));
     setDeletingSupplier(null);
   };
+
+  const isLoading = !suppliersLoaded;
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[60vh] w-full items-center justify-center">
+        <Truck className="size-16 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <>

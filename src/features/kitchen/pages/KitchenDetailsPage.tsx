@@ -1,6 +1,6 @@
 import { useEffect, useCallback } from "react";
 import { Button } from "@/shared/components/ui/button";
-import { ArrowLeft, ArrowRight, RefreshCw } from "lucide-react";
+import { ArrowLeft, ArrowRight, RefreshCw, Loader2 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { useKitchen } from "../hooks/useKitchen";
@@ -200,7 +200,11 @@ const KitchenDetailsPage = () => {
         style={{ backgroundColor: station.color }}
       />
 
-      {kitchenOrders.length === 0 && !loading.fetch ? (
+      {loading.fetch ? (
+        <div className="flex flex-col items-center justify-center py-20">
+          <Loader2 className="size-10 animate-spin" style={{ color: station.color }} />
+        </div>
+      ) : kitchenOrders.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-[#8B8B8B]">
           <p className="text-[18px] font-medium">{t("No active orders")}</p>
           <p className="mt-1 text-[13px]">{t("Orders assigned to this station will appear here")}</p>

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Plus, ScanBarcode, Upload, Loader2 } from "lucide-react";
+import { Plus, ScanBarcode, Upload, Loader2, Coffee } from "lucide-react";
 import { cn } from "@/lib/utils";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
@@ -95,6 +95,28 @@ const ProductsPage = () => {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [isCategoryFilterOpen, setIsCategoryFilterOpen] = useState(false);
   const [page, setPage] = useState(1);
+
+  const [categoriesLoaded, setCategoriesLoaded] = useState(false);
+  const [productsLoaded, setProductsLoaded] = useState(false);
+
+  const categoriesStarted = useRef(isFetchingCategories);
+  const productsStarted = useRef(isFetchingProducts);
+
+  useEffect(() => {
+    if (isFetchingCategories) {
+      categoriesStarted.current = true;
+    } else if (categoriesStarted.current) {
+      setCategoriesLoaded(true);
+    }
+  }, [isFetchingCategories]);
+
+  useEffect(() => {
+    if (isFetchingProducts) {
+      productsStarted.current = true;
+    } else if (productsStarted.current) {
+      setProductsLoaded(true);
+    }
+  }, [isFetchingProducts]);
 
   useEffect(() => {
     setPage(1);
@@ -328,6 +350,16 @@ const ProductsPage = () => {
           setIsAddProductOpen(true);
         },
       };
+
+  const isLoading = !categoriesLoaded || !productsLoaded;
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[60vh] w-full items-center justify-center">
+        <Coffee className="size-16 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { UserCircle } from "lucide-react";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import { api } from "@/config/api";
 import { useTranslation } from "@/shared/i18n/useTranslation";
@@ -41,6 +42,8 @@ const MyAccountPage = () => {
     from: "",
     to: "",
   });
+  const [profileLoaded, setProfileLoaded] = useState(false);
+  const [ordersLoaded, setOrdersLoaded] = useState(false);
 
   // Load current user profile on mount
   useEffect(() => {
@@ -55,7 +58,8 @@ const MyAccountPage = () => {
           shipmentAddress: "",
         });
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setProfileLoaded(true));
   }, []);
 
   // Fetch orders for the stats table
@@ -88,7 +92,8 @@ const MyAccountPage = () => {
         });
         setOrderReports(mapped);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setOrdersLoaded(true));
   }, [dateRange]);
 
   const handleChange = (key: keyof AccountFormData, value: string) =>
@@ -113,6 +118,16 @@ const MyAccountPage = () => {
       setIsSaving(false);
     }
   };
+
+  const isLoading = !profileLoaded || !ordersLoaded;
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[60vh] w-full items-center justify-center">
+        <UserCircle className="size-16 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <>

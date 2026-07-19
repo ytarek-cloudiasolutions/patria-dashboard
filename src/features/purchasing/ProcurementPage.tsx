@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { Plus } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Plus, ShoppingCart } from "lucide-react";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
@@ -52,7 +52,7 @@ const mapApiOrder = (o: any): PurchaseOrder => ({
 
 const ProcurementPage = () => {
   const { t } = useTranslation();
-  const { purchaseOrders: apiOrders, getPurchaseOrders, createPurchaseOrder, submitPurchaseOrder } = usePurchasing();
+  const { purchaseOrders: apiOrders, getPurchaseOrders, createPurchaseOrder, submitPurchaseOrder, loading: purchasingLoading } = usePurchasing();
   const [orders, setOrders] = useState<PurchaseOrder[]>([]);
 
   // Real suppliers/warehouses/products for the Create PO dialog — it used
@@ -60,10 +60,10 @@ const ProcurementPage = () => {
   // every submitted PO sent a fake, non-ObjectId id and the backend always
   // rejected it with "Supplier not found".
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { suppliers: apiSuppliers, getSuppliersList } = useSuppliers() as any;
+  const { suppliers: apiSuppliers, getSuppliersList, loading: suppliersLoading } = useSuppliers() as any;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { warehouses: apiWarehouses, getWarehouses } = useWarehouses() as any;
-  const { products: apiProducts, getProducts } = useProducts();
+  const { warehouses: apiWarehouses, getWarehouses, loading: warehousesLoading } = useWarehouses() as any;
+  const { products: apiProducts, getProducts, isFetchingProducts } = useProducts();
 
   useEffect(() => { getPurchaseOrders(); }, [getPurchaseOrders]);
   useEffect(() => { if (apiOrders?.length) setOrders(apiOrders.map(mapApiOrder)); }, [apiOrders]);
@@ -93,6 +93,48 @@ const ProcurementPage = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [isStatusFilterOpen, setIsStatusFilterOpen] = useState(false);
+
+  const [purchasingLoaded, setPurchasingLoaded] = useState(false);
+  const [suppliersLoaded, setSuppliersLoaded] = useState(false);
+  const [warehousesLoaded, setWarehousesLoaded] = useState(false);
+  const [productsLoaded, setProductsLoaded] = useState(false);
+
+  const purchasingStarted = useRef(purchasingLoading.fetch);
+  const suppliersStarted = useRef(suppliersLoading.fetch);
+  const warehousesStarted = useRef(warehousesLoading.fetch);
+  const productsStarted = useRef(isFetchingProducts);
+
+  useEffect(() => {
+    if (purchasingLoading.fetch) {
+      purchasingStarted.current = true;
+    } else if (purchasingStarted.current) {
+      setPurchasingLoaded(true);
+    }
+  }, [purchasingLoading.fetch]);
+
+  useEffect(() => {
+    if (suppliersLoading.fetch) {
+      suppliersStarted.current = true;
+    } else if (suppliersStarted.current) {
+      setSuppliersLoaded(true);
+    }
+  }, [suppliersLoading.fetch]);
+
+  useEffect(() => {
+    if (warehousesLoading.fetch) {
+      warehousesStarted.current = true;
+    } else if (warehousesStarted.current) {
+      setWarehousesLoaded(true);
+    }
+  }, [warehousesLoading.fetch]);
+
+  useEffect(() => {
+    if (isFetchingProducts) {
+      productsStarted.current = true;
+    } else if (productsStarted.current) {
+      setProductsLoaded(true);
+    }
+  }, [isFetchingProducts]);
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [paymentTarget, setPaymentTarget] = useState<PurchaseOrder | null>(
@@ -160,6 +202,16 @@ const ProcurementPage = () => {
   const handleConfirmPayment = (orderId: number, _amount: number) => {
     submitPurchaseOrder(String(orderId));
   };
+
+  const isLoading = !purchasingLoaded || !suppliersLoaded || !warehousesLoaded || !productsLoaded;
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[60vh] w-full items-center justify-center">
+        <ShoppingCart className="size-16 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <>

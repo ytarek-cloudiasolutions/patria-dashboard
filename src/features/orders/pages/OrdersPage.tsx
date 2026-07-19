@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import {
   Smartphone,
@@ -10,6 +10,7 @@ import {
   Plus,
   Trash2,
   TrendingUp,
+  ShoppingBag,
   type LucideIcon,
 } from "lucide-react";
 
@@ -52,9 +53,10 @@ const OrdersPage = () => {
     updateOrderStatusValue,
     createNewOrder,
     deleteOrderValue,
+    isFetchingOrders,
   } = useOrders();
-  const { products, getProducts } = useProducts();
-  const { locations, getLocations } = useLocations();
+  const { products, getProducts, isFetchingProducts } = useProducts();
+  const { locations, getLocations, isFetchingLocations } = useLocations();
 
   const [searchValue, setSearchValue] = useState("");
   const [selectedStatus, setSelectedStatus] =
@@ -67,6 +69,39 @@ const OrdersPage = () => {
   });
   const [currentPage, setCurrentPage] = useState(1);
 
+  const [countsLoaded, setCountsLoaded] = useState(false);
+  const [productsLoaded, setProductsLoaded] = useState(false);
+  const [locationsLoaded, setLocationsLoaded] = useState(false);
+  const [ordersLoaded, setOrdersLoaded] = useState(false);
+
+  const productsStarted = useRef(isFetchingProducts);
+  const locationsStarted = useRef(isFetchingLocations);
+  const ordersStarted = useRef(isFetchingOrders);
+
+  useEffect(() => {
+    if (isFetchingProducts) {
+      productsStarted.current = true;
+    } else if (productsStarted.current) {
+      setProductsLoaded(true);
+    }
+  }, [isFetchingProducts]);
+
+  useEffect(() => {
+    if (isFetchingLocations) {
+      locationsStarted.current = true;
+    } else if (locationsStarted.current) {
+      setLocationsLoaded(true);
+    }
+  }, [isFetchingLocations]);
+
+  useEffect(() => {
+    if (isFetchingOrders) {
+      ordersStarted.current = true;
+    } else if (ordersStarted.current) {
+      setOrdersLoaded(true);
+    }
+  }, [isFetchingOrders]);
+
   // Fetch all source counts on mount for accurate initial badges
   useEffect(() => {
     import("@/config/api").then(({ api }) => {
@@ -77,7 +112,9 @@ const OrdersPage = () => {
           pos: c.pos ?? 0,
           call: c.call ?? 0,
         });
-      }).catch(() => { });
+      })
+      .catch(() => { })
+      .finally(() => setCountsLoaded(true));
     });
   }, []);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -285,6 +322,16 @@ const OrdersPage = () => {
 
     createNewOrder(createRequest);
   };
+
+  const isLoading = !countsLoaded || !productsLoaded || !locationsLoaded || !ordersLoaded;
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[60vh] w-full items-center justify-center">
+        <ShoppingBag className="size-16 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <>

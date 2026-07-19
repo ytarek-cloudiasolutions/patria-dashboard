@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Plus, WalletCards } from "lucide-react";
+import { Plus, WalletCards, Tag } from "lucide-react";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
 import { useTranslation } from "@/shared/i18n/useTranslation";
@@ -53,6 +53,7 @@ const PricingPage = () => {
 
   const [ruleToDelete, setRuleToDelete] = useState<PricingRule | null>(null);
   const [listToDelete, setListToDelete] = useState<WholesalePriceList | null>(null);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
   const loadPricingData = () => {
     fetchPricing()
@@ -61,7 +62,10 @@ const PricingPage = () => {
         setWholesaleLists(res.priceLists);
         setStats(res.stats);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => {
+        setHasLoaded(true);
+      });
   };
 
   useEffect(() => {
@@ -111,6 +115,14 @@ const PricingPage = () => {
       });
     }
   };
+
+  if (!hasLoaded) {
+    return (
+      <div className="flex min-h-[60vh] w-full items-center justify-center">
+        <Tag className="size-16 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <>

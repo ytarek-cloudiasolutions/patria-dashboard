@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Plus } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Plus, MapPin } from "lucide-react";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
 import DeleteDialog from "@/shared/components/DeleteDialog";
@@ -27,6 +27,17 @@ const LocationsPage = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingZone, setEditingZone] = useState<DeliveryZone | undefined>();
   const [deletingZone, setDeletingZone] = useState<DeliveryZone | null>(null);
+
+  const [locationsLoaded, setLocationsLoaded] = useState(false);
+  const locationsStarted = useRef(isFetchingLocations);
+
+  useEffect(() => {
+    if (isFetchingLocations) {
+      locationsStarted.current = true;
+    } else if (locationsStarted.current) {
+      setLocationsLoaded(true);
+    }
+  }, [isFetchingLocations]);
 
   useEffect(() => {
     getLocations();
@@ -75,6 +86,16 @@ const LocationsPage = () => {
     deleteLocation({ locationId: deletingZone.id });
     setDeletingZone(null);
   };
+
+  const isLoading = !locationsLoaded;
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[60vh] w-full items-center justify-center">
+        <MapPin className="size-16 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <>

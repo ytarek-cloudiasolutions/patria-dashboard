@@ -145,6 +145,14 @@ const CouponsPage = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex min-h-[60vh] w-full items-center justify-center">
+        <Ticket className="size-16 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -223,16 +231,12 @@ const CouponsPage = () => {
         />
       </div>
 
-      {loading ? (
-        <p className="py-10 text-center text-[13px] text-[#8B8B8B]">{t("Loading...")}</p>
-      ) : (
-        <CouponsTable
-          coupons={filtered}
-          onStatusChange={handleStatusChange}
-          onEdit={handleEditCoupon}
-          onDelete={handleDeleteCoupon}
-        />
-      )}
+      <CouponsTable
+        coupons={filtered}
+        onStatusChange={handleStatusChange}
+        onEdit={handleEditCoupon}
+        onDelete={handleDeleteCoupon}
+      />
 
       <CreateCouponDialog
         isOpen={isDialogOpen}
