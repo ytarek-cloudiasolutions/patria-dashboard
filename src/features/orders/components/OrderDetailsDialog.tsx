@@ -48,6 +48,17 @@ const OrderDetailsDialog = ({
   const grossTotal = order.total;
   const finalTotal = Math.max(grossTotal - adminDiscount, 0);
 
+  const handleMarkAsPaid = async () => {
+    try {
+      await api.patch(`/orders/${order.id}/payment-status`, {
+        paymentStatus: "paid",
+      });
+      showSuccessToast(t("Order marked as paid"));
+    } catch {
+      showErrorToast(t("Failed to update payment status"));
+    }
+  };
+
   const handleApplyDiscount = async (discount: number, reason: string) => {
     setAdminDiscount(discount);
     try {
@@ -188,15 +199,20 @@ const OrderDetailsDialog = ({
                   </p>
                   {order.paymentState !== "None" && (
                     <div className="mt-2 flex justify-end">
-                      <span
-                        className={`inline-flex h-5 items-center justify-center rounded-full border px-2 text-[10px] font-semibold ${
-                          order.paymentState === "Paid"
-                            ? "border-[#00A86B] bg-[#E2F4ED] text-[#00A86B]"
-                            : "border-[#C7861E] bg-[#FFF7E6] text-[#C7861E]"
-                        }`}
-                      >
-                        {order.paymentState === "Paid" ? t("Paid") : t("Pending")}
-                      </span>
+                      {order.paymentState === "Paid" ? (
+                        <span className="inline-flex h-5 items-center justify-center rounded-full border border-[#00A86B] bg-[#E2F4ED] px-2 text-[10px] font-semibold text-[#00A86B]">
+                          {t("Paid")}
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={handleMarkAsPaid}
+                          className="inline-flex h-5 cursor-pointer items-center justify-center rounded-full border border-[#C7861E] bg-[#FFF7E6] px-2 text-[10px] font-semibold text-[#C7861E] transition-colors hover:bg-[#C7861E] hover:text-white"
+                          title={t("Mark as Paid")}
+                        >
+                          {t("Pending")} · {t("Mark as Paid")}
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
