@@ -41,6 +41,17 @@ const AddZoneDialog = ({
       <DialogContent
         showCloseButton={false}
         className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-160"
+        onInteractOutside={(e) => {
+          // Google Places renders its suggestion dropdown (.pac-container)
+          // directly on document.body, outside this dialog's DOM subtree.
+          // Radix treats a click on it as an outside interaction (pointer
+          // down or focus) and dismisses/blurs before the suggestion's own
+          // click handler runs, so a pick never registered. Let interactions
+          // inside .pac-container through without triggering Radix's
+          // outside-dismiss behavior.
+          const target = e.target as HTMLElement;
+          if (target.closest(".pac-container")) e.preventDefault();
+        }}
       >
         {/* Scrim/backdrop overlay when the Status dropdown is open */}
         {isStatusOpen && (
