@@ -58,7 +58,7 @@ const CallCustomerStep = ({
         <Label className="mb-2.5 block text-[15px] font-medium text-black">
           {t("Find the customer by phone number")}
         </Label>
-        <div className="flex items-stretch gap-2.5">
+        <div className="flex items-center gap-2.5">
           <InputField
             id="call-phone-search"
             placeholder="e.g 012X XXXX XXXX"

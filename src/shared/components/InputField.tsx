@@ -42,13 +42,15 @@ const InputField = ({
 
   return (
     <div className={cn("flex flex-col", wrapperClassName)}>
-      <Label
-        htmlFor={labelHtmlFor}
-        className="mb-2.5 text-[16px] font-medium text-black"
-      >
-        {labelText}
-        {required && <span className="text-[#C90000]">*</span>}
-      </Label>
+      {labelText && (
+        <Label
+          htmlFor={labelHtmlFor}
+          className="mb-2.5 text-[16px] font-medium text-black"
+        >
+          {labelText}
+          {required && <span className="text-[#C90000]">*</span>}
+        </Label>
+      )}
       <Input
         id={id}
         type={type}
