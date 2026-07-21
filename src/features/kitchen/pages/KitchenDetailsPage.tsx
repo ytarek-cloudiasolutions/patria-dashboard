@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
 import { Button } from "@/shared/components/ui/button";
 import { ArrowLeft, ArrowRight, RefreshCw, Loader2 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -7,9 +7,10 @@ import { useKitchen } from "../hooks/useKitchen";
 import type { KitchenOrder } from "../store/kitchenTypes";
 import { Badge } from "@/shared/components/ui/badge";
 import { Card, CardContent } from "@/shared/components/ui/card";
-import { Clock3, UserRound } from "lucide-react";
+import { Clock3, UserRound, Smartphone } from "lucide-react";
 import { getSocket } from "@/shared/lib/socket";
 import { playNotificationSound } from "@/shared/lib/notificationSound";
+import OrderDetailsDialog from "../components/OrderDetailsDialog";
 
 const KITCHEN_STATIONS: Record<string, { name: string; color: string; bg: string }> = {
   barista: { name: "Barista", color: "#F9A825", bg: "#FE9A001A" },
@@ -25,6 +26,12 @@ const STATUS_STYLE: Record<string, { bg: string; text: string; border: string; l
   served:    { bg: "#F0F0F0", text: "#666666", border: "#999999", label: "Served" },
 };
 
+const ORDER_TYPE_STYLE: Record<string, { bg: string; text: string; border: string; label: string }> = {
+  delivery: { bg: "#EDF4FB", text: "#3574FF", border: "#3574FF", label: "Delivery" },
+  takeaway: { bg: "#F5F0EA", text: "#8F6900", border: "#C8A96E", label: "Takeaway" },
+  "dine-in": { bg: "#E2F4ED", text: "#059B5A", border: "#059B5A", label: "Dine-In" },
+};
+
 function formatTimeAgo(createdAt: string): string {
   const diff = Math.floor((Date.now() - new Date(createdAt).getTime()) / 60000);
   if (diff < 1) return "Just now";
@@ -38,13 +45,19 @@ function getCustomerName(order: KitchenOrder): string {
   return order.customer.name ?? "Walk-in";
 }
 
+function getCustomerPhone(order: KitchenOrder): string {
+  if (!order.customer || typeof order.customer === "string") return "";
+  return order.customer.phone ?? "";
+}
+
 interface OrderCardProps {
   order: KitchenOrder;
   onStatusChange: (id: string, status: string) => void;
   stationColor: string;
+  onCardClick: (order: KitchenOrder) => void;
 }
 
-const ApiKitchenOrderCard = ({ order, onStatusChange, stationColor }: OrderCardProps) => {
+const ApiKitchenOrderCard = ({ order, onStatusChange, stationColor, onCardClick }: OrderCardProps) => {
   const { t } = useTranslation();
   const statusStyle = STATUS_STYLE[order.status] ?? STATUS_STYLE.pending;
   const nextStatus: Record<string, string> = {
@@ -55,23 +68,35 @@ const ApiKitchenOrderCard = ({ order, onStatusChange, stationColor }: OrderCardP
   };
   const next = nextStatus[order.status];
 
+  // Get order type style with fallback
+  const typeKey = (order.type ?? "dine-in").toLowerCase();
+  const typeStyle = ORDER_TYPE_STYLE[typeKey] ?? {
+    bg: "#EDF4FB",
+    text: "#3574FF",
+    border: "#3574FF",
+    label: order.type ?? "Delivery"
+  };
+
   return (
-    <Card className="rounded-2xl border border-[#E7E7EC] bg-white p-5 ring-0">
-      <CardContent className="px-0 py-0">
+    <Card
+      onClick={() => onCardClick(order)}
+      className="flex flex-col h-full rounded-2xl border border-[#E7E7EC] bg-white p-5 ring-0 cursor-pointer hover:shadow-md transition-shadow duration-200"
+    >
+      <CardContent className="flex flex-col flex-1 px-0 py-0">
         <div className="mb-3 flex items-center justify-between gap-3">
           <h3 className="text-[18px] font-bold text-[#333333]">
             {order.orderNumber ?? `#${order._id.slice(-6).toUpperCase()}`}
           </h3>
           <Badge
             className="rounded-[30px] border px-3 py-1 text-[12px] font-normal"
-            style={{ backgroundColor: statusStyle.bg, color: statusStyle.text, borderColor: statusStyle.border }}
+            style={{ backgroundColor: typeStyle.bg, color: typeStyle.text, borderColor: typeStyle.border }}
           >
-            {t(statusStyle.label)}
+            {t(typeStyle.label)}
           </Badge>
         </div>
 
-        <div className="mb-3 rounded-[10px] border border-[#E5E5E5] bg-[#FAFAF7] p-2 text-[12px] text-[#595959]">
-          <div className="mb-2 flex items-center gap-1">
+        <div className="mb-3 rounded-[10px] border border-[#E5E5E5] bg-[#FAFAF7] p-2 text-[12px] text-[#595959] space-y-2">
+          <div className="flex items-center gap-1">
             <Clock3 className="size-3.5" />
             {t("Received")} {formatTimeAgo(order.createdAt)}
           </div>
@@ -80,6 +105,12 @@ const ApiKitchenOrderCard = ({ order, onStatusChange, stationColor }: OrderCardP
             {getCustomerName(order)}
             {order.table && <span className="ml-2 text-[#8B8B8B]">· {t("Table")} {order.table}</span>}
           </div>
+          {getCustomerPhone(order) && (
+            <div className="flex items-center gap-1">
+              <Smartphone className="size-3.5" />
+              <span dir="ltr">{getCustomerPhone(order)}</span>
+            </div>
+          )}
         </div>
 
         <ul className="mb-4 space-y-1 list-disc pl-5 pr-2 text-[13px] font-medium text-black">
@@ -93,13 +124,24 @@ const ApiKitchenOrderCard = ({ order, onStatusChange, stationColor }: OrderCardP
 
         {next && (
           <button
-            onClick={() => onStatusChange(order._id, next)}
-            className="w-full rounded-[8px] py-2 text-[13px] font-semibold text-white transition"
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onStatusChange(order._id, next);
+            }}
+            className="mt-auto w-full rounded-[8px] py-2 text-[13px] font-semibold text-white transition mb-3 cursor-pointer hover:opacity-90"
             style={{ backgroundColor: stationColor }}
           >
             {t(`Mark as ${STATUS_STYLE[next]?.label ?? next}`)}
           </button>
         )}
+
+        <div
+          className={`${!next ? "mt-auto" : ""} w-full rounded-[30px] border px-3 py-1.5 text-center text-[12px] font-semibold`}
+          style={{ backgroundColor: statusStyle.bg, color: statusStyle.text, borderColor: statusStyle.border }}
+        >
+          {t(statusStyle.label)}
+        </div>
       </CardContent>
     </Card>
   );
@@ -110,6 +152,7 @@ const KitchenDetailsPage = () => {
   const navigate = useNavigate();
   const { kitchenId } = useParams<{ kitchenId: string }>();
   const { kitchenOrders, loading, getKitchenOrders, updateOrderStatus } = useKitchen();
+  const [selectedOrder, setSelectedOrder] = useState<KitchenOrder | null>(null);
 
   const station = kitchenId ? KITCHEN_STATIONS[kitchenId] : null;
 
@@ -219,10 +262,17 @@ const KitchenDetailsPage = () => {
               onStatusChange={(id, status) =>
                 updateOrderStatus(id, { status: status as any })
               }
+              onCardClick={(ord) => setSelectedOrder(ord)}
             />
           ))}
         </div>
       )}
+
+      <OrderDetailsDialog
+        order={selectedOrder}
+        isOpen={!!selectedOrder}
+        onOpenChange={(open) => !open && setSelectedOrder(null)}
+      />
     </section>
   );
 };

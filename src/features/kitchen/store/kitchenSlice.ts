@@ -77,7 +77,10 @@ const kitchenSlice = createSlice({
         (o) => o._id === action.payload.order._id,
       );
       if (idx !== -1) {
-        state.kitchenOrders[idx] = action.payload.order;
+        state.kitchenOrders[idx] = {
+          ...action.payload.order,
+          items: state.kitchenOrders[idx].items,
+        };
       }
       state.successMessage = action.payload.message ?? "Order status updated";
     },

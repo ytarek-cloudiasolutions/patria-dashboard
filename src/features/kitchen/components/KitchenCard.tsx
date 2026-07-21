@@ -1,5 +1,4 @@
 import ActionButton from "@/shared/components/ActionButton";
-import { Badge } from "@/shared/components/ui/badge";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import {
   ChefHat,
@@ -22,31 +21,13 @@ interface KitchenCardProps {
 }
 
 const iconMap: Record<KitchenIcon, React.ReactNode> = {
-  main: <ChefHat className="size-6" />,
+  hot_food: <ChefHat className="size-6" />,
   pastry: <Croissant className="size-6" />,
   barista: <Coffee className="size-6" />,
 };
 
-const statusMap: Record<
-  Kitchen["status"],
-  { bg: string; text: string; border: string; label: string }
-> = {
-  active: {
-    bg: "#E2F4ED",
-    text: "#059B5A",
-    border: "#059B5A",
-    label: "Active",
-  },
-  busy: {
-    bg: "#FE9A001A",
-    text: "#C7861E",
-    border: "#C7861E",
-    label: "Busy",
-  },
-};
-
 const iconBackgroundMap: Record<KitchenIcon, string> = {
-  main: "#F5F0EA",
+  hot_food: "#FEECEC",
   pastry: "#F3E9FA",
   barista: "#FE9A001A",
 };
@@ -57,13 +38,12 @@ const KitchenCard = ({
   onDeleteKitchen,
 }: KitchenCardProps) => {
   const { t, dir } = useTranslation();
-  const statusStyle = statusMap[kitchen.status];
   const iconBackground = iconBackgroundMap[kitchen.icon];
 
   return (
     <Card
       className="gap-8 rounded-2xl bg-white p-6 py-6 ring-0"
-      style={{ borderTop: `9px solid ${kitchen.color}` }}
+      style={{ borderInlineStart: `9px solid ${kitchen.color}` }}
     >
       <CardContent className="px-0 py-0">
         <div className="mb-6 flex items-center justify-between">
@@ -76,16 +56,6 @@ const KitchenCard = ({
           >
             {iconMap[kitchen.icon]}
           </div>
-          <Badge
-            className="h-6 rounded-[30px] border px-3 text-[13px] font-semibold"
-            style={{
-              backgroundColor: statusStyle.bg,
-              color: statusStyle.text,
-              borderColor: statusStyle.border,
-            }}
-          >
-            {t(statusStyle.label)}
-          </Badge>
         </div>
 
         <h3 className="text-[24px] leading-none font-bold text-[#333333]">
@@ -93,13 +63,14 @@ const KitchenCard = ({
         </h3>
         <p className="mt-2 text-[16px] text-[#8B8B8B]">{kitchen.description}</p>
 
+        {/* Stats Section */}
         <div className="mt-6 grid grid-cols-2 gap-6">
           <div className="rounded-lg border border-[#E5E5E5] bg-[#FAFAF7] p-3">
             <div className="mb-1 flex items-center gap-2 text-[12px] font-normal text-[#28293D]">
               <Utensils className="size-3" />
               {t("Active Orders")}
             </div>
-            <p className="text-[24px] leading-none font-normal text-[#28293D]">
+            <p className="text-[24px] leading-none font-semibold text-[#28293D]">
               {kitchen.activeOrders}
             </p>
           </div>
@@ -108,7 +79,7 @@ const KitchenCard = ({
               <Info className="size-3" />
               {t("Requests")}
             </div>
-            <p className="text-[24px] leading-none font-normal text-[#28293D]">
+            <p className="text-[24px] leading-none font-semibold text-[#28293D]">
               {kitchen.requests}
             </p>
           </div>
@@ -124,10 +95,10 @@ const KitchenCard = ({
           </Button>
           <ActionButton
             data={{
-              icon: <Trash2 className="size-7" />,
-              iconColor: "text-[#C90000]",
+              icon: <Trash2 className="size-6" />,
+              iconColor: "text-white",
               ariaLabel: `Delete ${kitchen.name}`,
-              className: "h-14 w-16 rounded-lg bg-[#FFF0F0] hover:bg-[#FFF0F0]",
+              className: "h-14 w-16 rounded-[8px] bg-[#C90000] hover:bg-[#C90000]/90",
               onClick: () => onDeleteKitchen(kitchen),
             }}
           />

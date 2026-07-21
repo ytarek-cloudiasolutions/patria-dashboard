@@ -1,34 +1,9 @@
 import type { Kitchen, KitchenOrder } from "./types";
-
 export const KITCHENS: Kitchen[] = [
-  {
-    id: "main-kitchen",
-    name: "Main Kitchen",
-    description: "Operational kitchen station",
-    status: "active",
-    color: "#8F6900",
-    icon: "main",
-    activeOrders: 12,
-    requests: 3,
-    detailActiveOrders: 4,
-    lowStock: 1,
-  },
-  {
-    id: "pastry",
-    name: "Pastry",
-    description: "Operational kitchen station",
-    status: "busy",
-    color: "#A856F7",
-    icon: "pastry",
-    activeOrders: 18,
-    requests: 5,
-    detailActiveOrders: 5,
-    lowStock: 2,
-  },
   {
     id: "barista",
     name: "Barista",
-    description: "Operational kitchen station",
+    description: "Coffee & beverages station",
     status: "active",
     color: "#F9A825",
     icon: "barista",
@@ -37,8 +12,31 @@ export const KITCHENS: Kitchen[] = [
     detailActiveOrders: 2,
     lowStock: 3,
   },
+  {
+    id: "pastry",
+    name: "Pastry & Bakery",
+    description: "Pastries and baked goods station",
+    status: "active",
+    color: "#A856F7",
+    icon: "pastry",
+    activeOrders: 18,
+    requests: 5,
+    detailActiveOrders: 5,
+    lowStock: 2,
+  },
+  {
+    id: "hot_food",
+    name: "Hot Food",
+    description: "Hot meals kitchen station",
+    status: "active",
+    color: "#E53935",
+    icon: "hot_food",
+    activeOrders: 12,
+    requests: 3,
+    detailActiveOrders: 4,
+    lowStock: 1,
+  },
 ];
-
 export const KITCHEN_ORDERS: Record<string, KitchenOrder[]> = {
   "main-kitchen": [
     {

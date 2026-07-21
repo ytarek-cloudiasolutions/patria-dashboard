@@ -56,8 +56,8 @@ const KitchenOrderCard = ({ order }: KitchenOrderCardProps) => {
   const statusStyle = orderStatusStyle[order.status];
 
   return (
-    <Card className="rounded-2xl border border-[#E7E7EC] bg-white p-6 py-6 ring-0">
-      <CardContent className="px-0 py-0">
+    <Card className="flex flex-col h-full rounded-2xl border border-[#E7E7EC] bg-white p-6 py-6 ring-0">
+      <CardContent className="flex flex-col flex-1 px-0 py-0">
         <div className="mb-[18px] flex items-center justify-between gap-3">
           <h3 className="text-[20px] leading-none font-bold text-[#333333]">
             {order.orderNumber}
@@ -105,7 +105,7 @@ const KitchenOrderCard = ({ order }: KitchenOrderCardProps) => {
         </ul>
 
         <div
-          className="rounded-[30px] border px-3 py-2 text-center text-[13px] font-semibold"
+          className="mt-auto rounded-[30px] border px-3 py-2 text-center text-[13px] font-semibold"
           style={{
             backgroundColor: statusStyle.bg,
             color: statusStyle.text,

@@ -1,6 +1,6 @@
 export type KitchenStatus = "active" | "busy";
 
-export type KitchenIcon = "main" | "pastry" | "barista";
+export type KitchenIcon = "hot_food" | "pastry" | "barista";
 
 export interface Kitchen {
   id: string;
