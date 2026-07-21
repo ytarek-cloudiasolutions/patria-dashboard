@@ -43,7 +43,7 @@ const KitchenCard = ({
   return (
     <Card
       className="gap-8 rounded-2xl bg-white p-6 py-6 ring-0"
-      style={{ borderInlineStart: `9px solid ${kitchen.color}` }}
+      style={{ borderTop: `9px solid ${kitchen.color}` }}
     >
       <CardContent className="px-0 py-0">
         <div className="mb-6 flex items-center justify-between">

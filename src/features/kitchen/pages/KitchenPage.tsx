@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import { useTranslation } from "@/shared/i18n/useTranslation";
@@ -66,13 +65,6 @@ const KitchenPage = () => {
           title={t("Kitchens")}
           description={t("Manage kitchen stations and oversee live operations")}
         />
-        <button
-          type="button"
-          className="flex h-14 shrink-0 cursor-pointer items-center gap-3 rounded-[5px] bg-primary px-[30px] py-4 text-[16px] font-semibold text-white transition hover:opacity-90"
-        >
-          <Plus className="size-[18px]" />
-          {t("New Kitchen")}
-        </button>
       </div>
 
       <div className="grid grid-cols-1 gap-[30px] md:grid-cols-2 lg:gap-7.5 xl:grid-cols-3">
@@ -85,7 +77,7 @@ const KitchenPage = () => {
             color: station.color,
             icon: (station.id === "hot_food" ? "hot_food" : station.id) as any,
             activeOrders: activeOrdersCount[station.id] ?? 0,
-            requests: 0, // Requests count set to 0 for now as requested
+            requests: 0,
             detailActiveOrders: 0,
             lowStock: 0,
           };

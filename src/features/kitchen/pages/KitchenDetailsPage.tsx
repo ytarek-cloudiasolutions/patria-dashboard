@@ -1,13 +1,13 @@
 import { useEffect, useCallback, useState } from "react";
 import { Button } from "@/shared/components/ui/button";
-import { ArrowLeft, ArrowRight, RefreshCw, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, RefreshCw, Loader2, Smartphone } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { useKitchen } from "../hooks/useKitchen";
 import type { KitchenOrder } from "../store/kitchenTypes";
 import { Badge } from "@/shared/components/ui/badge";
 import { Card, CardContent } from "@/shared/components/ui/card";
-import { Clock3, UserRound, Smartphone } from "lucide-react";
+import { Clock3, UserRound } from "lucide-react";
 import { getSocket } from "@/shared/lib/socket";
 import { playNotificationSound } from "@/shared/lib/notificationSound";
 import OrderDetailsDialog from "../components/OrderDetailsDialog";
@@ -218,24 +218,35 @@ const KitchenDetailsPage = () => {
             >
               {station.name[0]}
             </div>
-            <div>
-              <h1 className="text-[24px] font-semibold text-black">{t(station.name)}</h1>
-              <p className="text-[13px] text-[#8B8B8B]">
-                {kitchenOrders.length} {t("active orders")}
-              </p>
+            <div className="flex items-center gap-2">
+              <h1 className="text-[24px] font-bold text-black">{t(station.name)}</h1>
             </div>
           </div>
         </div>
 
-        <Button
-          variant="outline"
-          className="flex items-center gap-2 border-[#E5E5E5]"
-          onClick={fetchOrders}
-          disabled={loading.fetch}
-        >
-          <RefreshCw className={`size-4 ${loading.fetch ? "animate-spin" : ""}`} />
-          {t("Refresh")}
-        </Button>
+        <div className="flex items-center gap-6">
+          {/* Summary Metrics */}
+          <div className="flex items-center gap-5 text-center">
+            <div className="flex flex-col">
+              <span className="text-[24px] font-bold text-[#333333] leading-none">
+                {kitchenOrders.length}
+              </span>
+              <span className="mt-1 text-[12px] font-medium text-[#8B8B8B]">
+                {t("Active Orders")}
+              </span>
+            </div>
+          </div>
+
+          <Button
+            variant="outline"
+            className="flex items-center gap-2 border-[#E5E5E5] h-12 px-4 rounded-[8px] cursor-pointer"
+            onClick={fetchOrders}
+            disabled={loading.fetch}
+          >
+            <RefreshCw className={`size-4 ${loading.fetch ? "animate-spin" : ""}`} />
+            {t("Refresh")}
+          </Button>
+        </div>
       </div>
 
       <div
