@@ -53,6 +53,7 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   // Common actions (available for reuse across modules)
   "Save changes": "حفظ التغييرات",
   Cancel: "إلغاء",
+  Back: "رجوع",
   Save: "حفظ",
   Delete: "حذف",
   Search: "بحث",

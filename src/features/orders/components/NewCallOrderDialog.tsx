@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { api } from "@/config/api";
 
 import {
@@ -38,7 +39,7 @@ const NewCallOrderDialog = ({
   onOpenChange,
   onCreateOrder,
 }: NewCallOrderDialogProps) => {
-  const { t } = useTranslation();
+  const { t, dir } = useTranslation();
   const [step, setStep] = useState(0);
 
   const [phoneQuery, setPhoneQuery] = useState("");
@@ -222,7 +223,7 @@ const NewCallOrderDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[12px] bg-white p-0 ring-0 sm:max-w-150"
+        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[12px] bg-white p-0 ring-0 sm:max-w-[991px]"
       >
         {isZoneMenuOpen && (
           <div className="pointer-events-none fixed inset-0 z-60 bg-black/40" />
@@ -289,29 +290,37 @@ const NewCallOrderDialog = ({
           <div className="bg-white px-5 py-4 sm:px-7 sm:py-5">
             <Separator className="mb-4 bg-[#D9D9D9]" />
             <div className="flex justify-between items-center gap-3">
-              <DefaultButton
-                data={{
-                  buttonText: t("Cancel"),
-                  variant: "outline",
-                  type: "button",
-                  onClick: () => onOpenChange(false),
-                  className:
-                    "border-primary text-primary hover:bg-white hover:text-primary",
-                }}
-              />
-              <div className="flex items-center gap-3">
+              <div>
                 {step > 0 && (
                   <DefaultButton
                     data={{
                       buttonText: t("Back"),
-                      variant: "outline",
+                      variant: "ghost",
                       type: "button",
                       onClick: () => setStep((prev) => prev - 1),
+                      icon:
+                        dir === "rtl" ? (
+                          <ArrowRight size={18} className="text-primary" />
+                        ) : (
+                          <ArrowLeft size={18} className="text-primary" />
+                        ),
                       className:
-                        "border-[#CACBD4] text-[#23252A] hover:bg-[#FAFAF7] hover:text-[#23252A]",
+                        "text-primary hover:bg-transparent hover:text-primary",
                     }}
                   />
                 )}
+              </div>
+              <div className="flex items-center gap-3">
+                <DefaultButton
+                  data={{
+                    buttonText: t("Cancel"),
+                    variant: "outline",
+                    type: "button",
+                    onClick: () => onOpenChange(false),
+                    className:
+                      "border-primary text-primary hover:bg-white hover:text-primary",
+                  }}
+                />
                 <DefaultButton
                   data={{
                     buttonText: primary.buttonText,
