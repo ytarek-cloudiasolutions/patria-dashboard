@@ -24,9 +24,9 @@ interface ReservationsTableProps {
 type ActionKey = "confirm" | "seat" | "cancel";
 
 const STATUS_ACTIONS: Record<ReservationStatus, ActionKey[]> = {
-  on_hold: ["confirm", "seat", "cancel"],
-  sitting: ["confirm", "cancel"],
+  on_hold: ["confirm", "cancel"],
   confirmed: ["seat", "cancel"],
+  sitting: [],
   cancelled: [],
   ended: [],
 };
