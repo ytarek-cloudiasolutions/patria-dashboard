@@ -375,19 +375,19 @@ const ProductsPage = () => {
             data={{
               buttonText: t("import data"),
               variant: "outline",
-              icon: <Upload className="size-4.5" />,
+              icon: <Upload className="size-[18px]" />,
               onClick: () => setIsImportOpen(true),
               className:
-                "border-[#7A3FF2] text-[#7A3FF2] hover:bg-[#7A3FF2]/5 hover:text-[#7A3FF2]",
+                "border-[#7E00D7] bg-[#F3E9FA] text-[#9524E4] hover:bg-[#F3E9FA] hover:text-[#9524E4] hover:border-[#7E00D7]",
             }}
           />
           <DefaultButton
             data={{
               buttonText: t("Scan Product"),
-              icon: <ScanBarcode className="size-4.5" />,
+              icon: <ScanBarcode className="size-[18px]" />,
               onClick: () => setIsScanOpen(true),
               className:
-                "border-0 bg-[#EFEDE8] text-[#7A6A4F] hover:bg-[#E7E4DC]",
+                "border-0 bg-[#F5F0EA] text-primary hover:bg-[#F5F0EA] hover:text-primary",
             }}
           />
           <DefaultButton
