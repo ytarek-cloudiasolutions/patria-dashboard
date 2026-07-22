@@ -300,6 +300,7 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   "PNG, JPG up to 5MB": "PNG، JPG حتى 5 ميجابايت",
   "Included Products": "المنتجات المشمولة",
   "Select products for this offer": "اختر المنتجات لهذا العرض",
+  "Min. Order Amount (EGP)": "الحد الأدنى للطلب (ج.م)",
   "Save offer": "حفظ العرض",
 
   // Coupons module

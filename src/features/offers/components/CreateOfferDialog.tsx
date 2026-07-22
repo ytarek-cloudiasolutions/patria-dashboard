@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Check, ChevronDown, CornerDownRight, FileUp } from "lucide-react";
+import { Check, ChevronDown, CornerDownRight, FileUp, Search } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -77,6 +77,18 @@ const CreateOfferDialog = ({
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(
     new Set(),
   );
+  const [productSearch, setProductSearch] = useState("");
+  const [debouncedProductSearch, setDebouncedProductSearch] = useState("");
+  const [isLoadingProducts, setIsLoadingProducts] = useState(false);
+
+  // Debounce product search query (300 ms)
+  useEffect(() => {
+    const timer = setTimeout(
+      () => setDebouncedProductSearch(productSearch),
+      300,
+    );
+    return () => clearTimeout(timer);
+  }, [productSearch]);
 
   useEffect(() => {
     if (isOpen) {
@@ -114,30 +126,47 @@ const CreateOfferDialog = ({
       setErrors({});
       setIsDiscountOpen(false);
       setImageFile(undefined);
-      getProducts({ limit: 200 })
-        .then((res) => {
-          const EXCLUDED_CATEGORIES = ["raw ingredients", "ingredients"];
-          const items = (res.products || [])
-            .filter(
-              (p) =>
-                !(p as any).isIngredient &&
-                !EXCLUDED_CATEGORIES.includes(
-                  (p.category ?? "").toLowerCase(),
-                ),
-            )
-            .map((p) => ({
-              id: p._id ?? p.id,
-              name: p.name ?? "",
-              category: p.category ?? "Other",
-            }));
-          setCatalog(items);
-          // Collapse all categories by default
-          const cats = new Set(items.map((p) => p.category));
-          setCollapsedCategories(cats);
-        })
-        .catch(() => setCatalog([]));
+      setProductSearch("");
+      setDebouncedProductSearch("");
     }
   }, [isOpen, editingOffer]);
+
+  // Fetch / re-fetch products whenever the dialog opens or the debounced search changes
+  const EXCLUDED_CATEGORIES = ["raw ingredients", "ingredients"];
+  useEffect(() => {
+    if (!isOpen) return;
+    setIsLoadingProducts(true);
+    const params: { limit: number; search?: string } = { limit: 200 };
+    if (debouncedProductSearch.trim()) {
+      params.search = debouncedProductSearch.trim();
+    }
+    getProducts(params)
+      .then((res) => {
+        const items = (res.products || [])
+          .filter(
+            (p) =>
+              !(p as any).isIngredient &&
+              !EXCLUDED_CATEGORIES.includes(
+                (p.category ?? "").toLowerCase(),
+              ),
+          )
+          .map((p) => ({
+            id: p._id ?? p.id,
+            name: p.name ?? "",
+            category: p.category ?? "Other",
+          }));
+        setCatalog(items);
+        // Keep all categories expanded while searching; collapse all when search is empty
+        if (!debouncedProductSearch.trim()) {
+          setCollapsedCategories(new Set(items.map((p) => p.category)));
+        } else {
+          setCollapsedCategories(new Set());
+        }
+      })
+      .catch(() => setCatalog([]))
+      .finally(() => setIsLoadingProducts(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, debouncedProductSearch]);
 
   const groupedCatalog = useMemo(() => {
     const groups: Record<string, SimpleProduct[]> = {};
@@ -331,6 +360,23 @@ const CreateOfferDialog = ({
                         {t("Deselect All")}
                       </button>
                     </div>
+                  </div>
+
+                  {/* Search input */}
+                  <div className="relative">
+                    <Search className="pointer-events-none absolute top-1/2 left-[14px] size-5 -translate-y-1/2 text-[#8B8B8B]" />
+                    <input
+                      type="text"
+                      value={productSearch}
+                      onChange={(e) => setProductSearch(e.target.value)}
+                      placeholder={t("Search products...")}
+                      className="h-[37px] w-full rounded-[8px] border border-[#CACBD4] bg-white pl-[42px] pr-3 text-[14px] leading-[1.4em] tracking-[0.02em] text-[#000000] outline-none placeholder:text-[#8B8B8B] focus:border-[#8F6900]"
+                    />
+                    {isLoadingProducts && (
+                      <div className="absolute top-1/2 right-3 -translate-y-1/2">
+                        <div className="size-4 animate-spin rounded-full border-2 border-[#8F6900] border-t-transparent" />
+                      </div>
+                    )}
                   </div>
 
                   {/* Product list */}
@@ -661,10 +707,7 @@ const CreateOfferDialog = ({
                     htmlFor="min-order-amount"
                     className="text-[16px] font-medium text-[#000000]"
                   >
-                    {t("Min. Order Amount")}{" "}
-                    <span className="text-[13px] font-medium tracking-[0.02em] text-[#595959]">
-                      (EGP)
-                    </span>
+                    {t("Min. Order Amount (EGP)")}
                   </label>
                   <input
                     id="min-order-amount"
@@ -672,7 +715,7 @@ const CreateOfferDialog = ({
                     min="0"
                     value={form.minOrderAmount}
                     onChange={(e) => set("minOrderAmount", e.target.value)}
-                    placeholder="0"
+                    placeholder={t("e.g. 100")}
                     className="h-[50px] rounded-[12px] border border-[#E5E5E5] bg-white px-3 text-[16px] text-[#000000] outline-none placeholder:text-[#8B8B8B] focus:border-primary"
                   />
                 </div>
