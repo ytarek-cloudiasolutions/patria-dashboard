@@ -42,6 +42,7 @@ const AddCategoryDialog = ({
   const [imageFile, setImageFile] = useState<File | undefined>(undefined);
   const [kitchenType, setKitchenType] = useState<string>("");
   const [error, setError] = useState("");
+  const [isKitchenOpen, setIsKitchenOpen] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -50,6 +51,7 @@ const AddCategoryDialog = ({
       setImageFile(undefined);
       setKitchenType("");
       setError("");
+      setIsKitchenOpen(false);
     }
   }, [open]);
 
@@ -74,6 +76,10 @@ const AddCategoryDialog = ({
         showCloseButton={false}
         className="w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-150"
       >
+        {isKitchenOpen && (
+          <div className="pointer-events-none fixed inset-0 z-60 bg-black/40" />
+        )}
+
         <div className="flex flex-col">
           <div className="px-5 pt-5 sm:px-7 sm:pt-7">
             <DialogTitle className="text-[20px] font-semibold text-[#28293D] sm:text-[22px]">
@@ -127,10 +133,11 @@ const AddCategoryDialog = ({
                 options={KITCHEN_OPTIONS.map((o) => ({ ...o, label: t(o.label) }))}
                 selected={kitchenType}
                 onSelect={setKitchenType}
+                onOpenChange={setIsKitchenOpen}
                 placeholder={t("Select kitchen")}
                 align="start"
-                className="w-full"
-                contentClassName="w-[var(--radix-dropdown-menu-trigger-width)]"
+                className="w-full md:w-full"
+                contentClassName="w-[var(--radix-dropdown-menu-trigger-width)] md:w-[var(--radix-dropdown-menu-trigger-width)]"
               />
             </div>
           </form>
