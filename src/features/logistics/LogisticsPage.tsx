@@ -1,10 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Plus, BarChart2 } from "lucide-react";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
 import SearchInputField from "@/shared/components/SearchInputField";
 import DeleteDialog from "@/shared/components/DeleteDialog";
+import { api } from "@/config/api";
+import { showSuccessToast, showErrorToast } from "@/shared/utils/toast";
 
 import LogisticsOverview from "./components/LogisticsOverview";
 import ZoneAccordion from "./components/ZoneAccordion";
@@ -14,32 +16,52 @@ import DriversTable from "./components/DriverStable";
 import AddDriverDialog from "./components/AddDriverDialog";
 import SendNotificationDialog from "./components/SendNotificationDialog";
 
-import { INITIAL_ZONES } from "./data";
-import type { Driver, DriverFormData, DriverStatus, Zone } from "./types";
+import type { Driver, DriverFormData, DriverStatus, Zone, ZoneOrder, ZoneOrderStatus } from "./types";
 import { useLogistics } from "./hooks/useLogistics";
+import { dispatchOrder } from "./api/logisticsApi";
 
 const mapApiDriver = (d: any): Driver => ({
-  id: d._id as any,
+  id: d._id || d.id,
   name: d.name || "",
   whatsappPhone: d.phone || d.whatsappPhone || "",
   vehicleType: d.vehicleType === "car" ? "Car" : d.vehicleType === "van" ? "Van" : "Motorcycle",
   plateNumber: d.plateNumber || "",
   zones: d.zones || [],
   status: d.status === "busy" ? "On-Route" : d.status === "active" ? "Active" : "Off-Duty",
-  ordersToday: d.shiftDeliveriesCount || d.totalDelivered || 0,
-  salaryNow: 0,
+  ordersToday: d.shiftDeliveriesCount || d.totalDelivered || (d.activeOrders ? d.activeOrders.length : 0),
+  salaryNow: Number((21 * ((d.shiftDeliveriesCount || 0) / 3 + 4)).toFixed(2)),
   hourlyRate: 21,
-  dutyTime: d.dutyTime || "00:00:00",
+  dutyTime: d.dutyTime && d.dutyTime !== "—" ? d.dutyTime : "00:00:00",
 });
 
 const LogisticsPage = () => {
   const { t } = useTranslation();
-  const { drivers: apiDrivers, getDrivers, createDriver, updateDriver, deleteDriver, loading } = useLogistics();
-  const [zones, setZones] = useState<Zone[]>(INITIAL_ZONES);
+  const {
+    drivers: apiDrivers,
+    driversByZone,
+    stats,
+    getDrivers,
+    createDriver,
+    updateDriver,
+    deleteDriver,
+    loading,
+  } = useLogistics();
+
   const [drivers, setDrivers] = useState<Driver[]>([]);
+  const [apiOrders, setApiOrders] = useState<any[]>([]);
+  const [isDispatching, setIsDispatching] = useState(false);
 
   const [logisticsLoaded, setLogisticsLoaded] = useState(false);
   const logisticsStarted = useRef(loading.fetch);
+
+  const fetchOrders = useCallback(async () => {
+    try {
+      const res = await api.get("/orders", { params: { limit: 100 } });
+      setApiOrders(res.data?.data || res.data?.orders || []);
+    } catch {
+      // ignore
+    }
+  }, []);
 
   useEffect(() => {
     if (loading.fetch) {
@@ -49,12 +71,76 @@ const LogisticsPage = () => {
     }
   }, [loading.fetch]);
 
-  useEffect(() => { getDrivers(); }, [getDrivers]);
   useEffect(() => {
-    if (apiDrivers && apiDrivers.length > 0) setDrivers(apiDrivers.map(mapApiDriver));
-  }, [apiDrivers]);
-  const [search, setSearch] = useState("");
+    getDrivers();
+    fetchOrders();
+  }, [getDrivers, fetchOrders]);
 
+  useEffect(() => {
+    if (apiDrivers) {
+      setDrivers(apiDrivers.map(mapApiDriver));
+    }
+  }, [apiDrivers]);
+
+  const zones: Zone[] = useMemo(() => {
+    const zoneMap = new Map<string, ZoneOrder[]>();
+
+    if (driversByZone && Array.isArray(driversByZone)) {
+      driversByZone.forEach((dz: any) => {
+        if (dz.zone && !zoneMap.has(dz.zone)) {
+          zoneMap.set(dz.zone, []);
+        }
+      });
+    }
+
+    apiOrders.forEach((o: any) => {
+      const zoneName = o.zone || "Kafr Abdo";
+      if (!zoneMap.has(zoneName)) {
+        zoneMap.set(zoneName, []);
+      }
+
+      const ref = o.orderId
+        ? `#${o.orderId}`
+        : `#ORD-${(o._id || o.id || "").slice(-6).toUpperCase()}`;
+      const customer =
+        o.customerId?.name || o.customer?.name || o.customerName || "Walk-in Customer";
+      const address = o.customer?.address || o.address || "No address provided";
+      const amount = o.totalAmount || o.total || 0;
+      let statusStr: ZoneOrderStatus = "Waiting";
+      if (o.status === "cancelled") statusStr = "Cancelled";
+      else if (
+        o.driver ||
+        o.status === "on-route" ||
+        o.status === "ready" ||
+        o.status === "delivered"
+      )
+        statusStr = "Processing";
+
+      const assignedDriverName = o.driver
+        ? typeof o.driver === "string"
+          ? o.driver
+          : o.driver.name
+        : undefined;
+
+      zoneMap.get(zoneName)!.push({
+        id: o._id || o.id,
+        reference: ref,
+        customer,
+        address,
+        amount,
+        status: statusStr,
+        assignedDriverName,
+      });
+    });
+
+    return Array.from(zoneMap.entries()).map(([name, zoneOrders]) => ({
+      id: name.toLowerCase().replace(/\s+/g, "-"),
+      name,
+      orders: zoneOrders,
+    }));
+  }, [driversByZone, apiOrders]);
+
+  const [search, setSearch] = useState("");
   const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(
     new Set(),
   );
@@ -67,17 +153,19 @@ const LogisticsPage = () => {
   const [notifyingDriver, setNotifyingDriver] = useState<Driver | null>(null);
 
   const overview = useMemo(() => {
-    const pendingOrders = zones.reduce(
-      (sum, zone) =>
-        sum + zone.orders.filter((o) => !o.assignedDriverName).length,
-      0,
-    );
+    const pendingOrders =
+      stats?.waitingOrders ??
+      zones.reduce(
+        (sum, zone) =>
+          sum + zone.orders.filter((o) => !o.assignedDriverName).length,
+        0,
+      );
     return {
       activeZones: zones.length,
       officialDrivers: drivers.length,
       pendingOrders,
     };
-  }, [zones, drivers]);
+  }, [zones, drivers, stats]);
 
   const filteredZones = useMemo(() => {
     const q = search.toLowerCase().trim();
@@ -129,22 +217,24 @@ const LogisticsPage = () => {
       return next;
     });
 
-  const handleSend = () => {
-    const driver = drivers.find((d) => String(d.id) === selectedDriverId);
-    if (!driver) return;
-    const firstName = driver.name.split(" ")[0];
-    setZones((prev) =>
-      prev.map((zone) => ({
-        ...zone,
-        orders: zone.orders.map((order) =>
-          selectedOrderIds.has(order.id)
-            ? { ...order, assignedDriverName: firstName }
-            : order,
-        ),
-      })),
-    );
-    setSelectedOrderIds(new Set());
-    setSelectedDriverId("");
+  const handleSend = async () => {
+    if (!selectedDriverId || selectedOrderIds.size === 0) return;
+    setIsDispatching(true);
+    try {
+      const orderIds = Array.from(selectedOrderIds);
+      await Promise.all(
+        orderIds.map((orderId) => dispatchOrder(selectedDriverId, orderId)),
+      );
+      showSuccessToast(t("Order(s) dispatched successfully"));
+      setSelectedOrderIds(new Set());
+      setSelectedDriverId("");
+      getDrivers();
+      fetchOrders();
+    } catch {
+      showErrorToast(t("Failed to dispatch order(s)"));
+    } finally {
+      setIsDispatching(false);
+    }
   };
 
   const handleCancelDispatch = () => {
@@ -164,7 +254,7 @@ const LogisticsPage = () => {
     setIsAddDriverOpen(true);
   };
 
-  const handleSaveDriver = (data: DriverFormData, id?: number) => {
+  const handleSaveDriver = (data: DriverFormData, id?: number | string) => {
     const payload = {
       name: data.name.trim(),
       phone: data.whatsappPhone.trim(),
@@ -172,7 +262,12 @@ const LogisticsPage = () => {
       vehicleType: data.vehicleType.toLowerCase() as any,
       plateNumber: data.plateNumber.trim(),
       zones: data.zones,
-      status: data.status === "On-Route" ? "busy" : data.status === "Active" ? "active" : "offline",
+      status:
+        data.status === "On-Route"
+          ? "busy"
+          : data.status === "Active"
+          ? "active"
+          : "offline",
     };
     if (id !== undefined) {
       updateDriver(String(id), payload as any);
@@ -181,12 +276,13 @@ const LogisticsPage = () => {
     }
   };
 
-  const handleChangeStatus = (driver: Driver, status: DriverStatus) =>
-    setDrivers((prev) =>
-      prev.map((d) => (d.id === driver.id ? { ...d, status } : d)),
-    );
+  const handleChangeStatus = (driver: Driver, status: DriverStatus) => {
+    const apiStatus =
+      status === "On-Route" ? "busy" : status === "Active" ? "active" : "offline";
+    updateDriver(String(driver.id), { status: apiStatus });
+  };
 
-  const handleHourlyRateChange = (id: number, rate: number) =>
+  const handleHourlyRateChange = (id: number | string, rate: number) =>
     setDrivers((prev) =>
       prev.map((d) => (d.id === id ? { ...d, hourlyRate: rate } : d)),
     );
@@ -269,6 +365,7 @@ const LogisticsPage = () => {
           onDriverMenuOpenChange={setIsMenuOpen}
           onSend={handleSend}
           onCancel={handleCancelDispatch}
+          isDispatching={isDispatching}
         />
       </div>
 

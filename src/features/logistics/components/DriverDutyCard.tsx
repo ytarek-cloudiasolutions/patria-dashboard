@@ -6,7 +6,7 @@ import type { Driver, DriverStatus } from "../types";
 
 interface DriverDutyCardProps {
   driver: Driver;
-  onHourlyRateChange: (id: number, rate: number) => void;
+  onHourlyRateChange: (id: string | number, rate: number) => void;
 }
 
 const STATUS_STYLES: Record<DriverStatus, string> = {

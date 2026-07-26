@@ -1,4 +1,4 @@
-export type VehicleType = "motorcycle" | "car" | "bicycle";
+export type VehicleType = "motorcycle" | "car" | "van" | "bicycle";
 export type DriverStatus = "active" | "offline" | "busy";
 
 export interface Driver {
@@ -6,10 +6,17 @@ export interface Driver {
   name: string;
   whatsappPhone?: string;
   phone?: string;
-  vehicleType?: VehicleType;
+  vehicleType?: VehicleType | string;
+  plateNumber?: string;
   zones: string[];
-  status: DriverStatus;
+  status: DriverStatus | string;
   isActive: boolean;
+  isOnShift?: boolean;
+  shiftDeliveriesCount?: number;
+  totalDelivered?: number;
+  dutyTime?: string;
+  activeOrders?: any[];
+  currentOrderId?: any;
 }
 
 export interface LogisticsStats {
@@ -19,9 +26,14 @@ export interface LogisticsStats {
   waitingOrders: number;
 }
 
+export interface DriversByZoneItem {
+  zone: string;
+  drivers: Driver[];
+}
+
 export interface GetDriversResponse {
   drivers: Driver[];
-  driversByZone: Driver[];
+  driversByZone: DriversByZoneItem[];
   stats: LogisticsStats;
 }
 

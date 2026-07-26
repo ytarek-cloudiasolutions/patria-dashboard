@@ -1,4 +1,4 @@
-import { Send } from "lucide-react";
+import { Loader2, Send } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import DropdownSelect from "@/shared/components/DropdownSelect";
 import { Separator } from "@/shared/components/ui/separator";
@@ -13,6 +13,7 @@ interface DispatchPanelProps {
   onDriverMenuOpenChange: (open: boolean) => void;
   onSend: () => void;
   onCancel: () => void;
+  isDispatching?: boolean;
 }
 
 const DispatchPanel = ({
@@ -23,6 +24,7 @@ const DispatchPanel = ({
   onDriverMenuOpenChange,
   onSend,
   onCancel,
+  isDispatching,
 }: DispatchPanelProps) => {
   const { t } = useTranslation();
   const count = selectedReferences.length;
@@ -83,11 +85,15 @@ const DispatchPanel = ({
 
       <Button
         type="button"
-        disabled={count === 0 || !selectedDriverId}
+        disabled={count === 0 || !selectedDriverId || isDispatching}
         onClick={onSend}
         className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[8px] text-[14px] font-semibold text-white disabled:opacity-50"
       >
-        <Send className="size-4" />
+        {isDispatching ? (
+          <Loader2 className="size-4 animate-spin" />
+        ) : (
+          <Send className="size-4" />
+        )}
         {t("Send")} {count} {count === 1 ? t("Order") : t("Orders")}
       </Button>
       <Button

@@ -130,9 +130,10 @@ const logisticsSlice = createSlice({
       state.drivers = state.drivers.filter(
         (d) => d._id !== action.payload.id,
       );
-      state.driversByZone = state.driversByZone.filter(
-        (d) => d._id !== action.payload.id,
-      );
+      state.driversByZone = state.driversByZone.map((z) => ({
+        ...z,
+        drivers: z.drivers.filter((d) => d._id !== action.payload.id),
+      }));
       state.successMessage =
         action.payload.message ?? "Driver removed successfully";
     },

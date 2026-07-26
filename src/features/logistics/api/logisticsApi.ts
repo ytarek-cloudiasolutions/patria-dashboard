@@ -40,11 +40,23 @@ export const deleteDriver = async (
   return response.data;
 };
 
+export const dispatchOrder = async (
+  driverId: string,
+  orderId: string,
+): Promise<{ message?: string }> => {
+  const response = await api.post<{ message?: string }>("/logistics/dispatch", {
+    driverId,
+    orderId,
+  });
+  return response.data;
+};
+
 export const logisticsApi = {
   getDrivers,
   createDriver,
   updateDriver,
   deleteDriver,
+  dispatchOrder,
 };
 
 export default logisticsApi;

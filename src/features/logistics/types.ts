@@ -2,7 +2,7 @@ export type DriverStatus = "Active" | "On-Route" | "Off-Duty";
 export type VehicleType = "Motorcycle" | "Car" | "Van";
 
 export interface Driver {
-  id: number;
+  id: string | number;
   name: string;
   whatsappPhone: string;
   vehicleType: VehicleType;
