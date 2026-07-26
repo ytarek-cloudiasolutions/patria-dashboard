@@ -78,7 +78,7 @@ export interface LogisticsErrorState {
 
 export interface LogisticsState {
   drivers: Driver[];
-  driversByZone: Driver[];
+  driversByZone: DriversByZoneItem[];
   stats: LogisticsStats;
   loading: LogisticsLoadingState;
   errors: LogisticsErrorState;
