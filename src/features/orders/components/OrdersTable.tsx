@@ -1,5 +1,5 @@
-import { Fragment } from "react";
-import { ChevronDown, Info } from "lucide-react";
+import { Fragment, useState } from "react";
+import { ChevronDown, Info, Loader2 } from "lucide-react";
 import Whatsapp from "@/assets/icons/whatsapp.svg";
 import { Button } from "@/shared/components/ui/button";
 import { Checkbox } from "@/shared/components/ui/checkbox";
@@ -17,11 +17,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/shared/components/ui/table";
-import { DRIVERS, ORDER_STATUS_OPTIONS } from "../data";
+import { ORDER_STATUS_OPTIONS } from "../data";
 import type { Order, OrderStatus, PaymentState } from "../types";
 import OrdersStatusBadge from "./OrdersStatusBadge";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { translatePaymentMethod } from "../utils";
+import { api } from "@/config/api";
+import { showSuccessToast, showErrorToast } from "@/shared/utils/toast";
 
 interface OrdersTableProps {
   orders: Order[];
@@ -251,8 +253,9 @@ const OrdersTable = ({
 
                     <TableCell className="text-center">
                       <DriverCell
+                        orderId={order.id}
                         driver={order.driver}
-                        onAssign={(driver) => onAssignDriver(order.id, driver)}
+                        onAssign={(driverName) => onAssignDriver(order.id, driverName)}
                         onOpenChange={onStatusMenuOpenChange}
                       />
                     </TableCell>
@@ -274,17 +277,70 @@ const OrdersTable = ({
   );
 };
 
+interface ApiDriver {
+  _id: string;
+  name: string;
+  phone: string;
+  status: string;
+  isActive: boolean;
+  vehicleType?: string;
+  zones?: string[];
+}
+
 interface DriverCellProps {
+  orderId: string;
   driver?: string;
-  onAssign: (driver: string) => void;
+  onAssign: (driverName: string) => void;
   onOpenChange?: (open: boolean) => void;
 }
 
-const DriverCell = ({ driver, onAssign, onOpenChange }: DriverCellProps) => {
+const DriverCell = ({ orderId, driver, onAssign, onOpenChange }: DriverCellProps) => {
   const { t } = useTranslation();
+  const [drivers, setDrivers] = useState<ApiDriver[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasFetched, setHasFetched] = useState(false);
+  const [isDispatching, setIsDispatching] = useState(false);
+
+  const fetchDrivers = async () => {
+    if (hasFetched) return;
+    setIsLoading(true);
+    try {
+      const response = await api.get("/logistics/drivers");
+      const data = response.data;
+      setDrivers(data.drivers || []);
+      setHasFetched(true);
+    } catch {
+      showErrorToast(t("Failed to load drivers"));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSelect = async (selectedDriver: ApiDriver) => {
+    setIsDispatching(true);
+    try {
+      await api.post("/logistics/dispatch", {
+        driverId: selectedDriver._id,
+        orderId,
+      });
+      showSuccessToast(t("Driver dispatched successfully"));
+      onAssign(selectedDriver.name);
+    } catch {
+      showErrorToast(t("Failed to dispatch driver"));
+    } finally {
+      setIsDispatching(false);
+    }
+  };
+
+  const handleOpenChange = (open: boolean) => {
+    if (open) {
+      fetchDrivers();
+    }
+    onOpenChange?.(open);
+  };
 
   return (
-    <DropdownMenu onOpenChange={onOpenChange}>
+    <DropdownMenu onOpenChange={handleOpenChange}>
       <DropdownMenuTrigger asChild>
         {driver ? (
           <button
@@ -307,22 +363,34 @@ const DriverCell = ({ driver, onAssign, onOpenChange }: DriverCellProps) => {
         align="end"
         className="z-70 w-40 rounded-[16px] p-2 ring-0"
       >
-        {DRIVERS.map((d) => (
-          <DropdownMenuItem
-            key={d.id}
-            onSelect={() => onAssign(d.name)}
-            className={`rounded-[12px] px-3 py-2 text-[12px] font-medium cursor-pointer ${
-              driver === d.name
-                ? "bg-primary text-primary-foreground pointer-events-none"
-                : "text-[#28293D] data-highlighted:bg-[#F5F0EA]"
-            }`}
-          >
-            {d.name}
-          </DropdownMenuItem>
-        ))}
+        {isLoading ? (
+          <div className="flex items-center justify-center py-3">
+            <Loader2 className="size-5 animate-spin text-primary" />
+          </div>
+        ) : drivers.length === 0 ? (
+          <div className="px-3 py-2 text-[12px] text-[#8B8B8B] text-center">
+            {t("No drivers available")}
+          </div>
+        ) : (
+          drivers.map((d) => (
+            <DropdownMenuItem
+              key={d._id}
+              disabled={isDispatching}
+              onSelect={() => handleSelect(d)}
+              className={`rounded-[12px] px-3 py-2 text-[12px] font-medium cursor-pointer ${
+                driver === d.name
+                  ? "bg-primary text-primary-foreground pointer-events-none"
+                  : "text-[#28293D] data-highlighted:bg-[#F5F0EA]"
+              }`}
+            >
+              {d.name}
+            </DropdownMenuItem>
+          ))
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
 };
 
 export default OrdersTable;
+
