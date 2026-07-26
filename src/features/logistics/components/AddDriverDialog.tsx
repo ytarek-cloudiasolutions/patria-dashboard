@@ -48,7 +48,7 @@ interface AddDriverDialogProps {
   open: boolean;
   driver?: Driver;
   onOpenChange: (open: boolean) => void;
-  onSave: (data: DriverFormData, id?: number) => void;
+  onSave: (data: DriverFormData, id?: string | number) => void;
   onRemove?: (driver: Driver) => void;
 }
 
