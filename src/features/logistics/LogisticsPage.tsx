@@ -255,7 +255,7 @@ const LogisticsPage = () => {
   };
 
   const handleSaveDriver = (data: DriverFormData, id?: number | string) => {
-    const payload = {
+    const payload: any = {
       name: data.name.trim(),
       phone: data.whatsappPhone.trim(),
       whatsappPhone: data.whatsappPhone.trim(),
@@ -269,6 +269,9 @@ const LogisticsPage = () => {
           ? "active"
           : "offline",
     };
+    if (data.password && data.password.trim()) {
+      payload.password = data.password.trim();
+    }
     if (id !== undefined) {
       updateDriver(String(id), payload as any);
     } else {

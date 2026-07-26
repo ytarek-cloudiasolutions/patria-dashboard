@@ -41,7 +41,9 @@ export interface CreateDriverRequest {
   name: string;
   whatsappPhone?: string;
   phone?: string;
+  password?: string;
   vehicleType?: VehicleType;
+  plateNumber?: string;
   zones?: string[];
   status?: DriverStatus;
 }
@@ -50,7 +52,9 @@ export interface UpdateDriverRequest {
   name?: string;
   whatsappPhone?: string;
   phone?: string;
+  password?: string;
   vehicleType?: VehicleType;
+  plateNumber?: string;
   zones?: string[];
   status?: DriverStatus;
   isActive?: boolean;

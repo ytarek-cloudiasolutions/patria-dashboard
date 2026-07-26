@@ -109,6 +109,8 @@ const AddDriverDialog = ({
     if (!form.name.trim()) next.name = t("Driver name is required");
     if (!form.whatsappPhone.trim())
       next.whatsappPhone = t("WhatsApp phone is required");
+    if (!driver && !form.password.trim())
+      next.password = t("Password is required");
     if (form.zones.length === 0) next.zones = t("Select at least one zone");
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -196,21 +198,31 @@ const AddDriverDialog = ({
                 </div>
               </div>
 
-              <InputField
-                data={{
-                  id: "driver-password",
-                  label: {
-                    htmlFor: "driver-password",
-                    labelText: `${t("Password")} ${t("(leave it blank if you don't want to change it)")}`,
-                  },
-                  type: "password",
-                  placeholder: "••••••••",
-                  inputProps: {
-                    value: form.password,
-                    onChange: (e) => set("password", e.target.value),
-                  },
-                }}
-              />
+              <div>
+                <InputField
+                  data={{
+                    id: "driver-password",
+                    label: {
+                      htmlFor: "driver-password",
+                      labelText: driver
+                        ? `${t("Password")} ${t("(leave it blank if you don't want to change it)")}`
+                        : t("Password"),
+                    },
+                    type: "password",
+                    placeholder: "••••••••",
+                    required: !driver,
+                    inputProps: {
+                      value: form.password,
+                      onChange: (e) => set("password", e.target.value),
+                    },
+                  }}
+                />
+                {errors.password && (
+                  <p className="mt-1 text-[13px] text-[#C90000]">
+                    {errors.password}
+                  </p>
+                )}
+              </div>
 
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <div className="flex flex-col">
