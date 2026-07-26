@@ -10,7 +10,7 @@ import { Separator } from "@/shared/components/ui/separator";
 import { useState, useEffect } from "react";
 import type { Offer } from "../types";
 import { Switch } from "@/shared/components/ui/switch";
-import { CalendarDays, Megaphone, SquarePen, Trash2, Image as ImageIcon } from "lucide-react";
+import { CalendarDays, Megaphone, SquarePen, Trash2, Image as ImageIcon, Tag, Users } from "lucide-react";
 import DefaultButton from "@/shared/components/DefaultButton";
 import DeleteDialog from "@/shared/components/DeleteDialog";
 import { useTranslation } from "@/shared/i18n/useTranslation";
@@ -120,9 +120,31 @@ const OfferCard = ({
               {t("product(s)")}
             </div>
 
+            {/* Code & Claims row */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-0.5">
+                <Tag className="size-4 text-[#000000]" />
+                <span className="text-[12px] text-[#000000] tracking-[0.24px] font-semibold">
+                  {t("Code:")}
+                </span>
+                <span className="text-[12px] text-[#8F6900] tracking-[0.24px] font-semibold ml-0.5">
+                  {offer.code || "—"}
+                </span>
+              </div>
+              <div className="flex items-center gap-0.5">
+                <Users className="size-4 text-[#000000]" />
+                <span className="text-[12px] text-[#000000] tracking-[0.24px] font-semibold">
+                  {t("Claims:")}
+                </span>
+                <span className="text-[12px] text-[#8F6900] tracking-[0.24px] font-semibold ml-0.5">
+                  {offer.claimsCount ?? 0}
+                </span>
+              </div>
+            </div>
+
             <Separator className="bg-[#CACBD4]" />
 
-            <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-3">
                 <span className="text-[#333333] text-[13px] font-semibold uppercase tracking-wider">
                   {t("Active")}
