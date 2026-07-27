@@ -15,6 +15,9 @@ import { useTranslation } from "@/shared/i18n/useTranslation";
 import type { IngredientFormData, Ingredient } from "../types";
 import UploadDropzone from "./UploadDropzone";
 import DropdownSelect from "@/shared/components/DropdownSelect";
+import { Switch } from "@/shared/components/ui/switch";
+import { Checkbox } from "@/shared/components/ui/checkbox";
+import { useCategories } from "@/features/categories/hooks/useCategories";
 
 const FORM_ID = "add-ingredient-form";
 
@@ -47,6 +50,7 @@ const AddIngredientDialog = ({
   onSave,
 }: AddIngredientDialogProps) => {
   const { t } = useTranslation();
+  const { categories, getCategories } = useCategories();
   const [form, setForm] = useState<IngredientFormData>(INITIAL_FORM);
   const [errors, setErrors] = useState<
     Partial<Record<keyof IngredientFormData, string>>
@@ -55,6 +59,7 @@ const AddIngredientDialog = ({
 
   useEffect(() => {
     if (!open) return;
+    getCategories();
     setForm(
       editingIngredient
         ? {
@@ -73,7 +78,12 @@ const AddIngredientDialog = ({
     );
     setErrors({});
     setIsUnitOpen(false);
-  }, [open, editingIngredient]);
+  }, [open, editingIngredient, getCategories]);
+
+  const availableCategories =
+    categories && categories.length > 0
+      ? categories.map((c) => c.name)
+      : ["Bakery", "Desserts", "Ramadan Drinks", "Sandwiches", "Speciality Drinks"];
 
   const set = <K extends keyof IngredientFormData>(
     key: K,
@@ -275,6 +285,103 @@ const AddIngredientDialog = ({
                   </p>
                 )}
               </div>
+            </div>
+
+            {/* Add as Extra section matching Figma design */}
+            <div className="rounded-[16px] border border-[#CACBD4] bg-[#FAFAF7] p-4 sm:px-6 sm:py-4">
+              <div className="flex items-center justify-between">
+                <span className="text-[16px] font-medium text-[#333333]">
+                  {t("Add as extra")}
+                </span>
+                <Switch
+                  checked={form.isExtra}
+                  onCheckedChange={(checked) => set("isExtra", checked)}
+                />
+              </div>
+
+              {form.isExtra && (
+                <div
+                  className="mt-4.5 flex flex-col items-start gap-2 self-stretch rounded-[16px] bg-[#FAFAF7] p-3"
+                  style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='none' rx='16' ry='16' stroke='%238F6900' stroke-width='1' stroke-dasharray='9%2c 9' stroke-dashoffset='0' stroke-linecap='square'/%3E%3C/svg%3E")`,
+                  }}
+                >
+                  <p className="text-[12px] font-normal text-black">
+                    {t("Categories")}
+                  </p>
+                  <Separator className="w-full bg-[#E5E5E5]" />
+                  <div className="w-full max-h-48 overflow-y-auto space-y-1 px-0.5 py-1">
+                    {(() => {
+                      const isAllChecked =
+                        availableCategories.length > 0 &&
+                        form.extraCategories.length === availableCategories.length;
+                      return (
+                        <label className="flex cursor-pointer items-center gap-1.5">
+                          <div
+                            className={`rounded-[10px] p-1 ${
+                              isAllChecked ? "bg-[#624F1C1A]" : ""
+                            }`}
+                          >
+                            <Checkbox
+                              checked={isAllChecked}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  set("extraCategories", [...availableCategories]);
+                                } else {
+                                  set("extraCategories", []);
+                                }
+                              }}
+                              className="h-5 w-5 rounded-[5.99px] border-[#8F6900] cursor-pointer"
+                            />
+                          </div>
+                          <span className="text-[13px] font-normal text-[#333333] cursor-pointer">
+                            {t("All")}
+                          </span>
+                        </label>
+                      );
+                    })()}
+
+                    {availableCategories.map((catName) => {
+                      const isChecked = form.extraCategories.includes(catName);
+                      return (
+                        <label
+                          key={catName}
+                          className="flex cursor-pointer items-center gap-1.5"
+                        >
+                          <div
+                            className={`rounded-[10px] p-1 ${
+                              isChecked ? "bg-[#624F1C1A]" : ""
+                            }`}
+                          >
+                            <Checkbox
+                              checked={isChecked}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  set("extraCategories", [
+                                    ...form.extraCategories,
+                                    catName,
+                                  ]);
+                                } else {
+                                  set(
+                                    "extraCategories",
+                                    form.extraCategories.filter(
+                                      (c) => c !== catName,
+                                    ),
+                                  );
+                                }
+                              }}
+                              className="h-5 w-5 rounded-[5.99px] border-[#8F6900] cursor-pointer"
+                            />
+                          </div>
+                          <span className="text-[13px] font-normal text-[#333333] cursor-pointer">
+                            {catName}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
 
           </form>
