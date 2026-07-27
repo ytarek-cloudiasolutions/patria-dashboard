@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Loader2 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import {
   DropdownMenu,
@@ -31,6 +31,8 @@ const DropdownSelect = ({
   contentClassName,
   align = "end",
   searchable = false,
+  onSearchChange,
+  isLoading = false,
 }: DropdownSelectProps) => {
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
@@ -43,8 +45,14 @@ const DropdownSelect = ({
   const handleOpenChange = (open: boolean) => {
     if (!open) {
       setSearchQuery("");
+      onSearchChange?.("");
     }
     onOpenChange?.(open);
+  };
+
+  const handleSearchInput = (value: string) => {
+    setSearchQuery(value);
+    onSearchChange?.(value);
   };
 
   const filteredOptions = normalizedOptions.filter((option) =>
@@ -84,7 +92,7 @@ const DropdownSelect = ({
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => handleSearchInput(e.target.value)}
               onKeyDown={(e) => e.stopPropagation()}
               placeholder={t("Search...")}
               className="h-9 w-full rounded-[8px] border border-[#E5E5E5] px-2.5 text-[13px] text-[#28293D] focus:outline-none focus:border-primary placeholder:text-[#8B8B8B]"
@@ -92,7 +100,11 @@ const DropdownSelect = ({
             />
           </div>
         )}
-        {filteredOptions.length === 0 ? (
+        {isLoading ? (
+          <div className="flex items-center justify-center py-3">
+            <Loader2 className="size-4 animate-spin text-primary" />
+          </div>
+        ) : filteredOptions.length === 0 ? (
           <div className="px-3 py-2 text-[13px] text-[#8B8B8B] text-center font-medium">
             {t("No results found.")}
           </div>

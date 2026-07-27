@@ -22,6 +22,7 @@ import DefaultButton from "@/shared/components/DefaultButton";
 import DropdownSelect from "@/shared/components/DropdownSelect";
 import InputField from "@/shared/components/InputField";
 import { useTranslation } from "@/shared/i18n/useTranslation";
+import { api } from "@/config/api";
 import { PRODUCT_CATEGORIES } from "../data";
 import type {
   Ingredient,
@@ -95,6 +96,46 @@ const AddProductDialog = ({
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [isRecipeOpen, setIsRecipeOpen] = useState(false);
   const [isItemTypeOpen, setIsItemTypeOpen] = useState(false);
+
+  const [recipeSearch, setRecipeSearch] = useState("");
+  const [recipeSearchResults, setRecipeSearchResults] = useState<any[]>([]);
+  const [isSearchingRecipes, setIsSearchingRecipes] = useState(false);
+
+  useEffect(() => {
+    if (!recipeSearch.trim()) {
+      setRecipeSearchResults([]);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsSearchingRecipes(true);
+      try {
+        const rawIngredientCategory = categories.find(
+          (c) => c.name.toLowerCase() === "raw ingredients"
+        );
+        const categoryId = rawIngredientCategory
+          ? rawIngredientCategory.id
+          : "6a3927888bbe5f4d11bde590";
+
+        const response = await api.get("/products", {
+          params: {
+            search: recipeSearch.trim(),
+            category: categoryId,
+            limit: 20,
+          },
+        });
+        const fetchedData =
+          response.data?.products || response.data?.data || response.data || [];
+        setRecipeSearchResults(Array.isArray(fetchedData) ? fetchedData : []);
+      } catch (err) {
+        console.error("Failed to search recipe products:", err);
+      } finally {
+        setIsSearchingRecipes(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [recipeSearch, categories]);
 
   useEffect(() => {
     if (!open) return;
@@ -192,14 +233,23 @@ const AddProductDialog = ({
 
   // --- Recipe ingredients ---------------------------------------------------
 
+  const recipeSourceList = recipeSearch.trim()
+    ? recipeSearchResults
+    : ingredients;
+
   const addIngredient = (value: string) => {
-    const ingredient = ingredients.find((i) => String(i.id) === value);
-    if (!ingredient || form.ingredients.some((i) => i.ingredientId === ingredient.id))
-      return;
+    const ingredient =
+      recipeSourceList.find((i: any) => String(i._id || i.id) === value) ||
+      ingredients.find((i: any) => String(i._id || i.id) === value);
+    if (!ingredient) return;
+
+    const ingId = String(ingredient._id || ingredient.id);
+    if (form.ingredients.some((i) => String(i.ingredientId) === ingId)) return;
+
     set("ingredients", [
       ...form.ingredients,
       {
-        ingredientId: ingredient.id,
+        ingredientId: ingId,
         name: ingredient.name,
         amount: 1,
         unit: ingredient.unit || "Piece(s)",
@@ -270,9 +320,9 @@ const AddProductDialog = ({
     onOpenChange(false);
   };
 
-  const ingredientOptions = ingredients.map((i) => ({
+  const ingredientOptions = recipeSourceList.map((i: any) => ({
     label: i.name,
-    value: String(i.id),
+    value: String(i._id || i.id),
   }));
 
   return (
@@ -472,6 +522,8 @@ const AddProductDialog = ({
                 selected=""
                 onSelect={addIngredient}
                 onOpenChange={setIsRecipeOpen}
+                onSearchChange={setRecipeSearch}
+                isLoading={isSearchingRecipes}
                 placeholder={t("Select a recipe")}
                 align="start"
                 searchable

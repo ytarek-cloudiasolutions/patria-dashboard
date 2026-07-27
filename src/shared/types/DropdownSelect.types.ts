@@ -13,4 +13,6 @@ export interface DropdownSelectProps {
   contentClassName?: string;
   align?: "start" | "center" | "end";
   searchable?: boolean;
+  onSearchChange?: (query: string) => void;
+  isLoading?: boolean;
 }
