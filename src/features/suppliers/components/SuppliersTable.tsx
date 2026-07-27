@@ -48,11 +48,11 @@ const SupplierActions = ({
 );
 
 const ContactInfo = ({ supplier }: { supplier: Supplier }) => (
-  <div>
+  <div className="flex flex-col gap-0.5">
     {supplier.email && (
-      <p className="text-[13px] text-[#28293D]">{supplier.email}</p>
+      <p className="text-[13px] font-semibold leading-normal text-[#28293D]">{supplier.email}</p>
     )}
-    <p className="text-[13px] text-[#6B6B6B]">{supplier.phone}</p>
+    <p className="text-[13px] font-normal leading-normal text-[#6B6B6B]">{supplier.phone}</p>
   </div>
 );
 

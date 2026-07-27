@@ -16,8 +16,8 @@ const SuppliersOverview = ({ totalSuppliers }: SuppliersOverviewProps) => {
           title: t("Total suppliers"),
           value: totalSuppliers,
           icon: <Truck size={18} />,
-          iconColor: "text-[#B56C00]",
-          badgeColor: "bg-[#FFF5DC]",
+          iconColor: "text-primary",
+          badgeColor: "bg-[#F5F0EA]",
         }}
       />
       <OverviewCard
@@ -25,8 +25,8 @@ const SuppliersOverview = ({ totalSuppliers }: SuppliersOverviewProps) => {
           title: t("Supply speed"),
           value: SUPPLIER_OVERVIEW.supplySpeed,
           icon: <Zap size={18} />,
-          iconColor: "text-[#1A7A45]",
-          badgeColor: "bg-[#E0F5EC]",
+          iconColor: "text-[#059B5A]",
+          badgeColor: "bg-[#E2F4ED]",
         }}
       />
       <OverviewCard
@@ -34,8 +34,8 @@ const SuppliersOverview = ({ totalSuppliers }: SuppliersOverviewProps) => {
           title: t("Average supply cycle"),
           value: SUPPLIER_OVERVIEW.averageSupplyCycle,
           icon: <Users size={18} />,
-          iconColor: "text-[#5C6EAE]",
-          badgeColor: "bg-[#E0E8F5]",
+          iconColor: "text-[#2563EB]",
+          badgeColor: "bg-[#DBEAFE]",
         }}
       />
       <OverviewCard
@@ -43,8 +43,8 @@ const SuppliersOverview = ({ totalSuppliers }: SuppliersOverviewProps) => {
           title: t("quality assurance"),
           value: SUPPLIER_OVERVIEW.qualityAssurance,
           icon: <Star size={18} />,
-          iconColor: "text-[#7A1A7A]",
-          badgeColor: "bg-[#F5E0F5]",
+          iconColor: "text-[#8B16FF]",
+          badgeColor: "bg-[#F3E9FA]",
         }}
       />
     </div>
