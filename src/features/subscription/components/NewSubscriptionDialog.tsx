@@ -257,14 +257,16 @@ const NewSubscriptionDialog = ({
                 data={{
                   buttonText: t("Cancel"),
                   variant: "outline",
+                  type: "button",
                   onClick: () => onOpenChange(false),
-                  className: "border-[#CACBD4] hover:bg-[#FAFAF7]",
+                  className:
+                    "w-full sm:w-auto border-primary text-primary hover:bg-white hover:text-primary",
                 }}
               />
               <Button
-                type="submit"
                 form={FORM_ID}
-                className="h-11 rounded-[12px] bg-primary px-6 font-semibold text-white shadow-none hover:bg-primary-hover focus-visible:ring-0 focus-visible:ring-offset-0 sm:w-auto"
+                type="submit"
+                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
               >
                 {t("Create Subscription")}
               </Button>
