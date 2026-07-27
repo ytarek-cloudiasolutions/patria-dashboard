@@ -72,17 +72,17 @@ const SendNotificationDialog = ({
             noValidate
             className="flex flex-col gap-4 px-5 py-5 sm:px-7 sm:py-6"
           >
-            <div className="flex items-center gap-2 rounded-[10px] bg-[#F4F4F4] px-4 py-3">
-              <Bell className="size-4 text-[#595959]" />
-              <span className="text-[13px] text-[#595959]">
+            <div className="flex items-center gap-2 rounded-[10px] bg-[#E5E5E5] px-3.5 py-2.5">
+              <Bell className="size-4.5 text-[#28293D]" />
+              <span className="text-[14px] font-normal text-[#28293D]">
                 {t("The notification will arrive immediately on the Driver app.")}
               </span>
             </div>
 
-            <div className="flex flex-col">
+            <div className="flex flex-col gap-2.5">
               <Label
                 htmlFor="notice-title"
-                className="mb-2 text-[14px] font-semibold text-[#28293D]"
+                className="text-[16px] font-medium text-black"
               >
                 {t("Notice title")}<span className="text-[#C90000]">*</span>
               </Label>
@@ -94,17 +94,17 @@ const SendNotificationDialog = ({
                   if (error) setError("");
                 }}
                 placeholder={t("e.g: Management Notice")}
-                className="h-12 rounded-[8px] border-[#E5E5E5] px-4 text-[14px] focus-visible:border-primary focus-visible:ring-0"
+                className="h-[50px] rounded-xl border-[#E5E5E5] px-4.5 py-3 text-[16px] font-normal text-[#23252A] placeholder:text-[#8B8B8B] placeholder:text-[16px] placeholder:font-normal focus-visible:border-primary focus-visible:ring-0"
               />
               {error && (
                 <p className="mt-1 text-[13px] text-[#C90000]">{error}</p>
               )}
             </div>
 
-            <div className="flex flex-col">
+            <div className="flex flex-col gap-2.5">
               <Label
                 htmlFor="notice-message"
-                className="mb-2 text-[14px] font-semibold text-[#28293D]"
+                className="text-[16px] font-medium text-black"
               >
                 {t("Message Text")}
               </Label>
@@ -113,7 +113,7 @@ const SendNotificationDialog = ({
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder={t("Write your message here...")}
-                className="min-h-24 rounded-[10px] border-[#E5E5E5] px-4 py-3 text-[14px] focus-visible:border-primary focus-visible:ring-0"
+                className="min-h-24 rounded-xl border-[#E5E5E5] px-4.5 py-3 text-[16px] font-normal text-[#23252A] placeholder:text-[#8B8B8B] placeholder:text-[16px] placeholder:font-normal focus-visible:border-primary focus-visible:ring-0"
               />
             </div>
           </form>
