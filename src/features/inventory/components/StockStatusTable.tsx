@@ -11,7 +11,7 @@ import { useTranslation } from "@/shared/i18n/useTranslation";
 import type { InventoryItem } from "../types";
 
 const STATUS_STYLES: Record<string, string> = {
-  "Out Of Stock": "bg-[#FFF0F0] text-[#C90000] border-[#C90000]",
+  "Out Of Stock": "bg-[#C90000] text-white border-[#C90000]",
   "Low Stock": "bg-[#FE9A001A] text-[#C7861E] border-[#C7861E]",
   Available: "bg-[#E2F4ED] text-[#059B5A] border-[#059B5A]",
 };

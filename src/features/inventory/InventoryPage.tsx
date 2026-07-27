@@ -179,8 +179,8 @@ const InventoryPage = () => {
           data={{
             title: t("Out Of Stock"),
             value: stats.outOfStock,
-            badgeColor: "bg-[#FFF0F0]",
-            iconColor: "text-[#C90000]",
+            badgeColor: "bg-[#C90000]",
+            iconColor: "text-white",
             icon: <Coffee className="size-5" />,
           }}
         />

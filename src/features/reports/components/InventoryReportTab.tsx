@@ -13,7 +13,7 @@ const TD = "px-4 py-4 text-[14px] text-[#28293D]";
 const STOCK_STATUS_STYLES: Record<StockStatus, string> = {
   Available: "bg-[#E2F4ED] text-[#059B5A] border border-[#059B5A]",
   "Low Stock": "bg-[rgba(254,154,0,0.1)] text-[#C7861E] border border-[#C7861E]",
-  "Out Of Stock": "bg-[#FFF0F0] text-[#C90000] border border-[#C90000]",
+  "Out Of Stock": "bg-[#C90000] text-white border border-[#C90000]",
 };
 
 interface InventoryReportTabProps {
