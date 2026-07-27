@@ -221,7 +221,7 @@ const OrderDetailsDialog = ({
                         <button
                           type="button"
                           onClick={handleMarkAsPaid}
-                          className="inline-flex h-5 cursor-pointer items-center justify-center rounded-full border border-[#C7861E] bg-[#FFF7E6] px-2 text-[10px] font-semibold text-[#C7861E] transition-colors hover:bg-[#C7861E] hover:text-white"
+                          className="inline-flex h-5 cursor-pointer items-center justify-center rounded-full border border-[#C7861E] bg-[#FFF7E6] px-2 text-[10px] font-semibold text-[#C7861E] transition-colors hover:border-primary hover:bg-primary hover:text-white"
                           title={t("Mark as Paid")}
                         >
                           {t("Pending")} · {t("Mark as Paid")}
