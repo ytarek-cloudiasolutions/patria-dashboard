@@ -3,6 +3,7 @@ import { RefreshCw, Receipt } from "lucide-react";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
 import DropdownSelect from "@/shared/components/DropdownSelect";
+import DatePicker from "@/shared/components/DatePicker";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { useInventory } from "@/features/inventory/hooks/useInventory";
 import type { StockStatus } from "@/features/inventory/types";
@@ -81,22 +82,25 @@ const ReportsPage = () => {
                 <label className="text-[12px] font-medium text-[#333333]">
                   {t("From")}
                 </label>
-                <input
-                  type="date"
+                <DatePicker
                   value={fromDate}
-                  onChange={(e) => setFromDate(e.target.value)}
-                  className="h-[50px] w-full rounded-[12px] border border-[#E5E5E5] bg-white px-4 text-[14px] text-[#333333] focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  onChange={setFromDate}
+                  placeholder={t("From")}
+                  popoverPlacement="bottom-right"
+                  withBackdrop
                 />
               </div>
               <div className="flex flex-col gap-1.5 w-full">
                 <label className="text-[12px] font-medium text-[#333333]">
                   {t("To")}
                 </label>
-                <input
-                  type="date"
+                <DatePicker
                   value={toDate}
-                  onChange={(e) => setToDate(e.target.value)}
-                  className="h-[50px] w-full rounded-[12px] border border-[#E5E5E5] bg-white px-4 text-[14px] text-[#333333] focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  onChange={setToDate}
+                  placeholder={t("To")}
+                  popoverPlacement="bottom-right"
+                  minDate={fromDate || undefined}
+                  withBackdrop
                 />
               </div>
               <div className="flex flex-col gap-1.5 w-full">
@@ -121,22 +125,25 @@ const ReportsPage = () => {
                 <label className="text-[12px] font-medium text-[#333333]">
                   {t("From")}
                 </label>
-                <input
-                  type="date"
+                <DatePicker
                   value={fromDate}
-                  onChange={(e) => setFromDate(e.target.value)}
-                  className="h-[50px] w-full rounded-[12px] border border-[#E5E5E5] bg-white px-4 text-[14px] text-[#333333] focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  onChange={setFromDate}
+                  placeholder={t("From")}
+                  popoverPlacement="bottom-right"
+                  withBackdrop
                 />
               </div>
               <div className="flex flex-col gap-1.5 w-full">
                 <label className="text-[12px] font-medium text-[#333333]">
                   {t("To")}
                 </label>
-                <input
-                  type="date"
+                <DatePicker
                   value={toDate}
-                  onChange={(e) => setToDate(e.target.value)}
-                  className="h-[50px] w-full rounded-[12px] border border-[#E5E5E5] bg-white px-4 text-[14px] text-[#333333] focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  onChange={setToDate}
+                  placeholder={t("To")}
+                  popoverPlacement="bottom-right"
+                  minDate={fromDate || undefined}
+                  withBackdrop
                 />
               </div>
             </div>
@@ -184,22 +191,25 @@ const ReportsPage = () => {
                 <label className="text-[12px] font-medium text-[#333333]">
                   {t("From")}
                 </label>
-                <input
-                  type="date"
+                <DatePicker
                   value={fromDate}
-                  onChange={(e) => setFromDate(e.target.value)}
-                  className="h-[50px] w-full rounded-[12px] border border-[#E5E5E5] bg-white px-4 text-[14px] text-[#333333] focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  onChange={setFromDate}
+                  placeholder={t("From")}
+                  popoverPlacement="bottom-right"
+                  withBackdrop
                 />
               </div>
               <div className="flex flex-col gap-1.5 w-full">
                 <label className="text-[12px] font-medium text-[#333333]">
                   {t("To")}
                 </label>
-                <input
-                  type="date"
+                <DatePicker
                   value={toDate}
-                  onChange={(e) => setToDate(e.target.value)}
-                  className="h-[50px] w-full rounded-[12px] border border-[#E5E5E5] bg-white px-4 text-[14px] text-[#333333] focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  onChange={setToDate}
+                  placeholder={t("To")}
+                  popoverPlacement="bottom-right"
+                  minDate={fromDate || undefined}
+                  withBackdrop
                 />
               </div>
               <div className="flex flex-col gap-1.5 w-full">
