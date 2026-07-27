@@ -92,7 +92,8 @@ const ReportOrderDetailsDialog = ({
 
   if (!order) return null;
 
-  const displayId = order.orderId || order.id;
+  const rawId = order.orderId || order.id;
+  const displayId = `#${rawId.replace(/^#/, "")}`;
   const customerName = order.customerName || t("Omnia Maher");
   const formattedDate = formatDate(order.date);
   const formattedType = formatType(order.type);

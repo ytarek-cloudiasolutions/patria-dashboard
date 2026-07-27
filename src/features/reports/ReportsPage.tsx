@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { RefreshCw, Receipt } from "lucide-react";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
@@ -6,6 +6,7 @@ import DropdownSelect from "@/shared/components/DropdownSelect";
 import DatePicker from "@/shared/components/DatePicker";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { useInventory } from "@/features/inventory/hooks/useInventory";
+import { useWarehouses } from "@/features/warehouses/hooks/useWarehouses";
 import type { StockStatus } from "@/features/inventory/types";
 
 import ReportsTabs from "./components/ReportsTabs";
@@ -36,9 +37,29 @@ const ReportsPage = () => {
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState<"All" | StockStatus>("All");
   const [warehouse, setWarehouse] = useState("All");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   // Get categories from inventory items
   const { items } = useInventory();
+  const { warehouses: warehouseData, getWarehouses } = useWarehouses();
+
+  useEffect(() => {
+    getWarehouses();
+  }, [getWarehouses]);
+
+  const warehouseOptions = useMemo(() => {
+    const list = Array.isArray(warehouseData)
+      ? warehouseData
+      : (warehouseData as any)?.warehouses ?? [];
+    return [
+      { value: "All", label: t("All") },
+      ...list.map((w: any) => ({
+        value: w.name || w._id,
+        label: w.name,
+      })),
+    ];
+  }, [warehouseData, t]);
+
   const categories = [
     "All",
     ...Array.from(new Set(items.map((i) => i.category).filter(Boolean))),
@@ -50,6 +71,10 @@ const ReportsPage = () => {
 
   return (
     <>
+      {isDropdownOpen && (
+        <div className="pointer-events-none fixed inset-0 z-40 bg-black/40" />
+      )}
+
       {!hasLoaded && (
         <div className="flex min-h-[60vh] w-full items-center justify-center">
           <Receipt className="size-16 animate-spin text-primary" />
@@ -105,12 +130,13 @@ const ReportsPage = () => {
               </div>
               <div className="flex flex-col gap-1.5 w-full">
                 <label className="text-[12px] font-medium text-[#333333]">
-                  {t("Type")}
+                  {t("Warehouse")}
                 </label>
                 <DropdownSelect
-                  options={ORDER_TYPES.map((opt) => ({ value: opt.value, label: t(opt.label) }))}
-                  selected={orderType}
-                  onSelect={(val) => setOrderType(val as OrderType)}
+                  options={warehouseOptions}
+                  selected={warehouse}
+                  onSelect={(val) => setWarehouse(val)}
+                  onOpenChange={setIsDropdownOpen}
                   className="h-[50px] w-full md:w-full"
                   contentClassName="w-[var(--radix-dropdown-menu-trigger-width)] md:w-[var(--radix-dropdown-menu-trigger-width)]"
                   align="start"
@@ -159,6 +185,7 @@ const ReportsPage = () => {
                   options={categories.map((c) => ({ value: c, label: c === "All" ? t("All Categories") : c }))}
                   selected={categoryFilter}
                   onSelect={(val) => setCategoryFilter(val)}
+                  onOpenChange={setIsDropdownOpen}
                   className="h-[50px] w-full md:w-full"
                   contentClassName="w-[var(--radix-dropdown-menu-trigger-width)] md:w-[var(--radix-dropdown-menu-trigger-width)]"
                   align="start"
@@ -177,6 +204,7 @@ const ReportsPage = () => {
                   ]}
                   selected={statusFilter}
                   onSelect={(val) => setStatusFilter(val as "All" | StockStatus)}
+                  onOpenChange={setIsDropdownOpen}
                   className="h-[50px] w-full md:w-full"
                   contentClassName="w-[var(--radix-dropdown-menu-trigger-width)] md:w-[var(--radix-dropdown-menu-trigger-width)]"
                   align="start"
@@ -217,9 +245,10 @@ const ReportsPage = () => {
                   {t("Warehouse")}
                 </label>
                 <DropdownSelect
-                  options={[{ value: "All", label: t("All") }]}
+                  options={warehouseOptions}
                   selected={warehouse}
                   onSelect={(val) => setWarehouse(val)}
+                  onOpenChange={setIsDropdownOpen}
                   className="h-[50px] w-full md:w-full"
                   contentClassName="w-[var(--radix-dropdown-menu-trigger-width)] md:w-[var(--radix-dropdown-menu-trigger-width)]"
                   align="start"
@@ -239,6 +268,8 @@ const ReportsPage = () => {
               fromDate={fromDate}
               toDate={toDate}
               orderType={orderType}
+              onOrderTypeChange={setOrderType}
+              onDropdownOpenChange={setIsDropdownOpen}
               onInitialLoadComplete={() => setHasLoaded(true)}
             />
           )}

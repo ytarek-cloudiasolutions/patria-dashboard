@@ -15,28 +15,24 @@ const ReportsTabs = ({ active, onChange }: ReportsTabsProps) => {
       <TabItem
         value="orders"
         label={t("Orders")}
-        icon={ShoppingBag}
         isActive={active === "orders"}
         onClick={(v) => onChange(v as ReportsTab)}
       />
       <TabItem
         value="sales"
         label={t("Sales")}
-        icon={BarChart3}
         isActive={active === "sales"}
         onClick={(v) => onChange(v as ReportsTab)}
       />
       <TabItem
         value="inventory"
         label={t("Inventory")}
-        icon={Box}
         isActive={active === "inventory"}
         onClick={(v) => onChange(v as ReportsTab)}
       />
       <TabItem
         value="discounts"
         label={t("Administrative discounts")}
-        icon={Tag}
         isActive={active === "discounts"}
         onClick={(v) => onChange(v as ReportsTab)}
       />

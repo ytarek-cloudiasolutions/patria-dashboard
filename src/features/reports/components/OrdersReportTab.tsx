@@ -13,6 +13,7 @@ import {
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import OverviewCard from "@/shared/components/OverviewCard";
 import DefaultButton from "@/shared/components/DefaultButton";
+import DropdownSelect from "@/shared/components/DropdownSelect";
 import { api } from "@/config/api";
 import type { OrderType } from "../types";
 import ReportOrderDetailsDialog, {
@@ -21,6 +22,14 @@ import ReportOrderDetailsDialog, {
 
 const TH = "px-4 py-3.5 text-[13px] font-semibold text-[#28293D]";
 const TD = "px-4 py-4 text-[14px] text-[#28293D]";
+
+const ORDER_TYPES: { value: OrderType; label: string }[] = [
+  { value: "All Types", label: "All Types" },
+  { value: "Dine-In", label: "Dine-In" },
+  { value: "Takeaway", label: "Takeaway" },
+  { value: "Delivery", label: "Delivery" },
+  { value: "Call", label: "Call" },
+];
 
 interface OrderSummary {
   totalRevenue: number;
@@ -81,6 +90,8 @@ interface OrdersReportTabProps {
   fromDate: string;
   toDate: string;
   orderType: OrderType;
+  onOrderTypeChange?: (type: OrderType) => void;
+  onDropdownOpenChange?: (open: boolean) => void;
   onInitialLoadComplete?: () => void;
 }
 
@@ -88,6 +99,8 @@ const OrdersReportTab = ({
   fromDate,
   toDate,
   orderType,
+  onOrderTypeChange,
+  onDropdownOpenChange,
   onInitialLoadComplete,
 }: OrdersReportTabProps) => {
   const { t } = useTranslation();
@@ -207,18 +220,32 @@ const OrdersReportTab = ({
       {/* Orders Table */}
       <div className="overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white">
         {/* Table Header */}
-        <div className="flex items-center justify-between px-4 py-5 sm:px-5">
+        <div className="flex flex-col gap-3 px-4 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-5">
           <span className="text-[18px] font-bold text-[#333333]">
             {t("Order Details")}
           </span>
-          <DefaultButton
-            data={{
-              buttonText: t("Export CSV"),
-              onClick: handleExportCSV,
-              icon: <FileDown className="size-4.5" />,
-              className: "bg-primary text-white hover:bg-primary/90",
-            }}
-          />
+          <div className="flex items-center gap-3">
+            <DropdownSelect
+              options={ORDER_TYPES.map((opt) => ({
+                value: opt.value,
+                label: t(opt.label),
+              }))}
+              selected={orderType}
+              onSelect={(val) => onOrderTypeChange?.(val as OrderType)}
+              onOpenChange={onDropdownOpenChange}
+              className="h-[44px] w-[169px]"
+              contentClassName="w-[169px]"
+              align="start"
+            />
+            <DefaultButton
+              data={{
+                buttonText: t("Export CSV"),
+                onClick: handleExportCSV,
+                icon: <FileDown className="size-4.5" />,
+                className: "bg-primary text-white hover:bg-primary/90",
+              }}
+            />
+          </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -265,7 +292,7 @@ const OrdersReportTab = ({
                         onClick={() => handleOpenDetails(row)}
                         className="inline-flex cursor-pointer items-center gap-1.5 font-bold text-[#28293D] hover:text-primary transition-colors"
                       >
-                        <span>{row.orderId}</span>
+                        <span>#{row.orderId.replace(/^#/, "")}</span>
                         <Info className="size-4 text-[#8B8B8B]" />
                       </button>
                     </td>
