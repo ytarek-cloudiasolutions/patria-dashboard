@@ -26,8 +26,8 @@ const DeleteDialog = ({ open, onOpenChange, data, onConfirm }: Props) => {
       <DialogContent className="w-[calc(100%-1.5rem)] max-w-[calc(100%-1.5rem)] rounded-xl border border-[#CACBD4] p-4 sm:w-full sm:max-w-152.25 sm:p-6">
         <DialogHeader>
           <DialogTitle>
-            <div className="inline-flex items-center gap-2 rounded-[10px] bg-[#FFF0F0] p-1">
-              <Trash2 className="size-6 text-[#C90000] sm:size-8" />
+            <div className="inline-flex items-center justify-center rounded-[10px] bg-[#C90000] p-2">
+              <Trash2 className="size-6 text-white sm:size-8" />
             </div>
           </DialogTitle>
         </DialogHeader>
