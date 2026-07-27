@@ -8,7 +8,7 @@ interface WarehouseCardProps {
 
 const WarehouseCard = ({ warehouse }: WarehouseCardProps) => {
   const isMain = warehouse.kind === "Main Warehouse";
-  const iconBg = isMain ? "bg-[#F5F0EA]" : "bg-[#BDC48A]";
+  const iconBg = isMain ? "bg-[#F5F0EA]" : "bg-[#E5E8D3]";
   const iconColor = isMain ? "text-primary" : "text-[#444A18]";
 
   return (
