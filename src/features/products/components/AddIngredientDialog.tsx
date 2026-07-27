@@ -164,23 +164,23 @@ const AddIngredientDialog = ({
                 )}
               </div>
 
-              <div className="flex flex-col">
-                <Label className="mb-2.5 text-[16px] font-medium text-black">
+              <div className="flex flex-col gap-2.5">
+                <Label className="text-[16px] font-medium text-black">
                   {t("Category")}
                 </Label>
                 <Input
                   value={t("Raw Ingredient")}
                   disabled
                   readOnly
-                  className="h-12.5 rounded-xl border-[#E5E5E5] bg-[#F4F4F4] px-4.5 py-3 text-[14px] text-[#595959] disabled:opacity-100"
+                  className="h-[50px] rounded-xl border-[#E5E5E5] bg-[#F4F4F4] px-4.5 py-3 text-[16px] text-[#595959] disabled:opacity-100"
                 />
               </div>
             </div>
 
-            <div className="flex flex-col">
+            <div className="flex flex-col gap-2.5">
               <Label
                 htmlFor="ingredient-description"
-                className="mb-2.5 text-[16px] font-medium text-black"
+                className="text-[16px] font-medium text-black"
               >
                 {t("Description")}{" "}
                 <span className="text-[13px] font-normal text-[#8B8B8B]">
@@ -192,7 +192,7 @@ const AddIngredientDialog = ({
                 value={form.description}
                 onChange={(e) => set("description", e.target.value)}
                 placeholder={t("Describe this product...")}
-                className="min-h-20 rounded-xl border-[#E5E5E5] px-4.5 py-3 text-[14px] text-[#23252A] placeholder:text-[#8B8B8B] focus-visible:border-primary focus-visible:ring-0"
+                className="min-h-20 rounded-xl border-[#E5E5E5] px-4.5 py-3 text-[16px] text-[#23252A] placeholder:text-[#8B8B8B] placeholder:text-[16px] focus-visible:border-primary focus-visible:ring-0"
               />
             </div>
 

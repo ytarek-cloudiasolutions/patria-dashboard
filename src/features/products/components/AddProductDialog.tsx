@@ -382,8 +382,8 @@ const AddProductDialog = ({
                 )}
               </div>
 
-              <div className="flex flex-col">
-                <Label className="mb-2.5 text-[16px] font-medium text-black">
+              <div className="flex flex-col gap-2.5">
+                <Label className="text-[16px] font-medium text-black">
                   {t("Category")}<span className="text-[#C90000]">*</span>
                 </Label>
                 <DropdownSelect
@@ -407,8 +407,8 @@ const AddProductDialog = ({
               </div>
             </div>
 
-            <div className="flex flex-col">
-              <Label className="mb-2.5 text-[16px] font-medium text-black">
+            <div className="flex flex-col gap-2.5">
+              <Label className="text-[16px] font-medium text-black">
                 {t("Item Type")}
               </Label>
               <DropdownSelect
@@ -429,10 +429,10 @@ const AddProductDialog = ({
               />
             </div>
 
-            <div className="flex flex-col">
+            <div className="flex flex-col gap-2.5">
               <Label
                 htmlFor="product-description"
-                className="mb-2.5 text-[16px] font-medium text-black"
+                className="text-[16px] font-medium text-black"
               >
                 {t("Description")}<span className="text-[#C90000]">*</span>
               </Label>
@@ -441,7 +441,7 @@ const AddProductDialog = ({
                 value={form.description}
                 onChange={(e) => set("description", e.target.value)}
                 placeholder={t("Describe this product...")}
-                className="min-h-20 rounded-xl border-[#E5E5E5] px-4.5 py-3 text-[14px] text-[#23252A] placeholder:text-[#8B8B8B] focus-visible:border-primary focus-visible:ring-0"
+                className="min-h-20 rounded-xl border-[#E5E5E5] px-4.5 py-3 text-[16px] text-[#23252A] placeholder:text-[#8B8B8B] placeholder:text-[16px] focus-visible:border-primary focus-visible:ring-0"
               />
               {errors.description && (
                 <p className="mt-1 text-[13px] text-[#C90000]">

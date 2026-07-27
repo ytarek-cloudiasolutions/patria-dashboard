@@ -65,8 +65,8 @@ const DropdownSelect = ({
         <Button
           variant="outline"
           className={cn(
-            "h-12 w-full justify-between rounded-[12px] border-[#E5E5E5]",
-            "bg-white px-4 py-3 text-[14px] font-medium text-[#000000] cursor-pointer",
+            "h-[50px] w-full justify-between rounded-[12px] border-[#E5E5E5]",
+            "bg-white px-4.5 py-3 text-[16px] font-normal text-[#000000] cursor-pointer",
             "hover:bg-white data-[state=open]:bg-white",
             "focus-visible:border-[#E5E5E5] focus-visible:ring-0",
             "sm:w-full md:w-78",

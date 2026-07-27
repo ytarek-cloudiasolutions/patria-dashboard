@@ -41,11 +41,11 @@ const InputField = ({
   const labelHtmlFor = typeof label === "string" ? id : label?.htmlFor ?? id;
 
   return (
-    <div className={cn("flex flex-col", wrapperClassName)}>
+    <div className={cn("flex flex-col gap-2.5", wrapperClassName)}>
       {labelText && (
         <Label
           htmlFor={labelHtmlFor}
-          className="mb-2.5 text-[16px] font-medium text-black"
+          className="text-[16px] font-medium text-black"
         >
           {labelText}
           {required && <span className="text-[#C90000]">*</span>}
@@ -58,7 +58,7 @@ const InputField = ({
         required={required}
         {...inputProps}
         className={cn(
-          "h-12.5 px-4.5 py-3 rounded-xl border border-[#E5E5E5] bg-white text-[14px] text-[#23252A] placeholder:text-[#8B8B8B] focus-visible:border-primary focus-visible:ring-0",
+          "h-[50px] px-4.5 py-3 rounded-xl border border-[#E5E5E5] bg-white text-[16px] font-normal text-[#23252A] placeholder:text-[#8B8B8B] placeholder:text-[16px] placeholder:font-normal focus-visible:border-primary focus-visible:ring-0",
           className
         )}
       />
