@@ -53,8 +53,8 @@ const PurchasingOverview = ({
           title: t("Canceled"),
           value: canceled,
           icon: <XCircle size={18} />,
-          iconColor: "text-[#C90000]",
-          badgeColor: "bg-[#FFF0F0]",
+          iconColor: "text-white",
+          badgeColor: "bg-[#C90000]",
         }}
       />
     </div>

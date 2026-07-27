@@ -9,7 +9,7 @@ interface PoStatusBadgeProps {
 
 const STATUS_STYLES: Record<PoStatus, string> = {
   Paid: "bg-[#E2F4ED] text-[#059B5A] border-current",
-  Unpaid: "bg-[#FFF0F0] text-[#C90000] border-current",
+  Unpaid: "bg-[#C90000] text-white border-[#C90000]",
   Pending: "bg-[#FFF5DC] text-[#B56C00] border-current",
   Canceled: "bg-[#EAEAEA] text-[#5A5A66] border-current",
 };
