@@ -27,7 +27,6 @@ import WarehousesPage from "@/features/warehouses/WarehousesPage";
 import LogisticsPage from "@/features/logistics/LogisticsPage";
 import ProductionPage from "@/features/production/ProductionPage";
 import SubscriptionPage from "@/features/subscription/SubscriptionPage";
-import FinancialHubPage from "@/features/financial/FinancialHubPage";
 import PricingPage from "@/features/pricing/PricingPage";
 import UsersPermissionsPage from "@/features/users/UsersPermissionsPage";
 import WhatsAppGatewayPage from "@/features/whatsapp/WhatsAppGatewayPage";
@@ -222,14 +221,6 @@ export const router = createBrowserRouter([
         element: (
           <RoleRoute path="/shift-management">
             <ShiftManagementPage />
-          </RoleRoute>
-        ),
-      },
-      {
-        path: "/financial-hub",
-        element: (
-          <RoleRoute path="/financial-hub">
-            <FinancialHubPage />
           </RoleRoute>
         ),
       },

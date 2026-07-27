@@ -39,7 +39,6 @@ export const ROUTE_ACCESS: Record<string, UserRole[]> = {
   "/requests": ["admin", "manager", "superadmin"],
   "/users-permissions": ["admin", "superadmin"],
   "/shift-management": ["cashier", "admin", "manager", "superadmin"],
-  "/financial-hub": ["admin", "manager", "superadmin"],
   "/reports": ["admin", "manager", "superadmin"],
   "/shift-reports": ["admin", "manager", "superadmin"],
   "/pricing": ["admin", "manager", "superadmin"],

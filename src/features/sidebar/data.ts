@@ -19,7 +19,6 @@ import {
   UserCircle,
   Settings,
   MessageSquare,
-  BadgeDollarSign,
   Receipt,
   Clock,
   BarChart3,
@@ -68,7 +67,6 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     title: "FINANCE",
     items: [
-      { label: "Financial Hub", href: "/financial-hub", icon: BadgeDollarSign },
       { label: "Shift Reports", href: "/shift-reports", icon: BarChart3 },
       { label: "Reports", href: "/reports", icon: Receipt },
       { label: "Pricing", href: "/pricing", icon: Tag },

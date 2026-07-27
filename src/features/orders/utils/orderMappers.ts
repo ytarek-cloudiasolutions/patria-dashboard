@@ -154,6 +154,19 @@ export const mapOrder = (o: any): Order => {
       ? rawCat
       : "Coffee";
 
+  const zone =
+    (typeof o.zone === "string" ? o.zone : o.zone?.name) ||
+    (typeof o.region === "string" ? o.region : o.region?.name) ||
+    (typeof o.customer?.region === "string" ? o.customer?.region : o.customer?.region?.name) ||
+    (typeof o.customer?.zone === "string" ? o.customer?.zone : o.customer?.zone?.name) ||
+    (typeof o.customerId?.region === "string" ? o.customerId?.region : o.customerId?.region?.name) ||
+    (typeof o.customerId?.zone === "string" ? o.customerId?.zone : o.customerId?.zone?.name) ||
+    (Array.isArray(o.customerId?.addresses) && (o.customerId.addresses.find((a: any) => a.isDefault) || o.customerId.addresses[0])?.zone) ||
+    (Array.isArray(o.customer?.addresses) && (o.customer.addresses.find((a: any) => a.isDefault) || o.customer.addresses[0])?.zone) ||
+    (Array.isArray(o.customerId?.addresses) && (o.customerId.addresses.find((a: any) => a.isDefault) || o.customerId.addresses[0])?.area) ||
+    (Array.isArray(o.customer?.addresses) && (o.customer.addresses.find((a: any) => a.isDefault) || o.customer.addresses[0])?.area) ||
+    "";
+
   return {
     id: o._id || o.id,
     orderId: o.orderId || null,
@@ -161,7 +174,7 @@ export const mapOrder = (o: any): Order => {
     customerPhone: o.customerId?.phone || o.customer?.phone || o.customerPhone || "",
     customerEmail: o.customerId?.email || o.customer?.email || o.customerEmail || "",
     address: o.customer?.address || o.address || ((o.type || "").toLowerCase() === "takeaway" ? "Takeaway" : "In Store"),
-    zone: o.zone || "",
+    zone,
     date: dateStr,
     time: timeStr,
     total: o.totalAmount || o.total || subtotal,
@@ -174,7 +187,7 @@ export const mapOrder = (o: any): Order => {
     paymentMethod: o.paymentMethod || "Cash on delivery",
     paymentState,
     items,
-    driver: o.driver || undefined,
+    driver: o.assignedDriver?.name || o.driver || undefined,
   };
 };
 

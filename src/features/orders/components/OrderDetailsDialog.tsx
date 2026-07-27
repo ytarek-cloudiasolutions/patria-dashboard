@@ -48,6 +48,20 @@ const OrderDetailsDialog = ({
   const grossTotal = order.total;
   const finalTotal = Math.max(grossTotal - adminDiscount, 0);
 
+  const rawOrder = order as any;
+  const zoneName =
+    order.zone ||
+    (typeof rawOrder.customer?.region === "object"
+      ? rawOrder.customer?.region?.name
+      : rawOrder.customer?.region) ||
+    (typeof rawOrder.customer?.zone === "object"
+      ? rawOrder.customer?.zone?.name
+      : rawOrder.customer?.zone) ||
+    (typeof rawOrder.region === "object"
+      ? rawOrder.region?.name
+      : rawOrder.region) ||
+    "";
+
   const handleMarkAsPaid = async () => {
     try {
       await api.patch(`/orders/${order.id}/payment-status`, {
@@ -230,7 +244,7 @@ const OrderDetailsDialog = ({
                 </p>
               </div>
 
-              {(order.zone || order.deliveryFee > 0) && (
+              {(zoneName || order.deliveryFee > 0) && (
                 <>
                   <Separator className="my-4 bg-[#E5E5E5]" />
                   <div className="flex items-end justify-between gap-3">
@@ -239,7 +253,7 @@ const OrderDetailsDialog = ({
                         {t("Zone")}
                       </p>
                       <p className="text-[13px] text-[#333333]">
-                        {order.zone || "-"}
+                        {zoneName || "-"}
                       </p>
                     </div>
                     <div className="text-right">
