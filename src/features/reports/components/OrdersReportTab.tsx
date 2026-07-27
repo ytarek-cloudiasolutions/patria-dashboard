@@ -1,18 +1,25 @@
 import { useEffect, useState } from "react";
-import { FileDown } from "lucide-react";
+import {
+  FileDown,
+  Coffee,
+  ShoppingBag,
+  Bike,
+  Phone,
+  Info,
+  DollarSign,
+  Banknote,
+  CreditCard,
+} from "lucide-react";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import OverviewCard from "@/shared/components/OverviewCard";
 import DefaultButton from "@/shared/components/DefaultButton";
 import { api } from "@/config/api";
-import {
-  DollarSign,
-  ShoppingBag,
-  Banknote,
-  CreditCard,
-} from "lucide-react";
 import type { OrderType } from "../types";
+import ReportOrderDetailsDialog, {
+  type ReportOrder,
+} from "./ReportOrderDetailsDialog";
 
-const TH = "px-4 py-3 text-[10px] font-semibold uppercase tracking-wide text-[#28293D] text-left";
+const TH = "px-4 py-3.5 text-[13px] font-semibold text-[#28293D]";
 const TD = "px-4 py-4 text-[14px] text-[#28293D]";
 
 interface OrderSummary {
@@ -31,15 +38,43 @@ interface OrderRow {
   total: number;
   payment: string;
   itemsCount: number;
+  customerName?: string;
 }
 
 const STATUS_STYLES: Record<string, string> = {
   Pending: "bg-[rgba(254,154,0,0.1)] text-[#C7861E] border border-[#C7861E]",
   Preparing: "bg-[#F5F0EA] text-[#8F6900] border border-[#725400]",
   Confirmed: "bg-[#E2F4ED] text-[#059B5A] border border-[#059B5A]",
-  "On The Way": "bg-[#F3E9FA] text-[#9524E4] border border-[#7E00D7]",
+  "On The Way": "bg-[#F3E9FA] text-[#7E00D7] border border-[#7E00D7]",
   Delivered: "bg-[#E2F4ED] text-[#059B5A] border border-[#059B5A]",
   Cancelled: "bg-[#C90000] text-white border border-[#C90000]",
+};
+
+const formatDate = (dateStr: string) => {
+  if (!dateStr) return "";
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return dateStr;
+  const d = date.toLocaleDateString("en-US", {
+    month: "numeric",
+    day: "numeric",
+    year: "numeric",
+  });
+  const t = date.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  });
+  return `${d},\n${t}`;
+};
+
+const TypeIcon = ({ type }: { type: string }) => {
+  const normalized = type?.toLowerCase() || "";
+  if (normalized.includes("dine")) return <Coffee className="size-4 text-[#595959]" />;
+  if (normalized.includes("take")) return <ShoppingBag className="size-4 text-[#595959]" />;
+  if (normalized.includes("deliv")) return <Bike className="size-4 text-[#595959]" />;
+  if (normalized.includes("call")) return <Phone className="size-4 text-[#595959]" />;
+  return <ShoppingBag className="size-4 text-[#595959]" />;
 };
 
 interface OrdersReportTabProps {
@@ -49,11 +84,18 @@ interface OrdersReportTabProps {
   onInitialLoadComplete?: () => void;
 }
 
-const OrdersReportTab = ({ fromDate, toDate, orderType, onInitialLoadComplete }: OrdersReportTabProps) => {
+const OrdersReportTab = ({
+  fromDate,
+  toDate,
+  orderType,
+  onInitialLoadComplete,
+}: OrdersReportTabProps) => {
   const { t } = useTranslation();
   const [summary, setSummary] = useState<OrderSummary | null>(null);
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedOrder, setSelectedOrder] = useState<ReportOrder | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -107,6 +149,11 @@ const OrdersReportTab = ({ fromDate, toDate, orderType, onInitialLoadComplete }:
     a.download = "orders-report.csv";
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleOpenDetails = (row: OrderRow) => {
+    setSelectedOrder(row);
+    setIsDetailsOpen(true);
   };
 
   return (
@@ -178,7 +225,7 @@ const OrdersReportTab = ({ fromDate, toDate, orderType, onInitialLoadComplete }:
           <table className="w-full min-w-[820px]">
             <thead className="bg-[#F5F0EA]">
               <tr>
-                <th className={TH}>{t("ID")}</th>
+                <th className={`${TH} text-left`}>{t("ID")}</th>
                 <th className={`${TH} text-center`}>{t("Date")}</th>
                 <th className={`${TH} text-center`}>{t("Type")}</th>
                 <th className={`${TH} text-center`}>{t("Status")}</th>
@@ -212,14 +259,24 @@ const OrdersReportTab = ({ fromDate, toDate, orderType, onInitialLoadComplete }:
                     key={row.id}
                     className="border-t border-[#E5E5E5] hover:bg-[#FAFAF7] transition-colors"
                   >
-                    <td className={`${TD} font-bold text-[12px]`}>
-                      {row.orderId}
+                    <td className={`${TD} font-bold text-[13px]`}>
+                      <button
+                        type="button"
+                        onClick={() => handleOpenDetails(row)}
+                        className="inline-flex cursor-pointer items-center gap-1.5 font-bold text-[#28293D] hover:text-primary transition-colors"
+                      >
+                        <span>{row.orderId}</span>
+                        <Info className="size-4 text-[#8B8B8B]" />
+                      </button>
                     </td>
-                    <td className={`${TD} text-center text-[#595959]`}>
-                      {row.date}
+                    <td className={`${TD} text-center text-[#595959] text-[13px] whitespace-pre-line`}>
+                      {formatDate(row.date)}
                     </td>
-                    <td className={`${TD} text-center text-[#28293D]`}>
-                      {t(row.type)}
+                    <td className={`${TD} text-center`}>
+                      <div className="inline-flex items-center justify-center gap-1.5 text-[#28293D]">
+                        <TypeIcon type={row.type} />
+                        <span>{t(row.type)}</span>
+                      </div>
                     </td>
                     <td className={`${TD} text-center`}>
                       <span
@@ -231,14 +288,22 @@ const OrdersReportTab = ({ fromDate, toDate, orderType, onInitialLoadComplete }:
                         {t(row.status)}
                       </span>
                     </td>
-                    <td className={`${TD} text-center font-bold`} dir="ltr">
+                    <td className={`${TD} text-center font-semibold`} dir="ltr">
                       EGP {row.total.toFixed(2)}
                     </td>
-                    <td className={`${TD} text-center`}>{t(row.payment)}</td>
+                    <td className={`${TD} text-center text-[#595959]`}>
+                      {t(row.payment)}
+                    </td>
                     <td className={`${TD} text-center`}>
-                      <span className="inline-flex items-center gap-1 rounded-[8px] bg-[#F5F0EA] px-3 py-1 text-[12px] font-medium text-[#000000]">
-                        <strong>{row.itemsCount}</strong> {t("Products")}
-                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleOpenDetails(row)}
+                        className="inline-flex cursor-pointer items-center gap-1.5 rounded-[8px] bg-[#F5F0EA] px-3 py-1 text-[12px] font-medium text-[#000000] hover:bg-[#EAE4DB] transition-colors"
+                      >
+                        <strong>{row.itemsCount}</strong>
+                        <span>{t("Products")}</span>
+                        <Info className="size-3.5 text-[#8B8B8B]" />
+                      </button>
                     </td>
                   </tr>
                 ))
@@ -247,6 +312,13 @@ const OrdersReportTab = ({ fromDate, toDate, orderType, onInitialLoadComplete }:
           </table>
         </div>
       </div>
+
+      {/* Report Order Details Dialog */}
+      <ReportOrderDetailsDialog
+        open={isDetailsOpen}
+        order={selectedOrder}
+        onOpenChange={setIsDetailsOpen}
+      />
     </>
   );
 };
