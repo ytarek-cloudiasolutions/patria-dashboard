@@ -113,8 +113,8 @@ const OrdersPage = () => {
           call: c.call ?? 0,
         });
       })
-      .catch(() => { })
-      .finally(() => setCountsLoaded(true));
+        .catch(() => { })
+        .finally(() => setCountsLoaded(true));
     });
   }, []);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
