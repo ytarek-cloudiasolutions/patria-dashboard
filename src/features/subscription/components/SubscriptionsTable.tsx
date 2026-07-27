@@ -28,7 +28,7 @@ const PAYMENT_STYLES: Record<PaymentStatus, string> = {
 const STATUS_STYLES: Record<SubscriptionStatus, string> = {
   Active: "bg-[#E2F4ED] text-[#059B5A] border-[#059B5A]/40",
   Paused: "bg-[#FFF5DC] text-[#B56C00] border-[#B56C00]/40",
-  Cancelled: "bg-[#FFF0F0] text-[#C90000] border-[#C90000]/40",
+  Cancelled: "bg-[#C90000] text-white border-[#C90000]",
 };
 
 const STATUS_LABEL: Record<SubscriptionStatus, string> = {
