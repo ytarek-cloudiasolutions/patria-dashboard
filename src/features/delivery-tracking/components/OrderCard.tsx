@@ -146,11 +146,15 @@ const OrderCard = ({ order }: OrderCardProps) => {
                 {/* Icon row with connecting line */}
                 <div className="flex w-full items-center">
                   {/* Left line */}
-                  {idx > 0 && (
-                    <div
-                      className={`h-[2px] flex-1 ${idx <= activeIdx ? "bg-[#8F6900]" : "bg-[#D4D4D4]"}`}
-                    />
-                  )}
+                  <div
+                    className={`h-[2px] flex-1 ${
+                      idx === 0
+                        ? "opacity-0"
+                        : idx <= activeIdx
+                          ? "bg-[#8F6900]"
+                          : "bg-[#D4D4D4]"
+                    }`}
+                  />
 
                   {/* Icon circle */}
                   <div
@@ -162,11 +166,15 @@ const OrderCard = ({ order }: OrderCardProps) => {
                   </div>
 
                   {/* Right line */}
-                  {!isLast && (
-                    <div
-                      className={`h-[2px] flex-1 ${idx + 1 <= activeIdx ? "bg-[#8F6900]" : "bg-[#D4D4D4]"}`}
-                    />
-                  )}
+                  <div
+                    className={`h-[2px] flex-1 ${
+                      isLast
+                        ? "opacity-0"
+                        : idx + 1 <= activeIdx
+                          ? "bg-[#8F6900]"
+                          : "bg-[#D4D4D4]"
+                    }`}
+                  />
                 </div>
 
                 {/* Label */}

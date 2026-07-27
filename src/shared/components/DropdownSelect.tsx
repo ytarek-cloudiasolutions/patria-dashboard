@@ -36,7 +36,7 @@ const DropdownSelect = ({
 }: DropdownSelectProps) => {
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
-  
+
   const normalizedOptions = normalizeOptions(options);
   const selectedLabel =
     normalizedOptions.find((opt) => opt.value === selected)?.label ??
@@ -85,7 +85,7 @@ const DropdownSelect = ({
         )}
       >
         {searchable && (
-          <div 
+          <div
             className="px-2 py-1.5 border-b border-[#E5E5E5] mb-1"
             onClick={(e) => e.stopPropagation()}
           >

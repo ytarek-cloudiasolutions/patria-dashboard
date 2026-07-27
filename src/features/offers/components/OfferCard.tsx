@@ -65,11 +65,10 @@ const OfferCard = ({
             </div>
           )}
           <Badge
-            className={`absolute top-4.5 left-5 h-6 px-3 rounded-[30px] text-[13px] font-semibold border-current ${
-              isActive
+            className={`absolute top-4.5 left-5 h-6 px-3 rounded-[30px] text-[13px] font-semibold border-current ${isActive
                 ? "bg-[#E2F4ED] text-[#059B5A]"
                 : "bg-[#DCDCDC] text-[#23252A]"
-            }`}
+              }`}
           >
             {isActive ? t("Active") : t("Inactive")}
           </Badge>
