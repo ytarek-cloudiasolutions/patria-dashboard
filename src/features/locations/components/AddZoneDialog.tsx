@@ -37,7 +37,14 @@ const AddZoneDialog = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    // modal={false} disables Radix's FocusScope focus-trap, which otherwise
+    // fights Google Places Autocomplete's mousedown/preventDefault trick and
+    // silently swallows suggestion clicks (see git history on this file —
+    // this was removed once already while chasing the backdrop blur effect,
+    // which does NOT depend on modal: DialogOverlay renders its blur
+    // regardless of this prop). Do not remove this again without testing
+    // the zone-search autocomplete dropdown.
+    <Dialog open={open} onOpenChange={onOpenChange} modal={false}>
       <DialogContent
         showCloseButton={false}
         className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-160"
