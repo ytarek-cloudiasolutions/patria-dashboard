@@ -36,7 +36,7 @@ const SettingsSidebar = () => {
             <span className="text-[13px] font-semibold text-[#28293D]">
               {t("2FA Status")}
             </span>
-            <Badge className="h-4 rounded-full border border-[#C90000] bg-[#FFF0F0] px-2 py-0.5 text-[11px] font-semibold text-[#C90000]">
+            <Badge className="rounded-[30px] border border-[#C90000] bg-[#C90000] px-2.5 py-0.5 text-[11px] font-medium text-white">
               {t("Disabled")}
             </Badge>
           </div>
