@@ -7,8 +7,8 @@ const OverviewCard = ({ data }: { data: OverviewCardProps }) => {
     data.trend?.tone === "positive"
       ? "border-current bg-[#E2F4ED] text-[#059B5A]"
       : data.trend?.tone === "negative"
-      ? "border-current bg-[#FFF0F0] text-[#C90000]"
-      : "border-[#D4D4D4] bg-[#F5F5F5] text-[#595959]";
+        ? "border-current bg-[#FFF0F0] text-[#C90000]"
+        : "border-[#D4D4D4] bg-[#F5F5F5] text-[#595959]";
 
   return (
     <Card className="py-0 rounded-[16px] border border-[#E5E5E5] ring-0 shadow-sm w-full">
