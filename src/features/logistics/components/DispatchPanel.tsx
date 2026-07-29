@@ -28,7 +28,10 @@ const DispatchPanel = ({
 }: DispatchPanelProps) => {
   const { t } = useTranslation();
   const count = selectedReferences.length;
-  const driverOptions = drivers.map((d) => ({
+  const availableDrivers = drivers.filter(
+    (d) => d.status === "Active" || d.status === "On-Route"
+  );
+  const driverOptions = availableDrivers.map((d) => ({
     value: String(d.id),
     label: d.name,
   }));
