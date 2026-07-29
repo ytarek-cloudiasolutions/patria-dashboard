@@ -22,7 +22,7 @@ export const PERFORMANCE_METRICS: PerformanceMetric[] = [
   },
   {
     id: "encryption",
-    label: "Omnia Maher",
+    label: "Encryption",
     value: "End-to-End",
     tone: "highlight",
   },

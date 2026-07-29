@@ -885,6 +885,7 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   "Technical Performance": "الأداء التقني",
   "Response Time": "وقت الاستجابة",
   "Queue Status": "حالة قائمة الانتظار",
+  Encryption: "التشفير",
   "Gateway Security": "أمان البوابة",
   "Session Isolation": "عزل الجلسة",
   "Your WhatsApp messages are never stored on our database. We only handle the delivery socket.": "لا يتم تخزين رسائل واتساب الخاصة بك في قاعدة بياناتنا. نحن نتعامل فقط مع مقبس التوصيل.",

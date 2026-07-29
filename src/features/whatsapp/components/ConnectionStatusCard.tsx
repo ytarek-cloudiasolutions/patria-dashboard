@@ -130,7 +130,7 @@ const ConnectionStatusCard = ({
             buttonText: t("Disconnect Account"),
             icon: <LogOut className="size-4.5" />,
             onClick: handleDisconnect,
-            className: "mt-2 bg-[#FFF0F0] text-[#C90000] hover:bg-[#FCE3E3] hover:text-[#C90000]",
+            className: "mt-2 bg-[#C90000] text-white hover:bg-[#A60000]",
           }}
         />
       ) : !qrDataUrl ? (
