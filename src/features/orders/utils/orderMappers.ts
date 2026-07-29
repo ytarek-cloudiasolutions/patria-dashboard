@@ -178,6 +178,7 @@ export const mapOrder = (o: any): Order => {
     date: dateStr,
     time: timeStr,
     total: o.totalAmount || o.total || subtotal,
+    gross: o.gross ?? (o.subtotal || subtotal) + (o.tax || 0),
     subtotal: o.subtotal || subtotal,
     discount: o.discount || 0,
     deliveryFee: o.deliveryFee || 0,

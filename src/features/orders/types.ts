@@ -48,6 +48,8 @@ export interface Order {
   date: string;
   time: string;
   total: number;
+  /** Total before any discount/points redemption (subtotal + tax). */
+  gross?: number;
   subtotal: number;
   discount: number;
   deliveryFee: number;

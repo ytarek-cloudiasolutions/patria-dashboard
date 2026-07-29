@@ -8,6 +8,7 @@ import SearchInputField from "@/shared/components/SearchInputField";
 
 import TablesTabs from "./components/TablesTabs";
 import TableCard from "./components/TableCard";
+import TableOrdersDialog from "./components/TableOrdersDialog";
 import ReservationsTable from "./components/ReservationsTable";
 import AddTableDialog from "./components/AddTableDialog";
 import NewReservationDialog from "./components/NewReservationDialog";
@@ -76,6 +77,7 @@ const TablesPage = () => {
   const [isAddTableOpen, setIsAddTableOpen] = useState(false);
   const [isReservationOpen, setIsReservationOpen] = useState(false);
   const [deletingTable, setDeletingTable] = useState<Table | null>(null);
+  const [viewingOrdersTable, setViewingOrdersTable] = useState<Table | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const [tablesLoaded, setTablesLoaded] = useState(false);
@@ -270,6 +272,7 @@ const TablesPage = () => {
               isTogglingStatus={togglingTableId === table._id}
               onDelete={setDeletingTable}
               onToggleStatus={handleToggleStatus}
+              onViewOrders={setViewingOrdersTable}
             />
           ))}
           {sectionTables.length === 0 && (
@@ -332,6 +335,11 @@ const TablesPage = () => {
         tableOptions={tableOptions}
         onOpenChange={setIsReservationOpen}
         onSave={handleAddReservation}
+      />
+
+      <TableOrdersDialog
+        table={viewingOrdersTable}
+        onOpenChange={(open) => !open && setViewingOrdersTable(null)}
       />
 
       <DeleteDialog

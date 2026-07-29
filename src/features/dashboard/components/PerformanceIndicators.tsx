@@ -11,6 +11,7 @@ import type { PerformanceIndicator } from "../types";
 
 interface PerformanceIndicatorsProps {
   indicators: PerformanceIndicator[];
+  posRevenuePercent?: number;
 }
 
 const toneStyles: Record<PerformanceIndicator["tone"], { bg: string; text: string }> = {
@@ -20,7 +21,10 @@ const toneStyles: Record<PerformanceIndicator["tone"], { bg: string; text: strin
   amber: { bg: "bg-[#FFF4DA]", text: "text-[#C7861E]" },
 };
 
-const PerformanceIndicators = ({ indicators }: PerformanceIndicatorsProps) => {
+const PerformanceIndicators = ({
+  indicators,
+  posRevenuePercent = 0,
+}: PerformanceIndicatorsProps) => {
   const { t } = useTranslation();
 
   return (
@@ -70,7 +74,7 @@ const PerformanceIndicators = ({ indicators }: PerformanceIndicatorsProps) => {
             <p className="mt-1 text-[13px] sm:text-[14px]">{t("Revenue Mix")}</p>
           </div>
           <div className="text-right">
-            <p className="text-[13px] font-bold sm:text-[14px]">63% POS</p>
+            <p className="text-[13px] font-bold sm:text-[14px]">{posRevenuePercent}% POS</p>
             <p className="text-[10px]">{t("Physical Stores")}</p>
           </div>
         </div>

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import KitchenCard from "../components/KitchenCard";
-import { getKitchenOrders } from "../api/kitchenApi";
+import { getKitchenStations, type KitchenStation } from "../api/kitchenApi";
 
 const KITCHEN_STATIONS = [
   {
@@ -32,30 +32,20 @@ const KITCHEN_STATIONS = [
 const KitchenPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [activeOrdersCount, setActiveOrdersCount] = useState<Record<string, number>>({
-    barista: 0,
-    pastry: 0,
-    hot_food: 0,
-  });
+  const [stationData, setStationData] = useState<Record<string, KitchenStation>>({});
 
   useEffect(() => {
-    const fetchActiveOrders = async () => {
+    const fetchStations = async () => {
       try {
-        const [baristaRes, pastryRes, hotFoodRes] = await Promise.all([
-          getKitchenOrders("barista"),
-          getKitchenOrders("pastry"),
-          getKitchenOrders("hot_food"),
-        ]);
-        setActiveOrdersCount({
-          barista: baristaRes.orders?.length ?? 0,
-          pastry: pastryRes.orders?.length ?? 0,
-          hot_food: hotFoodRes.orders?.length ?? 0,
-        });
+        const stations = await getKitchenStations();
+        setStationData(
+          Object.fromEntries(stations.map((s) => [s.kitchenType, s])),
+        );
       } catch (err) {
-        console.error("Failed to fetch active orders count", err);
+        console.error("Failed to fetch kitchen stations", err);
       }
     };
-    fetchActiveOrders();
+    fetchStations();
   }, []);
 
   return (
@@ -69,15 +59,16 @@ const KitchenPage = () => {
 
       <div className="grid grid-cols-1 gap-[30px] md:grid-cols-2 lg:gap-7.5 xl:grid-cols-3">
         {KITCHEN_STATIONS.map((station) => {
+          const live = stationData[station.id];
           const kitchenObj = {
             id: station.id,
             name: station.name,
             description: station.description,
-            status: "active" as const,
+            status: (live?.status?.toLowerCase() ?? "active") as "active" | "busy",
             color: station.color,
             icon: (station.id === "hot_food" ? "hot_food" : station.id) as any,
-            activeOrders: activeOrdersCount[station.id] ?? 0,
-            requests: 0,
+            activeOrders: live?.activeOrders ?? 0,
+            requests: live?.requests ?? 0,
             detailActiveOrders: 0,
             lowStock: 0,
           };

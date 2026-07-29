@@ -65,6 +65,7 @@ const DashboardPage = () => {
   const [topProducts, setTopProducts] = useState<SoldProduct[]>([]);
   const [liveOrders, setLiveOrders] = useState<LiveOrder[]>([]);
   const [indicators, setIndicators] = useState<PerformanceIndicator[]>([]);
+  const [posRevenuePercent, setPosRevenuePercent] = useState(0);
   const [dateRange, setDateRange] = useState({
     from: getSevenDaysAgoDateString(),
     to: getTodayDateString(),
@@ -173,6 +174,8 @@ const DashboardPage = () => {
           },
         ]);
 
+        setPosRevenuePercent(ov.posRevenuePercent ?? 0);
+
         const rawOrders: any[] = ordersRes.data?.data ?? ordersRes.data?.orders ?? [];
         const live: LiveOrder[] = rawOrders.map((o: any) => {
           const customerName =
@@ -267,7 +270,10 @@ const DashboardPage = () => {
 
       <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[1.6fr_1fr]">
         <RevenueTrendChart data={revenueTrend} />
-        <PerformanceIndicators indicators={indicators} />
+        <PerformanceIndicators
+          indicators={indicators}
+          posRevenuePercent={posRevenuePercent}
+        />
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[1fr_1.4fr]">

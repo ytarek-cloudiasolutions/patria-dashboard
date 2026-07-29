@@ -1,4 +1,4 @@
-import { Armchair, Loader2, Trash2, Users } from "lucide-react";
+import { Armchair, ClipboardList, Loader2, Trash2, Users } from "lucide-react";
 import { Badge } from "@/shared/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/shared/i18n/useTranslation";
@@ -21,6 +21,7 @@ interface TableCardProps {
   isTogglingStatus?: boolean;
   onDelete: (table: Table) => void;
   onToggleStatus: (table: Table) => void;
+  onViewOrders: (table: Table) => void;
 }
 
 const TableCard = ({
@@ -28,6 +29,7 @@ const TableCard = ({
   isTogglingStatus,
   onDelete,
   onToggleStatus,
+  onViewOrders,
 }: TableCardProps) => {
   const { t } = useTranslation();
   const isAvailable = table.status === "available";
@@ -74,6 +76,14 @@ const TableCard = ({
             t(STATUS_DISPLAY[table.status] ?? table.status)
           )}
         </Badge>
+        <button
+          type="button"
+          aria-label={`View orders for table ${table.number}`}
+          onClick={() => onViewOrders(table)}
+          className="flex size-8 cursor-pointer items-center justify-center rounded-[8px] bg-[#F5F0EA] text-primary"
+        >
+          <ClipboardList size={16} />
+        </button>
         <button
           type="button"
           aria-label={`Delete table ${table.number}`}

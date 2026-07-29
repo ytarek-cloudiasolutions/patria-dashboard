@@ -7,6 +7,7 @@ export interface GetOrdersRequest {
   type?: string;
   source?: string;
   search?: string;
+  tableNumber?: number;
 }
 
 export interface Pagination {
