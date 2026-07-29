@@ -79,8 +79,8 @@ const InventoryReportTab = ({
     products.length > 0
       ? products
       : reduxItems.map((item) => ({
-          _id: item.id,
-          id: item.id,
+          _id: String(item.id),
+          id: String(item.id),
           name: item.name,
           category: item.category,
           currentQuantity: item.currentQuantity,
