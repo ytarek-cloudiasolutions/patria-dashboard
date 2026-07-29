@@ -15,8 +15,8 @@ const UsersOverview = ({
         data={{
           title: t("Total Users"),
           value: String(totalUsers),
-          icon: <User size={18} />,
-          iconColor: "text-[#000000]",
+          icon: <User className="size-5" />,
+          iconColor: "text-[#8F6900]",
           badgeColor: "bg-[#F5F0EA]",
         }}
       />
@@ -24,7 +24,7 @@ const UsersOverview = ({
         data={{
           title: t("Administrators"),
           value: String(administrators),
-          icon: <UserRoundCheck size={18} />,
+          icon: <UserRoundCheck className="size-5" />,
           iconColor: "text-[#059B5A]",
           badgeColor: "bg-[#E2F4ED]",
         }}
@@ -33,9 +33,9 @@ const UsersOverview = ({
         data={{
           title: t("Managers"),
           value: String(managers),
-          icon: <UserStar size={18} />,
+          icon: <UserStar className="size-5" />,
           iconColor: "text-[#C7861E]",
-          badgeColor: "bg-[#FFF7E6]",
+          badgeColor: "bg-[rgba(254,154,0,0.1)]",
         }}
       />
     </div>

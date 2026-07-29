@@ -15,8 +15,8 @@ const AppUsersOverview = ({
         data={{
           title: t("Total Users"),
           value: String(totalUsers),
-          icon: <User size={18} />,
-          iconColor: "text-[#000000]",
+          icon: <User className="size-5" />,
+          iconColor: "text-[#8F6900]",
           badgeColor: "bg-[#F5F0EA]",
         }}
       />
@@ -24,7 +24,7 @@ const AppUsersOverview = ({
         data={{
           title: t("Blocked Users"),
           value: String(blockedUsers),
-          icon: <Ban size={18} />,
+          icon: <Ban className="size-5 text-white" />,
           iconColor: "text-white",
           badgeColor: "bg-[#C90000]",
         }}
@@ -33,7 +33,7 @@ const AppUsersOverview = ({
         data={{
           title: t("Active Users"),
           value: String(activeUsers),
-          icon: <UserRoundCheck size={18} />,
+          icon: <UserRoundCheck className="size-5" />,
           iconColor: "text-[#059B5A]",
           badgeColor: "bg-[#E2F4ED]",
         }}
