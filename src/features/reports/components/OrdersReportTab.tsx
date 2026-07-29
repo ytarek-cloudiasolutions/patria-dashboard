@@ -233,8 +233,8 @@ const OrdersReportTab = ({
               selected={orderType}
               onSelect={(val) => onOrderTypeChange?.(val as OrderType)}
               onOpenChange={onDropdownOpenChange}
-              className="h-[44px] w-[169px]"
-              contentClassName="w-[169px]"
+              className="h-[50px] w-[169px] md:w-[169px]"
+              contentClassName="w-[169px] md:w-[169px]"
               align="start"
             />
             <DefaultButton
@@ -252,7 +252,7 @@ const OrdersReportTab = ({
           <table className="w-full min-w-[820px]">
             <thead className="bg-[#F5F0EA]">
               <tr>
-                <th className={`${TH} text-left`}>{t("ID")}</th>
+                <th className={`${TH} text-center`}>{t("ID")}</th>
                 <th className={`${TH} text-center`}>{t("Date")}</th>
                 <th className={`${TH} text-center`}>{t("Type")}</th>
                 <th className={`${TH} text-center`}>{t("Status")}</th>
@@ -286,20 +286,20 @@ const OrdersReportTab = ({
                     key={row.id}
                     className="border-t border-[#E5E5E5] hover:bg-[#FAFAF7] transition-colors"
                   >
-                    <td className={`${TD} font-bold text-[13px]`}>
+                    <td className={`${TD} font-bold text-[13px] text-center`}>
                       <button
                         type="button"
                         onClick={() => handleOpenDetails(row)}
                         className="inline-flex cursor-pointer items-center gap-1.5 font-bold text-[#28293D] hover:text-primary transition-colors"
                       >
                         <span>#{row.orderId.replace(/^#/, "")}</span>
-                        <Info className="size-4 text-[#8B8B8B]" />
+                        <Info className="size-4 text-[#000000]" />
                       </button>
                     </td>
-                    <td className={`${TD} text-center text-[#595959] text-[13px] whitespace-pre-line`}>
+                    <td className={`${TD} text-center text-[#595959] text-[14px] whitespace-pre-line`}>
                       {formatDate(row.date)}
                     </td>
-                    <td className={`${TD} text-center`}>
+                    <td className={`${TD} text-center font-medium`}>
                       <div className="inline-flex items-center justify-center gap-1.5 text-[#28293D]">
                         <TypeIcon type={row.type} />
                         <span>{t(row.type)}</span>
@@ -315,10 +315,10 @@ const OrdersReportTab = ({
                         {t(row.status)}
                       </span>
                     </td>
-                    <td className={`${TD} text-center font-semibold`} dir="ltr">
+                    <td className={`${TD} text-center font-bold`} dir="ltr">
                       EGP {row.total.toFixed(2)}
                     </td>
-                    <td className={`${TD} text-center text-[#595959]`}>
+                    <td className={`${TD} text-center font-medium text-[#28293D]`}>
                       {t(row.payment)}
                     </td>
                     <td className={`${TD} text-center`}>
@@ -329,7 +329,7 @@ const OrdersReportTab = ({
                       >
                         <strong>{row.itemsCount}</strong>
                         <span>{t("Products")}</span>
-                        <Info className="size-3.5 text-[#8B8B8B]" />
+                        <Info className="size-3.5 text-[#000000]" />
                       </button>
                     </td>
                   </tr>

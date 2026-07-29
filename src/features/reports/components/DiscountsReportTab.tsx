@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
-import { FileDown } from "lucide-react";
+import { FileDown, Tag, CircleDollarSign } from "lucide-react";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import OverviewCard from "@/shared/components/OverviewCard";
 import DefaultButton from "@/shared/components/DefaultButton";
 import { api } from "@/config/api";
-import { DollarSign, Tag } from "lucide-react";
 
-const TH = "px-4 py-3 text-[10px] font-semibold uppercase tracking-wide text-[#28293D] text-left";
+const TH = "px-4 py-3.5 text-[13px] font-semibold text-[#28293D] uppercase tracking-wide";
 const TD = "px-4 py-4 text-[14px] text-[#28293D]";
 
 interface DiscountSummary {
@@ -38,11 +37,17 @@ interface DiscountsReportTabProps {
   warehouse: string;
 }
 
-const DiscountsReportTab = ({ fromDate, toDate, warehouse }: DiscountsReportTabProps) => {
+const DiscountsReportTab = ({
+  fromDate,
+  toDate,
+  warehouse,
+}: DiscountsReportTabProps) => {
   const { t } = useTranslation();
   const [summary, setSummary] = useState<DiscountSummary | null>(null);
   const [rows, setRows] = useState<DiscountRow[]>([]);
-  const [responsibleGroups, setResponsibleGroups] = useState<ResponsibleGroup[]>([]);
+  const [responsibleGroups, setResponsibleGroups] = useState<
+    ResponsibleGroup[]
+  >([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -50,7 +55,7 @@ const DiscountsReportTab = ({ fromDate, toDate, warehouse }: DiscountsReportTabP
     const params: Record<string, string> = {};
     if (fromDate) params.from = fromDate;
     if (toDate) params.to = toDate;
-    if (warehouse !== "All") params.warehouse = warehouse;
+    if (warehouse && warehouse !== "All") params.warehouse = warehouse;
 
     api
       .get("/reports/discounts", { params })
@@ -67,6 +72,23 @@ const DiscountsReportTab = ({ fromDate, toDate, warehouse }: DiscountsReportTabP
       })
       .finally(() => setLoading(false));
   }, [fromDate, toDate, warehouse]);
+
+  const displayResponsibleGroups: ResponsibleGroup[] =
+    responsibleGroups.length > 0
+      ? responsibleGroups
+      : Object.entries(
+          rows.reduce((acc, row) => {
+            const resp = row.responsible || "Super Admin";
+            if (!acc[resp]) acc[resp] = { totalEgp: 0, count: 0 };
+            acc[resp].totalEgp += row.discountValue || 0;
+            acc[resp].count += 1;
+            return acc;
+          }, {} as Record<string, { totalEgp: number; count: number }>)
+        ).map(([name, val]) => ({
+          name,
+          totalEgp: val.totalEgp,
+          count: val.count,
+        }));
 
   const handleExportCSV = () => {
     if (rows.length === 0) return;
@@ -102,8 +124,8 @@ const DiscountsReportTab = ({ fromDate, toDate, warehouse }: DiscountsReportTabP
 
   return (
     <>
-      {/* KPI Summary Cards */}
-      <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+      {/* KPI Summary Cards - Take whole width in 2 columns */}
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 w-full">
         <OverviewCard
           data={{
             title: t("Total Deductions"),
@@ -119,39 +141,46 @@ const DiscountsReportTab = ({ fromDate, toDate, warehouse }: DiscountsReportTabP
             value: summary
               ? `EGP ${summary.totalDeductionsEgp.toFixed(2)}`
               : "—",
-            badgeColor: "bg-[#FFF0F0]",
-            iconColor: "text-[#C90000]",
-            icon: <DollarSign className="size-5" />,
+            badgeColor: "bg-[#C90000]",
+            iconColor: "text-white",
+            icon: <CircleDollarSign className="size-5 text-white" />,
           }}
         />
       </div>
 
-      {/* Deductions by Responsible Party */}
-      {responsibleGroups.length > 0 && (
-        <div className="mb-6 overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-5">
-          <p className="mb-4 text-[16px] font-bold text-[#333333]">
-            {t("Deductions by responsible party")}
-          </p>
-          <div className="flex flex-wrap gap-4">
-            {responsibleGroups.map((group) => (
-              <div
-                key={group.name}
-                className="flex flex-col gap-1 rounded-[16px] border border-[#CACBD4] bg-[#FAFAF7] p-4"
-              >
-                <p className="text-[16px] font-semibold text-[#000000]">
-                  {group.name}
-                </p>
-                <p className="text-[32px] font-semibold text-[#000000]" dir="ltr">
-                  EGP {group.totalEgp.toFixed(2)}
-                </p>
-                <p className="text-[13px] font-semibold text-[#595959]">
-                  {group.count} {t("Discount")}
-                </p>
-              </div>
-            ))}
-          </div>
+      {/* Deductions by Responsible Party Card */}
+      <div className="mb-6 overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-5 sm:p-6">
+        <p className="mb-4 text-[18px] font-bold text-[#333333]">
+          {t("Deductions by responsible party")}
+        </p>
+        <div className="flex flex-col gap-4 w-full">
+          {(displayResponsibleGroups.length > 0
+            ? displayResponsibleGroups
+            : [
+                {
+                  name: t("Super Admin"),
+                  totalEgp: summary?.totalDeductionsEgp ?? 0,
+                  count: summary?.totalDeductions ?? 0,
+                },
+              ]
+          ).map((group) => (
+            <div
+              key={group.name}
+              className="flex flex-col gap-2 rounded-[16px] border border-[#E5E5E5] bg-[#FAFAF7] p-4 sm:p-5 w-full"
+            >
+              <p className="text-[16px] font-semibold text-[#000000]">
+                {group.name}
+              </p>
+              <p className="text-[32px] font-bold text-[#000000]" dir="ltr">
+                EGP {group.totalEgp.toFixed(2)}
+              </p>
+              <p className="text-[13px] font-medium text-[#595959]">
+                {group.count} {t("Discount")}
+              </p>
+            </div>
+          ))}
         </div>
-      )}
+      </div>
 
       {/* Discount Details Table */}
       <div className="overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white">
@@ -173,7 +202,7 @@ const DiscountsReportTab = ({ fromDate, toDate, warehouse }: DiscountsReportTabP
           <table className="w-full min-w-[950px]">
             <thead className="bg-[#F5F0EA]">
               <tr>
-                <th className={TH}>{t("Order No.")}</th>
+                <th className={`${TH} text-left`}>{t("Order No.")}</th>
                 <th className={`${TH} text-center`}>{t("Customer")}</th>
                 <th className={`${TH} text-center`}>{t("Responsible")}</th>
                 <th className={`${TH} text-center`}>{t("Type")}</th>
@@ -217,7 +246,10 @@ const DiscountsReportTab = ({ fromDate, toDate, warehouse }: DiscountsReportTabP
                     <td className={`${TD} text-center`} dir="ltr">
                       EGP {row.originCost.toFixed(2)}
                     </td>
-                    <td className={`${TD} text-center text-[#C90000]`} dir="ltr">
+                    <td
+                      className="px-4 py-4 text-[14px] text-center font-bold text-[#C90000]"
+                      dir="ltr"
+                    >
                       -EGP {row.discountValue.toFixed(2)}
                     </td>
                     <td className={`${TD} text-center font-bold`} dir="ltr">

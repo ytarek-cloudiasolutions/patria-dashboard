@@ -1,63 +1,146 @@
 import { useEffect, useState } from "react";
-import { FileDown } from "lucide-react";
+import { FileDown, Banknote, Box, TrendingDown, CircleDollarSign } from "lucide-react";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import OverviewCard from "@/shared/components/OverviewCard";
 import DefaultButton from "@/shared/components/DefaultButton";
 import { useInventory } from "@/features/inventory/hooks/useInventory";
-import type { StockStatus } from "@/features/inventory/types";
-import { Box, DollarSign, TrendingDown, AlertTriangle } from "lucide-react";
+import { api } from "@/config/api";
 
-const TH = "px-4 py-3 text-[10px] font-semibold uppercase tracking-wide text-[#28293D] text-left";
+const TH = "px-4 py-3.5 text-[13px] font-semibold text-[#28293D] uppercase tracking-wide";
 const TD = "px-4 py-4 text-[14px] text-[#28293D]";
 
-const STOCK_STATUS_STYLES: Record<StockStatus, string> = {
-  Available: "bg-[#E2F4ED] text-[#059B5A] border border-[#059B5A]",
-  "Low Stock": "bg-[rgba(254,154,0,0.1)] text-[#C7861E] border border-[#C7861E]",
-  "Out Of Stock": "bg-[#C90000] text-white border border-[#C90000]",
-};
-
 interface InventoryReportTabProps {
-  categoryFilter: string;
-  statusFilter: "All" | StockStatus;
+  fromDate?: string;
+  toDate?: string;
+  warehouse?: string;
 }
 
-const InventoryReportTab = ({ categoryFilter, statusFilter }: InventoryReportTabProps) => {
+interface InventoryProduct {
+  _id: string;
+  id?: string;
+  name: string;
+  code?: string;
+  categoryId?: { _id: string; name: string } | null;
+  category?: string;
+  stockQty?: number;
+  currentQuantity?: number;
+  lowStockThreshold?: number;
+  minimumQuantity?: number;
+  price?: number;
+  value?: number;
+  status: string;
+}
+
+interface InventoryStats {
+  totalProducts?: number;
+  inventoryValue?: number;
+  inventoryCost?: number;
+  lowStock?: number;
+  outOfStock?: number;
+}
+
+const InventoryReportTab = ({
+  fromDate,
+  toDate,
+  warehouse,
+}: InventoryReportTabProps) => {
   const { t } = useTranslation();
-  const { items, stats, getInventoryList } = useInventory();
+  const { items: reduxItems, stats: reduxStats, getInventoryList } = useInventory();
+  const [products, setProducts] = useState<InventoryProduct[]>([]);
+  const [stats, setStats] = useState<InventoryStats>({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getInventoryList();
-  }, [getInventoryList]);
+    setLoading(true);
+    const params: Record<string, string> = {};
+    if (fromDate) params.from = fromDate;
+    if (toDate) params.to = toDate;
+    if (warehouse && warehouse !== "All") params.warehouse = warehouse;
 
-  const categories = [
-    "All",
-    ...Array.from(new Set(items.map((i) => i.category).filter(Boolean))),
-  ];
+    api
+      .get("/reports/inventory", { params })
+      .catch(() => api.get("/inventory", { params }))
+      .then((res) => {
+        const data = res.data?.data ?? res.data ?? {};
+        if (data.products && Array.isArray(data.products)) {
+          setProducts(data.products);
+        }
+        if (data.stats) {
+          setStats(data.stats);
+        }
+      })
+      .catch(() => {
+        getInventoryList();
+      })
+      .finally(() => setLoading(false));
+  }, [fromDate, toDate, warehouse, getInventoryList]);
 
-  const filteredItems = items.filter((item) => {
-    const categoryMatch =
-      categoryFilter === "All" || item.category === categoryFilter;
-    const statusMatch = statusFilter === "All" || item.status === statusFilter;
-    return categoryMatch && statusMatch;
-  });
+  const displayProducts: InventoryProduct[] =
+    products.length > 0
+      ? products
+      : reduxItems.map((item) => ({
+          _id: item.id,
+          id: item.id,
+          name: item.name,
+          category: item.category,
+          currentQuantity: item.currentQuantity,
+          minimumQuantity: item.minimumQuantity,
+          status: item.status,
+        }));
+
+  const displayStats = {
+    inventoryValue: stats.inventoryValue ?? reduxStats.inventoryValue ?? 0,
+    totalProducts: stats.totalProducts ?? reduxStats.totalProducts ?? displayProducts.length,
+    lowStock: stats.lowStock ?? reduxStats.lowStock ?? displayProducts.filter((p) => (p.status ?? "").toLowerCase().includes("low")).length,
+    inventoryCost: stats.inventoryCost ?? stats.outOfStock ?? reduxStats.outOfStock ?? displayProducts.filter((p) => (p.status ?? "").toLowerCase().includes("out")).length,
+  };
+
+  const getStatusBadge = (statusStr: string) => {
+    const norm = (statusStr ?? "").toLowerCase().replace(/_/g, " ");
+    if (norm === "in stock" || norm === "available") {
+      return {
+        label: t("Available"),
+        className: "bg-[#E2F4ED] text-[#059B5A] border border-[#059B5A]",
+      };
+    }
+    if (norm === "low stock") {
+      return {
+        label: t("Low Stock"),
+        className: "bg-[rgba(254,154,0,0.1)] text-[#C7861E] border border-[#C7861E]",
+      };
+    }
+    if (norm === "out of stock") {
+      return {
+        label: t("Out Of Stock"),
+        className: "bg-[#D9D9D9] text-[#28293D] border border-[#595959] font-bold",
+      };
+    }
+    return {
+      label: t(statusStr ?? "-"),
+      className: "bg-gray-100 text-gray-600",
+    };
+  };
 
   const handleExportCSV = () => {
-    if (filteredItems.length === 0) return;
+    if (displayProducts.length === 0) return;
     const headers = [
       t("Product"),
+      t("Code"),
       t("Category"),
       t("Quantity"),
       t("Min. amount"),
+      t("Value"),
       t("Status"),
     ];
-    const rows = filteredItems.map((i) => [
-      i.name,
-      i.category ?? "-",
-      String(i.currentQuantity),
-      String(i.minimumQuantity ?? 0),
-      i.status,
-    ]);
-    const csv = [headers, ...rows].map((r) => r.join(",")).join("\n");
+    const csvRows = displayProducts.map((p) => {
+      const cat = typeof p.categoryId === "object" && p.categoryId ? p.categoryId.name : (p.category ?? "-");
+      const qty = p.stockQty ?? p.currentQuantity ?? 0;
+      const minQty = p.lowStockThreshold ?? p.minimumQuantity ?? 0;
+      const val = p.value != null ? p.value : p.price != null ? p.price * qty : 0;
+      const st = getStatusBadge(p.status).label;
+      return [p.name, p.code ?? "-", cat, String(qty), String(minQty), `EGP ${val.toFixed(2)}`, st];
+    });
+    const csv = [headers, ...csvRows].map((r) => r.join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -74,16 +157,16 @@ const InventoryReportTab = ({ categoryFilter, statusFilter }: InventoryReportTab
         <OverviewCard
           data={{
             title: t("Total Value"),
-            value: `EGP ${(stats.inventoryValue ?? 0).toLocaleString()}`,
+            value: `EGP ${displayStats.inventoryValue.toLocaleString()}`,
             badgeColor: "bg-[#F5F0EA]",
-            iconColor: "text-primary",
-            icon: <DollarSign className="size-5" />,
+            iconColor: "text-[#8F6900]",
+            icon: <Banknote className="size-5" />,
           }}
         />
         <OverviewCard
           data={{
             title: t("Total Units"),
-            value: String(stats.totalProducts ?? items.length),
+            value: String(displayStats.totalProducts),
             badgeColor: "bg-[#EDF4FB]",
             iconColor: "text-blue-500",
             icon: <Box className="size-5" />,
@@ -92,10 +175,7 @@ const InventoryReportTab = ({ categoryFilter, statusFilter }: InventoryReportTab
         <OverviewCard
           data={{
             title: t("Low Stock"),
-            value: String(
-              stats.lowStock ??
-                items.filter((i) => i.status === "Low Stock").length
-            ),
+            value: String(displayStats.lowStock),
             badgeColor: "bg-[rgba(254,154,0,0.1)]",
             iconColor: "text-[#C7861E]",
             icon: <TrendingDown className="size-5" />,
@@ -104,13 +184,10 @@ const InventoryReportTab = ({ categoryFilter, statusFilter }: InventoryReportTab
         <OverviewCard
           data={{
             title: t("Inventory Cost"),
-            value: String(
-              stats.outOfStock ??
-                items.filter((i) => i.status === "Out Of Stock").length
-            ),
-            badgeColor: "bg-[#FFF0F0]",
-            iconColor: "text-[#C90000]",
-            icon: <AlertTriangle className="size-5" />,
+            value: `EGP ${displayStats.inventoryCost.toLocaleString()}`,
+            badgeColor: "bg-[#C90000]",
+            iconColor: "text-white",
+            icon: <CircleDollarSign className="size-5 text-white" />,
           }}
         />
       </div>
@@ -132,20 +209,29 @@ const InventoryReportTab = ({ categoryFilter, statusFilter }: InventoryReportTab
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[820px]">
+          <table className="w-full min-w-[850px]">
             <thead className="bg-[#F5F0EA]">
               <tr>
-                <th className={TH}>{t("Product")}</th>
+                <th className={`${TH} text-left`}>{t("Product")}</th>
+                <th className={`${TH} text-center`}>{t("Code")}</th>
                 <th className={`${TH} text-center`}>{t("Category")}</th>
                 <th className={`${TH} text-center`}>{t("Quantity")}</th>
                 <th className={`${TH} text-center`}>{t("Min. amount")}</th>
-                <th className={`${TH} text-center`}>{t("Days Remaining")}</th>
-                <th className={`${TH} text-center`}>{t("Urgency")}</th>
+                <th className={`${TH} text-center`}>{t("Value")}</th>
                 <th className={`${TH} text-center`}>{t("Status")}</th>
               </tr>
             </thead>
             <tbody>
-              {filteredItems.length === 0 ? (
+              {loading ? (
+                <tr>
+                  <td
+                    colSpan={7}
+                    className="py-10 text-center text-[13px] text-[#8B8B8B]"
+                  >
+                    {t("Loading...")}
+                  </td>
+                </tr>
+              ) : displayProducts.length === 0 ? (
                 <tr>
                   <td
                     colSpan={7}
@@ -155,41 +241,49 @@ const InventoryReportTab = ({ categoryFilter, statusFilter }: InventoryReportTab
                   </td>
                 </tr>
               ) : (
-                filteredItems.map((item) => (
-                  <tr
-                    key={item.id}
-                    className="border-t border-[#E5E5E5] hover:bg-[#FAFAF7] transition-colors"
-                  >
-                    <td className={`${TD} font-medium text-[#333333]`}>
-                      {item.name}
-                    </td>
-                    <td className={`${TD} text-center uppercase text-[#28293D]`}>
-                      {item.category ?? "-"}
-                    </td>
-                    <td className={`${TD} text-center text-[#595959]`}>
-                      {item.currentQuantity}
-                    </td>
-                    <td className={`${TD} text-center text-[#595959]`}>
-                      {item.minimumQuantity ?? 0}
-                    </td>
-                    <td className={`${TD} text-center text-[#595959]`}>
-                      {item.daysRemaining != null ? item.daysRemaining : "-"}
-                    </td>
-                    <td className={`${TD} text-center text-[#595959]`}>
-                      {item.urgencyLevel ?? "-"}
-                    </td>
-                    <td className={`${TD} text-center`}>
-                      <span
-                        className={`inline-flex items-center rounded-[30px] px-3 py-1 text-[13px] font-medium ${
-                          STOCK_STATUS_STYLES[item.status] ??
-                          "bg-gray-100 text-gray-600"
-                        }`}
-                      >
-                        {t(item.status)}
-                      </span>
-                    </td>
-                  </tr>
-                ))
+                displayProducts.map((item) => {
+                  const categoryName =
+                    typeof item.categoryId === "object" && item.categoryId
+                      ? item.categoryId.name
+                      : item.category ?? "-";
+                  const qty = item.stockQty ?? item.currentQuantity ?? 0;
+                  const minAmt = item.lowStockThreshold ?? item.minimumQuantity ?? 0;
+                  const val = pVal(item, qty);
+                  const statusInfo = getStatusBadge(item.status);
+
+                  return (
+                    <tr
+                      key={item._id || item.id}
+                      className="border-t border-[#E5E5E5] hover:bg-[#FAFAF7] transition-colors"
+                    >
+                      <td className={`${TD} font-medium text-[#28293D]`}>
+                        {item.name}
+                      </td>
+                      <td className={`${TD} text-center text-[#595959]`}>
+                        {item.code ?? "-"}
+                      </td>
+                      <td className={`${TD} text-center uppercase text-[#28293D]`}>
+                        {categoryName}
+                      </td>
+                      <td className={`${TD} text-center text-[#595959]`}>
+                        {qty}
+                      </td>
+                      <td className={`${TD} text-center text-[#595959]`}>
+                        {minAmt}
+                      </td>
+                      <td className={`${TD} text-center text-[#595959]`} dir="ltr">
+                        EGP {val.toFixed(2)}
+                      </td>
+                      <td className={`${TD} text-center`}>
+                        <span
+                          className={`inline-flex items-center rounded-[30px] px-3 py-1 text-[13px] font-medium ${statusInfo.className}`}
+                        >
+                          {statusInfo.label}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -197,6 +291,12 @@ const InventoryReportTab = ({ categoryFilter, statusFilter }: InventoryReportTab
       </div>
     </>
   );
+};
+
+const pVal = (item: InventoryProduct, qty: number): number => {
+  if (item.value != null) return Number(item.value);
+  if (item.price != null) return Number(item.price) * qty;
+  return 0;
 };
 
 export default InventoryReportTab;
