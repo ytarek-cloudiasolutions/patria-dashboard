@@ -45,7 +45,7 @@ const WholesalePriceListsCard = ({
                   <p className="truncate text-[15px] font-bold text-[#333333]">
                     {list.name}
                   </p>
-                  <span className="mt-1.5 inline-flex h-6 items-center rounded-full border border-[#059B5A] bg-white px-2.5 text-[11px] font-semibold uppercase text-[#059B5A]">
+                  <span className="mt-1.5 inline-flex items-center rounded-[30px] border border-[#059B5A] bg-[#E2F4ED] px-3 py-0.5 text-[11px] font-medium uppercase text-[#059B5A]">
                     {list.customerSegment}
                   </span>
                 </div>

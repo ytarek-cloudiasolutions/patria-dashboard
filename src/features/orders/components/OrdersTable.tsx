@@ -339,6 +339,10 @@ const DriverCell = ({ orderId, driver, onAssign, onOpenChange }: DriverCellProps
     onOpenChange?.(open);
   };
 
+  const availableDrivers = drivers.filter(
+    (d) => d.status === "active" || d.status === "busy"
+  );
+
   return (
     <DropdownMenu onOpenChange={handleOpenChange}>
       <DropdownMenuTrigger asChild>
@@ -367,12 +371,12 @@ const DriverCell = ({ orderId, driver, onAssign, onOpenChange }: DriverCellProps
           <div className="flex items-center justify-center py-3">
             <Loader2 className="size-5 animate-spin text-primary" />
           </div>
-        ) : drivers.length === 0 ? (
+        ) : availableDrivers.length === 0 ? (
           <div className="px-3 py-2 text-[12px] text-[#8B8B8B] text-center">
             {t("No drivers available")}
           </div>
         ) : (
-          drivers.map((d) => (
+          availableDrivers.map((d) => (
             <DropdownMenuItem
               key={d._id}
               disabled={isDispatching}

@@ -36,10 +36,10 @@ const WhatsAppGatewayPage = () => {
           description={t("Link your device for internal OTP & Notifications")}
         />
         <Badge
-          className={`h-7 gap-1.5 rounded-full border px-3 py-0 text-[12px] font-semibold ${
+          className={`h-7 gap-1.5 rounded-[30px] border px-3 py-0 text-[12px] font-semibold ${
             isConnected
-              ? "border-current bg-[#E2F4ED] text-[#059B5A]"
-              : "border-current bg-[#FFF0F0] text-[#C90000]"
+              ? "border-[#059B5A] bg-[#E2F4ED] text-[#059B5A]"
+              : "border-[#C90000] bg-[#FFF0F0] text-[#C90000]"
           }`}
         >
           {isConnected ? t("Connected") : t("Disconnected")}

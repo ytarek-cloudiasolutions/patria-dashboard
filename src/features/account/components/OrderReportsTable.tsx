@@ -20,11 +20,11 @@ interface OrderReportsTableProps {
 }
 
 const STATUS_STYLES: Record<OrderStatus, string> = {
-  Pending: "border-[#C7861E] bg-[#FFF5DC] text-[#C7861E]",
+  Pending: "border-[#C7861E] bg-[rgba(254,154,0,0.1)] text-[#C7861E]",
   Confirmed: "border-[#004EF9] bg-[#EDF4FB] text-[#3574FF]",
   Delivered: "border-[#059B5A] bg-[#E2F4ED] text-[#059B5A]",
   "On the Way": "border-[#7E00D7] bg-[#F3E9FA] text-[#9524E4]",
-  Cancelled: "border-[#C90000] bg-[#FFF0F0] text-[#C90000]",
+  Cancelled: "border-[#C90000] bg-[#C90000] text-white",
 };
 
 const StatusBadge = ({ status }: { status: OrderStatus }) => {
@@ -32,7 +32,7 @@ const StatusBadge = ({ status }: { status: OrderStatus }) => {
   return (
     <Badge
       className={cn(
-        "h-6 min-w-24 rounded-full border px-3 py-0 text-[11px] font-semibold",
+        "h-6 min-w-24 justify-center rounded-[30px] border px-3 py-0 text-[11px] font-semibold",
         STATUS_STYLES[status],
       )}
     >
@@ -55,7 +55,7 @@ const OrderReportsTable = ({
   return (
     <div className="overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white">
       {/* Applications + download bar */}
-      <div className="flex flex-col gap-3 border-b border-[#E5E5E5] px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+      <div className="flex flex-col gap-3 border-b border-[#E5E5E5] px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <div className="flex items-center gap-3">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-[10px] text-[#000000]">
             <BarChart3 size={24} />
@@ -82,16 +82,16 @@ const OrderReportsTable = ({
           <div key={order.id} className="px-4 py-4">
             <div className="mb-2 flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <p className="truncate text-[14px] font-semibold text-[#333333]" >
+                <p className="truncate text-[12px] font-bold text-[#333333]">
                   {order.orderNo}
                 </p>
-                <p className="text-[13px] text-[#000000]">{order.customer}</p>
+                <p className="text-[14px] font-medium text-black">{order.customer}</p>
               </div>
               <StatusBadge status={order.status} />
             </div>
-            <div className="flex items-center justify-between text-[13px]">
-              <span className="text-[#8B8B8B]" >{order.date}</span>
-              <span className="font-semibold text-[#000000]" >
+            <div className="flex items-center justify-between text-[14px]">
+              <span className="font-medium text-black">{order.date}</span>
+              <span className="font-medium text-black" dir="ltr">
                 {formatTotal(order.total)}
               </span>
             </div>
@@ -103,30 +103,32 @@ const OrderReportsTable = ({
       <div className="hidden md:block **:data-[slot=table-container]:rounded-none **:data-[slot=table-container]:border-0">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead className="ps-6 py-4 text-start">{t("ORDER NO.")}</TableHead>
-              <TableHead className="px-6 py-4">{t("CUSTOMER")}</TableHead>
-              <TableHead className="px-6 py-4">{t("DATE")}</TableHead>
-              <TableHead className="px-6 py-4">{t("STATUS")}</TableHead>
-              <TableHead className="pe-6 py-4 text-end">{t("TOTAL")}</TableHead>
+            <TableRow className="bg-[#F5F0EA]">
+              <TableHead className="px-4 py-4 text-center text-[13px] font-semibold uppercase tracking-[0.26px] text-[#28293D]">{t("ORDER NO.")}</TableHead>
+              <TableHead className="px-4 py-4 text-center text-[13px] font-semibold uppercase tracking-[0.26px] text-[#28293D]">{t("CUSTOMER")}</TableHead>
+              <TableHead className="px-4 py-4 text-center text-[13px] font-semibold uppercase tracking-[0.26px] text-[#28293D]">{t("DATE")}</TableHead>
+              <TableHead className="px-4 py-4 text-center text-[13px] font-semibold uppercase tracking-[0.26px] text-[#28293D]">{t("STATUS")}</TableHead>
+              <TableHead className="px-4 py-4 text-center text-[13px] font-semibold uppercase tracking-[0.26px] text-[#28293D]">{t("TOTAL")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {orders.map((order) => (
               <TableRow key={order.id} className="hover:bg-[#FAFAF8]">
-                <TableCell className="ps-6 py-4 text-[13px] font-semibold text-[#333333]" >
+                <TableCell className="px-4 py-4 text-center text-[12px] font-bold text-[#333333]">
                   {order.orderNo}
                 </TableCell>
-                <TableCell className="px-6 py-4 font-semibold text-[14px] text-[#000000]">
+                <TableCell className="px-4 py-4 text-center text-[14px] font-medium text-black">
                   {order.customer}
                 </TableCell>
-                <TableCell className="px-6 py-4 text-[13px] font-semibold text-[#000000]" >
+                <TableCell className="px-4 py-4 text-center text-[14px] font-medium text-black">
                   {order.date}
                 </TableCell>
-                <TableCell className="px-6 py-4">
-                  <StatusBadge status={order.status} />
+                <TableCell className="px-4 py-4 text-center">
+                  <div className="flex justify-center">
+                    <StatusBadge status={order.status} />
+                  </div>
                 </TableCell>
-                <TableCell className="pe-6 py-4 text-[14px] font-semibold text-[#000000] text-end" >
+                <TableCell className="px-4 py-4 text-center text-[14px] font-medium text-black" dir="ltr">
                   {formatTotal(order.total)}
                 </TableCell>
               </TableRow>

@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
-import { FileDown } from "lucide-react";
+import { FileDown, Banknote, Box, DollarSign, CircleDollarSign } from "lucide-react";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import OverviewCard from "@/shared/components/OverviewCard";
 import DefaultButton from "@/shared/components/DefaultButton";
 import { api } from "@/config/api";
-import { BarChart3, Box, DollarSign, TrendingUp } from "lucide-react";
 
-const TH = "px-4 py-3 text-[10px] font-semibold uppercase tracking-wide text-[#28293D] text-left";
+const TH = "px-4 py-3.5 text-[13px] font-semibold text-[#28293D] uppercase tracking-wide";
 const TD = "px-4 py-4 text-[14px] text-[#28293D]";
 
 interface SalesSummary {
@@ -30,9 +29,10 @@ interface SalesRow {
 interface SalesReportTabProps {
   fromDate: string;
   toDate: string;
+  warehouse?: string;
 }
 
-const SalesReportTab = ({ fromDate, toDate }: SalesReportTabProps) => {
+const SalesReportTab = ({ fromDate, toDate, warehouse }: SalesReportTabProps) => {
   const { t } = useTranslation();
   const [summary, setSummary] = useState<SalesSummary | null>(null);
   const [rows, setRows] = useState<SalesRow[]>([]);
@@ -43,6 +43,7 @@ const SalesReportTab = ({ fromDate, toDate }: SalesReportTabProps) => {
     const params: Record<string, string> = {};
     if (fromDate) params.from = fromDate;
     if (toDate) params.to = toDate;
+    if (warehouse && warehouse !== "All") params.warehouse = warehouse;
 
     api
       .get("/reports/sales", { params })
@@ -56,13 +57,13 @@ const SalesReportTab = ({ fromDate, toDate }: SalesReportTabProps) => {
         setRows([]);
       })
       .finally(() => setLoading(false));
-  }, [fromDate, toDate]);
+  }, [fromDate, toDate, warehouse]);
 
   const handleExportCSV = () => {
     if (rows.length === 0) return;
     const headers = [
       t("Product Name"),
-      t("Quantity"),
+      t("Quality"),
       t("Unit Price"),
       t("Cost Price"),
       t("Total Sales"),
@@ -99,8 +100,8 @@ const SalesReportTab = ({ fromDate, toDate }: SalesReportTabProps) => {
               ? `EGP ${summary.totalSales.toLocaleString()}`
               : "—",
             badgeColor: "bg-[#F5F0EA]",
-            iconColor: "text-primary",
-            icon: <BarChart3 className="size-5" />,
+            iconColor: "text-[#8F6900]",
+            icon: <Banknote className="size-5" />,
           }}
         />
         <OverviewCard
@@ -118,9 +119,9 @@ const SalesReportTab = ({ fromDate, toDate }: SalesReportTabProps) => {
             value: summary
               ? `EGP ${summary.totalCost.toLocaleString()}`
               : "—",
-            badgeColor: "bg-[#FFF0F0]",
-            iconColor: "text-[#C90000]",
-            icon: <DollarSign className="size-5" />,
+            badgeColor: "bg-[#C90000]",
+            iconColor: "text-white",
+            icon: <CircleDollarSign className="size-5 text-white" />,
           }}
         />
         <OverviewCard
@@ -131,7 +132,7 @@ const SalesReportTab = ({ fromDate, toDate }: SalesReportTabProps) => {
               : "—",
             badgeColor: "bg-[#F3E9FA]",
             iconColor: "text-[#9524E4]",
-            icon: <TrendingUp className="size-5" />,
+            icon: <DollarSign className="size-5" />,
           }}
         />
       </div>
@@ -156,8 +157,8 @@ const SalesReportTab = ({ fromDate, toDate }: SalesReportTabProps) => {
           <table className="w-full min-w-[900px]">
             <thead className="bg-[#F5F0EA]">
               <tr>
-                <th className={TH}>{t("Product Name")}</th>
-                <th className={`${TH} text-center`}>{t("Quantity")}</th>
+                <th className={`${TH} text-left`}>{t("Product Name")}</th>
+                <th className={`${TH} text-center`}>{t("Quality")}</th>
                 <th className={`${TH} text-center`}>{t("Unit Price")}</th>
                 <th className={`${TH} text-center`}>{t("Cost Price")}</th>
                 <th className={`${TH} text-center`}>{t("Total Sales")}</th>
@@ -190,25 +191,27 @@ const SalesReportTab = ({ fromDate, toDate }: SalesReportTabProps) => {
                     key={row.id}
                     className="border-t border-[#E5E5E5] hover:bg-[#FAFAF7] transition-colors"
                   >
-                    <td className={`${TD} font-medium text-[#333333]`}>
+                    <td className={`${TD} font-medium text-[#28293D]`}>
                       {row.productName}
                     </td>
                     <td className={`${TD} text-center text-[#595959]`}>
                       {row.quantity}
                     </td>
-                    <td className={`${TD} text-center`} dir="ltr">
+                    <td className={`${TD} text-center text-[#595959]`} dir="ltr">
                       EGP {row.unitPrice.toFixed(2)}
                     </td>
-                    <td className={`${TD} text-center`} dir="ltr">
+                    <td className={`${TD} text-center text-[#595959]`} dir="ltr">
                       EGP {row.costPrice.toFixed(2)}
                     </td>
-                    <td className={`${TD} text-center font-bold`} dir="ltr">
+                    <td className={`${TD} text-center font-bold text-[#28293D]`} dir="ltr">
                       EGP {row.totalSales.toFixed(2)}
                     </td>
-                    <td className={`${TD} text-center`} dir="ltr">
+                    <td className="px-4 py-4 text-[14px] text-center font-medium text-[#059B5A]" dir="ltr">
                       EGP {row.profit.toFixed(2)}
                     </td>
-                    <td className={`${TD} text-center`}>{row.margin.toFixed(2)}%</td>
+                    <td className={`${TD} text-center font-bold text-[#28293D]`}>
+                      {row.margin.toFixed(2)}%
+                    </td>
                   </tr>
                 ))
               )}

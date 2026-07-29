@@ -93,7 +93,7 @@ const ReportOrderDetailsDialog = ({
   if (!order) return null;
 
   const rawId = order.orderId || order.id;
-  const displayId = `#${rawId.replace(/^#/, "")}`;
+  const displayId = rawId.replace(/^#/, "");
   const customerName = order.customerName || t("Omnia Maher");
   const formattedDate = formatDate(order.date);
   const formattedType = formatType(order.type);
@@ -170,7 +170,7 @@ const ReportOrderDetailsDialog = ({
               </span>
             </div>
             <div className="flex items-center gap-2 rounded-[10px] bg-[#E5E5E5] p-3 px-4">
-              <Info className="size-4 shrink-0 text-[#28293D]" />
+              <Info className="size-4 shrink-0 text-[#000000]" />
               <span className="text-[12px] text-[#28293D]">
                 {t("For more details, please visit the order details page.")}
               </span>

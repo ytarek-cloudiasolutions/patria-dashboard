@@ -24,9 +24,9 @@ const StatusBadge = ({ status }: { status: AppUser["status"] }) => {
   return (
     <span
       className={cn(
-        "inline-flex h-7 min-w-20 items-center justify-center rounded-full border px-3 text-[12px] font-semibold",
+        "inline-flex h-7 min-w-20 items-center justify-center rounded-[30px] border px-3 text-[12px] font-semibold",
         status === "Active"
-          ? "border-[#059B5A] bg-white text-[#059B5A]"
+          ? "border-[#059B5A] bg-[#E2F4ED] text-[#059B5A]"
           : "border-[#C90000] bg-[#C90000] text-white"
       )}
     >

@@ -24,6 +24,24 @@ const ORDER_TYPES: { value: OrderType; label: string }[] = [
   { value: "Call", label: "Call" },
 ];
 
+const getDefaultFromDate = () => {
+  const d = new Date();
+  const prevMonthDate = new Date(d.getFullYear(), d.getMonth() - 1, 29);
+  const year = prevMonthDate.getFullYear();
+  const month = String(prevMonthDate.getMonth() + 1).padStart(2, "0");
+  const day = String(prevMonthDate.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const getDefaultToDate = () => {
+  const d = new Date();
+  const currMonthDate = new Date(d.getFullYear(), d.getMonth(), 29);
+  const year = currMonthDate.getFullYear();
+  const month = String(currMonthDate.getMonth() + 1).padStart(2, "0");
+  const day = String(currMonthDate.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 const ReportsPage = () => {
   const { t } = useTranslation();
   const [tab, setTab] = useState<ReportsTab>("orders");
@@ -31,8 +49,8 @@ const ReportsPage = () => {
   const [hasLoaded, setHasLoaded] = useState(false);
 
   // Shared Filter States
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
+  const [fromDate, setFromDate] = useState(getDefaultFromDate);
+  const [toDate, setToDate] = useState(getDefaultToDate);
   const [orderType, setOrderType] = useState<OrderType>("All Types");
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState<"All" | StockStatus>("All");
@@ -146,7 +164,7 @@ const ReportsPage = () => {
           )}
 
           {tab === "sales" && (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 w-full">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3 w-full">
               <div className="flex flex-col gap-1.5 w-full">
                 <label className="text-[12px] font-medium text-[#333333]">
                   {t("From")}
@@ -172,38 +190,58 @@ const ReportsPage = () => {
                   withBackdrop
                 />
               </div>
-            </div>
-          )}
-
-          {tab === "inventory" && (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 w-full">
               <div className="flex flex-col gap-1.5 w-full">
                 <label className="text-[12px] font-medium text-[#333333]">
-                  {t("Category")}
+                  {t("Warehouse")}
                 </label>
                 <DropdownSelect
-                  options={categories.map((c) => ({ value: c, label: c === "All" ? t("All Categories") : c }))}
-                  selected={categoryFilter}
-                  onSelect={(val) => setCategoryFilter(val)}
+                  options={warehouseOptions}
+                  selected={warehouse}
+                  onSelect={(val) => setWarehouse(val)}
                   onOpenChange={setIsDropdownOpen}
                   className="h-[50px] w-full md:w-full"
                   contentClassName="w-[var(--radix-dropdown-menu-trigger-width)] md:w-[var(--radix-dropdown-menu-trigger-width)]"
                   align="start"
                 />
               </div>
+            </div>
+          )}
+
+          {tab === "inventory" && (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3 w-full">
               <div className="flex flex-col gap-1.5 w-full">
                 <label className="text-[12px] font-medium text-[#333333]">
-                  {t("Stock Status")}
+                  {t("From")}
+                </label>
+                <DatePicker
+                  value={fromDate}
+                  onChange={setFromDate}
+                  placeholder={t("From")}
+                  popoverPlacement="bottom-right"
+                  withBackdrop
+                />
+              </div>
+              <div className="flex flex-col gap-1.5 w-full">
+                <label className="text-[12px] font-medium text-[#333333]">
+                  {t("To")}
+                </label>
+                <DatePicker
+                  value={toDate}
+                  onChange={setToDate}
+                  placeholder={t("To")}
+                  popoverPlacement="bottom-right"
+                  minDate={fromDate || undefined}
+                  withBackdrop
+                />
+              </div>
+              <div className="flex flex-col gap-1.5 w-full">
+                <label className="text-[12px] font-medium text-[#333333]">
+                  {t("Warehouse")}
                 </label>
                 <DropdownSelect
-                  options={[
-                    { value: "All", label: t("All Status") },
-                    { value: "Available", label: t("Available") },
-                    { value: "Low Stock", label: t("Low Stock") },
-                    { value: "Out Of Stock", label: t("Out Of Stock") },
-                  ]}
-                  selected={statusFilter}
-                  onSelect={(val) => setStatusFilter(val as "All" | StockStatus)}
+                  options={warehouseOptions}
+                  selected={warehouse}
+                  onSelect={(val) => setWarehouse(val)}
                   onOpenChange={setIsDropdownOpen}
                   className="h-[50px] w-full md:w-full"
                   contentClassName="w-[var(--radix-dropdown-menu-trigger-width)] md:w-[var(--radix-dropdown-menu-trigger-width)]"
@@ -277,12 +315,14 @@ const ReportsPage = () => {
             <SalesReportTab
               fromDate={fromDate}
               toDate={toDate}
+              warehouse={warehouse}
             />
           )}
           {tab === "inventory" && (
             <InventoryReportTab
-              categoryFilter={categoryFilter}
-              statusFilter={statusFilter}
+              fromDate={fromDate}
+              toDate={toDate}
+              warehouse={warehouse}
             />
           )}
           {tab === "discounts" && (

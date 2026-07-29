@@ -17,7 +17,7 @@ import type { AuditLog, MutationType } from "../types";
 const MUTATION_STYLES: Record<MutationType, string> = {
   Update: "border-[#C7861E] bg-[#FFF5DC] text-[#C7861E]",
   Create: "border-[#059B5A] bg-[#E2F4ED] text-[#059B5A]",
-  Delete: "border-[#C90000] bg-[#FFF0F0] text-[#C90000]",
+  Delete: "border-[#C90000] bg-[#C90000] text-white",
 };
 
 const Timestamp = ({ value }: { value: string }) => {
@@ -38,7 +38,7 @@ const MutationBadge = ({ mutation }: { mutation: MutationType }) => {
   return (
     <Badge
       className={cn(
-        "h-6 min-w-20 rounded-full border px-3 py-0 text-[11px] font-semibold",
+        "h-6 min-w-20 rounded-[30px] border px-3 py-0 text-[11px] font-semibold justify-center",
         MUTATION_STYLES[mutation],
       )}
     >

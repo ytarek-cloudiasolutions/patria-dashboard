@@ -111,24 +111,26 @@ const ModifyPermissionsDialog = ({
                       key={option.value}
                       onClick={() => handleRoleChange(option.value)}
                       className={cn(
-                        "flex flex-1 cursor-pointer flex-col items-center justify-center gap-1 rounded px-2 py-3.5 text-center transition-colors",
+                        "flex flex-1 cursor-pointer flex-col items-center justify-center gap-1 rounded-[4px] p-3.5 text-center transition-all",
                         isActive
-                          ? "bg-[#8F6900] font-medium text-white ring-4 ring-[#624F1C1A]"
-                          : "border-4 border-gray-400/40 bg-neutral-200 font-normal text-[#333333]",
+                          ? "border-4 border-[rgba(98,79,28,0.50)] bg-[#F5F0EA]"
+                          : "border-[1.5px] border-[#E5E5E5] bg-[#FAFAF7] hover:border-[#CACBD4] hover:bg-[#F5F0EA]/40",
                       )}
                     >
                       <span
                         className={cn(
-                          "text-[14px] font-normal",
-                          isActive ? "text-white" : "text-[#333333]",
+                          "text-[14px]",
+                          isActive
+                            ? "font-bold text-[#8F6900]"
+                            : "font-semibold text-[#333333]",
                         )}
                       >
                         {t(option.label)}
                       </span>
                       <span
                         className={cn(
-                          "text-[10px]",
-                          isActive ? "text-white" : "text-[#8B8B8B]",
+                          "text-[12px]",
+                          isActive ? "text-[#8F6900]" : "text-[#8B8B8B]",
                         )}
                       >
                         {t(option.description)}

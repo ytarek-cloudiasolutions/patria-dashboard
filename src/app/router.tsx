@@ -41,6 +41,7 @@ import ShiftReportsPage from "@/features/shift-reports/ShiftReportsPage";
 import DeliveryTrackingPage from "@/features/delivery-tracking/DeliveryTrackingPage";
 import ReportsPage from "@/features/reports/ReportsPage";
 
+
 export const router = createBrowserRouter([
   { path: "/sign-up", element: <SignUpPage /> },
   { path: "/sign-in", element: <SignInPage /> },
@@ -248,6 +249,7 @@ export const router = createBrowserRouter([
           </RoleRoute>
         ),
       },
+
       {
         path: "/settings",
         element: (
