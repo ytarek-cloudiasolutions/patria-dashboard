@@ -20,19 +20,30 @@ import type { Driver, DriverFormData, DriverStatus, Zone, ZoneOrder, ZoneOrderSt
 import { useLogistics } from "./hooks/useLogistics";
 import { dispatchOrder } from "./api/logisticsApi";
 
-const mapApiDriver = (d: any): Driver => ({
-  id: d._id || d.id,
-  name: d.name || "",
-  whatsappPhone: d.phone || d.whatsappPhone || "",
-  vehicleType: d.vehicleType === "car" ? "Car" : d.vehicleType === "van" ? "Van" : "Motorcycle",
-  plateNumber: d.plateNumber || "",
-  zones: d.zones || [],
-  status: d.status === "busy" ? "On-Route" : d.status === "active" ? "Active" : "Off-Duty",
-  ordersToday: d.shiftDeliveriesCount || d.totalDelivered || (d.activeOrders ? d.activeOrders.length : 0),
-  salaryNow: Number((21 * ((d.shiftDeliveriesCount || 0) / 3 + 4)).toFixed(2)),
-  hourlyRate: 21,
-  dutyTime: d.dutyTime && d.dutyTime !== "—" ? d.dutyTime : "00:00:00",
-});
+const mapApiDriver = (d: any): Driver => {
+  const hourlyRate = d.hourlyRate || 0;
+  // Live salary for the shift in progress: real elapsed hours since
+  // shiftStartedAt × hourlyRate. The previous formula
+  // (21 * (deliveries/3 + 4)) hardcoded both the rate and a made-up
+  // multiplier tied to delivery count, not time — a driver on shift for
+  // 27 hours and one who'd just clocked in both showed the same figure.
+  const shiftStartedAt = d.shiftStartedAt ? new Date(d.shiftStartedAt).getTime() : null;
+  const hoursElapsed = shiftStartedAt ? Math.max(0, (Date.now() - shiftStartedAt) / 3600000) : 0;
+
+  return {
+    id: d._id || d.id,
+    name: d.name || "",
+    whatsappPhone: d.phone || d.whatsappPhone || "",
+    vehicleType: d.vehicleType === "car" ? "Car" : d.vehicleType === "van" ? "Van" : "Motorcycle",
+    plateNumber: d.plateNumber || "",
+    zones: d.zones || [],
+    status: d.status === "busy" ? "On-Route" : d.status === "active" ? "Active" : "Off-Duty",
+    ordersToday: d.shiftDeliveriesCount || d.totalDelivered || (d.activeOrders ? d.activeOrders.length : 0),
+    salaryNow: Number((hourlyRate * hoursElapsed).toFixed(2)),
+    hourlyRate,
+    dutyTime: d.dutyTime && d.dutyTime !== "—" ? d.dutyTime : "00:00:00",
+  };
+};
 
 const LogisticsPage = () => {
   const { t } = useTranslation();
@@ -285,10 +296,15 @@ const LogisticsPage = () => {
     updateDriver(String(driver.id), { status: apiStatus });
   };
 
-  const handleHourlyRateChange = (id: number | string, rate: number) =>
+  const handleHourlyRateChange = (id: number | string, rate: number) => {
+    // Previously local-state only — the checkmark button looked like it
+    // saved, but the rate was never persisted, so it silently reverted to
+    // whatever the backend had on the next drivers refetch.
     setDrivers((prev) =>
       prev.map((d) => (d.id === id ? { ...d, hourlyRate: rate } : d)),
     );
+    updateDriver(String(id), { hourlyRate: rate });
+  };
 
   const handleRemoveDriver = (driver: Driver) => {
     setIsAddDriverOpen(false);

@@ -58,6 +58,7 @@ export interface UpdateDriverRequest {
   zones?: string[];
   status?: DriverStatus;
   isActive?: boolean;
+  hourlyRate?: number;
 }
 
 export type LogisticsOperation = "fetch" | "create" | "update" | "delete";
