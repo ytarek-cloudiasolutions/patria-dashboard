@@ -37,6 +37,8 @@ const ZoneNameAutocomplete = ({
   const autocompleteRef = useRef<any>(null);
   const onPlaceSelectRef = useRef(onPlaceSelect);
   onPlaceSelectRef.current = onPlaceSelect;
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
 
   useEffect(() => {
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_KEY;
@@ -58,6 +60,11 @@ const ZoneNameAutocomplete = ({
         const name = place.name || place.formatted_address || "";
         const lat = place.geometry?.location?.lat?.();
         const lng = place.geometry?.location?.lng?.();
+        // Keep the input's own DOM value as the source of truth instead of
+        // letting a React re-render (from the onChange below) write back
+        // into it — see the defaultValue/uncontrolled note below for why.
+        if (inputRef.current) inputRef.current.value = name;
+        onChangeRef.current(name);
         onPlaceSelectRef.current({ name, lat, lng });
       });
     });
@@ -69,6 +76,23 @@ const ZoneNameAutocomplete = ({
       }
     };
   }, []);
+
+  // Google's Places widget mutates the input's DOM value directly (not via
+  // a real keystroke event) whenever a suggestion is picked. If this input
+  // stays React-controlled (`value={value}`), the very next render writes
+  // `value` back into the DOM via React's native-setter path, which
+  // desyncs Google's internal autocomplete state from what's actually in
+  // the field — the first pick appears to work, but a second pick (same or
+  // different suggestion) silently stops firing `place_changed`. Making
+  // the field effectively uncontrolled (defaultValue + imperative sync)
+  // avoids fighting Google's own DOM writes.
+  const lastSyncedValue = useRef(value);
+  useEffect(() => {
+    if (value !== lastSyncedValue.current && inputRef.current && inputRef.current.value !== value) {
+      inputRef.current.value = value;
+    }
+    lastSyncedValue.current = value;
+  }, [value]);
 
   return (
     <div className="flex flex-col">
@@ -82,7 +106,7 @@ const ZoneNameAutocomplete = ({
         type="text"
         placeholder={placeholder}
         required={required}
-        value={value}
+        defaultValue={value}
         onChange={(e) => onChange(e.target.value)}
         autoComplete="off"
         className={cn(
