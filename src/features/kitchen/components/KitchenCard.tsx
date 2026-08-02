@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import ActionButton from "@/shared/components/ActionButton";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import {
@@ -40,6 +41,12 @@ const KitchenCard = ({
   const { t, dir } = useTranslation();
   const iconBackground = iconBackgroundMap[kitchen.icon];
 
+  const isBusy = kitchen.status?.toLowerCase() === "busy";
+  const badgeText = isBusy ? "Busy" : "Active";
+  const badgeClasses = isBusy
+    ? "bg-[#FE9A001A] text-[#C7861E] border-[#C7861E]"
+    : "bg-[#E2F4ED] text-[#059B5A] border-[#059B5A]";
+
   return (
     <Card
       className="gap-8 rounded-2xl bg-white p-6 py-6 ring-0"
@@ -56,6 +63,15 @@ const KitchenCard = ({
           >
             {iconMap[kitchen.icon]}
           </div>
+
+          <span
+            className={cn(
+              "inline-flex items-center justify-center rounded-full border px-3 py-1 text-[13px] font-medium leading-none transition-colors",
+              badgeClasses
+            )}
+          >
+            {t(badgeText)}
+          </span>
         </div>
 
         <h3 className="text-[24px] leading-none font-bold text-[#333333]">

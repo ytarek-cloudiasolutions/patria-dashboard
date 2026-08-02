@@ -3,8 +3,10 @@ import { Button } from "@/shared/components/ui/button";
 import { ArrowLeft, ArrowRight, RefreshCw, Loader2, Smartphone } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "@/shared/i18n/useTranslation";
+import { cn } from "@/lib/utils";
 import { useKitchen } from "../hooks/useKitchen";
 import type { KitchenOrder } from "../store/kitchenTypes";
+import { getKitchenStations } from "../api/kitchenApi";
 import { Badge } from "@/shared/components/ui/badge";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { Clock3, UserRound } from "lucide-react";
@@ -153,6 +155,7 @@ const KitchenDetailsPage = () => {
   const { kitchenId } = useParams<{ kitchenId: string }>();
   const { kitchenOrders, loading, getKitchenOrders, updateOrderStatus } = useKitchen();
   const [selectedOrder, setSelectedOrder] = useState<KitchenOrder | null>(null);
+  const [stationStatus, setStationStatus] = useState<string>("Active");
 
   const station = kitchenId ? KITCHEN_STATIONS[kitchenId] : null;
 
@@ -165,6 +168,21 @@ const KitchenDetailsPage = () => {
     const interval = setInterval(fetchOrders, 30000);
     return () => clearInterval(interval);
   }, [fetchOrders]);
+
+  useEffect(() => {
+    const fetchStationStatus = async () => {
+      try {
+        const stations = await getKitchenStations();
+        const currentStation = stations.find((s) => s.kitchenType === kitchenId);
+        if (currentStation?.status) {
+          setStationStatus(currentStation.status);
+        }
+      } catch (err) {
+        console.error("Failed to fetch station status", err);
+      }
+    };
+    if (kitchenId) fetchStationStatus();
+  }, [kitchenId]);
 
   // Live updates: play a sound and refresh the board when the kitchen gets a new
   // order or new items are added to an order already sent to this station.
@@ -198,6 +216,12 @@ const KitchenDetailsPage = () => {
     );
   }
 
+  const isBusy = stationStatus?.toLowerCase() === "busy";
+  const badgeText = isBusy ? "Busy" : "Active";
+  const badgeClasses = isBusy
+    ? "bg-[#FE9A001A] text-[#C7861E] border-[#C7861E]"
+    : "bg-[#E2F4ED] text-[#059B5A] border-[#059B5A]";
+
   return (
     <section>
       <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -218,8 +242,16 @@ const KitchenDetailsPage = () => {
             >
               {station.name[0]}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2.5">
               <h1 className="text-[24px] font-bold text-black">{t(station.name)}</h1>
+              <span
+                className={cn(
+                  "inline-flex items-center justify-center rounded-full border px-3 py-1 text-[13px] font-medium leading-none transition-colors",
+                  badgeClasses
+                )}
+              >
+                {t(badgeText)}
+              </span>
             </div>
           </div>
         </div>

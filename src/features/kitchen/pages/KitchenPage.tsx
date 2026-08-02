@@ -62,9 +62,9 @@ const KitchenPage = () => {
           const live = stationData[station.id];
           const kitchenObj = {
             id: station.id,
-            name: station.name,
-            description: station.description,
-            status: (live?.status?.toLowerCase() ?? "active") as "active" | "busy",
+            name: live?.name || station.name,
+            description: live?.description || station.description,
+            status: live?.status ?? "Active",
             color: station.color,
             icon: (station.id === "hot_food" ? "hot_food" : station.id) as any,
             activeOrders: live?.activeOrders ?? 0,

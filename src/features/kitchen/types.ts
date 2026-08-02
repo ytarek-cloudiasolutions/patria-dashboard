@@ -1,4 +1,4 @@
-export type KitchenStatus = "active" | "busy";
+export type KitchenStatus = "active" | "busy" | "Active" | "Busy" | string;
 
 export type KitchenIcon = "hot_food" | "pastry" | "barista";
 
