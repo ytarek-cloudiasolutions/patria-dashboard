@@ -22,13 +22,13 @@ import { dispatchOrder } from "./api/logisticsApi";
 
 const mapApiDriver = (d: any): Driver => {
   const hourlyRate = d.hourlyRate || 0;
-  // Live salary for the shift in progress: real elapsed hours since
-  // shiftStartedAt × hourlyRate. The previous formula
-  // (21 * (deliveries/3 + 4)) hardcoded both the rate and a made-up
-  // multiplier tied to delivery count, not time — a driver on shift for
-  // 27 hours and one who'd just clocked in both showed the same figure.
+  // Backend now computes salaryNow itself (real elapsed hours since
+  // shiftStartedAt × hourlyRate) so every consumer agrees on one number —
+  // fall back to the same formula client-side only for older API
+  // responses that predate that field.
   const shiftStartedAt = d.shiftStartedAt ? new Date(d.shiftStartedAt).getTime() : null;
   const hoursElapsed = shiftStartedAt ? Math.max(0, (Date.now() - shiftStartedAt) / 3600000) : 0;
+  const salaryNow = d.salaryNow ?? Number((hourlyRate * hoursElapsed).toFixed(2));
 
   return {
     id: d._id || d.id,
@@ -39,7 +39,7 @@ const mapApiDriver = (d: any): Driver => {
     zones: d.zones || [],
     status: d.status === "busy" ? "On-Route" : d.status === "active" ? "Active" : "Off-Duty",
     ordersToday: d.shiftDeliveriesCount || d.totalDelivered || (d.activeOrders ? d.activeOrders.length : 0),
-    salaryNow: Number((hourlyRate * hoursElapsed).toFixed(2)),
+    salaryNow,
     hourlyRate,
     dutyTime: d.dutyTime && d.dutyTime !== "—" ? d.dutyTime : "00:00:00",
   };
