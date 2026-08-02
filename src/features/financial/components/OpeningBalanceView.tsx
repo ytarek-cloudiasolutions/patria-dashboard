@@ -22,7 +22,7 @@ const OpeningBalanceView = () => {
   const [selectedRecord, setSelectedRecord] = useState<OpeningBalanceRecord | null>(null);
   const [records, setRecords] = useState(OPENING_BALANCE_RECORDS);
 
-  const handleConfirmRecord = (record: OpeningBalanceRecord | null) => {
+  const handleConfirmRecord = (record?: OpeningBalanceRecord | null) => {
     if (!record) return;
     setRecords((prev) =>
       prev.map((r) => (r.id === record.id ? { ...r, status: "Confirmed" as const } : r))

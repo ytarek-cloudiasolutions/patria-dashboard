@@ -18,6 +18,7 @@ import purchasingSaga from "@/features/purchasing/store/purchasingSaga";
 import shiftsSaga from "@/features/shifts/store/shiftsSaga";
 import couponsSaga from "@/features/coupons/store/couponsSaga";
 import kitchenSaga from "@/features/kitchen/store/kitchenSaga";
+import financialSaga from "@/features/financial/store/financialSaga";
 
 export default function* rootSaga() {
   yield all([
@@ -40,6 +41,7 @@ export default function* rootSaga() {
     shiftsSaga(),
     couponsSaga(),
     kitchenSaga(),
+    financialSaga(),
   ]);
 }
 
