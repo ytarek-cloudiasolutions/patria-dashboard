@@ -40,6 +40,7 @@ import ShiftManagementPage from "@/features/shifts/ShiftManagementPage";
 import ShiftReportsPage from "@/features/shift-reports/ShiftReportsPage";
 import DeliveryTrackingPage from "@/features/delivery-tracking/DeliveryTrackingPage";
 import ReportsPage from "@/features/reports/ReportsPage";
+import FinancialHubPage from "@/features/financial/FinancialHubPage";
 
 
 export const router = createBrowserRouter([
@@ -246,6 +247,14 @@ export const router = createBrowserRouter([
         element: (
           <RoleRoute path="/pricing">
             <PricingPage />
+          </RoleRoute>
+        ),
+      },
+      {
+        path: "/financial-hub",
+        element: (
+          <RoleRoute path="/financial-hub">
+            <FinancialHubPage />
           </RoleRoute>
         ),
       },

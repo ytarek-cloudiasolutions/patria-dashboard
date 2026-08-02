@@ -133,7 +133,7 @@ const TransactionsTable = ({
               <TableHead className="ps-6 py-4 text-start">{t("STATEMENT")}</TableHead>
               <TableHead className="px-6 py-4 text-start">{t("CATEGORY")}</TableHead>
               <TableHead className="px-6 py-4 text-start">{t("AMOUNT")}</TableHead>
-              <TableHead className={`${showStatus ? "px-6" : "pe-6"} py-4 ${showStatus ? "text-start" : "text-end"}`}>{t("DATE")}</TableHead>
+              <TableHead className="px-6 py-4 text-start">{t("DATE")}</TableHead>
               {showStatus && (
                 <TableHead className="pe-6 py-4 text-end">{t("STATUS")}</TableHead>
               )}
@@ -149,7 +149,6 @@ const TransactionsTable = ({
                   <CategoryBadge category={tx.category} />
                 </TableCell>
                 <TableCell
-              
                   className={cn(
                     "px-6 py-4 whitespace-nowrap text-[14px] font-semibold",
                     tx.amount < 0 ? "text-[#C90000]" : "text-[#059B5A]",
@@ -157,7 +156,7 @@ const TransactionsTable = ({
                 >
                   {formatEgp(tx.amount)}
                 </TableCell>
-                <TableCell className={`${showStatus ? "px-6" : "pe-6"} py-4 whitespace-nowrap font-semibold text-[13px] text-[#000000]`} >
+                <TableCell className="px-6 py-4 whitespace-nowrap font-semibold text-[13px] text-[#000000]">
                   {tx.date}
                 </TableCell>
                 {showStatus && (

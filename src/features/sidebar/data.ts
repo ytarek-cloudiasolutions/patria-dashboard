@@ -22,6 +22,7 @@ import {
   Receipt,
   Clock,
   BarChart3,
+  Landmark,
 } from "lucide-react";
 import type { NavSection } from "./types";
 
@@ -67,6 +68,7 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     title: "FINANCE",
     items: [
+      { label: "Financial Hub", href: "/financial-hub", icon: Landmark },
       { label: "Shift Reports", href: "/shift-reports", icon: BarChart3 },
       { label: "Reports", href: "/reports", icon: Receipt },
       { label: "Pricing", href: "/pricing", icon: Tag },

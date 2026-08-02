@@ -42,6 +42,7 @@ export const ROUTE_ACCESS: Record<string, UserRole[]> = {
   "/reports": ["admin", "manager", "superadmin"],
   "/shift-reports": ["admin", "manager", "superadmin"],
   "/pricing": ["admin", "manager", "superadmin"],
+  "/financial-hub": ["admin", "manager", "superadmin"],
   "/settings": ["admin", "superadmin"],
   "/whatsapp-gateway": ["admin", "superadmin"],
 };
