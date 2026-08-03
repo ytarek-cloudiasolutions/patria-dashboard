@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Copy } from "lucide-react";
 import { Badge } from "@/shared/components/ui/badge";
 import {
@@ -11,11 +11,49 @@ import {
 } from "@/shared/components/ui/table";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { showSuccessToast } from "@/shared/utils/toast";
-import { ADJUSTMENTS_WASTAGE_RECORDS } from "../data";
+import { api } from "@/config/api";
 
-const AdjustmentsWastageView = () => {
+interface AdjustmentRecord {
+  id: string;
+  number: string;
+  type: string;
+  warehouse: string;
+  date: string;
+  value: string;
+  noOfItems: number;
+  status: string;
+}
+
+interface AdjustmentsWastageViewProps {
+  refreshKey?: number;
+}
+
+const AdjustmentsWastageView = ({ refreshKey }: AdjustmentsWastageViewProps) => {
   const { t } = useTranslation();
-  const [records] = useState(ADJUSTMENTS_WASTAGE_RECORDS);
+  const [records, setRecords] = useState<AdjustmentRecord[]>([]);
+
+  useEffect(() => {
+    api
+      .get("/inventory/adjustments")
+      .then((res) => {
+        const adjustments = res.data?.adjustments || [];
+        setRecords(
+          adjustments.map((a: any) => ({
+            id: a._id,
+            number: a.number,
+            type: a.type,
+            warehouse: a.warehouseId?.name || "—",
+            date: a.createdAt ? new Date(a.createdAt).toLocaleDateString() : "—",
+            value: String(
+              a.items?.reduce((sum: number, i: any) => sum + (i.quantity || 0), 0) ?? 0,
+            ),
+            noOfItems: a.items?.length || 0,
+            status: a.status === "completed" ? "Completed" : "In Progress",
+          })),
+        );
+      })
+      .catch(() => setRecords([]));
+  }, [refreshKey]);
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);

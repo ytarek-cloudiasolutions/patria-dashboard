@@ -60,6 +60,7 @@ const FinancialHubPage = () => {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isInventorySessionOpen, setIsInventorySessionOpen] = useState(false);
   const [isInventoryAdjustmentOpen, setIsInventoryAdjustmentOpen] = useState(false);
+  const [adjustmentsRefreshKey, setAdjustmentsRefreshKey] = useState(0);
   const [isNewPeriodBalanceOpen, setIsNewPeriodBalanceOpen] = useState(false);
   const [selectedInventorySession, setSelectedInventorySession] = useState<InventoryCountSession | null>(null);
   const [loading, setLoading] = useState(false);
@@ -250,7 +251,7 @@ const FinancialHubPage = () => {
           />
         )
       ) : tab === "adjustments-wastage" ? (
-        <AdjustmentsWastageView />
+        <AdjustmentsWastageView refreshKey={adjustmentsRefreshKey} />
       ) : tab === "opening-balance" ? (
         <OpeningBalanceView />
       ) : tab === "item-balance" ? (
@@ -289,8 +290,16 @@ const FinancialHubPage = () => {
       <InventoryAdjustmentDialog
         open={isInventoryAdjustmentOpen}
         onOpenChange={setIsInventoryAdjustmentOpen}
-        onConfirm={(data) => {
-          showSuccessToast(t("Inventory adjustment confirmed"));
+        onConfirm={async (data) => {
+          try {
+            await api.post("/inventory/adjustments", data);
+            showSuccessToast(t("Inventory adjustment confirmed"));
+            setAdjustmentsRefreshKey((k) => k + 1);
+          } catch (error: any) {
+            showErrorToast(
+              error.response?.data?.message || t("Failed to record adjustment"),
+            );
+          }
         }}
       />
 

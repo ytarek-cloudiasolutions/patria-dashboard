@@ -12,13 +12,27 @@ import { Separator } from "@/shared/components/ui/separator";
 import DefaultButton from "@/shared/components/DefaultButton";
 import DropdownSelect from "@/shared/components/DropdownSelect";
 import { useTranslation } from "@/shared/i18n/useTranslation";
+import { getWarehouses } from "@/features/warehouses/api/warehousesApi";
+import { getProducts } from "@/features/products/api/productsApi";
 
 const FORM_ID = "inventory-adjustment-form";
+
+export interface InventoryAdjustmentSubmitItem {
+  productId: string;
+  quantity: number;
+  reason: string;
+}
+
+export interface InventoryAdjustmentSubmitData {
+  warehouseId: string;
+  items: InventoryAdjustmentSubmitItem[];
+  comments: string;
+}
 
 interface InventoryAdjustmentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm?: (data: any) => void;
+  onConfirm?: (data: InventoryAdjustmentSubmitData) => void;
 }
 
 interface CategoryRowItem {
@@ -28,17 +42,10 @@ interface CategoryRowItem {
   reason: string;
 }
 
-const WAREHOUSE_OPTIONS = [
-  { value: "Main Kitchen", label: "Main Kitchen" },
-  { value: "Front Counter", label: "Front Counter" },
-  { value: "Central Store", label: "Central Store" },
-];
-
-const PRODUCT_OPTIONS = [
-  { value: "Kunafa Tiramisu", label: "Kunafa Tiramisu" },
-  { value: "Tomatoes", label: "Tomatoes" },
-  { value: "Amber Sobila", label: "Amber Sobila" },
-];
+interface SimpleOption {
+  value: string;
+  label: string;
+}
 
 const InventoryAdjustmentDialog = ({
   open,
@@ -53,12 +60,30 @@ const InventoryAdjustmentDialog = ({
   ]);
   const [isWarehouseOpen, setIsWarehouseOpen] = useState(false);
   const [activeOpenDropdown, setActiveOpenDropdown] = useState<string | null>(null);
+  const [warehouseOptions, setWarehouseOptions] = useState<SimpleOption[]>([]);
+  const [productOptions, setProductOptions] = useState<SimpleOption[]>([]);
 
   useEffect(() => {
     if (open) {
       setWarehouse("");
       setComments("");
       setCategories([{ id: "1", product: "", quantity: "", reason: "" }]);
+
+      getWarehouses()
+        .then((res) =>
+          setWarehouseOptions(
+            (res.warehouses || []).map((w) => ({ value: w._id, label: w.name })),
+          ),
+        )
+        .catch(() => setWarehouseOptions([]));
+
+      getProducts({ limit: 500 })
+        .then((res) =>
+          setProductOptions(
+            (res.products || []).map((p: any) => ({ value: p._id, label: p.name })),
+          ),
+        )
+        .catch(() => setProductOptions([]));
     }
   }, [open]);
 
@@ -86,11 +111,17 @@ const InventoryAdjustmentDialog = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onConfirm?.({
-      warehouse,
-      categories,
-      comments,
-    });
+    if (!warehouse) return;
+    const items = categories
+      .filter((c) => c.product && c.quantity)
+      .map((c) => ({
+        productId: c.product,
+        quantity: Number(c.quantity) || 0,
+        reason: c.reason,
+      }));
+    if (!items.length) return;
+
+    onConfirm?.({ warehouseId: warehouse, items, comments });
     onOpenChange(false);
   };
 
@@ -137,10 +168,7 @@ const InventoryAdjustmentDialog = ({
                     {t("Warehouse")}
                   </Label>
                   <DropdownSelect
-                    options={WAREHOUSE_OPTIONS.map((w) => ({
-                      ...w,
-                      label: t(w.label),
-                    }))}
+                    options={warehouseOptions}
                     selected={warehouse}
                     onSelect={setWarehouse}
                     onOpenChange={setIsWarehouseOpen}
@@ -185,10 +213,7 @@ const InventoryAdjustmentDialog = ({
                           </Label>
                         )}
                         <DropdownSelect
-                          options={PRODUCT_OPTIONS.map((p) => ({
-                            ...p,
-                            label: t(p.label),
-                          }))}
+                          options={productOptions}
                           selected={row.product}
                           onSelect={(val) => handleUpdateRow(row.id, "product", val)}
                           onOpenChange={(isOpen) =>
