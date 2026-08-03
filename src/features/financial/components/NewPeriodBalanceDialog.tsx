@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Package, Plus, Trash2, Calendar as CalendarIcon } from "lucide-react";
+import { Package, Plus, Trash2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -13,13 +13,22 @@ import DefaultButton from "@/shared/components/DefaultButton";
 import DropdownSelect from "@/shared/components/DropdownSelect";
 import DatePicker from "@/shared/components/DatePicker";
 import { useTranslation } from "@/shared/i18n/useTranslation";
+import { getWarehouses } from "@/features/warehouses/api/warehousesApi";
+import { getProducts } from "@/features/products/api/productsApi";
 
 const FORM_ID = "new-period-balance-form";
+
+export interface NewPeriodBalanceSubmitData {
+  warehouseId: string;
+  periodStart: string;
+  items: { productId: string; quantity: number }[];
+  comments: string;
+}
 
 interface NewPeriodBalanceDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm?: (data: any) => void;
+  onConfirm?: (data: NewPeriodBalanceSubmitData) => void;
 }
 
 interface CategoryRowItem {
@@ -29,17 +38,10 @@ interface CategoryRowItem {
   reason: string;
 }
 
-const WAREHOUSE_OPTIONS = [
-  { value: "Main Kitchen", label: "Main Kitchen" },
-  { value: "Front Counter", label: "Front Counter" },
-  { value: "Central Store", label: "Central Store" },
-];
-
-const PRODUCT_OPTIONS = [
-  { value: "Kunafa Tiramisu", label: "Kunafa Tiramisu" },
-  { value: "Tomatoes", label: "Tomatoes" },
-  { value: "Amber Sobila", label: "Amber Sobila" },
-];
+interface SimpleOption {
+  value: string;
+  label: string;
+}
 
 const NewPeriodBalanceDialog = ({
   open,
@@ -48,20 +50,38 @@ const NewPeriodBalanceDialog = ({
 }: NewPeriodBalanceDialogProps) => {
   const { t } = useTranslation();
   const [warehouse, setWarehouse] = useState("");
-  const [startDate, setStartDate] = useState("2026-07-14");
+  const [startDate, setStartDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [comments, setComments] = useState("");
   const [categories, setCategories] = useState<CategoryRowItem[]>([
     { id: "1", product: "", quantity: "", reason: "" },
   ]);
   const [isWarehouseOpen, setIsWarehouseOpen] = useState(false);
   const [activeOpenDropdown, setActiveOpenDropdown] = useState<string | null>(null);
+  const [warehouseOptions, setWarehouseOptions] = useState<SimpleOption[]>([]);
+  const [productOptions, setProductOptions] = useState<SimpleOption[]>([]);
 
   useEffect(() => {
     if (open) {
       setWarehouse("");
-      setStartDate("2026-07-14");
+      setStartDate(new Date().toISOString().slice(0, 10));
       setComments("");
       setCategories([{ id: "1", product: "", quantity: "", reason: "" }]);
+
+      getWarehouses()
+        .then((res) =>
+          setWarehouseOptions(
+            (res.warehouses || []).map((w) => ({ value: w._id, label: w.name })),
+          ),
+        )
+        .catch(() => setWarehouseOptions([]));
+
+      getProducts({ limit: 500 })
+        .then((res) =>
+          setProductOptions(
+            (res.products || []).map((p: any) => ({ value: p._id, label: p.name })),
+          ),
+        )
+        .catch(() => setProductOptions([]));
     }
   }, [open]);
 
@@ -89,12 +109,13 @@ const NewPeriodBalanceDialog = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onConfirm?.({
-      warehouse,
-      startDate,
-      categories,
-      comments,
-    });
+    if (!warehouse || !startDate) return;
+    const items = categories
+      .filter((c) => c.product && c.quantity)
+      .map((c) => ({ productId: c.product, quantity: Number(c.quantity) || 0 }));
+    if (!items.length) return;
+
+    onConfirm?.({ warehouseId: warehouse, periodStart: startDate, items, comments });
     onOpenChange(false);
   };
 
@@ -112,7 +133,7 @@ const NewPeriodBalanceDialog = ({
           {/* Header */}
           <div className="px-5 pt-5 sm:px-7 sm:pt-7">
             <DialogTitle className="text-[20px] font-semibold text-[#28293D] sm:text-[22px]">
-              {t("Inventory adjustment")}
+              {t("New period Balance")}
             </DialogTitle>
           </div>
 
@@ -130,10 +151,7 @@ const NewPeriodBalanceDialog = ({
                     {t("Warehouse")}
                   </Label>
                   <DropdownSelect
-                    options={WAREHOUSE_OPTIONS.map((w) => ({
-                      ...w,
-                      label: t(w.label),
-                    }))}
+                    options={warehouseOptions}
                     selected={warehouse}
                     onSelect={setWarehouse}
                     onOpenChange={setIsWarehouseOpen}
@@ -191,10 +209,7 @@ const NewPeriodBalanceDialog = ({
                           </Label>
                         )}
                         <DropdownSelect
-                          options={PRODUCT_OPTIONS.map((p) => ({
-                            ...p,
-                            label: t(p.label),
-                          }))}
+                          options={productOptions}
                           selected={row.product}
                           onSelect={(val) => handleUpdateRow(row.id, "product", val)}
                           onOpenChange={(isOpen) =>
@@ -219,7 +234,7 @@ const NewPeriodBalanceDialog = ({
                           onChange={(e) =>
                             handleUpdateRow(row.id, "quantity", e.target.value)
                           }
-                          placeholder={t("Quantity(Deduct)")}
+                          placeholder={t("Counted Quantity")}
                           className="h-12 rounded-[12px] border-[#E5E5E5] bg-white px-4 text-[16px] font-normal placeholder:text-[#8B8B8B] focus-visible:ring-0"
                         />
                       </div>

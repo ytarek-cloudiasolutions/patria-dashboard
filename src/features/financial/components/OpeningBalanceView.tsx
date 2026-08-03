@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Badge } from "@/shared/components/ui/badge";
 import {
   Table,
@@ -9,25 +9,61 @@ import {
   TableRow,
 } from "@/shared/components/ui/table";
 import { useTranslation } from "@/shared/i18n/useTranslation";
-import { showSuccessToast } from "@/shared/utils/toast";
-import { OPENING_BALANCE_RECORDS } from "../data";
+import { showSuccessToast, showErrorToast } from "@/shared/utils/toast";
+import { api } from "@/config/api";
 import type { OpeningBalanceRecord } from "../types";
 import ConfirmOpeningBalanceDialog from "./ConfirmOpeningBalanceDialog";
 
 const formatEgp = (value: number) =>
   `EGP ${value.toFixed(2)}`;
 
-const OpeningBalanceView = () => {
+interface OpeningBalanceViewProps {
+  refreshKey?: number;
+}
+
+const OpeningBalanceView = ({ refreshKey }: OpeningBalanceViewProps) => {
   const { t } = useTranslation();
   const [selectedRecord, setSelectedRecord] = useState<OpeningBalanceRecord | null>(null);
-  const [records, setRecords] = useState(OPENING_BALANCE_RECORDS);
+  const [records, setRecords] = useState<OpeningBalanceRecord[]>([]);
 
-  const handleConfirmRecord = (record?: OpeningBalanceRecord | null) => {
+  const loadRecords = () => {
+    api
+      .get("/inventory/opening-balances")
+      .then((res) => {
+        const balances = res.data?.balances || [];
+        setRecords(
+          balances.map((b: any) => ({
+            id: b._id,
+            number: b.number,
+            warehouse: b.warehouseId?.name || "—",
+            periodStart: b.periodStart ? new Date(b.periodStart).toLocaleDateString() : "—",
+            totalValue: (b.items || []).reduce(
+              (sum: number, i: any) => sum + (i.quantity || 0) * (i.unitCost || 0),
+              0,
+            ),
+            noOfItems: b.items?.length || 0,
+            status: b.status,
+          })),
+        );
+      })
+      .catch(() => setRecords([]));
+  };
+
+  useEffect(loadRecords, [refreshKey]);
+
+  const handleConfirmRecord = async (record?: OpeningBalanceRecord | null) => {
     if (!record) return;
-    setRecords((prev) =>
-      prev.map((r) => (r.id === record.id ? { ...r, status: "Confirmed" as const } : r))
-    );
-    showSuccessToast(t("Opening balance confirmed and applied to inventory"));
+    try {
+      await api.put(`/inventory/opening-balances/${record.id}/confirm`);
+      setRecords((prev) =>
+        prev.map((r) => (r.id === record.id ? { ...r, status: "Confirmed" as const } : r))
+      );
+      showSuccessToast(t("Opening balance confirmed and applied to inventory"));
+    } catch (error: any) {
+      showErrorToast(
+        error.response?.data?.message || t("Failed to confirm opening balance"),
+      );
+    }
   };
 
   return (

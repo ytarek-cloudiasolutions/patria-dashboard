@@ -65,6 +65,7 @@ const FinancialHubPage = () => {
   const [isQuantityAdjustmentOpen, setIsQuantityAdjustmentOpen] = useState(false);
   const [isWasteVoucherOpen, setIsWasteVoucherOpen] = useState(false);
   const [adjustmentsRefreshKey, setAdjustmentsRefreshKey] = useState(0);
+  const [openingBalanceRefreshKey, setOpeningBalanceRefreshKey] = useState(0);
   const [isNewPeriodBalanceOpen, setIsNewPeriodBalanceOpen] = useState(false);
   const [selectedInventorySession, setSelectedInventorySession] = useState<InventoryCountSession | null>(null);
   const [loading, setLoading] = useState(false);
@@ -259,7 +260,7 @@ const FinancialHubPage = () => {
       ) : tab === "adjustments-wastage" ? (
         <AdjustmentsWastageView refreshKey={adjustmentsRefreshKey} />
       ) : tab === "opening-balance" ? (
-        <OpeningBalanceView />
+        <OpeningBalanceView refreshKey={openingBalanceRefreshKey} />
       ) : tab === "item-balance" ? (
         <ItemBalanceView />
       ) : tab === "item-stock-record" ? (
@@ -347,8 +348,16 @@ const FinancialHubPage = () => {
       <NewPeriodBalanceDialog
         open={isNewPeriodBalanceOpen}
         onOpenChange={setIsNewPeriodBalanceOpen}
-        onConfirm={(data) => {
-          showSuccessToast(t("New period balance created successfully"));
+        onConfirm={async (data) => {
+          try {
+            await api.post("/inventory/opening-balances", data);
+            showSuccessToast(t("New period balance created successfully"));
+            setOpeningBalanceRefreshKey((k) => k + 1);
+          } catch (error: any) {
+            showErrorToast(
+              error.response?.data?.message || t("Failed to create opening balance"),
+            );
+          }
         }}
       />
     </>
