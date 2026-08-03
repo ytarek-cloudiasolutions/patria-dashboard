@@ -22,6 +22,8 @@ import TransactionsTable from "./components/TransactionsTable";
 import AddTransactionDialog from "./components/AddTransactiondialog";
 import NewInventorySessionDialog from "./components/NewInventorySessionDialog";
 import InventoryAdjustmentDialog from "./components/InventoryAdjustmentDialog";
+import QuantityAdjustmentDialog from "./components/QuantityAdjustmentDialog";
+import WasteVoucherDialog from "./components/WasteVoucherDialog";
 import NewPeriodBalanceDialog from "./components/NewPeriodBalanceDialog";
 
 import { INITIAL_TRANSACTIONS } from "./data";
@@ -60,6 +62,8 @@ const FinancialHubPage = () => {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isInventorySessionOpen, setIsInventorySessionOpen] = useState(false);
   const [isInventoryAdjustmentOpen, setIsInventoryAdjustmentOpen] = useState(false);
+  const [isQuantityAdjustmentOpen, setIsQuantityAdjustmentOpen] = useState(false);
+  const [isWasteVoucherOpen, setIsWasteVoucherOpen] = useState(false);
   const [adjustmentsRefreshKey, setAdjustmentsRefreshKey] = useState(0);
   const [isNewPeriodBalanceOpen, setIsNewPeriodBalanceOpen] = useState(false);
   const [selectedInventorySession, setSelectedInventorySession] = useState<InventoryCountSession | null>(null);
@@ -183,12 +187,14 @@ const FinancialHubPage = () => {
             <div className="flex flex-wrap items-center gap-4">
               <button
                 type="button"
+                onClick={() => setIsWasteVoucherOpen(true)}
                 className="h-[56px] rounded-[5px] border border-[#8F6900] px-4 text-[16px] font-semibold text-[#8F6900] hover:bg-[#FDFBF7] transition-colors cursor-pointer"
               >
                 {t("Waste Voucher")}
               </button>
               <button
                 type="button"
+                onClick={() => setIsQuantityAdjustmentOpen(true)}
                 className="h-[56px] rounded-[5px] bg-[#F5F0EA] px-4 text-[16px] font-semibold text-[#8F6900] hover:bg-[#EAE2D5] transition-colors cursor-pointer"
               >
                 {t("Quantity Adjustment")}
@@ -294,6 +300,40 @@ const FinancialHubPage = () => {
           try {
             await api.post("/inventory/adjustments", data);
             showSuccessToast(t("Inventory adjustment confirmed"));
+            setAdjustmentsRefreshKey((k) => k + 1);
+          } catch (error: any) {
+            showErrorToast(
+              error.response?.data?.message || t("Failed to record adjustment"),
+            );
+          }
+        }}
+      />
+
+      {/* Quantity Adjustment Dialog */}
+      <QuantityAdjustmentDialog
+        open={isQuantityAdjustmentOpen}
+        onOpenChange={setIsQuantityAdjustmentOpen}
+        onConfirm={async (data) => {
+          try {
+            await api.post("/inventory/adjustments", { ...data, type: "Quantity Adjustment" });
+            showSuccessToast(t("Quantity adjustment confirmed"));
+            setAdjustmentsRefreshKey((k) => k + 1);
+          } catch (error: any) {
+            showErrorToast(
+              error.response?.data?.message || t("Failed to record adjustment"),
+            );
+          }
+        }}
+      />
+
+      {/* Waste Voucher Dialog */}
+      <WasteVoucherDialog
+        open={isWasteVoucherOpen}
+        onOpenChange={setIsWasteVoucherOpen}
+        onConfirm={async (data) => {
+          try {
+            await api.post("/inventory/adjustments", { ...data, type: "Waste Voucher" });
+            showSuccessToast(t("Waste voucher confirmed"));
             setAdjustmentsRefreshKey((k) => k + 1);
           } catch (error: any) {
             showErrorToast(
