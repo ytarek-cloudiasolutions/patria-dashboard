@@ -49,7 +49,7 @@ export interface BroadcastFormData {
 export type WhatsAppTargetType = "random" | "select";
 
 export interface Customer {
-  id: number;
+  id: string | number;
   name: string;
   phone: string;
 }
@@ -58,7 +58,7 @@ export interface WhatsAppBroadcastFormData {
   targetType: WhatsAppTargetType;
   customerCount: number | "all" | null;
   customNumber: string;
-  selectedCustomerIds: number[];
+  selectedCustomerIds: (string | number)[];
   image: File | null;
   body: string;
 }

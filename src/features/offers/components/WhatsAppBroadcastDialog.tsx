@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Loader2, Search, Upload } from "lucide-react";
 import {
   Dialog,
@@ -14,6 +14,8 @@ import DefaultButton from "@/shared/components/DefaultButton";
 import { Button } from "@/shared/components/ui/button";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { showSuccessToast, showErrorToast } from "@/shared/utils/toast";
+import { getCustomers } from "@/features/customers/api/customersApi";
+import { mapCustomers } from "@/features/customers/utils/customerMappers";
 import { sendWhatsAppBroadcast } from "../api/offersApi";
 import { CUSTOMER_COUNT_OPTIONS, MOCK_CUSTOMERS } from "../data";
 import type {
@@ -55,9 +57,38 @@ const WhatsAppBroadcastDialog = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSending, setIsSending] = useState(false);
+  const [customers, setCustomers] = useState<Customer[]>(MOCK_CUSTOMERS as any);
+  const [isLoadingCustomers, setIsLoadingCustomers] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const activeTab = form.targetType;
+
+  // Fetch real customers from GET /customers endpoint
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const timer = setTimeout(() => {
+      setIsLoadingCustomers(true);
+      getCustomers({ limit: 200, search: searchQuery || undefined })
+        .then((res: any) => {
+          const raw = res?.data || res?.customers || [];
+          const list = mapCustomers(raw);
+          if (list.length > 0) {
+            setCustomers(list as any);
+          } else {
+            setCustomers(MOCK_CUSTOMERS as any);
+          }
+        })
+        .catch(() => {
+          setCustomers(MOCK_CUSTOMERS as any);
+        })
+        .finally(() => {
+          setIsLoadingCustomers(false);
+        });
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [isOpen, searchQuery]);
 
   // Reset form when dialog opens
   const handleOpenChange = useCallback(
@@ -88,7 +119,7 @@ const WhatsAppBroadcastDialog = ({
     }));
   };
 
-  const toggleCustomer = (customerId: number) => {
+  const toggleCustomer = (customerId: string | number) => {
     setForm((prev) => ({
       ...prev,
       selectedCustomerIds: prev.selectedCustomerIds.includes(customerId)
@@ -107,7 +138,7 @@ const WhatsAppBroadcastDialog = ({
     }
   };
 
-  const filteredCustomers: Customer[] = MOCK_CUSTOMERS.filter(
+  const filteredCustomers: Customer[] = customers.filter(
     (c) =>
       c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       c.phone.includes(searchQuery),
@@ -116,24 +147,24 @@ const WhatsAppBroadcastDialog = ({
   const handleSubmit = async () => {
     let phones: string[] = [];
     if (form.targetType === "select") {
-      phones = MOCK_CUSTOMERS.filter((c) =>
-        form.selectedCustomerIds.includes(c.id),
-      ).map((c) => c.phone);
+      phones = customers
+        .filter((c) => form.selectedCustomerIds.includes(c.id))
+        .map((c) => c.phone);
     } else {
       const customNum = form.customNumber.trim();
       if (customNum) {
         if (/^\d{1,3}$/.test(customNum)) {
           const count = parseInt(customNum, 10);
-          phones = MOCK_CUSTOMERS.slice(0, count).map((c) => c.phone);
+          phones = customers.slice(0, count).map((c) => c.phone);
         } else {
           phones = [customNum];
         }
       } else if (form.customerCount) {
         const count =
           form.customerCount === "all"
-            ? MOCK_CUSTOMERS.length
+            ? customers.length
             : Number(form.customerCount);
-        phones = MOCK_CUSTOMERS.slice(0, count).map((c) => c.phone);
+        phones = customers.slice(0, count).map((c) => c.phone);
       }
     }
 
@@ -214,6 +245,7 @@ const WhatsAppBroadcastDialog = ({
                   searchQuery={searchQuery}
                   setSearchQuery={setSearchQuery}
                   filteredCustomers={filteredCustomers}
+                  isLoadingCustomers={isLoadingCustomers}
                   onToggleCustomer={toggleCustomer}
                   t={t}
                 />
@@ -362,7 +394,8 @@ interface SelectCustomerTabProps {
   searchQuery: string;
   setSearchQuery: (q: string) => void;
   filteredCustomers: Customer[];
-  onToggleCustomer: (id: number) => void;
+  isLoadingCustomers: boolean;
+  onToggleCustomer: (id: string | number) => void;
   t: (key: string) => string;
 }
 
@@ -371,6 +404,7 @@ const SelectCustomerTab = ({
   searchQuery,
   setSearchQuery,
   filteredCustomers,
+  isLoadingCustomers,
   onToggleCustomer,
   t,
 }: SelectCustomerTabProps) => (
@@ -394,33 +428,39 @@ const SelectCustomerTab = ({
     {/* Customer list */}
     <div className="max-h-[150px] overflow-y-auto rounded-[16px] border border-[#CACBD4] bg-[#FAFAF7] p-3">
       <div className="flex flex-col gap-1.5 px-0.5 py-2">
-        {filteredCustomers.map((customer) => {
-          const isChecked = form.selectedCustomerIds.includes(customer.id);
-          return (
-            <label
-              key={customer.id}
-              className="flex cursor-pointer items-center gap-3 rounded-md px-0.5 py-1.5 transition-colors hover:bg-[#F0EDE8]"
-            >
-              <Checkbox
-                checked={isChecked}
-                onCheckedChange={() => onToggleCustomer(customer.id)}
-                className="size-5 rounded-[6px] border-[#8F6900] data-[state=checked]:border-[#8F6900] data-[state=checked]:bg-[#8F6900]"
-              />
-              <div className="flex flex-col gap-0.5">
-                <span className="text-[14px] font-medium text-[#333333]">
-                  {customer.name}
-                </span>
-                <span className="text-[14px] text-[#8B8B8B]">
-                  {customer.phone}
-                </span>
-              </div>
-            </label>
-          );
-        })}
-        {filteredCustomers.length === 0 && (
+        {isLoadingCustomers ? (
+          <div className="flex items-center justify-center py-4 text-[#8B8B8B]">
+            <Loader2 className="size-5 animate-spin mr-2" />
+            <span className="text-[13px]">{t("Loading customers...")}</span>
+          </div>
+        ) : filteredCustomers.length === 0 ? (
           <p className="py-2 text-center text-[13px] text-[#8B8B8B]">
             {t("No customers found")}
           </p>
+        ) : (
+          filteredCustomers.map((customer) => {
+            const isChecked = form.selectedCustomerIds.includes(customer.id);
+            return (
+              <label
+                key={String(customer.id)}
+                className="flex cursor-pointer items-center gap-3 rounded-md px-0.5 py-1.5 transition-colors hover:bg-[#F0EDE8]"
+              >
+                <Checkbox
+                  checked={isChecked}
+                  onCheckedChange={() => onToggleCustomer(customer.id)}
+                  className="size-5 rounded-[6px] border-[#8F6900] data-[state=checked]:border-[#8F6900] data-[state=checked]:bg-[#8F6900]"
+                />
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[14px] font-medium text-[#333333]">
+                    {customer.name}
+                  </span>
+                  <span className="text-[14px] text-[#8B8B8B]">
+                    {customer.phone}
+                  </span>
+                </div>
+              </label>
+            );
+          })
         )}
       </div>
     </div>
