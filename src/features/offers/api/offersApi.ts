@@ -48,11 +48,25 @@ export const toggleOfferStatus = async (id: string) => {
   return response.data;
 };
 
+export interface SendWhatsAppBroadcastRequest {
+  phones: string[];
+  message: string;
+}
+
+export const sendWhatsAppBroadcast = async (data: SendWhatsAppBroadcastRequest) => {
+  const response = await api.post<{ message?: string; success?: boolean }>(
+    "/whatsapp/send",
+    data,
+  );
+  return response.data;
+};
+
 export const offersApi = {
   getOffers,
   createOffer,
   updateOffer,
   deleteOffer,
   toggleOfferStatus,
+  sendWhatsAppBroadcast,
 };
 export default offersApi;

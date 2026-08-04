@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from "react";
-import { Search, Upload } from "lucide-react";
+import { Loader2, Search, Upload } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -13,6 +13,8 @@ import { Input } from "@/shared/components/ui/input";
 import DefaultButton from "@/shared/components/DefaultButton";
 import { Button } from "@/shared/components/ui/button";
 import { useTranslation } from "@/shared/i18n/useTranslation";
+import { showSuccessToast, showErrorToast } from "@/shared/utils/toast";
+import { sendWhatsAppBroadcast } from "../api/offersApi";
 import { CUSTOMER_COUNT_OPTIONS, MOCK_CUSTOMERS } from "../data";
 import type {
   Customer,
@@ -52,6 +54,7 @@ const WhatsAppBroadcastDialog = ({
   const [form, setForm] = useState<WhatsAppBroadcastFormData>(INITIAL_FORM);
   const [searchQuery, setSearchQuery] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isSending, setIsSending] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const activeTab = form.targetType;
@@ -66,6 +69,7 @@ const WhatsAppBroadcastDialog = ({
         });
         setSearchQuery("");
         setImagePreview(null);
+        setIsSending(false);
       }
       onOpenChange(open);
     },
@@ -109,9 +113,56 @@ const WhatsAppBroadcastDialog = ({
       c.phone.includes(searchQuery),
   );
 
-  const handleSubmit = () => {
-    onSend?.(form);
-    handleOpenChange(false);
+  const handleSubmit = async () => {
+    let phones: string[] = [];
+    if (form.targetType === "select") {
+      phones = MOCK_CUSTOMERS.filter((c) =>
+        form.selectedCustomerIds.includes(c.id),
+      ).map((c) => c.phone);
+    } else {
+      const customNum = form.customNumber.trim();
+      if (customNum) {
+        if (/^\d{1,3}$/.test(customNum)) {
+          const count = parseInt(customNum, 10);
+          phones = MOCK_CUSTOMERS.slice(0, count).map((c) => c.phone);
+        } else {
+          phones = [customNum];
+        }
+      } else if (form.customerCount) {
+        const count =
+          form.customerCount === "all"
+            ? MOCK_CUSTOMERS.length
+            : Number(form.customerCount);
+        phones = MOCK_CUSTOMERS.slice(0, count).map((c) => c.phone);
+      }
+    }
+
+    if (phones.length === 0) {
+      showErrorToast(t("Please select or enter target phone numbers"));
+      return;
+    }
+
+    if (!form.body.trim()) {
+      showErrorToast(t("Please enter a message body"));
+      return;
+    }
+
+    try {
+      setIsSending(true);
+      await sendWhatsAppBroadcast({
+        phones,
+        message: form.body.trim(),
+      });
+      showSuccessToast(t("WhatsApp message sent successfully"));
+      onSend?.(form);
+      handleOpenChange(false);
+    } catch (err: any) {
+      showErrorToast(
+        err?.response?.data?.message || t("Failed to send WhatsApp message"),
+      );
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
@@ -234,9 +285,11 @@ const WhatsAppBroadcastDialog = ({
               />
               <Button
                 type="button"
+                disabled={isSending}
                 onClick={handleSubmit}
-                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] bg-[#8F6900] px-7.5 text-[16px] font-semibold text-white hover:bg-[#7a5b00] sm:h-14 sm:w-auto"
+                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] bg-[#8F6900] px-7.5 text-[16px] font-semibold text-white hover:bg-[#7a5b00] disabled:opacity-50 sm:h-14 sm:w-auto"
               >
+                {isSending && <Loader2 className="size-4 animate-spin text-white" />}
                 {t("Send Message")}
               </Button>
             </div>
