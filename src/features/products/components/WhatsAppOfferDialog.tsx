@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import { Loader2, Search } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -13,6 +13,10 @@ import { Separator } from "@/shared/components/ui/separator";
 import { Textarea } from "@/shared/components/ui/textarea";
 import DefaultButton from "@/shared/components/DefaultButton";
 import { useTranslation } from "@/shared/i18n/useTranslation";
+import { showSuccessToast, showErrorToast } from "@/shared/utils/toast";
+import { getCustomers } from "@/features/customers/api/customersApi";
+import { mapCustomers } from "@/features/customers/utils/customerMappers";
+import { sendWhatsAppBroadcast } from "@/features/offers/api/offersApi";
 import { cn } from "@/lib/utils";
 import { CUSTOMER_CONTACTS, WHATSAPP_AUDIENCE_PRESETS } from "../data";
 import type { WhatsAppMode } from "../types";
@@ -34,9 +38,12 @@ const WhatsAppOfferDialog = ({
   const [audience, setAudience] = useState<number | "all">(25);
   const [customNumber, setCustomNumber] = useState("");
   const [search, setSearch] = useState("");
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [selectedIds, setSelectedIds] = useState<(string | number)[]>([]);
   const [imageUrl, setImageUrl] = useState<string | undefined>(undefined);
   const [message, setMessage] = useState("");
+  const [contacts, setContacts] = useState<any[]>(CUSTOMER_CONTACTS);
+  const [isLoadingCustomers, setIsLoadingCustomers] = useState(false);
+  const [isSending, setIsSending] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -47,18 +54,48 @@ const WhatsAppOfferDialog = ({
       setSelectedIds([]);
       setImageUrl(undefined);
       setMessage("");
+      setIsSending(false);
     }
   }, [open]);
 
+  // Fetch real customers from GET /customers endpoint
+  useEffect(() => {
+    if (!open) return;
+
+    const timer = setTimeout(() => {
+      setIsLoadingCustomers(true);
+      getCustomers({ limit: 200, search: search.trim() || undefined })
+        .then((res: any) => {
+          const raw = res?.data || res?.customers || [];
+          const list = mapCustomers(raw);
+          if (list.length > 0) {
+            setContacts(list);
+          } else {
+            setContacts(CUSTOMER_CONTACTS as any);
+          }
+        })
+        .catch(() => {
+          setContacts(CUSTOMER_CONTACTS as any);
+        })
+        .finally(() => {
+          setIsLoadingCustomers(false);
+        });
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [open, search]);
+
   const filteredContacts = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return CUSTOMER_CONTACTS;
-    return CUSTOMER_CONTACTS.filter(
-      (c) => c.name.toLowerCase().includes(q) || c.phone.includes(q),
+    if (!q) return contacts;
+    return contacts.filter(
+      (c) =>
+        (c.name || "").toLowerCase().includes(q) ||
+        (c.phone || "").includes(q),
     );
-  }, [search]);
+  }, [contacts, search]);
 
-  const toggleContact = (id: number) =>
+  const toggleContact = (id: string | number) =>
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id],
     );
@@ -67,10 +104,10 @@ const WhatsAppOfferDialog = ({
     mode === "select"
       ? selectedIds.length
       : audience === "all"
-        ? CUSTOMER_CONTACTS.length
+        ? contacts.length
         : customNumber
           ? Number(customNumber) || 0
-          : audience;
+          : Number(audience) || 0;
 
   const tabClass = (active: boolean) =>
     cn(
@@ -81,6 +118,57 @@ const WhatsAppOfferDialog = ({
     );
 
   const canSend = recipientCount > 0 && message.trim().length > 0;
+
+  const handleSend = async () => {
+    let phones: string[] = [];
+    if (mode === "select") {
+      phones = contacts
+        .filter((c) => selectedIds.includes(c.id))
+        .map((c) => c.phone);
+    } else {
+      const customNum = customNumber.trim();
+      if (customNum) {
+        if (/^\d{1,3}$/.test(customNum)) {
+          const count = parseInt(customNum, 10);
+          phones = contacts.slice(0, count).map((c) => c.phone);
+        } else {
+          phones = [customNum];
+        }
+      } else if (audience === "all") {
+        phones = contacts.map((c) => c.phone);
+      } else {
+        const count = Number(audience) || 0;
+        phones = contacts.slice(0, count).map((c) => c.phone);
+      }
+    }
+
+    if (phones.length === 0) {
+      showErrorToast(t("Please select or enter target phone numbers"));
+      return;
+    }
+
+    if (!message.trim()) {
+      showErrorToast(t("Please enter a message body"));
+      return;
+    }
+
+    try {
+      setIsSending(true);
+      await sendWhatsAppBroadcast({
+        phones,
+        message: message.trim(),
+      });
+      showSuccessToast(t("WhatsApp message sent successfully"));
+      onSend(recipientCount, message.trim());
+      onOpenChange(false);
+    } catch (err: any) {
+      showErrorToast(
+        err?.response?.data?.message || t("Failed to send WhatsApp message"),
+      );
+    } finally {
+      setIsSending(false);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -177,35 +265,41 @@ const WhatsAppOfferDialog = ({
                   />
                 </div>
                 <div className="max-h-44 space-y-1 overflow-y-auto rounded-[10px] border border-[#E5E5E5] p-2">
-                  {filteredContacts.map((contact) => {
-                    const id = `wa-contact-${contact.id}`;
-                    return (
-                      <label
-                        key={contact.id}
-                        htmlFor={id}
-                        className="flex cursor-pointer items-center gap-3 rounded-[8px] px-2 py-2 hover:bg-[#FAFAF7]"
-                      >
-                        <Checkbox
-                          id={id}
-                          checked={selectedIds.includes(contact.id)}
-                          onCheckedChange={() => toggleContact(contact.id)}
-                          className="size-5 rounded-[6px] border-[#8F6900]"
-                        />
-                        <span className="flex flex-col">
-                          <span className="text-[13px] font-medium text-[#28293D]">
-                            {contact.name}
-                          </span>
-                          <span className="text-[11px] text-[#8B8B8B]" dir="ltr">
-                            {contact.phone}
-                          </span>
-                        </span>
-                      </label>
-                    );
-                  })}
-                  {filteredContacts.length === 0 && (
+                  {isLoadingCustomers ? (
+                    <div className="flex items-center justify-center py-4 text-[#8B8B8B]">
+                      <Loader2 className="size-5 animate-spin mr-2" />
+                      <span className="text-[13px]">{t("Loading customers...")}</span>
+                    </div>
+                  ) : filteredContacts.length === 0 ? (
                     <p className="py-4 text-center text-[13px] text-[#8B8B8B]">
                       {t("No customers found.")}
                     </p>
+                  ) : (
+                    filteredContacts.map((contact) => {
+                      const id = `wa-contact-${contact.id}`;
+                      return (
+                        <label
+                          key={String(contact.id)}
+                          htmlFor={id}
+                          className="flex cursor-pointer items-center gap-3 rounded-[8px] px-2 py-2 hover:bg-[#FAFAF7]"
+                        >
+                          <Checkbox
+                            id={id}
+                            checked={selectedIds.includes(contact.id)}
+                            onCheckedChange={() => toggleContact(contact.id)}
+                            className="size-5 rounded-[6px] border-[#8F6900]"
+                          />
+                          <span className="flex flex-col">
+                            <span className="text-[13px] font-medium text-[#28293D]">
+                              {contact.name}
+                            </span>
+                            <span className="text-[11px] text-[#8B8B8B]" dir="ltr">
+                              {contact.phone}
+                            </span>
+                          </span>
+                        </label>
+                      );
+                    })
                   )}
                 </div>
               </div>
@@ -254,13 +348,11 @@ const WhatsAppOfferDialog = ({
               />
               <Button
                 type="button"
-                disabled={!canSend}
-                onClick={() => {
-                  onSend(recipientCount, message.trim());
-                  onOpenChange(false);
-                }}
+                disabled={!canSend || isSending}
+                onClick={handleSend}
                 className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white disabled:opacity-50 sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
               >
+                {isSending && <Loader2 className="size-4 animate-spin text-white" />}
                 {mode === "select"
                   ? `${t("Send Offer")} (${recipientCount} ${t("Customers")})`
                   : `${t("Send through WhatsApp")} (${recipientCount} ${t("Customers")})`}

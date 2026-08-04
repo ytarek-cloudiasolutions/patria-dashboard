@@ -129,10 +129,15 @@ const ProductsPage = () => {
     getCategories();
   }, [getCategories]);
 
-  // Open WhatsApp dialog only after product creation succeeds
+  const creationSourceRef = useRef<"product" | "recipe" | null>(null);
+
+  // Open WhatsApp dialog only after product creation succeeds (not recipe)
   useEffect(() => {
     if (prevCreatingRef.current && !isCreatingProduct && !productErrors.create && productSuccessMessage) {
-      setIsWhatsAppOpen(true);
+      if (creationSourceRef.current === "product") {
+        setIsWhatsAppOpen(true);
+      }
+      creationSourceRef.current = null;
     }
     prevCreatingRef.current = isCreatingProduct;
   }, [isCreatingProduct, productErrors.create, productSuccessMessage]);
@@ -269,9 +274,10 @@ const ProductsPage = () => {
     if (editingProduct) {
       updateProduct({ productId: editingProduct.id, formData });
     } else {
+      creationSourceRef.current = "product";
       createProduct(formData);
     }
-    // WhatsApp dialog opens automatically after confirmed success (see useEffect above)
+    // WhatsApp dialog opens automatically after confirmed success for products (see useEffect above)
   };
 
   const handleAddIngredient = (data: IngredientFormData) => {
@@ -297,6 +303,7 @@ const ProductsPage = () => {
     if (editingIngredient) {
       updateProduct({ productId: editingIngredient.id, formData });
     } else {
+      creationSourceRef.current = "recipe";
       createProduct(formData);
     }
   };
