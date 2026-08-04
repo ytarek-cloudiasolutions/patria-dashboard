@@ -120,7 +120,7 @@ const OpeningBalanceView = ({ refreshKey }: OpeningBalanceViewProps) => {
                         {t("Confirmed")}
                       </Badge>
                     ) : (
-                      <Badge className="h-[34px] w-[140px] justify-center rounded-[30px] bg-[rgba(254,154,0,0.10)] text-[#C7861E] border border-[#C7861E] text-[13px] font-semibold tracking-[0.26px] shadow-none">
+                      <Badge className="h-[34px] w-[140px] justify-center rounded-[30px] bg-[#FE9A00]/10 text-[#C7861E] border border-[#C7861E] text-[13px] font-semibold tracking-[0.26px] shadow-none">
                         {t(rec.status)}
                       </Badge>
                     )}

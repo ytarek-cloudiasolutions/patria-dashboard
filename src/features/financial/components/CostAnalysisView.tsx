@@ -135,7 +135,7 @@ const CostAnalysisView = () => {
               18
             </span>
           </div>
-          <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[rgba(254,154,0,0.10)]">
+          <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#FE9A00]/10">
             <BarChart2 size={24} className="text-[#C7861E]" />
           </div>
         </div>

@@ -155,7 +155,7 @@ const ConsumptionView = () => {
               EGP 23.6
             </span>
           </div>
-          <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[rgba(254,154,0,0.10)]">
+          <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#FE9A00]/10">
             <Wallet size={24} className="text-[#C7861E]" />
           </div>
         </div>
@@ -246,7 +246,7 @@ const ConsumptionView = () => {
                 <TableCell className="px-6 py-5 whitespace-nowrap text-center text-[14px] font-semibold tracking-[0.28px] text-[#059B5A]" dir="ltr">
                   {row.income}
                 </TableCell>
-                <TableCell className="pe-8 py-5 whitespace-nowrap text-center text-[14px] font-semibold tracking-[0.28px] text-[#059B5A]" dir="ltr">
+                <TableCell className="pe-8 py-5 whitespace-nowrap text-center text-[14px] font-bold tracking-[0.28px] text-[#059B5A]" dir="ltr">
                   {row.profit}
                 </TableCell>
               </TableRow>

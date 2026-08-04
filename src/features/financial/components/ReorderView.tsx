@@ -80,7 +80,7 @@ const ReorderView = () => {
   return (
     <div className="flex flex-col gap-6">
       {/* Information Banner Card */}
-      <div className="flex items-center gap-2.5 rounded-[10px] border border-[#C7861E] bg-[rgba(254,154,0,0.10)] px-4 py-3">
+      <div className="flex items-center gap-2.5 rounded-[10px] border border-[#C7861E] bg-[#FE9A00]/10 px-4 py-3">
         <AlertTriangle className="size-4.5 text-[#C7861E] shrink-0" />
         <span className="text-[14px] font-semibold tracking-[0.28px] text-[#C7861E]">
           930 {t("items require reordering.")}
@@ -151,7 +151,7 @@ const ReorderView = () => {
                         {t("Out of Stock")}
                       </Badge>
                     ) : (
-                      <Badge className="h-6 px-3 rounded-[30px] bg-[rgba(254,154,0,0.10)] text-[#C7861E] border border-[#C7861E] text-[13px] font-semibold tracking-[0.26px] shadow-none">
+                      <Badge className="h-6 px-3 rounded-[30px] bg-[#FE9A00]/10 text-[#C7861E] border border-[#C7861E] text-[13px] font-semibold tracking-[0.26px] shadow-none">
                         {t("Low")}
                       </Badge>
                     )}
