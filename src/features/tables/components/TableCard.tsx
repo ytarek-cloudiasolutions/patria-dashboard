@@ -1,15 +1,8 @@
-import { Armchair, ClipboardList, Loader2, Trash2, Users } from "lucide-react";
+import { Armchair, CalendarDays, Loader2, Trash2, Users } from "lucide-react";
 import { Badge } from "@/shared/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import type { Table } from "../store/tableTypes";
-
-const SECTION_DISPLAY: Record<string, string> = {
-  main_hall: "Main Hall",
-  terrace: "Terrace",
-  vip: "VIP",
-  counter: "Counter",
-};
 
 const STATUS_DISPLAY: Record<string, string> = {
   available: "Available",
@@ -35,22 +28,27 @@ const TableCard = ({
   const isAvailable = table.status === "available";
 
   return (
-    <div className="flex flex-col items-center gap-3 rounded-[16px] border border-[#E5E5E5] bg-white px-4 py-6 text-center">
+    <div className="flex w-[166px] flex-col items-center justify-start gap-[12px] overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white px-[30px] py-[24px] shadow-[0px_1px_2px_-1px_rgba(0,0,0,0.10),0px_1px_3px_rgba(0,0,0,0.10)]">
       <Armchair
-        size={28}
+        size={24}
         className={isAvailable ? "text-[#059B5A]" : "text-[#C90000]"}
       />
-      <p className="text-[30px] font-bold leading-none text-[#28293D]">
-        {table.number}
-      </p>
-      <span className="flex items-center gap-1.5 text-[14px] text-[#8B8B8B]">
-        <Users size={16} />
-        {table.capacity} {t("People")}
-      </span>
-      <p className="text-[12px] text-[#8B8B8B]">
-        {t(SECTION_DISPLAY[table.section] ?? table.section)}
-      </p>
-      <div className="mt-1 flex items-center gap-2">
+      <div className="flex flex-col items-center justify-start gap-[8px]">
+        <div className="inline-flex items-center justify-center gap-[8px]">
+          <span className="text-[24px] font-semibold tracking-[0.48px] text-black">
+            {table.number}
+          </span>
+        </div>
+        <div className="inline-flex items-center justify-start gap-[4px]">
+          <Users size={14} className="text-[#595959]" />
+          <div className="flex items-center justify-center gap-[8px]">
+            <span className="text-[12px] font-medium tracking-[0.24px] text-[#595959]">
+              {table.capacity} {t("People")}
+            </span>
+          </div>
+        </div>
+      </div>
+      <div className="inline-flex items-center justify-center gap-[8px]">
         <Badge
           role="button"
           tabIndex={0}
@@ -63,34 +61,34 @@ const TableCard = ({
             }
           }}
           className={cn(
-            "h-8 cursor-pointer rounded-[8px] px-3 py-0 text-[13px] font-semibold transition-opacity select-none",
+            "flex cursor-pointer items-center justify-center gap-[12px] rounded-[5px] border-none p-[8px] text-[10px] font-semibold transition-opacity select-none",
             isAvailable
               ? "bg-[#E2F4ED] text-[#059B5A] hover:bg-[#d0eddf]"
-              : "bg-[#FFF0F0] text-[#C90000] hover:bg-[#ffe0e0]",
+              : "bg-[#C90000] text-white hover:bg-[#b00000]",
             isTogglingStatus && "pointer-events-none opacity-60",
           )}
         >
           {isTogglingStatus ? (
-            <Loader2 size={14} className="animate-spin" />
+            <Loader2 size={12} className="animate-spin" />
           ) : (
             t(STATUS_DISPLAY[table.status] ?? table.status)
           )}
         </Badge>
         <button
           type="button"
-          aria-label={`View orders for table ${table.number}`}
-          onClick={() => onViewOrders(table)}
-          className="flex size-8 cursor-pointer items-center justify-center rounded-[8px] bg-[#F5F0EA] text-primary"
+          aria-label={`Delete table ${table.number}`}
+          onClick={() => onDelete(table)}
+          className="flex cursor-pointer items-center justify-center gap-[12px] rounded-[8px] py-[8px] text-[#C90000] hover:bg-[#FFF0F0]"
         >
-          <ClipboardList size={16} />
+          <Trash2 size={14} />
         </button>
         <button
           type="button"
-          aria-label={`Delete table ${table.number}`}
-          onClick={() => onDelete(table)}
-          className="flex size-8 cursor-pointer items-center justify-center rounded-[8px] bg-[#FFF0F0] text-[#C90000]"
+          aria-label={`View orders for table ${table.number}`}
+          onClick={() => onViewOrders(table)}
+          className="flex cursor-pointer items-center justify-center gap-[12px] rounded-[8px] py-[8px] text-[#3574FF] hover:bg-[#EDF4FB]"
         >
-          <Trash2 size={16} />
+          <CalendarDays size={14} />
         </button>
       </div>
     </div>

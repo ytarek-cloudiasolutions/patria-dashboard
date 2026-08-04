@@ -12,6 +12,20 @@ import type { Order } from "@/features/orders/types";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import type { Table } from "../store/tableTypes";
 
+const SECTION_DISPLAY: Record<string, string> = {
+  main_hall: "Main Hall",
+  terrace: "Terrace",
+  vip: "VIP",
+  counter: "Counter",
+};
+
+const formatTableTitle = (table: Table | null, t: (key: string) => string) => {
+  if (!table) return "";
+  const paddedNumber = String(table.number).padStart(2, "0");
+  const section = t(SECTION_DISPLAY[table.section] ?? table.section ?? "");
+  return section ? `${t("Table")} ${paddedNumber} - ${section}` : `${t("Table")} ${paddedNumber}`;
+};
+
 const formatCurrency = (amount: number) =>
   `EGP ${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -36,9 +50,12 @@ const TableOrdersDialog = ({ table, onOpenChange }: TableOrdersDialogProps) => {
 
   return (
     <Dialog open={!!table} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-y-auto rounded-[16px] sm:max-w-140">
-        <DialogTitle>
-          {t("Order history")} — {t("Table")} {table?.number}
+      <DialogContent
+        showCloseButton={false}
+        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[696px] overflow-y-auto rounded-[12px] border border-[#CACBD4] p-6 shadow-[0px_4px_6px_-4px_rgba(0,0,0,0.10),0px_10px_15px_-3px_rgba(0,0,0,0.10)] sm:max-w-[696px]"
+      >
+        <DialogTitle className="text-[24px] font-semibold tracking-[0.48px] text-black">
+          {formatTableTitle(table, t)}
         </DialogTitle>
 
         {isLoading ? (
@@ -74,6 +91,19 @@ const TableOrdersDialog = ({ table, onOpenChange }: TableOrdersDialogProps) => {
             ))}
           </div>
         )}
+
+        <div className="mt-4 flex flex-col gap-6">
+          <div className="w-full border-t border-[#CACBD4]" />
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={() => onOpenChange(false)}
+              className="inline-flex h-[56px] cursor-pointer items-center justify-center gap-[12px] rounded-[5px] border border-[#8F6900] px-[30px] py-[16px] text-[16px] font-semibold leading-[24px] text-[#8F6900] hover:bg-[#8F6900]/5 transition-colors"
+            >
+              {t("Cancel")}
+            </button>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );

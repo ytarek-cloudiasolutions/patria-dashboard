@@ -264,7 +264,7 @@ const TablesPage = () => {
           <Loader2 className="size-8 animate-spin text-primary" />
         </div>
       ) : (
-        <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-6">
+        <div className="mb-8 flex flex-wrap items-center justify-start gap-6 self-stretch">
           {sectionTables.map((table) => (
             <TableCard
               key={table._id}
@@ -276,7 +276,7 @@ const TablesPage = () => {
             />
           ))}
           {sectionTables.length === 0 && (
-            <p className="col-span-full py-8 text-center text-[14px] text-[#8B8B8B]">
+            <p className="w-full py-8 text-center text-[14px] text-[#8B8B8B]">
               {t("No tables in this section.")}
             </p>
           )}
