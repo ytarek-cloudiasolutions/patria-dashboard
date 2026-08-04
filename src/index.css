@@ -181,9 +181,8 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(
-    54.49% 0.112 83.52
-  ); /* #8F6900 primary color of the patria web app */
+  --primary: oklch(54.49% 0.112 83.52);
+  /* #8F6900 primary color of the patria web app */
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
@@ -249,12 +248,15 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+
   html {
     @apply font-sans;
   }
+
   html[dir="rtl"] body[data-scroll-locked] {
     margin-right: 0 !important;
     padding-right: 0 !important;
@@ -332,6 +334,7 @@
   .text-23252A-12-normal {
     @apply text-[#23252A] text-[12px] font-normal;
   }
+
   .text-8B8B8B-12-medium {
     @apply text-[#8B8B8B] text-[12px] font-medium;
   }
