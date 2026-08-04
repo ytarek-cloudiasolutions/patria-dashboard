@@ -11,24 +11,27 @@ const PromotionsOverview = ({ offers }: PromotionsOverviewProps) => {
   const { t } = useTranslation();
 
   const activePromotionsCount = offers.filter((o) => o.offerStatus).length;
-  const totalRedeemedCount = offers.reduce((sum, o) => sum + (o.usageCount || 0), 0);
+  const totalRedeemedCount = offers.reduce(
+    (sum, o) => sum + (o.claimsCount ?? o.usageCount ?? 0),
+    0,
+  );
 
   return (
-    <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
+    <div className="mb-6 grid grid-cols-1 gap-[22px] sm:grid-cols-2 lg:grid-cols-3">
       <OverviewCard
         data={{
           title: t("Active Promotions"),
           value: `${activePromotionsCount} ${t("Campaigns")}`,
-          icon: <Zap size={20} />,
-          iconColor: "text-[#3357B5]",
-          badgeColor: "bg-[#E3ECFF]",
+          icon: <Zap size={24} />,
+          iconColor: "text-[#155DFC]",
+          badgeColor: "bg-[#DBEAFE]",
         }}
       />
       <OverviewCard
         data={{
           title: t("Total Redeemed"),
           value: `${totalRedeemedCount} ${t("Claims")}`,
-          icon: <TrendingUp size={20} />,
+          icon: <TrendingUp size={24} />,
           iconColor: "text-[#059B5A]",
           badgeColor: "bg-[#E2F4ED]",
         }}
@@ -37,9 +40,9 @@ const PromotionsOverview = ({ offers }: PromotionsOverviewProps) => {
         data={{
           title: t("Reach Potential"),
           value: t("Dynamic Audience"),
-          icon: <Users size={20} />,
-          iconColor: "text-[#B56C00]",
-          badgeColor: "bg-[#FFF0D2]",
+          icon: <Users size={24} />,
+          iconColor: "text-[#C7861E]",
+          badgeColor: "bg-[#FE9A00]/10",
         }}
       />
     </div>

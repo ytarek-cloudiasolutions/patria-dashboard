@@ -1,17 +1,15 @@
-import { Badge } from "@/shared/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/shared/components/ui/card";
-import { Separator } from "@/shared/components/ui/separator";
 import { useState, useEffect } from "react";
 import type { Offer } from "../types";
 import { Switch } from "@/shared/components/ui/switch";
-import { CalendarDays, Megaphone, SquarePen, Trash2, Image as ImageIcon, Tag, Users } from "lucide-react";
-import DefaultButton from "@/shared/components/DefaultButton";
+import {
+  CalendarDays,
+  Megaphone,
+  SquarePen,
+  Trash2,
+  Image as ImageIcon,
+  Tag,
+  Users,
+} from "lucide-react";
 import DeleteDialog from "@/shared/components/DeleteDialog";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 
@@ -50,8 +48,9 @@ const OfferCard = ({
 
   return (
     <>
-      <Card className="w-full p-0 border border-[#8B8B8B] rounded-[16px] overflow-hidden [box-shadow:0_1px_2px_-1px_rgba(0,0,0,0.10),0_1px_3px_0px_rgba(0,0,0,0.10)]">
-        <div className="relative w-full h-39 border-0 outline-none">
+      <div className="relative flex flex-col w-full h-[450px] overflow-hidden rounded-[16px] border border-[#8B8B8B] bg-white [box-shadow:0px_1px_2px_-1px_rgba(0,0,0,0.10),0px_1px_3px_0px_rgba(0,0,0,0.10)]">
+        {/* Banner Image + Status Badge */}
+        <div className="relative w-full h-[156px] shrink-0 overflow-hidden rounded-t-[16px]">
           {offer.offerImage ? (
             <img
               src={offer.offerImage}
@@ -61,131 +60,143 @@ const OfferCard = ({
           ) : (
             <div className="w-full h-full bg-[#F5F0EA] flex flex-col items-center justify-center gap-1">
               <ImageIcon className="w-10 h-10 text-[#8B8B8B] opacity-40" />
-              <span className="text-[12px] text-[#8B8B8B]">{t("No banner image")}</span>
+              <span className="text-[12px] text-[#8B8B8B]">
+                {t("No banner image")}
+              </span>
             </div>
           )}
-          <Badge
-            className={`absolute top-4.5 left-5 h-6 px-3 rounded-[30px] text-[13px] font-semibold border-current ${isActive
-                ? "bg-[#E2F4ED] text-[#059B5A]"
-                : "bg-[#DCDCDC] text-[#23252A]"
-              }`}
+          {/* Active Status Badge */}
+          <div
+            className={`absolute left-[20px] top-[18px] inline-flex items-center justify-center gap-1 rounded-[30px] px-3 py-1 text-[13px] font-semibold tracking-[0.26px] outline-1 outline-offset-[-1px] ${
+              isActive
+                ? "bg-[#E2F4ED] text-[#059B5A] outline-[#059B5A]"
+                : "bg-[#DCDCDC] text-[#23252A] outline-[#8B8B8B]"
+            }`}
           >
             {isActive ? t("Active") : t("Inactive")}
-          </Badge>
+          </div>
         </div>
 
-        <div className="pb-6">
-          <CardHeader className="mb-4">
-            <div className="flex justify-between items-start">
-              <div>
-                <CardTitle className="text-[#333333] text-[20px] font-bold">
-                  {offer.offerTitle}
-                </CardTitle>
-                <CardDescription className="text-[#8B8B8B] text-[13px] font-normal mt-1">
-                  {offer.offerDescription}
-                </CardDescription>
-              </div>
+        {/* Content Container */}
+        <div className="flex flex-1 flex-col justify-between px-[20px] py-[24px] bg-white overflow-hidden rounded-b-[16px]">
+          {/* Title & Description + Discount Badge */}
+          <div className="flex w-full items-start justify-between gap-[10px]">
+            <div className="flex flex-col gap-1 flex-1 min-w-0">
+              <h3 className="text-[20px] font-bold text-[#333333] leading-[21.4px] tracking-[0.40px] truncate">
+                {offer.offerTitle}
+              </h3>
+              <p className="text-[13px] font-normal text-[#8B8B8B] leading-[18.2px] tracking-[0.26px] line-clamp-2">
+                {offer.offerDescription}
+              </p>
+            </div>
 
-              <Badge className="px-2 h-7.75 rounded-[5px] bg-[#F5F0EA] text-[#333333] text-[12px] font-bold whitespace-nowrap">
+            <div className="flex shrink-0 items-center justify-center rounded-[5px] bg-[#F5F0EA] p-2">
+              <span className="text-[12px] font-bold tracking-[0.24px] text-[#333333] whitespace-nowrap">
                 {offer.discountType === "percentage"
-                  ? `${offer.offerPercentage}% ${t("OFF")}`
+                  ? `${offer.offerPercentage}% OFF`
                   : `${offer.offerPercentage} EGP OFF`}
-              </Badge>
+              </span>
             </div>
-          </CardHeader>
+          </div>
 
-          <CardContent className="space-y-4">
-            {/* Valid Period box */}
-            <Card className="p-2 bg-[#FAFAF7] border border-[#E5E5E5] rounded-[10px]">
-              <div className="flex items-center gap-2">
-                <CalendarDays className="size-6 text-[#000000]" />
-                <div className="flex flex-col">
-                  <span className="text-[#333333] text-[13px]">
-                    {t("Valid Period")}
-                  </span>
-                  <span className="text-[#28293D] text-[16px] font-semibold">
-                    {offer.offerValidPeriod}
-                  </span>
-                </div>
-              </div>
-            </Card>
-
-            {/* "Applies to N product(s)" box */}
-            <div className="flex items-center gap-2 rounded-[10px] border border-[#E5E5E5] bg-[#FAFAF7] px-2 py-2 text-[13px] text-[#28293D]">
-              {t("Applies to")}{" "}
-              <span className="font-semibold text-[#333333]">
-                {offer.numberOfProducts ?? 0}
-              </span>{" "}
-              {t("product(s)")}
+          {/* Valid Period Box */}
+          <div className="flex w-full items-center gap-[8px] rounded-[10px] border border-[#E5E5E5] bg-[#FAFAF7] p-2 overflow-hidden outline-1 outline-[#E5E5E5] -outline-offset-1">
+            <div className="flex size-6 items-center justify-center shrink-0">
+              <CalendarDays className="size-6 text-black" />
             </div>
+            <div className="flex flex-col justify-center gap-1 min-w-0 flex-1">
+              <span className="text-[13px] font-normal tracking-[0.26px] text-[#333333]">
+                {t("Valid Period")}
+              </span>
+              <span className="text-[16px] font-semibold tracking-[0.32px] text-[#28293D] truncate">
+                {offer.offerValidPeriod}
+              </span>
+            </div>
+          </div>
 
-            {/* Code & Claims row */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-0.5">
-                <Tag className="size-4 text-[#000000]" />
-                <span className="text-[12px] text-[#000000] tracking-[0.24px] font-semibold">
-                  {t("Code:")}
-                </span>
-                <span className="text-[12px] text-[#8F6900] tracking-[0.24px] font-semibold ml-0.5">
-                  {offer.code || "—"}
-                </span>
-              </div>
-              <div className="flex items-center gap-0.5">
-                <Users className="size-4 text-[#000000]" />
-                <span className="text-[12px] text-[#000000] tracking-[0.24px] font-semibold">
-                  {t("Claims:")}
-                </span>
-                <span className="text-[12px] text-[#8F6900] tracking-[0.24px] font-semibold ml-0.5">
-                  {offer.claimsCount ?? 0}
-                </span>
-              </div>
+          {/* Product Count Box */}
+          <div className="flex w-full items-center gap-[8px] rounded-[10px] border border-[#E5E5E5] bg-[#FAFAF7] p-2 outline-1 outline-[#E5E5E5] -outline-offset-1">
+            <span className="text-[12px] font-normal tracking-[0.24px] text-[#8B8B8B]">
+              {t("Applies to")} {offer.numberOfProducts ?? 0} {t("product(s)")}
+            </span>
+          </div>
+
+          {/* Code & Claims Row */}
+          <div className="flex w-full items-center justify-between">
+            {/* Code */}
+            <div className="flex items-center gap-[2px]">
+              <Tag className="size-4 text-black shrink-0" />
+              <span className="text-[12px] font-semibold tracking-[0.24px] text-black">
+                {t("Code:")}
+              </span>
+              <span className="text-[12px] font-semibold tracking-[0.24px] text-[#8F6900] ml-1">
+                {offer.code || "—"}
+              </span>
             </div>
 
-            <Separator className="bg-[#CACBD4]" />
+            {/* Claims */}
+            <div className="flex items-center gap-[2px]">
+              <Users className="size-4 text-black shrink-0" />
+              <span className="text-[12px] font-semibold tracking-[0.24px] text-black">
+                {t("Claims:")}
+              </span>
+              <span className="text-[12px] font-semibold tracking-[0.24px] text-[#8F6900] ml-1">
+                {offer.claimsCount ?? 0}
+              </span>
+            </div>
+          </div>
 
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-3">
-                <span className="text-[#333333] text-[13px] font-semibold uppercase tracking-wider">
-                  {t("Active")}
-                </span>
-                <Switch
-                  checked={isActive}
-                  onCheckedChange={handleStatusChange}
-                  className="data-[state=checked]:bg-primary ring-[#624F1C1A]"
-                />
-              </div>
+          {/* Separator Divider */}
+          <div className="w-full h-px bg-[#CACBD4]" />
 
-              <div className="flex items-center gap-3">
-                {isActive && (
-                  <DefaultButton
-                    data={{
-                      buttonText: t("Mass Broadcast"),
-                      icon: <Megaphone className="size-4.5" />,
-                      onClick: () => onBroadcast?.(offer),
-                      className:
-                        "h-[34px] px-[12px] gap-[6px] bg-[#EDEDFF] text-[#6A68FF] text-[12px] font-semibold rounded-[5px]",
-                    }}
-                  />
-                )}
+          {/* Footer Actions */}
+          <div className="flex w-full items-center justify-between">
+            {/* Left: Active Label & Switch */}
+            <div className="flex items-center gap-[12px]">
+              <span className="text-[13px] font-medium tracking-[0.26px] text-[#333333]">
+                {t("Active")}
+              </span>
+              <Switch
+                checked={isActive}
+                onCheckedChange={handleStatusChange}
+                className="data-[state=checked]:bg-[#8F6900] ring-[#624F1C1A]"
+              />
+            </div>
 
+            {/* Right: Action Buttons */}
+            <div className="flex items-center gap-[12px]">
+              {isActive && (
                 <button
-                  onClick={() => onEdit?.(offer)}
-                  className="cursor-pointer"
+                  type="button"
+                  onClick={() => onBroadcast?.(offer)}
+                  className="flex items-center gap-[4px] rounded-[5px] bg-[#EDEDFF] p-2 text-[10px] font-semibold text-[#6A68FF] hover:bg-[#E0E0FF] transition-colors cursor-pointer"
                 >
-                  <SquarePen className="size-4.5 text-[#000000]" />
+                  <Megaphone className="size-[18px] text-[#6A68FF]" />
+                  <span>{t("Mass Broadcast")}</span>
                 </button>
+              )}
 
-                <button
-                  onClick={() => setIsDeleteOpen(true)}
-                  className="cursor-pointer"
-                >
-                  <Trash2 className="size-4.5 text-[#C90000]" />
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => onEdit?.(offer)}
+                title={t("Edit Offer")}
+                className="cursor-pointer text-black hover:text-[#8F6900] transition-colors"
+              >
+                <SquarePen className="size-[18px]" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsDeleteOpen(true)}
+                title={t("Delete Offer")}
+                className="cursor-pointer text-[#C90000] hover:text-[#A00000] transition-colors"
+              >
+                <Trash2 className="size-[18px]" />
+              </button>
             </div>
-          </CardContent>
+          </div>
         </div>
-      </Card>
+      </div>
 
       <DeleteDialog
         open={isDeleteOpen}

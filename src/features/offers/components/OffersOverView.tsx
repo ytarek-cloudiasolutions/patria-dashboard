@@ -17,7 +17,7 @@ const OffersOverView = ({
   onBroadcast,
 }: OffersOverViewProps) => {
   return (
-    <div className="grid grid-cols-1 gap-x-5.5 gap-y-6 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-[22px] sm:grid-cols-2 lg:grid-cols-3 w-full">
       {offers.map((offer) => (
         <OfferCard
           key={offer.id}
