@@ -185,29 +185,13 @@ const FinancialHubPage = () => {
           )}
 
           {tab === "adjustments-wastage" && (
-            <div className="flex flex-wrap items-center gap-4">
-              <button
-                type="button"
-                onClick={() => setIsWasteVoucherOpen(true)}
-                className="h-[56px] rounded-[5px] border border-[#8F6900] px-4 text-[16px] font-semibold text-[#8F6900] hover:bg-[#FDFBF7] transition-colors cursor-pointer"
-              >
-                {t("Waste Voucher")}
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsQuantityAdjustmentOpen(true)}
-                className="h-[56px] rounded-[5px] bg-[#F5F0EA] px-4 text-[16px] font-semibold text-[#8F6900] hover:bg-[#EAE2D5] transition-colors cursor-pointer"
-              >
-                {t("Quantity Adjustment")}
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsInventoryAdjustmentOpen(true)}
-                className="h-[56px] rounded-[5px] bg-[#8F6900] px-4 text-[16px] font-semibold text-white hover:bg-[#785800] transition-colors cursor-pointer"
-              >
-                {t("Inventory Adjustment")}
-              </button>
-            </div>
+            <DefaultButton
+              data={{
+                buttonText: t("Stock Adjustments"),
+                icon: <Plus className="size-4.5" />,
+                onClick: () => setIsInventoryAdjustmentOpen(true),
+              }}
+            />
           )}
 
           {tab === "opening-balance" && (

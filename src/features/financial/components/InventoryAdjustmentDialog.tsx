@@ -53,18 +53,27 @@ const InventoryAdjustmentDialog = ({
   onConfirm,
 }: InventoryAdjustmentDialogProps) => {
   const { t } = useTranslation();
+  const [type, setType] = useState("inventory_adjustments");
   const [warehouse, setWarehouse] = useState("");
   const [comments, setComments] = useState("");
   const [categories, setCategories] = useState<CategoryRowItem[]>([
     { id: "1", product: "", quantity: "", reason: "" },
   ]);
+  const [isTypeOpen, setIsTypeOpen] = useState(false);
   const [isWarehouseOpen, setIsWarehouseOpen] = useState(false);
   const [activeOpenDropdown, setActiveOpenDropdown] = useState<string | null>(null);
   const [warehouseOptions, setWarehouseOptions] = useState<SimpleOption[]>([]);
   const [productOptions, setProductOptions] = useState<SimpleOption[]>([]);
 
+  const typeOptions: SimpleOption[] = [
+    { value: "waste_voucher", label: t("Waste Voucher") },
+    { value: "quantity_adjustment", label: t("Quantity Adjustment") },
+    { value: "inventory_adjustments", label: t("Inventory Adjustments") },
+  ];
+
   useEffect(() => {
     if (open) {
+      setType("inventory_adjustments");
       setWarehouse("");
       setComments("");
       setCategories([{ id: "1", product: "", quantity: "", reason: "" }]);
@@ -131,7 +140,7 @@ const InventoryAdjustmentDialog = ({
         showCloseButton={false}
         className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-175"
       >
-        {(isWarehouseOpen || activeOpenDropdown !== null) && (
+        {(isWarehouseOpen || isTypeOpen || activeOpenDropdown !== null) && (
           <div className="pointer-events-none fixed inset-0 z-60 bg-black/40" />
         )}
 
@@ -139,7 +148,7 @@ const InventoryAdjustmentDialog = ({
           {/* Header */}
           <div className="px-5 pt-5 sm:px-7 sm:pt-7">
             <DialogTitle className="text-[20px] font-semibold text-[#28293D] sm:text-[22px]">
-              {t("Inventory adjustment")}
+              {t("Stock Adjustments")}
             </DialogTitle>
           </div>
 
@@ -156,10 +165,15 @@ const InventoryAdjustmentDialog = ({
                   <Label className="mb-2.5 text-[16px] font-medium text-black">
                     {t("Type")}
                   </Label>
-                  <Input
-                    readOnly
-                    value={t("Inventory Adjustements")}
-                    className="h-12 rounded-[12px] border-[#E5E5E5] bg-white px-4 text-[16px] font-normal text-black focus-visible:ring-0"
+                  <DropdownSelect
+                    options={typeOptions}
+                    selected={type}
+                    onSelect={setType}
+                    onOpenChange={setIsTypeOpen}
+                    placeholder={t("--- Select Type ---")}
+                    align="start"
+                    className="w-full md:!w-full"
+                    contentClassName="w-[var(--radix-dropdown-menu-trigger-width)] md:!w-[var(--radix-dropdown-menu-trigger-width)]"
                   />
                 </div>
 
