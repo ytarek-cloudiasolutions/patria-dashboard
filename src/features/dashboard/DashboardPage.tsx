@@ -232,15 +232,7 @@ const DashboardPage = () => {
           className="mb-0"
         />
         <div className="flex flex-wrap items-center gap-3.5">
-          <DefaultButton
-            data={{
-              buttonText: t("Customer Notification"),
-              onClick: () => setIsNotificationOpen(true),
-              icon: <Bell className="size-4.5 text-white" />,
-            }}
-          />
-
-          <div className="flex h-12.5 items-center rounded-full border border-[#E1E1E5] bg-white px-4.5 shadow-sm text-[14px]">
+          <div className="flex h-12 sm:h-14 items-center rounded-[5px] border border-[#E1E1E5] bg-white px-4.5 text-[14px]">
             <DatePicker
               value={dateRange.from}
               onChange={(from) => setDateRange((prev) => ({ ...prev, from }))}
@@ -258,6 +250,14 @@ const DashboardPage = () => {
               buttonClassName="border-0 bg-transparent h-auto p-0 shadow-none hover:bg-transparent text-[14px] font-semibold text-[#28293D] cursor-pointer w-auto inline-flex gap-1.5 [&>svg]:size-4.5 [&>svg]:text-primary"
             />
           </div>
+
+          <DefaultButton
+            data={{
+              buttonText: t("Customer Notification"),
+              onClick: () => setIsNotificationOpen(true),
+              icon: <Bell className="size-4.5 text-white" />,
+            }}
+          />
         </div>
       </div>
 
