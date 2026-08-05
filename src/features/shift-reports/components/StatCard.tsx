@@ -1,12 +1,12 @@
 import { cn } from "@/lib/utils";
 
-export type StatTone = "neutral" | "green" | "red" | "gold";
+export type StatTone = "neutral" | "green" | "primary" | "warning";
 
-const VALUE_TONE: Record<StatTone, string> = {
-  neutral: "text-[#28293D]",
+const COLOR_STYLES: Record<StatTone, string> = {
+  neutral: "text-black",
   green: "text-[#059B5A]",
-  red: "text-[#C90000]",
-  gold: "text-[#B56C00]",
+  primary: "text-[#8F6900]",
+  warning: "text-[#C7861E]",
 };
 
 interface StatCardProps {
@@ -16,16 +16,13 @@ interface StatCardProps {
 }
 
 const StatCard = ({ label, value, tone = "neutral" }: StatCardProps) => (
-  <div className="rounded-[12px] border border-[#E5E5E5] bg-white px-4 py-4 text-center">
-    <p
-      className={cn(
-        "text-[12px] font-semibold",
-        tone === "neutral" ? "text-[#8B8B8B]" : VALUE_TONE[tone],
-      )}
-    >
+  <div className="flex h-[115px] flex-col items-center justify-center gap-2 rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.10)]">
+    <span className={cn("text-[10px] font-semibold tracking-[0.20px]", COLOR_STYLES[tone])}>
       {label}
-    </p>
-    <p className={cn("mt-2 text-[16px] font-bold", VALUE_TONE[tone])}>{value}</p>
+    </span>
+    <span className={cn("text-[14px] font-semibold tracking-[0.28px]", COLOR_STYLES[tone])}>
+      {value}
+    </span>
   </div>
 );
 

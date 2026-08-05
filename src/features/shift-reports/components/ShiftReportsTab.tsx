@@ -7,8 +7,11 @@ import { formatEgp } from "../utils";
 import ReportFilters from "./ReportFilters";
 import { api } from "@/config/api";
 
+import type { ExportPayload } from "./DailyReportTab";
+
 interface ShiftReportsTabProps {
   onMenuOpenChange: (open: boolean) => void;
+  onExportDataReady?: (data: ExportPayload) => void;
 }
 
 const TH = "px-4 py-3 text-[13px] font-semibold text-[#28293D] whitespace-nowrap";
@@ -28,7 +31,7 @@ const formatDuration = (openedAt: string, closedAt?: string) => {
   return `${h}h ${m}m`;
 };
 
-const ShiftReportsTab = ({ onMenuOpenChange }: ShiftReportsTabProps) => {
+const ShiftReportsTab = ({ onMenuOpenChange, onExportDataReady }: ShiftReportsTabProps) => {
   const { t } = useTranslation();
   const [date, setDate] = useState("");
   const [period, setPeriod] = useState("weekly");
@@ -71,6 +74,34 @@ const ShiftReportsTab = ({ onMenuOpenChange }: ShiftReportsTabProps) => {
       .catch(() => setRows([]))
       .finally(() => setLoading(false));
   }, [period, date]);
+
+  useEffect(() => {
+    if (onExportDataReady) {
+      onExportDataReady({
+        title: "Shift_Performance_Report",
+        headers: [
+          t("Employee"),
+          t("Role"),
+          t("Start"),
+          t("End"),
+          t("Duration"),
+          t("Orders"),
+          t("Revenue"),
+          t("Status"),
+        ],
+        rows: rows.map((r) => [
+          r.employee,
+          t(r.role),
+          r.start,
+          r.end,
+          r.duration,
+          r.orders,
+          `EGP ${r.revenue.toFixed(2)}`,
+          t(r.status),
+        ]),
+      });
+    }
+  }, [rows, t, onExportDataReady]);
 
   return (
     <>
