@@ -246,7 +246,7 @@ const DashboardPage = () => {
               onChange={(from) => setDateRange((prev) => ({ ...prev, from }))}
               placeholder={t("From")}
               popoverPlacement="bottom-right"
-              buttonClassName="border-0 bg-transparent h-auto p-0 shadow-none hover:bg-transparent text-[14px] font-semibold text-[#28293D] cursor-pointer w-auto inline-flex gap-1.5 flex-row-reverse [&>svg]:size-4.5 [&>svg]:text-primary"
+              buttonClassName="border-0 bg-transparent h-auto p-0 shadow-none hover:bg-transparent text-[14px] font-semibold text-[#28293D] cursor-pointer w-auto inline-flex gap-1.5 [&>svg]:size-4.5 [&>svg]:text-primary"
             />
             <span className="mx-2 h-4 w-px bg-[#E1E1E5]" />
             <DatePicker
@@ -255,7 +255,7 @@ const DashboardPage = () => {
               placeholder={t("To")}
               popoverPlacement="bottom-right"
               minDate={dateRange.from || undefined}
-              buttonClassName="border-0 bg-transparent h-auto p-0 shadow-none hover:bg-transparent text-[14px] font-semibold text-[#28293D] cursor-pointer w-auto inline-flex gap-1.5 flex-row-reverse [&>svg]:size-4.5 [&>svg]:text-primary"
+              buttonClassName="border-0 bg-transparent h-auto p-0 shadow-none hover:bg-transparent text-[14px] font-semibold text-[#28293D] cursor-pointer w-auto inline-flex gap-1.5 [&>svg]:size-4.5 [&>svg]:text-primary"
             />
           </div>
         </div>
