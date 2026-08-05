@@ -119,6 +119,46 @@ const MyAccountPage = () => {
     }
   };
 
+  const handleDownloadExcel = () => {
+    if (orderReports.length === 0) {
+      showErrorToast(t("No order reports available to download"));
+      return;
+    }
+
+    const headers = [
+      t("ORDER NO."),
+      t("CUSTOMER"),
+      t("DATE"),
+      t("STATUS"),
+      t("TOTAL"),
+    ];
+
+    const rows = orderReports.map((order) => [
+      `"${(order.orderNo || "").replace(/"/g, '""')}"`,
+      `"${(order.customer || "").replace(/"/g, '""')}"`,
+      `"${order.date || ""}"`,
+      `"${t(order.status)}"`,
+      `"${order.total !== null ? `EGP ${order.total.toFixed(2)}` : "-"}"`,
+    ]);
+
+    const csvContent =
+      "\uFEFF" +
+      [headers.map((h) => `"${h}"`), ...rows].map((r) => r.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute(
+      "download",
+      `Order_Reports_${new Date().toISOString().slice(0, 10)}.csv`,
+    );
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    showSuccessToast(t("Order reports exported successfully"));
+  };
+
   const isLoading = !profileLoaded || !ordersLoaded;
 
   if (isLoading) {
@@ -155,6 +195,7 @@ const MyAccountPage = () => {
           <OrderReportsTable
             orders={orderReports}
             count={totalOrders}
+            onDownload={handleDownloadExcel}
           />
         </div>
       </div>
