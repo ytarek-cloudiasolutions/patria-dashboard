@@ -484,15 +484,14 @@ const PosPage = () => {
 
   const confirmStaffOrder = () => {
     setSelectStaffOpen(false);
-    finishWithReceipt();
+    showSuccessToast("Deducted from employee account");
+    completeOrder();
   };
 
   const handleReceiptClose = (open: boolean) => {
     setReceiptOpen(open);
     if (!open) {
-      const wasTakeaway = orderType === "takeaway";
       completeOrder();
-      if (wasTakeaway) navigate("/orders");
     }
   };
 
