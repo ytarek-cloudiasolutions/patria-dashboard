@@ -37,8 +37,8 @@ export const useShifts = () => {
   );
 
   const getCurrentShift = useCallback(
-    (cashierId: string) => {
-      dispatch(shiftsActions.getCurrentShiftRequest({ cashierId }));
+    (cashierId?: string) => {
+      dispatch(shiftsActions.getCurrentShiftRequest(cashierId ? { cashierId } : undefined));
     },
     [dispatch],
   );

@@ -73,7 +73,7 @@ const shiftsSlice = createSlice({
       action: PayloadAction<{ shift: ApiShift; message?: string }>,
     ) => {
       state.loading.close = false;
-      state.currentShift = action.payload.shift;
+      state.currentShift = null;
       state.successMessage = action.payload.message ?? "Shift closed";
     },
     closeShiftFailure: (state, action: PayloadAction<string>) => {
@@ -82,7 +82,7 @@ const shiftsSlice = createSlice({
 
     getCurrentShiftRequest: (
       state,
-      _action: PayloadAction<{ cashierId: string }>,
+      _action: PayloadAction<{ cashierId?: string } | undefined>,
     ) => {
       setOperationLoading(state, "fetch");
     },

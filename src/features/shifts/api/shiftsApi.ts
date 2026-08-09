@@ -30,10 +30,10 @@ export const closeShift = async (data: CloseShiftRequest) => {
   return response.data;
 };
 
-export const getCurrentShift = async (cashierId: string) => {
+export const getCurrentShift = async (cashierId?: string) => {
   const response = await api.get<GetCurrentShiftResponse>(
     ENDPOINTS.CURRENT_SHIFT,
-    { params: { cashierId } },
+    cashierId ? { params: { cashierId } } : undefined,
   );
   return response.data;
 };

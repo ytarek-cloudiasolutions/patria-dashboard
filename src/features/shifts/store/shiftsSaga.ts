@@ -31,11 +31,12 @@ function* handleOpenShift(action: PayloadAction<OpenShiftRequest>) {
       shiftsApi.openShift,
       action.payload,
     );
-    yield call(showSuccessToast, "Shift opened successfully");
+    const shift = response.data || response.shift || (response as any);
+    yield call(showSuccessToast, response.message || "Shift opened successfully");
     yield put(
       shiftsActions.openShiftSuccess({
-        shift: response.shift,
-        message: "Shift opened successfully",
+        shift,
+        message: response.message || "Shift opened successfully",
       }),
     );
   } catch (error) {
@@ -51,11 +52,12 @@ function* handleCloseShift(action: PayloadAction<CloseShiftRequest>) {
       shiftsApi.closeShift,
       action.payload,
     );
-    yield call(showSuccessToast, "Shift closed successfully");
+    const shift = response.data || response.shift || (response as any);
+    yield call(showSuccessToast, response.message || "Shift closed successfully");
     yield put(
       shiftsActions.closeShiftSuccess({
-        shift: response.shift,
-        message: "Shift closed successfully",
+        shift,
+        message: response.message || "Shift closed successfully",
       }),
     );
   } catch (error) {
@@ -66,15 +68,16 @@ function* handleCloseShift(action: PayloadAction<CloseShiftRequest>) {
 }
 
 function* handleGetCurrentShift(
-  action: PayloadAction<{ cashierId: string }>,
+  action: PayloadAction<{ cashierId?: string } | undefined>,
 ) {
   try {
     const response: GetCurrentShiftResponse = yield call(
       shiftsApi.getCurrentShift,
-      action.payload.cashierId,
+      action.payload?.cashierId,
     );
+    const shift = response.data || response.shift || (response as any);
     yield put(
-      shiftsActions.getCurrentShiftSuccess({ shift: response.shift }),
+      shiftsActions.getCurrentShiftSuccess({ shift }),
     );
   } catch (error) {
     if (axios.isAxiosError(error) && error.response?.status === 404) {

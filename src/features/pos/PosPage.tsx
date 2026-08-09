@@ -31,10 +31,13 @@ import type {
   PaymentMethod,
 } from "./types";
 import { computeTotals, formatTime } from "./utils";
+import OpenShiftDialog from "./components/OpenShiftDialog";
+import CloseShiftDialog from "./components/CloseShiftDialog";
 import { useProducts } from "@/features/products/hooks/useProducts";
 import { useCategories } from "@/features/categories";
 import { useOrders } from "@/features/orders/hooks/useOrders";
 import { useTables } from "@/features/tables/hooks/useTables";
+import { useShifts } from "@/features/shifts/hooks/useShifts";
 import { POS_TABLE_OPTIONS } from "./data";
 import { showSuccessToast, showErrorToast } from "@/shared/utils/toast";
 
@@ -48,6 +51,13 @@ const PosPage = () => {
   const { categories, getCategories } = useCategories();
   const { createNewOrder, isCreatingOrder, successMessage, errors } = useOrders();
   const { tables, getTables } = useTables();
+  const {
+    currentShift,
+    loading: shiftsLoading,
+    openShift: apiOpenShift,
+    closeShift: apiCloseShift,
+    getCurrentShift,
+  } = useShifts();
 
   // Order context
   const [orderType, setOrderType] = useState<OrderType>("dine-in");
@@ -62,9 +72,43 @@ const PosPage = () => {
   const [search, setSearch] = useState("");
 
   // Terminal chrome
-  const [shiftOpen, setShiftOpen] = useState(false);
+  const [isOpenShiftDialogOpen, setIsOpenShiftDialogOpen] = useState(false);
+  const [isCloseShiftDialogOpen, setIsCloseShiftDialogOpen] = useState(false);
   const [isTableMenuOpen, setTableMenuOpen] = useState(false);
   const [timeLabel, setTimeLabel] = useState(() => formatTime(new Date()));
+
+  // Active shift is driven by backend GET /pos/shifts/current response
+  const isShiftActive = Boolean(currentShift && currentShift.status === "open");
+
+  useEffect(() => {
+    getProducts({ limit: 100 });
+    getCategories();
+    getTables();
+    getCurrentShift();
+  }, [getProducts, getCategories, getTables, getCurrentShift]);
+
+  const handleOpenShiftConfirm = (openingCash: number, notes: string) => {
+    const trimmedNotes = notes.trim();
+    apiOpenShift({
+      openingBalance: openingCash,
+      openingCash: openingCash,
+      ...(trimmedNotes ? { notes: trimmedNotes } : {}),
+    });
+    setIsOpenShiftDialogOpen(false);
+  };
+
+  const handleCloseShiftConfirm = (closingCash: number, notes: string) => {
+    const shiftId = (currentShift as any)?._id || (currentShift as any)?.id || "";
+    const trimmedNotes = notes.trim();
+    apiCloseShift({
+      shiftId,
+      closingBalance: closingCash,
+      closingCash: closingCash,
+      ...(trimmedNotes ? { notes: trimmedNotes } : {}),
+    });
+    setIsCloseShiftDialogOpen(false);
+    setShiftSummaryOpen(true);
+  };
 
   // Dialogs
   const [customizeProduct, setCustomizeProduct] = useState<PosProduct | null>(null);
@@ -465,14 +509,14 @@ const PosPage = () => {
             orderType={orderType}
             selectedTable={selectedTable}
             tableOptions={tableOptions}
-            shiftOpen={shiftOpen}
+            shiftOpen={isShiftActive}
             onOrderTypeChange={handleOrderTypeChange}
             onTableChange={setSelectedTable}
             onTableMenuOpenChange={setTableMenuOpen}
-            onToggleShift={() => setShiftOpen((value) => !value)}
+            onToggleShift={() => (isShiftActive ? setIsCloseShiftDialogOpen(true) : setIsOpenShiftDialogOpen(true))}
             onOpenPendingOrders={() => setPendingOpen(true)}
             onOpenEmployeeAccounts={() => setEmployeeAccountsOpen(true)}
-            onCloseRegister={() => setShiftSummaryOpen(true)}
+            onCloseRegister={() => setIsCloseShiftDialogOpen(true)}
             onBackToDashboard={() => navigate("/")}
           />
         }
@@ -574,6 +618,20 @@ const PosPage = () => {
         open={isShiftSummaryOpen}
         onOpenChange={setShiftSummaryOpen}
         shiftOrders={shiftOrders}
+      />
+
+      <OpenShiftDialog
+        open={isOpenShiftDialogOpen}
+        isLoading={shiftsLoading.open}
+        onOpenChange={setIsOpenShiftDialogOpen}
+        onConfirm={handleOpenShiftConfirm}
+      />
+
+      <CloseShiftDialog
+        open={isCloseShiftDialogOpen}
+        isLoading={shiftsLoading.close}
+        onOpenChange={setIsCloseShiftDialogOpen}
+        onConfirm={handleCloseShiftConfirm}
       />
     </>
   );

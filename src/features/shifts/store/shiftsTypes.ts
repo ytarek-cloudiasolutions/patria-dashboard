@@ -16,27 +16,33 @@ export interface ApiShift {
 // ---- Request / Response shapes ----
 
 export interface OpenShiftRequest {
-  cashierId: string;
-  locationId?: string;
   openingBalance?: number;
+  openingCash?: number;
+  notes?: string;
 }
 
 export interface OpenShiftResponse {
-  shift: ApiShift;
+  data?: ApiShift;
+  shift?: ApiShift;
+  message?: string;
 }
 
 export interface CloseShiftRequest {
   shiftId: string;
-  closingBalance?: number;
+  closingBalance: number;
+  closingCash?: number;
   notes?: string;
 }
 
 export interface CloseShiftResponse {
-  shift: ApiShift;
+  data?: ApiShift;
+  shift?: ApiShift;
+  message?: string;
 }
 
 export interface GetCurrentShiftResponse {
-  shift: ApiShift;
+  data?: ApiShift;
+  shift?: ApiShift;
 }
 
 // ---- Store types ----
