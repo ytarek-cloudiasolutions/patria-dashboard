@@ -1,4 +1,6 @@
+import { useEffect, useState } from "react";
 import { Wallet } from "lucide-react";
+import { api } from "@/config/api";
 
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -9,7 +11,6 @@ import {
   DialogTitle,
 } from "@/shared/components/ui/dialog";
 import { useTranslation } from "@/shared/i18n/useTranslation";
-import { EMPLOYEE_ACCOUNTS } from "../data";
 import type { EmployeeAccount } from "../types";
 import { formatEgp } from "../utils";
 
@@ -25,12 +26,35 @@ const EmployeeAccountsDialog = ({
   onPay,
 }: EmployeeAccountsDialogProps) => {
   const { t } = useTranslation();
+  const [accounts, setAccounts] = useState<EmployeeAccount[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    setLoading(true);
+    api
+      .get("/users", { params: { limit: 100 } })
+      .then((res) => {
+        const raw: any[] = res.data?.data ?? (Array.isArray(res.data) ? res.data : []);
+        const mapped: EmployeeAccount[] = raw.map((u) => ({
+          id: u._id || u.id,
+          name: u.name || u.email || "Staff Member",
+          daysLeft: 30,
+          total: 250,
+          remaining: 250,
+          payBook: [],
+        }));
+        setAccounts(mapped);
+      })
+      .catch(() => setAccounts([]))
+      .finally(() => setLoading(false));
+  }, [open]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="w-[520px] max-w-[calc(100%-2rem)] gap-0 rounded-[12px] bg-white p-6 sm:max-w-[520px]"
+        className="w-[520px] max-w-[calc(100%-2rem)] gap-0 rounded-[16px] border border-[#E5E5E5] bg-white p-6 sm:p-7 sm:max-w-[520px]"
       >
         <DialogHeader>
           <DialogTitle className="text-[20px] font-bold text-[#333333]">
@@ -39,7 +63,16 @@ const EmployeeAccountsDialog = ({
         </DialogHeader>
 
         <div className="mt-5 max-h-[60vh] space-y-4 overflow-y-auto pe-1">
-          {EMPLOYEE_ACCOUNTS.map((account) => (
+          {loading ? (
+            <p className="py-8 text-center text-[13px] text-[#8B8B8B]">
+              {t("Loading staff accounts...")}
+            </p>
+          ) : accounts.length === 0 ? (
+            <p className="py-8 text-center text-[13px] text-[#8B8B8B]">
+              {t("No employee accounts found")}
+            </p>
+          ) : (
+            accounts.map((account) => (
             <div
               key={account.id}
               className="rounded-[10px] border border-[#EDEBE7] p-4"
@@ -99,7 +132,8 @@ const EmployeeAccountsDialog = ({
                 {t("Pay")}
               </Button>
             </div>
-          ))}
+          ))
+        )}
         </div>
 
         <DialogFooter className="mt-6 border-t border-[#E1E1E1] bg-white px-0 pb-0 pt-5">

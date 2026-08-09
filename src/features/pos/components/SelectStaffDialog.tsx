@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { ChevronDown } from "lucide-react";
+import { api } from "@/config/api";
 
 import DropdownSelect from "@/shared/components/DropdownSelect";
 import { Button } from "@/shared/components/ui/button";
@@ -19,7 +20,8 @@ import {
 import { Input } from "@/shared/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/shared/i18n/useTranslation";
-import { STAFF_MEMBERS, STAFF_POSITIONS } from "../data";
+import { STAFF_POSITIONS } from "../data";
+import type { StaffMember } from "../types";
 import { formatEgp } from "../utils";
 
 type SelectStaffDialogProps = {
@@ -39,23 +41,37 @@ const SelectStaffDialog = ({
   const [selectedStaffId, setSelectedStaffId] = useState("");
   const [staffName, setStaffName] = useState("");
   const [position, setPosition] = useState("");
+  const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
 
   useEffect(() => {
     if (!open) return;
     setSelectedStaffId("");
     setStaffName("");
     setPosition("");
+    api
+      .get("/users", { params: { limit: 100 } })
+      .then((res) => {
+        const raw: any[] = res.data?.data ?? (Array.isArray(res.data) ? res.data : []);
+        const mapped: StaffMember[] = raw.map((u) => ({
+          id: u._id || u.id,
+          name: u.name || u.email || "Staff Member",
+          role: u.role || "Staff",
+          remaining: 250,
+        }));
+        setStaffMembers(mapped);
+      })
+      .catch(() => setStaffMembers([]));
   }, [open]);
 
   const selectedStaff =
-    STAFF_MEMBERS.find((staff) => staff.id === selectedStaffId) ?? null;
+    staffMembers.find((staff) => staff.id === selectedStaffId) ?? null;
   const isOther = selectedStaffId === "other";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="w-[560px] max-w-[calc(100%-2rem)] gap-0 rounded-[12px] bg-white p-6 sm:max-w-[560px]"
+        className="w-[560px] max-w-[calc(100%-2rem)] gap-0 rounded-[16px] border border-[#E5E5E5] bg-white p-6 sm:p-7 sm:max-w-[560px]"
       >
         <DialogHeader>
           <DialogTitle className="text-[20px] font-bold text-[#333333]">
@@ -85,7 +101,7 @@ const SelectStaffDialog = ({
                 align="start"
                 className="z-70 w-(--radix-dropdown-menu-trigger-width) rounded-[12px] p-2"
               >
-                {STAFF_MEMBERS.map((staff) => (
+                {staffMembers.map((staff) => (
                   <DropdownMenuItem
                     key={staff.id}
                     className={cn(

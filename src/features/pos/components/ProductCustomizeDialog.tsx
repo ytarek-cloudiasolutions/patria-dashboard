@@ -73,7 +73,7 @@ const ProductCustomizeDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="w-[560px] max-w-[calc(100%-2rem)] gap-0 rounded-[12px] bg-white p-6 sm:max-w-[560px]"
+        className="w-[560px] max-w-[calc(100%-2rem)] gap-0 rounded-[16px] border border-[#E5E5E5] bg-white p-6 sm:p-7 sm:max-w-[560px]"
       >
         <DialogHeader>
           <DialogTitle className="text-[20px] font-bold text-[#333333]">
@@ -158,7 +158,7 @@ const ProductCustomizeDialog = ({
             </p>
             <div className="flex items-center gap-3">
               <button
-                className="flex size-8 items-center justify-center rounded-[6px] border border-[#E5E2DD] bg-[#FAFAFA] text-[#333333] hover:bg-[#F2F0EC] disabled:opacity-40"
+                className="flex size-8 items-center justify-center rounded-[6px] border border-[#E5E2DD] bg-[#FAFAFA] text-[#333333] cursor-pointer disabled:opacity-40"
                 aria-label={t("Decrease")}
                 disabled={qty <= 1}
                 onClick={() => setQty((value) => Math.max(1, value - 1))}
@@ -169,7 +169,7 @@ const ProductCustomizeDialog = ({
                 {qty}
               </span>
               <button
-                className="flex size-8 items-center justify-center rounded-[6px] border border-[#E5E2DD] bg-[#FAFAFA] text-[#333333] hover:bg-[#F2F0EC]"
+                className="flex size-8 items-center justify-center rounded-[6px] border border-[#E5E2DD] bg-[#FAFAFA] text-[#333333] cursor-pointer"
                 aria-label={t("Increase")}
                 onClick={() => setQty((value) => value + 1)}
               >
@@ -182,13 +182,13 @@ const ProductCustomizeDialog = ({
         <DialogFooter className="mt-6 gap-3 border-t border-[#E1E1E1] bg-white px-0 pb-0 pt-5">
           <Button
             variant="outline"
-            className="h-12 min-w-[110px] rounded-[8px] border-primary bg-white text-[13px] font-semibold text-primary hover:bg-[#FBF6EE]"
+            className="h-12 min-w-[110px] rounded-[8px] border-primary bg-white text-[13px] font-semibold text-primary cursor-pointer"
             onClick={() => onOpenChange(false)}
           >
             {t("Cancel")}
           </Button>
           <Button
-            className="h-12 flex-1 rounded-[8px] bg-primary text-[13px] font-semibold text-white hover:opacity-90"
+            className="h-12 flex-1 rounded-[8px] bg-primary text-[13px] font-semibold text-white cursor-pointer"
             onClick={() => onConfirm({ extras, instructions, qty })}
           >
             {editLine ? t("Update cart") : t("Add product to cart")}{" "}

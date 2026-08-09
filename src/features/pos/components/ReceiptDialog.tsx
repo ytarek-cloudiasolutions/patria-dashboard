@@ -39,7 +39,7 @@ const ReceiptDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="w-[360px] max-w-[calc(100%-2rem)] gap-0 rounded-[12px] bg-white p-5 sm:max-w-[360px]"
+        className="w-[380px] max-w-[calc(100%-2rem)] gap-0 rounded-[16px] border border-[#E5E5E5] bg-white p-6 sm:max-w-[380px]"
       >
         <div className="mx-auto w-full max-w-[300px] rounded-[6px] border border-[#ECECEC] bg-white p-5 font-mono text-[11px] leading-5 text-[#333333]">
           <div className="text-center">
@@ -113,13 +113,13 @@ const ReceiptDialog = ({
         <DialogFooter className="mt-5 gap-3 border-t border-[#E1E1E1] bg-white px-0 pb-0 pt-5">
           <Button
             variant="outline"
-            className="h-12 flex-1 rounded-[8px] border-primary bg-white text-[13px] font-semibold text-primary hover:bg-[#FBF6EE]"
+            className="h-12 flex-1 rounded-[8px] border-primary bg-white text-[13px] font-semibold text-primary cursor-pointer"
             onClick={() => onOpenChange(false)}
           >
             {t("Close")}
           </Button>
           <Button
-            className="h-12 flex-1 rounded-[8px] bg-primary text-[13px] font-semibold text-white hover:opacity-90"
+            className="h-12 flex-1 rounded-[8px] bg-primary text-[13px] font-semibold text-white cursor-pointer"
             onClick={() => window.print()}
           >
             <Printer className="size-4" />

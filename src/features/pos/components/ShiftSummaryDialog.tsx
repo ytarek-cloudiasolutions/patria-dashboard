@@ -103,7 +103,7 @@ const ShiftSummaryDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="w-[470px] max-w-[calc(100%-2rem)] gap-0 rounded-[12px] bg-white p-6 sm:max-w-[470px]"
+        className="w-[480px] max-w-[calc(100%-2rem)] gap-0 rounded-[16px] border border-[#E5E5E5] bg-white p-6 sm:p-7 sm:max-w-[480px]"
       >
         <DialogHeader>
           <DialogTitle className="text-[20px] font-bold text-[#333333]">
@@ -155,7 +155,7 @@ const ShiftSummaryDialog = ({
         <DialogFooter className="mt-6 border-t border-[#E1E1E1] bg-white px-0 pb-0 pt-5">
           <Button
             variant="outline"
-            className="h-12 min-w-[110px] rounded-[8px] border-primary bg-white text-[13px] font-semibold text-primary hover:bg-[#FBF6EE]"
+            className="h-12 min-w-[110px] rounded-[8px] border-primary bg-white text-[13px] font-semibold text-primary cursor-pointer"
             onClick={() => onOpenChange(false)}
           >
             {t("Cancel")}

@@ -48,10 +48,21 @@ export const deleteOrder = async (orderId: string) => {
   return response.data;
 };
 
+export const payOrder = async (
+  orderId: string,
+  paymentMethod: "cash" | "card" | "mix" | string,
+) => {
+  const response = await api.patch(ORDER_ENDPOINTS.PAY_ORDER(orderId), {
+    paymentMethod,
+  });
+  return response.data;
+};
+
 export const ordersApi = {
   getOrders,
   createOrder,
   getOrderById,
   updateOrderStatus,
   deleteOrder,
+  payOrder,
 };

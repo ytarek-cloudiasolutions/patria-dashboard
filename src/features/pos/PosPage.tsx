@@ -410,21 +410,26 @@ const PosPage = () => {
     if (cartItems.length === 0) return;
 
     const currentTotal = totals.total;
+    const { payOrder, createOrder } = await import("@/features/orders/api/ordersApi");
 
-    // If this is a loaded pending order → just mark it delivered + set payment method
+    // If this is a loaded pending order → pay it via PATCH /orders/{id}/pay
     if (loadedOrderId) {
       setPendingCreatePayload({ method });
       try {
-        const { api } = await import("@/config/api");
-        await api.put(`/orders/${loadedOrderId}`, { status: "delivered", paymentMethod: method });
+        await payOrder(loadedOrderId, method);
         setLoadedOrderId(null);
         setPendingCreatePayload(null);
         setPaymentOpen(false);
         setShiftOrders((prev) => [...prev, { method, total: currentTotal }]);
+        showSuccessToast("Payment confirmed");
         finishWithReceipt();
-      } catch {
+      } catch (err: any) {
         setPendingCreatePayload(null);
-        showErrorToast("Failed to complete order");
+        const errMsg =
+          err?.response?.data?.message ||
+          err?.message ||
+          "Failed to complete order payment";
+        showErrorToast(errMsg);
       }
       return;
     }
@@ -436,18 +441,45 @@ const PosPage = () => {
       notes: item.instructions || undefined,
     }));
 
-    pendingPaymentRef.current = { method, total: currentTotal };
+    // Brand new POS order: create it and pay via PATCH /orders/{id}/pay
     setPendingCreatePayload({ method });
-    createNewOrder({
-      type: orderType === "dine-in" ? "dine_in" : "takeaway",
-      source: "pos",
-      customerName: customer || "Walk-in Customer",
-      customerPhone: "",
-      address: orderType === "dine-in" ? resolvedTable : undefined,
-      paymentMethod: method,
-      items: orderItems,
-      notes: notes || undefined,
-    });
+    try {
+      const created: any = await createOrder({
+        type: orderType === "dine-in" ? "dine_in" : "takeaway",
+        source: "pos",
+        customerName: customer || "Walk-in Customer",
+        customerPhone: "",
+        address: orderType === "dine-in" ? resolvedTable : undefined,
+        paymentMethod: method,
+        items: orderItems,
+        notes: notes || undefined,
+      });
+
+      const createdId =
+        created?.data?._id ||
+        created?.data?.id ||
+        created?.order?._id ||
+        created?.order?.id ||
+        created?._id ||
+        created?.id;
+
+      if (createdId) {
+        await payOrder(createdId, method);
+      }
+
+      setPendingCreatePayload(null);
+      setPaymentOpen(false);
+      setShiftOrders((prev) => [...prev, { method, total: currentTotal }]);
+      showSuccessToast("Payment confirmed");
+      finishWithReceipt();
+    } catch (err: any) {
+      setPendingCreatePayload(null);
+      const errMsg =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to complete order payment";
+      showErrorToast(errMsg);
+    }
   };
 
   const confirmStaffOrder = () => {
@@ -474,6 +506,11 @@ const PosPage = () => {
   const payEmployeeAccount = (account: EmployeeAccount) => {
     setPayAccount(account);
     setPaymentRegOpen(true);
+  };
+
+  const handleConfirmPaymentRegistration = (amount: number, method: string) => {
+    setPaymentRegOpen(false);
+    showSuccessToast(`Registered payment of EGP ${amount.toFixed(2)} (${method})`);
   };
 
   const selectPendingOrder = (order: PendingOrder) => {
@@ -607,7 +644,7 @@ const PosPage = () => {
         open={isPaymentRegOpen}
         account={payAccount}
         onOpenChange={setPaymentRegOpen}
-        onConfirm={() => setPaymentRegOpen(false)}
+        onConfirm={handleConfirmPaymentRegistration}
       />
 
       <PendingOrdersDialog

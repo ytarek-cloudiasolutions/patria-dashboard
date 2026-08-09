@@ -62,7 +62,7 @@ const PaymentDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="w-[600px] max-w-[calc(100%-2rem)] gap-0 rounded-[12px] bg-white p-6 sm:max-w-[600px]"
+        className="w-[600px] max-w-[calc(100%-2rem)] gap-0 rounded-[16px] border border-[#E5E5E5] bg-white p-6 sm:p-7 sm:max-w-[600px]"
       >
         <DialogHeader>
           <DialogTitle className="text-[20px] font-bold text-[#333333]">
@@ -80,10 +80,10 @@ const PaymentDialog = ({
                 <button
                   key={option.method}
                   className={cn(
-                    "flex h-[78px] flex-col items-center justify-center gap-2 rounded-[8px] border bg-white text-[15px] font-medium text-[#333333]",
+                    "flex h-[78px] flex-col items-center justify-center gap-2 rounded-[8px] border bg-white text-[15px] font-medium text-[#333333] cursor-pointer",
                     isActive
                       ? "border-primary bg-[#FBF6EE]"
-                      : "border-[#DEDEDE] hover:border-primary/50",
+                      : "border-[#DEDEDE]",
                   )}
                   onClick={() => setMethod(option.method)}
                 >
@@ -142,13 +142,13 @@ const PaymentDialog = ({
         <DialogFooter className="mt-6 gap-3 border-t border-[#E1E1E1] bg-white px-0 pb-0 pt-5">
           <Button
             variant="outline"
-            className="h-12 min-w-[110px] rounded-[8px] border-primary bg-white text-[13px] font-semibold text-primary hover:bg-[#FBF6EE]"
+            className="h-12 min-w-[110px] rounded-[8px] border-primary bg-white text-[13px] font-semibold text-primary cursor-pointer"
             onClick={() => onOpenChange(false)}
           >
             {t("Cancel")}
           </Button>
           <Button
-            className="h-12 flex-1 rounded-[8px] bg-primary text-[13px] font-semibold text-white hover:opacity-90 disabled:opacity-60"
+            className="h-12 flex-1 rounded-[8px] bg-primary text-[13px] font-semibold text-white cursor-pointer disabled:opacity-60"
             disabled={isLoading}
             onClick={() => onConfirm(method)}
           >

@@ -395,3 +395,40 @@
     @apply text-[#595959] text-[14px] font-semibold;
   }
 }
+
+/* POS & Dialog Buttons: Pointer cursor & zero hover effects */
+button,
+[role="button"],
+.pos-terminal button,
+.pos-terminal [role="button"],
+[role="dialog"] button,
+[role="dialog"] [role="button"],
+[data-slot="dialog-content"] button,
+[data-slot="dialog-content"] [role="button"],
+[data-radix-portal] button,
+[data-radix-portal] [role="button"] {
+  cursor: pointer !important;
+}
+
+.pos-terminal button:hover,
+.pos-terminal [role="button"]:hover,
+[role="dialog"] button:hover,
+[role="dialog"] [role="button"]:hover,
+[data-slot="dialog-content"] button:hover,
+[data-slot="dialog-content"] [role="button"]:hover,
+[data-radix-portal] button:hover,
+[data-radix-portal] [role="button"]:hover {
+  filter: none !important;
+  transform: none !important;
+  transition: none !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+}
+
+/* Cancel / Outline Buttons no-hover */
+button[data-variant="outline"]:hover,
+button.border-primary:hover {
+  background-color: #ffffff !important;
+  color: var(--primary) !important;
+  border-color: var(--primary) !important;
+}

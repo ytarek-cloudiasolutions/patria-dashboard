@@ -9,7 +9,7 @@ type PosShellProps = {
 
 const PosShell = ({ sidebar, topbar, children, cart }: PosShellProps) => {
   return (
-    <div className="flex h-svh overflow-hidden bg-[#FAFAF7] text-[#28293D]">
+    <div className="pos-terminal flex h-svh overflow-hidden bg-[#FAFAF7] text-[#28293D]">
       {sidebar}
       <section className="flex min-w-0 flex-1 flex-col">
         {topbar}

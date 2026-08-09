@@ -1,7 +1,7 @@
 import {
   CalendarClock,
   Clock3,
-  LayoutDashboard,
+  LayoutGrid,
   Lock,
   Store,
   Users,
@@ -42,17 +42,14 @@ const PosSidebar = ({
   onCloseRegister,
   onBackToDashboard,
 }: PosSidebarProps) => {
-  const { t } = useTranslation();
-
-  const actionButton =
-    "flex h-11 w-full items-center gap-2.5 rounded-[8px] border px-3.5 text-[12px] font-semibold transition-colors";
+  const { t, language, toggleLanguage } = useTranslation();
 
   return (
-    <aside className="z-70 flex h-svh w-[230px] shrink-0 flex-col overflow-hidden border-e border-[#EDEBE7] bg-white">
+    <aside className="z-70 flex h-svh w-[240px] shrink-0 flex-col overflow-hidden border-e border-[#EDEBE7] bg-white">
       {/* Brand */}
       <div className="shrink-0 px-4 pt-6">
         <div className="flex items-center gap-3">
-          <div className="flex size-10 items-center justify-center rounded-[8px] bg-primary">
+          <div className="flex size-10 items-center justify-center rounded-[8px] bg-[#8F6900]">
             <Store className="size-5 text-white" />
           </div>
           <div className="min-w-0">
@@ -71,10 +68,10 @@ const PosSidebar = ({
             <button
               key={type}
               className={cn(
-                "h-9 rounded-[6px] text-[11px] font-bold uppercase tracking-wide transition-colors",
+                "h-9 rounded-[6px] text-[11px] font-bold uppercase tracking-wide cursor-pointer",
                 orderType === type
-                  ? "bg-primary text-white"
-                  : "text-primary hover:bg-white/60",
+                  ? "bg-[#8F6900] text-white"
+                  : "text-[#8F6900] bg-transparent",
               )}
               onClick={() => onOrderTypeChange(type)}
             >
@@ -92,73 +89,67 @@ const PosSidebar = ({
               {t("Table Number")}
             </p>
             <DropdownSelect
-              options={tableOptions && tableOptions.length > 0 ? tableOptions : POS_TABLE_OPTIONS}
+              options={
+                tableOptions && tableOptions.length > 0
+                  ? tableOptions
+                  : POS_TABLE_OPTIONS
+              }
               selected={selectedTable}
               onSelect={onTableChange}
               onOpenChange={onTableMenuOpenChange}
               placeholder={t("Select Table")}
               align="start"
-              className="h-11 rounded-[8px] px-3 text-[13px] font-medium text-[#8B8B8B] md:w-full [&_svg]:size-5"
+              className="h-11 rounded-[8px] px-3 text-[13px] font-medium text-[#8B8B8B] md:w-full [&_svg]:size-5 cursor-pointer"
             />
           </div>
         )}
       </div>
 
-      {/* Bottom actions */}
-      <div className="shrink-0 space-y-2.5 border-t border-[#F3F3F3] px-4 pb-6 pt-4">
+      {/* Bottom actions - Matching Figma specs exactly */}
+      <div className="shrink-0 space-y-[18px] border-t border-[#F3F3F3] px-3.5 pb-6 pt-4">
+        {/* Open/Close Shift */}
         <button
-          className={cn(
-            actionButton,
-            "border-primary/40 bg-white text-primary hover:bg-[#FBF6EE]",
-          )}
+          className="flex h-[40px] w-full items-center justify-center gap-2.5 rounded-[5px] border border-[#8F6900] bg-white px-3 text-[12px] font-semibold leading-6 text-[#8F6900] cursor-pointer whitespace-nowrap"
           onClick={onToggleShift}
         >
-          <CalendarClock className="size-4 shrink-0" />
-          {shiftOpen ? t("Close Shift") : t("Open Shift")}
+          <CalendarClock className="size-[18px] text-[#8F6900] shrink-0" />
+          <span className="whitespace-nowrap">{shiftOpen ? t("Close Shift") : t("Open Shift")}</span>
         </button>
 
+        {/* Pending Orders */}
         <button
-          className={cn(
-            actionButton,
-            "border-[#CBD9F7] bg-[#F2F6FF] text-[#2F66E0] hover:bg-[#E8F0FE]",
-          )}
+          className="flex h-[40px] w-full items-center justify-center gap-2.5 rounded-[5px] border border-[#004EF9] bg-[#EDF4FB] px-3 text-[12px] font-semibold leading-6 text-[#3574FF] cursor-pointer whitespace-nowrap"
           onClick={onOpenPendingOrders}
         >
-          <Clock3 className="size-4 shrink-0" />
-          {t("Pending Orders")}
+          <Clock3 className="size-[18px] text-[#3574FF] shrink-0" />
+          <span className="whitespace-nowrap">{t("Pending Orders")}</span>
         </button>
 
+        {/* Employees accounts */}
         <button
-          className={cn(
-            actionButton,
-            "border-[#DCCBF9] bg-[#F7F2FF] text-[#7A3FF2] hover:bg-[#F0E8FE]",
-          )}
+          className="flex h-[40px] w-full items-center justify-center gap-2.5 rounded-[5px] border border-[#7E00D7] bg-[#F3E9FA] px-3 text-[12px] font-semibold leading-6 text-[#9524E4] cursor-pointer whitespace-nowrap"
           onClick={onOpenEmployeeAccounts}
         >
-          <Users className="size-4 shrink-0" />
-          {t("Employees accounts")}
+          <Users className="size-[18px] text-[#9524E4] shrink-0" />
+          <span className="whitespace-nowrap">{t("Employees accounts")}</span>
         </button>
 
+        {/* Close Register */}
         <button
-          className={cn(
-            actionButton,
-            "border-[#F6D5D5] bg-[#FFF4F4] uppercase text-[#D40000] hover:bg-[#FFEAEA]",
-          )}
+          className="flex h-[40px] w-full items-center justify-center gap-2.5 rounded-[5px] bg-[#C90000] px-3 text-[12px] font-semibold uppercase leading-6 text-white cursor-pointer whitespace-nowrap"
           onClick={onCloseRegister}
         >
-          <Lock className="size-4 shrink-0" />
-          {t("Close Register")}
+          <Lock className="size-[18px] text-white shrink-0" />
+          <span className="whitespace-nowrap">{t("CLOSE REGISTER")}</span>
         </button>
 
+        {/* Back to Dashboard */}
         <button
-          className={cn(
-            actionButton,
-            "border-[#EDE3D2] bg-[#F7F1E9] uppercase text-primary hover:bg-[#F1E8D9]",
-          )}
+          className="flex h-[44px] w-full items-center justify-center gap-2 rounded-[12px] bg-[#F5F0EA] px-2 text-[11.5px] font-bold uppercase tracking-tight text-[#8F6900] cursor-pointer whitespace-nowrap"
           onClick={onBackToDashboard}
         >
-          <LayoutDashboard className="size-4 shrink-0" />
-          {t("Back to Dashboard")}
+          <LayoutGrid className="size-[18px] text-[#8F6900] shrink-0" />
+          <span className="whitespace-nowrap">{t("Back to Dashboard")}</span>
         </button>
       </div>
     </aside>

@@ -125,7 +125,7 @@ const OrderCart = ({
                     </p>
                   </div>
                   <button
-                    className="rounded-[4px] p-1 text-[#595959] hover:bg-[#F6F4F0]"
+                    className="rounded-[4px] p-1 text-[#595959] cursor-pointer"
                     aria-label={`${t("Remove")} ${item.name}`}
                     onClick={() => onRemoveItem(item.lineId)}
                   >
@@ -136,7 +136,7 @@ const OrderCart = ({
                 <div className="mt-3 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <button
-                      className="flex size-7 items-center justify-center rounded-[6px] border border-[#E5E2DD] bg-[#FAFAFA] text-[#333333] hover:bg-[#F2F0EC]"
+                      className="flex size-7 items-center justify-center rounded-[6px] border border-[#E5E2DD] bg-[#FAFAFA] text-[#333333] cursor-pointer"
                       aria-label={`${t("Decrease")} ${item.name}`}
                       onClick={() => onUpdateQty(item.lineId, -1)}
                     >
@@ -146,7 +146,7 @@ const OrderCart = ({
                       {item.qty}
                     </span>
                     <button
-                      className="flex size-7 items-center justify-center rounded-[6px] border border-[#E5E2DD] bg-[#FAFAFA] text-[#333333] hover:bg-[#F2F0EC]"
+                      className="flex size-7 items-center justify-center rounded-[6px] border border-[#E5E2DD] bg-[#FAFAFA] text-[#333333] cursor-pointer"
                       aria-label={`${t("Increase")} ${item.name}`}
                       onClick={() => onUpdateQty(item.lineId, 1)}
                     >
@@ -182,7 +182,7 @@ const OrderCart = ({
                       ))}
                     </div>
                     <button
-                      className="mt-2.5 flex items-center gap-1.5 text-[11px] font-semibold text-primary"
+                      className="mt-2.5 flex items-center gap-1.5 text-[11px] font-semibold text-primary cursor-pointer"
                       onClick={() => onEditItem(item.lineId)}
                     >
                       <Pencil className="size-3.5" />
@@ -236,7 +236,7 @@ const OrderCart = ({
 
         {showSendToKitchen ? (
           <button
-            className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-[8px] bg-primary text-[13px] font-bold uppercase text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+            className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-[8px] bg-primary text-[13px] font-bold uppercase text-white cursor-pointer disabled:opacity-50"
             disabled={isCartEmpty}
             onClick={onSendToKitchen}
           >
@@ -246,7 +246,7 @@ const OrderCart = ({
         ) : (
           <div className="mt-4 space-y-2.5">
             <button
-              className="flex h-12 w-full items-center justify-center gap-2 rounded-[8px] bg-primary text-[13px] font-bold uppercase text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+              className="flex h-12 w-full items-center justify-center gap-2 rounded-[8px] bg-primary text-[13px] font-bold uppercase text-white cursor-pointer disabled:opacity-50"
               disabled={isCartEmpty}
               onClick={onCheckout}
             >
@@ -254,7 +254,7 @@ const OrderCart = ({
               {t("Checkout")}
             </button>
             <button
-              className="flex h-12 w-full items-center justify-center gap-2 rounded-[8px] border border-primary bg-white text-[12px] font-bold uppercase text-primary transition-colors hover:bg-[#FBF6EE] disabled:opacity-50"
+              className="flex h-12 w-full items-center justify-center gap-2 rounded-[8px] border border-primary bg-white text-[12px] font-bold uppercase text-primary cursor-pointer disabled:opacity-50"
               disabled={isCartEmpty}
               onClick={onDeductFromEmployee}
             >
