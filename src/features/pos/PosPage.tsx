@@ -34,6 +34,8 @@ import { computeTotals, formatTime } from "./utils";
 import { useProducts } from "@/features/products/hooks/useProducts";
 import { useCategories } from "@/features/categories";
 import { useOrders } from "@/features/orders/hooks/useOrders";
+import { useTables } from "@/features/tables/hooks/useTables";
+import { POS_TABLE_OPTIONS } from "./data";
 import { showSuccessToast, showErrorToast } from "@/shared/utils/toast";
 
 const DEFAULT_TABLE = "Table 3";
@@ -45,6 +47,7 @@ const PosPage = () => {
   const { products, getProducts } = useProducts();
   const { categories, getCategories } = useCategories();
   const { createNewOrder, isCreatingOrder, successMessage, errors } = useOrders();
+  const { tables, getTables } = useTables();
 
   // Order context
   const [orderType, setOrderType] = useState<OrderType>("dine-in");
@@ -88,7 +91,28 @@ const PosPage = () => {
   useEffect(() => {
     getProducts({ limit: 100 });
     getCategories();
-  }, [getProducts, getCategories]);
+    getTables();
+  }, [getProducts, getCategories, getTables]);
+
+  // Dynamically map backend tables to POS dropdown options
+  const tableOptions = useMemo(() => {
+    if (tables && tables.length > 0) {
+      return [...tables]
+        .sort((a, b) => a.number - b.number)
+        .map((t) => `Table ${t.number}`);
+    }
+    return POS_TABLE_OPTIONS;
+  }, [tables]);
+
+  // Auto-select first available backend table if none selected yet
+  useEffect(() => {
+    if (tables && tables.length > 0 && !selectedTable) {
+      const sorted = [...tables].sort((a, b) => a.number - b.number);
+      if (sorted[0]) {
+        setSelectedTable(`Table ${sorted[0].number}`);
+      }
+    }
+  }, [tables, selectedTable]);
 
   useEffect(() => {
     const timer = window.setInterval(
@@ -440,6 +464,7 @@ const PosPage = () => {
           <PosSidebar
             orderType={orderType}
             selectedTable={selectedTable}
+            tableOptions={tableOptions}
             shiftOpen={shiftOpen}
             onOrderTypeChange={handleOrderTypeChange}
             onTableChange={setSelectedTable}

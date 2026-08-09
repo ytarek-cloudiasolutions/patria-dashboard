@@ -16,6 +16,7 @@ import type { OrderType } from "../types";
 type PosSidebarProps = {
   orderType: OrderType;
   selectedTable: string;
+  tableOptions?: string[];
   shiftOpen: boolean;
   onOrderTypeChange: (value: OrderType) => void;
   onTableChange: (value: string) => void;
@@ -30,6 +31,7 @@ type PosSidebarProps = {
 const PosSidebar = ({
   orderType,
   selectedTable,
+  tableOptions,
   shiftOpen,
   onOrderTypeChange,
   onTableChange,
@@ -90,7 +92,7 @@ const PosSidebar = ({
               {t("Table Number")}
             </p>
             <DropdownSelect
-              options={POS_TABLE_OPTIONS}
+              options={tableOptions && tableOptions.length > 0 ? tableOptions : POS_TABLE_OPTIONS}
               selected={selectedTable}
               onSelect={onTableChange}
               onOpenChange={onTableMenuOpenChange}
