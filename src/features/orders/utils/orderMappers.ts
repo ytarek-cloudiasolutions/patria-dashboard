@@ -187,6 +187,7 @@ export const mapOrder = (o: any): Order => {
     source: (o.source || (o.type === "takeaway" ? "call" : "application")).toLowerCase() as OrderSource,
     paymentMethod: o.paymentMethod || "Cash on delivery",
     paymentState,
+    type: o.type,
     items,
     driver: o.assignedDriver?.name || o.driver || undefined,
   };

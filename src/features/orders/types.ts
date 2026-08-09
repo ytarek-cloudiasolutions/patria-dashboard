@@ -59,6 +59,7 @@ export interface Order {
   paymentMethod: string;
   paymentState: PaymentState;
   items: OrderLineItem[];
+  type?: string;
   driver?: string;
 }
 
