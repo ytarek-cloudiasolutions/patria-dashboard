@@ -180,7 +180,7 @@ export const mapOrder = (o: any): Order => {
     total: o.totalAmount || o.total || subtotal,
     gross: o.gross ?? (o.subtotal || subtotal) + (o.tax || 0),
     subtotal: o.subtotal || subtotal,
-    discount: o.discount || 0,
+    discount: o.discountAmount ?? o.discount ?? 0,
     deliveryFee: o.deliveryFee || 0,
     status: mapOrderStatus(o.status),
     category,

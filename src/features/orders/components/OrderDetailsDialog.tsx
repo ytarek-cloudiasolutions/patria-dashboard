@@ -44,11 +44,20 @@ const OrderDetailsDialog = ({
 
   if (!order) return null;
 
-  const displayId = order.orderId || order.id;
-  const grossTotal = order.total;
-  const finalTotal = Math.max(grossTotal - adminDiscount, 0);
-
   const rawOrder = order as any;
+  const backendDiscount = Number(
+    order.discount ?? rawOrder.discountAmount ?? rawOrder.discount ?? 0
+  );
+  const effectiveDiscount = adminDiscount > 0 ? adminDiscount : backendDiscount;
+
+  const displayId = order.orderId || order.id;
+  const subtotal = order.subtotal || 0;
+  const deliveryFee = order.deliveryFee || 0;
+  const baseBeforeDiscount =
+    subtotal > 0
+      ? subtotal + deliveryFee
+      : (order.total || 0) + backendDiscount;
+  const finalTotal = Math.max(baseBeforeDiscount - effectiveDiscount, 0);
   const zoneName =
     order.zone ||
     (typeof rawOrder.customer?.region === "object"
@@ -73,16 +82,22 @@ const OrderDetailsDialog = ({
     }
   };
 
-  const handleApplyDiscount = async (discount: number, reason: string) => {
+  const handleApplyDiscount = async (
+    discount: number,
+    password: string,
+    reason: string
+  ) => {
     setAdminDiscount(discount);
     try {
       await api.patch(`/orders/${order.id}/discount`, {
         discountAmount: discount,
+        password,
         reason,
       });
       showSuccessToast(t("Discount applied successfully"));
-    } catch {
-      showErrorToast(t("Failed to save discount"));
+    } catch (error: any) {
+      const serverMessage = error?.response?.data?.message;
+      showErrorToast(serverMessage || t("Failed to save discount"));
     }
   };
 
@@ -149,7 +164,7 @@ const OrderDetailsDialog = ({
         <div class="divider"></div>
         <div class="row"><span>المجموع الفرعي:</span><span>${formatCurrency(order.subtotal)}</span></div>
         ${order.deliveryFee > 0 ? `<div class="row"><span>رسوم التوصيل:</span><span>${formatCurrency(order.deliveryFee)}</span></div>` : ""}
-        ${adminDiscount > 0 ? `<div class="row"><span>الخصم:</span><span>-${formatCurrency(adminDiscount)}</span></div>` : ""}
+        ${effectiveDiscount > 0 ? `<div class="row"><span>الخصم:</span><span>-${effectiveDiscount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>` : ""}
         <div class="divider"></div>
         <div class="row total"><span>الإجمالي:</span><span>${formatCurrency(finalTotal)}</span></div>
         <div class="divider"></div>
@@ -351,10 +366,16 @@ const OrderDetailsDialog = ({
                   <span>{t("Delivery Fees")}:</span>
                   <span>{formatCurrency(order.deliveryFee)}</span>
                 </div>
-                {adminDiscount > 0 && (
+                {effectiveDiscount > 0 && (
                   <div className="flex items-center justify-between text-[#059B5A]">
                     <span>{t("Discount")}:</span>
-                    <span>-{formatCurrency(adminDiscount)}</span>
+                    <span>
+                      -
+                      {effectiveDiscount.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </span>
                   </div>
                 )}
                 <Separator className="bg-[#D9D9D9]" />
@@ -409,7 +430,7 @@ const OrderDetailsDialog = ({
 
       <AdministrativeDiscountDialog
         open={isDiscountOpen}
-        total={grossTotal}
+        total={baseBeforeDiscount}
         onOpenChange={setIsDiscountOpen}
         onApply={handleApplyDiscount}
       />

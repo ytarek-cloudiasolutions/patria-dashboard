@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { ShieldCheck } from "lucide-react";
 
 import {
   Dialog,
@@ -15,7 +14,7 @@ interface AdministrativeDiscountDialogProps {
   open: boolean;
   total: number;
   onOpenChange: (open: boolean) => void;
-  onApply: (discount: number, reason: string) => void;
+  onApply: (discount: number, password: string, reason: string) => void;
 }
 
 type DiscountMode = "fixed" | "percentage";
@@ -34,7 +33,6 @@ const AdministrativeDiscountDialog = ({
 }: AdministrativeDiscountDialogProps) => {
   const { t } = useTranslation();
   const [password, setPassword] = useState("");
-  const [verified, setVerified] = useState(false);
   const [mode, setMode] = useState<DiscountMode>("fixed");
   const [amount, setAmount] = useState("");
   const [reason, setReason] = useState("");
@@ -42,7 +40,6 @@ const AdministrativeDiscountDialog = ({
   useEffect(() => {
     if (!open) {
       setPassword("");
-      setVerified(false);
       setMode("fixed");
       setAmount("");
       setReason("");
@@ -56,11 +53,11 @@ const AdministrativeDiscountDialog = ({
   }, [amount, mode, total]);
 
   const totalAfterDiscount = Math.max(total - discount, 0);
-  const canApply = verified && discount > 0;
+  const canApply = password.trim().length > 0 && discount > 0;
 
   const handleApply = () => {
     if (!canApply) return;
-    onApply(discount, reason.trim());
+    onApply(discount, password.trim(), reason.trim());
     onOpenChange(false);
   };
 
@@ -75,30 +72,17 @@ const AdministrativeDiscountDialog = ({
             {t("Administrative discount application")}
           </DialogTitle>
 
-          {/* Password + Check */}
-          <div className="flex items-end gap-2.5">
+          {/* Password */}
+          <div>
             <InputField
               id="admin-discount-password"
               label={t("Password")}
               required
               type="password"
               placeholder="••••••••"
-              wrapperClassName="flex-1"
               inputProps={{
                 value: password,
-                onChange: (e) => {
-                  setPassword(e.target.value);
-                  setVerified(false);
-                },
-              }}
-            />
-            <DefaultButton
-              data={{
-                buttonText: t("Check"),
-                type: "button",
-                icon: verified ? <ShieldCheck className="size-4" /> : undefined,
-                onClick: () => setVerified(password.trim().length > 0),
-                className: "sm:h-12.5",
+                onChange: (e) => setPassword(e.target.value),
               }}
             />
           </div>
@@ -165,7 +149,11 @@ const AdministrativeDiscountDialog = ({
             <div className="mt-2 flex items-center text-[13px] gap-1 text-[#8B8B8B]">
               <span>{t("Discount")}:</span>
               <span className="text-[#333333] font-semibold">
-                {formatCurrency(discount)}
+                -
+                {discount.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </span>
             </div>
             <div className="mt-2 flex items-center text-[13px] gap-1 text-[#8B8B8B]">
