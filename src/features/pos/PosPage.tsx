@@ -97,9 +97,12 @@ const PosPage = () => {
     setIsOpenShiftDialogOpen(false);
   };
 
+  const [summaryShiftId, setSummaryShiftId] = useState<string | null>(null);
+
   const handleCloseShiftConfirm = (closingCash: number, notes: string) => {
     const shiftId = (currentShift as any)?._id || (currentShift as any)?.id || "";
     const trimmedNotes = notes.trim();
+    if (shiftId) setSummaryShiftId(shiftId);
     apiCloseShift({
       shiftId,
       closingBalance: closingCash,
@@ -617,6 +620,7 @@ const PosPage = () => {
       <ShiftSummaryDialog
         open={isShiftSummaryOpen}
         onOpenChange={setShiftSummaryOpen}
+        shiftId={summaryShiftId}
         shiftOrders={shiftOrders}
       />
 

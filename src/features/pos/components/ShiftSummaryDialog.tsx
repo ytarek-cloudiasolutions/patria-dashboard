@@ -1,5 +1,6 @@
-import { useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Banknote, CreditCard, WalletCards } from "lucide-react";
+import { api } from "@/config/api";
 
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -18,7 +19,9 @@ type ShiftOrder = { method: PaymentMethod; total: number };
 type ShiftSummaryDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  shiftOrders: ShiftOrder[];
+  shiftOrders?: ShiftOrder[];
+  shiftId?: string | null;
+  closedShift?: any;
 };
 
 const methodIcons: Record<PaymentMethod, typeof WalletCards> = {
@@ -36,11 +39,57 @@ const METHOD_LABELS: Record<PaymentMethod, string> = {
 const ShiftSummaryDialog = ({
   open,
   onOpenChange,
-  shiftOrders,
+  shiftOrders = [],
+  shiftId,
+  closedShift,
 }: ShiftSummaryDialogProps) => {
   const { t } = useTranslation();
+  const [reportData, setReportData] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!open) {
+      setReportData(null);
+      return;
+    }
+
+    const idToFetch = shiftId || closedShift?._id || closedShift?.id;
+    if (idToFetch) {
+      setLoading(true);
+      api
+        .get(`/pos/shifts/${idToFetch}/report`)
+        .then((res) => {
+          setReportData(res.data?.data || res.data?.report || res.data);
+        })
+        .catch(() => {
+          // Fallback to closedShift object if report API returns error
+          setReportData(closedShift || null);
+        })
+        .finally(() => setLoading(false));
+    } else if (closedShift) {
+      setReportData(closedShift);
+    }
+  }, [open, shiftId, closedShift]);
 
   const summary = useMemo(() => {
+    if (reportData) {
+      const orderCount =
+        reportData.orderCount ??
+        reportData.totalOrders ??
+        (Array.isArray(reportData.orderIds) ? reportData.orderIds.length : 0);
+      const grandTotal =
+        reportData.totalRevenue ??
+        reportData.revenue ??
+        reportData.closingBalance ??
+        0;
+      const totals: Record<PaymentMethod, number> = {
+        cash: reportData.cashTotal ?? reportData.cash ?? 0,
+        card: reportData.cardTotal ?? reportData.card ?? 0,
+        mix: reportData.mixTotal ?? reportData.mix ?? 0,
+      };
+      return { totals, grandTotal, orderCount };
+    }
+
     const totals: Record<PaymentMethod, number> = { cash: 0, card: 0, mix: 0 };
     let grandTotal = 0;
     for (const o of shiftOrders) {
@@ -48,7 +97,7 @@ const ShiftSummaryDialog = ({
       grandTotal += o.total;
     }
     return { totals, grandTotal, orderCount: shiftOrders.length };
-  }, [shiftOrders]);
+  }, [reportData, shiftOrders]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -69,7 +118,7 @@ const ShiftSummaryDialog = ({
                 {t("Number of Orders")}
               </p>
               <p className="text-[24px] font-bold leading-7 text-[#333333]">
-                {summary.orderCount}
+                {loading ? "..." : summary.orderCount}
               </p>
             </div>
             <div className="text-end">
@@ -77,7 +126,7 @@ const ShiftSummaryDialog = ({
                 {t("Total")}
               </p>
               <p className="text-[24px] font-bold leading-7 text-[#00A662]">
-                {formatEgp(summary.grandTotal)}
+                {loading ? "..." : formatEgp(summary.grandTotal)}
               </p>
             </div>
           </div>
@@ -95,7 +144,7 @@ const ShiftSummaryDialog = ({
                     {t(METHOD_LABELS[method])}
                   </p>
                   <p className="text-[12px] font-bold text-[#333333]">
-                    {formatEgp(summary.totals[method])}
+                    {loading ? "..." : formatEgp(summary.totals[method])}
                   </p>
                 </div>
               );
