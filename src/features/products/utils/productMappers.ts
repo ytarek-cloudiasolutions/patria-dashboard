@@ -46,6 +46,15 @@ export const mapProduct = (backendProduct: any): Product => {
     active: e.active ?? e.isActive ?? true,
   }));
 
+  const isIngredient = Boolean(
+    backendProduct.isIngredient ||
+    backendProduct.category?.isIngredient ||
+    categoryName.toLowerCase().trim() === "raw ingredients" ||
+    categoryName.toLowerCase().trim() === "raw ingredient" ||
+    categoryName.toLowerCase().trim() === "ingredients" ||
+    categoryName.trim() === "المكونات الخام"
+  );
+
   return {
     id: backendProduct._id || backendProduct.id,
     name: backendProduct.name,
@@ -58,6 +67,7 @@ export const mapProduct = (backendProduct: any): Product => {
     variantGroups,
     quantity: backendProduct.inventory ?? backendProduct.stockQty ?? 0,
     unit: (backendProduct.unit === "pcs" || backendProduct.unit === "pc" || !backendProduct.unit) ? "Piece(s)" : backendProduct.unit,
+    isIngredient,
   };
 };
 

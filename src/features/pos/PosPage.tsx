@@ -190,26 +190,70 @@ const PosPage = () => {
     }
   }, [isCreatingOrder, successMessage, errors.create]);
 
-  // Map backend products → PosProduct
+  // Fetch products whenever search or activeCategory changes
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      const params: Record<string, any> = { limit: 100 };
+      if (search.trim()) {
+        params.search = search.trim();
+      }
+      if (activeCategory !== "all") {
+        const selectedCategoryObj = categories.find(
+          (c) => (c.name || "").toLowerCase().replace(/\s+/g, "-") === activeCategory
+        );
+        if (selectedCategoryObj) {
+          params.category = selectedCategoryObj.id || selectedCategoryObj.name;
+        } else {
+          params.category = activeCategory;
+        }
+      }
+      getProducts(params);
+    }, 300);
+
+    return () => clearTimeout(handler);
+  }, [search, activeCategory, categories, getProducts]);
+
+  // Map backend products → PosProduct (excluding raw ingredients)
   const posProducts: PosProduct[] = useMemo(() => {
-    return products.map((p) => ({
-      id: p.id,
-      name: p.name,
-      price: p.price,
-      category: (p.category || "").toLowerCase().replace(/\s+/g, "-"),
-      imageUrl: p.imageUrl,
-      extras: p.extras?.map((e) => ({ id: e.id, name: e.name, price: e.price })) ?? [],
-      stockBadge: (p.quantity ?? 0) < 10 && (p.quantity ?? 0) > 0
-        ? `Low - ${p.quantity}`
-        : undefined,
-    }));
+    return products
+      .filter((p) => {
+        const isIngr =
+          p.isIngredient ||
+          (p as any).category?.isIngredient ||
+          (p.category || "").toLowerCase().trim() === "raw ingredients" ||
+          (p.category || "").toLowerCase().trim() === "raw ingredient" ||
+          (p.category || "").toLowerCase().trim() === "ingredients" ||
+          (p.category || "").trim() === "المكونات الخام";
+        return !isIngr;
+      })
+      .map((p) => ({
+        id: p.id,
+        name: p.name,
+        price: p.price,
+        category: (p.category || "").toLowerCase().replace(/\s+/g, "-"),
+        imageUrl: p.imageUrl,
+        extras: p.extras?.map((e) => ({ id: e.id, name: e.name, price: e.price })) ?? [],
+        stockBadge: (p.quantity ?? 0) < 10 && (p.quantity ?? 0) > 0
+          ? `Low - ${p.quantity}`
+          : undefined,
+      }));
   }, [products]);
 
-  // Map backend categories → PosCategory (prepend "All")
+  // Map backend categories → PosCategory (excluding raw ingredients categories, prepend "All")
   const posCategories: PosCategory[] = useMemo(() => {
+    const filteredCategories = categories.filter((c) => {
+      const isIngr =
+        (c as any).isIngredient ||
+        (c.name || "").toLowerCase().trim() === "raw ingredients" ||
+        (c.name || "").toLowerCase().trim() === "raw ingredient" ||
+        (c.name || "").toLowerCase().trim() === "ingredients" ||
+        (c.name || "").trim() === "المكونات الخام";
+      return !isIngr;
+    });
+
     const cats: PosCategory[] = [
       { id: "all", label: "All", imageUrl: "" },
-      ...categories.map((c) => ({
+      ...filteredCategories.map((c) => ({
         id: (c.name || "").toLowerCase().replace(/\s+/g, "-"),
         label: c.name,
         imageUrl: "",

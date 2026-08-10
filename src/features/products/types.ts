@@ -24,6 +24,7 @@ export interface Product {
   quantity?: number;
   unit?: string;
   productType?: string;
+  isIngredient?: boolean;
 }
 
 // --- Ingredients (Recipes tab) ---------------------------------------------
