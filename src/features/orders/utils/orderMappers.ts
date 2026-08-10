@@ -12,8 +12,16 @@ export const mapOrderStatus = (backendStatus: string): OrderStatus => {
     case "ready":
       return "On The Way";
     case "delivered":
+    // The driver app's "mark delivered" flow sets the order to 'completed'
+    // (see driverController.updateOrderStatus), and dine-in POS orders can
+    // land on 'served' — both are terminal/delivered states in the UI.
+    // Without these, a driver completing delivery looked like it "didn't
+    // update" the dashboard (it silently fell through to "Pending" below).
+    case "completed":
+    case "served":
       return "Delivered";
     case "cancelled":
+    case "canceled":
       return "Cancelled";
     default:
       return "Pending";
