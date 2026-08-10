@@ -52,6 +52,8 @@ export interface Order {
   gross?: number;
   subtotal: number;
   discount: number;
+  discountType?: "fixed" | "percentage";
+  discountValue?: number;
   deliveryFee: number;
   status: OrderStatus;
   category: Exclude<OrderCategory, "All Categories">;

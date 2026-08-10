@@ -154,11 +154,9 @@ const AdministrativeDiscountDialog = ({
             <div className="mt-2 flex items-center text-[13px] gap-1 text-[#8B8B8B]">
               <span>{t("Discount")}:</span>
               <span className="text-[#333333] font-semibold">
-                -
-                {discount.toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
+                {mode === "percentage"
+                  ? `- ${amount || 0}% (${formatCurrency(discount)})`
+                  : `-${formatCurrency(discount)}`}
               </span>
             </div>
             <div className="mt-2 flex items-center text-[13px] gap-1 text-[#8B8B8B]">

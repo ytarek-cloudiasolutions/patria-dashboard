@@ -40,10 +40,14 @@ const OrderDetailsDialog = ({
   const { t } = useTranslation();
   const [isDiscountOpen, setIsDiscountOpen] = useState(false);
   const [adminDiscount, setAdminDiscount] = useState(0);
+  const [appliedDiscountType, setAppliedDiscountType] = useState<"fixed" | "percentage" | null>(null);
+  const [appliedDiscountValue, setAppliedDiscountValue] = useState<number | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setAdminDiscount(0);
+    setAppliedDiscountType(null);
+    setAppliedDiscountValue(null);
   }, [order?.id]);
 
   if (!order) return null;
@@ -53,6 +57,31 @@ const OrderDetailsDialog = ({
     order.discount ?? rawOrder.discountAmount ?? rawOrder.discount ?? 0
   );
   const effectiveDiscount = adminDiscount > 0 ? adminDiscount : backendDiscount;
+
+  const effectiveDiscountType: "fixed" | "percentage" =
+    appliedDiscountType ||
+    order.discountType ||
+    rawOrder.discountType ||
+    "fixed";
+
+  const effectiveDiscountValue =
+    appliedDiscountValue ??
+    order.discountValue ??
+    rawOrder.discountValue ??
+    0;
+
+  const getDiscountDisplayText = () => {
+    if (effectiveDiscountType === "percentage") {
+      if (effectiveDiscountValue > 0) {
+        return `- ${effectiveDiscountValue}% (${formatCurrency(effectiveDiscount)})`;
+      }
+      return `- ${effectiveDiscount.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })} %`;
+    }
+    return `-${formatCurrency(effectiveDiscount)}`;
+  };
 
   const displayId = order.orderId || order.id;
   // gross = subtotal + tax, computed the same way the backend computes it —
@@ -132,6 +161,8 @@ const OrderDetailsDialog = ({
       // Reflect the backend's actual resolved amount/total, not a locally
       // guessed one — this is what was showing a stale/unchanged total before.
       setAdminDiscount(response.data?.discountAmount ?? 0);
+      setAppliedDiscountType(discountType);
+      setAppliedDiscountValue(discountValue);
       if (response.data?.order) onOrderUpdated?.(mapOrder(response.data.order));
       showSuccessToast(t("Discount applied successfully"));
     } catch (error: any) {
@@ -349,7 +380,7 @@ const OrderDetailsDialog = ({
         ${effectiveDiscount > 0 ? `
         <div class="row" style="font-weight:bold">
           <span>الخصم:</span>
-          <span>- ${effectiveDiscount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+          <span>${getDiscountDisplayText()}</span>
         </div>` : ""}
         <div class="divider-solid"></div>
         <div class="row total-row">
@@ -574,13 +605,7 @@ const OrderDetailsDialog = ({
                 {effectiveDiscount > 0 && (
                   <div className="flex items-center justify-between text-[#059B5A]">
                     <span>{t("Discount")}:</span>
-                    <span>
-                      -
-                      {effectiveDiscount.toLocaleString(undefined, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
-                    </span>
+                    <span>{getDiscountDisplayText()}</span>
                   </div>
                 )}
                 <Separator className="bg-[#D9D9D9]" />
