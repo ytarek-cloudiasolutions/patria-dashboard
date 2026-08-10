@@ -99,3 +99,12 @@ export type CartTotals = {
   total: number;
   itemCount: number;
 };
+
+export type PosCustomer = {
+  id: string;
+  name: string;
+  phone: string;
+  email?: string;
+  tier?: string;
+  loyaltyPoints?: number;
+};

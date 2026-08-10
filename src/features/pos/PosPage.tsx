@@ -15,6 +15,7 @@ import ProductGrid from "./components/ProductGrid";
 import ReceiptDialog from "./components/ReceiptDialog";
 import SelectStaffDialog from "./components/SelectStaffDialog";
 import ShiftSummaryDialog from "./components/ShiftSummaryDialog";
+import OrderConfirmedDialog from "./components/OrderConfirmedDialog";
 
 import {
   EMPLOYEE_ACCOUNTS,
@@ -61,7 +62,7 @@ const PosPage = () => {
   // Order context
   const [orderType, setOrderType] = useState<OrderType>("dine-in");
   const [selectedTable, setSelectedTable] = useState("");
-  const [customerCount, setCustomerCount] = useState(1);
+  const [customerCount, setCustomerCount] = useState(0);
   const [customer, setCustomer] = useState("");
   const [notes, setNotes] = useState("");
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -119,6 +120,16 @@ const PosPage = () => {
   const [isCustomizeOpen, setCustomizeOpen] = useState(false);
   const [isPaymentOpen, setPaymentOpen] = useState(false);
   const [isReceiptOpen, setReceiptOpen] = useState(false);
+  const [isOrderConfirmedOpen, setOrderConfirmedOpen] = useState(false);
+  const [orderConfirmedData, setOrderConfirmedData] = useState<{
+    orderNumber: string;
+    totalAmount: number;
+    customerName: string;
+    orderType: string;
+    selectedTable: string;
+    cartItems: CartItem[];
+    paymentMethod: string;
+  } | null>(null);
   const [isShiftSummaryOpen, setShiftSummaryOpen] = useState(false);
   const [isSelectStaffOpen, setSelectStaffOpen] = useState(false);
   const [isEmployeeAccountsOpen, setEmployeeAccountsOpen] = useState(false);
@@ -366,20 +377,48 @@ const PosPage = () => {
     setCustomizeOpen(false);
   };
 
+  const handleTableChange = (newTable: string) => {
+    setSelectedTable(newTable);
+    if (!newTable) {
+      setCustomerCount(0);
+      return;
+    }
+    const match = tables?.find(
+      (t) => `Table ${t.number}` === newTable || `${t.number}` === newTable || t._id === newTable
+    );
+    if (match && typeof match.capacity === "number" && match.capacity > 0) {
+      setCustomerCount(match.capacity);
+    } else {
+      setCustomerCount(1);
+    }
+  };
+
   // --- Order completion -----------------------------------------------------
 
   const completeOrder = () => {
     setCartItems([]);
     setNotes("");
     setCustomer("");
+    setSelectedTable("");
+    setCustomerCount(0);
     setSentToKitchen(false);
     setLoadedOrderId(null);
     setSentLineIds(new Set());
   };
 
-  const finishWithReceipt = () => {
-    setOrderNumber(`ORD-${Math.floor(100000 + Math.random() * 900000)}`);
-    setReceiptOpen(true);
+  const finishWithReceipt = (method: string = "cash") => {
+    const generatedNum = `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
+    setOrderNumber(generatedNum);
+    setOrderConfirmedData({
+      orderNumber: generatedNum,
+      totalAmount: totals.total,
+      customerName: customer || "Walk-in Customer",
+      orderType,
+      selectedTable: resolvedTable,
+      cartItems: [...cartItems],
+      paymentMethod: method,
+    });
+    setOrderConfirmedOpen(true);
   };
 
   const handleSendToKitchen = async () => {
@@ -441,7 +480,7 @@ const PosPage = () => {
     // starting a new order. Also avoids a stale loadedOrderId lingering
     // across a table switch and silently merging the next table's items
     // into this one's order.
-    completeOrder();
+    finishWithReceipt();
   };
 
   const handleCheckout = () => setPaymentOpen(true);
@@ -467,7 +506,7 @@ const PosPage = () => {
         setPaymentOpen(false);
         setShiftOrders((prev) => [...prev, { method, total: currentTotal }]);
         showSuccessToast("Payment confirmed");
-        finishWithReceipt();
+        finishWithReceipt(method);
       } catch (err: any) {
         setPendingCreatePayload(null);
         const errMsg =
@@ -516,7 +555,7 @@ const PosPage = () => {
       setPaymentOpen(false);
       setShiftOrders((prev) => [...prev, { method, total: currentTotal }]);
       showSuccessToast("Payment confirmed");
-      finishWithReceipt();
+      finishWithReceipt(method);
     } catch (err: any) {
       setPendingCreatePayload(null);
       const errMsg =
@@ -636,7 +675,7 @@ const PosPage = () => {
             customerCount={customerCount}
             shiftOpen={isShiftActive}
             onOrderTypeChange={handleOrderTypeChange}
-            onTableChange={setSelectedTable}
+            onTableChange={handleTableChange}
             onCustomerCountChange={setCustomerCount}
             onTableMenuOpenChange={setTableMenuOpen}
             onToggleShift={() => (isShiftActive ? setIsCloseShiftDialogOpen(true) : setIsOpenShiftDialogOpen(true))}
@@ -712,6 +751,22 @@ const PosPage = () => {
         items={cartItems}
         totals={totals}
         onOpenChange={handleReceiptClose}
+      />
+
+      <OrderConfirmedDialog
+        open={isOrderConfirmedOpen}
+        onOpenChange={(open) => {
+          setOrderConfirmedOpen(open);
+          if (!open) completeOrder();
+        }}
+        orderNumber={orderConfirmedData?.orderNumber || orderNumber}
+        totalAmount={orderConfirmedData?.totalAmount || totals.total}
+        customerName={orderConfirmedData?.customerName || customer || "Walk-in Customer"}
+        orderType={orderConfirmedData?.orderType || orderType}
+        selectedTable={orderConfirmedData?.selectedTable || resolvedTable}
+        cartItems={orderConfirmedData?.cartItems || cartItems}
+        paymentMethod={orderConfirmedData?.paymentMethod || "cash"}
+        onNewOrder={completeOrder}
       />
 
       <SelectStaffDialog

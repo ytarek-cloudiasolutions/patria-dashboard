@@ -1,20 +1,27 @@
+import { useState } from "react";
 import {
+  Loader2,
   Minus,
   Pencil,
+  Phone,
   Plus,
   Search,
   Send,
   ShoppingBag,
   ShoppingCart,
   SquarePen,
+  Star,
+  Trophy,
+  User,
   UserRound,
   X,
 } from "lucide-react";
 
+import { api } from "@/config/api";
 import { Checkbox } from "@/shared/components/ui/checkbox";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { useTranslation } from "@/shared/i18n/useTranslation";
-import type { CartItem, CartTotals, OrderType } from "../types";
+import type { CartItem, CartTotals, OrderType, PosCustomer } from "../types";
 import { formatEgp, lineTotal } from "../utils";
 
 type OrderCartProps = {
@@ -55,23 +62,143 @@ const OrderCart = ({
   onDeductFromEmployee,
 }: OrderCartProps) => {
   const { t } = useTranslation();
+  const [phoneQuery, setPhoneQuery] = useState(customer);
+  const [isSearchingCustomer, setIsSearchingCustomer] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState<PosCustomer | null>(null);
+  const [searchError, setSearchError] = useState<string | null>(null);
+
   const isCartEmpty = items.length === 0;
   const showSendToKitchen = orderType === "dine-in" && !sentToKitchen;
   const isActionDisabled = isCartEmpty || (orderType === "dine-in" && !selectedTable);
 
+  const handleCustomerSearch = async () => {
+    const normalized = phoneQuery.replace(/\s+/g, "").trim();
+    if (!normalized) return;
+
+    setIsSearchingCustomer(true);
+    setSearchError(null);
+
+    try {
+      const response = await api.get(`/customers/by-phone/${normalized}`);
+      const raw = response.data?.data ?? response.data?.customer ?? response.data;
+      const c = Array.isArray(raw) ? raw[0] : raw;
+
+      if (c && (c.name || c.phone || c._id)) {
+        const found: PosCustomer = {
+          id: c._id || c.id || "cust-1",
+          name: c.name || "Customer",
+          phone: c.phone || normalized,
+          email: c.email,
+          tier: c.tier || "Bronze",
+          loyaltyPoints: c.loyaltyPoints ?? 0,
+        };
+        setSelectedCustomer(found);
+        onCustomerChange(found.name);
+        setSearchError(null);
+      } else {
+        setSelectedCustomer(null);
+        setSearchError(t("No customer found with this phone number"));
+      }
+    } catch (err: any) {
+      setSelectedCustomer(null);
+      setSearchError(t("No customer found with this phone number"));
+    } finally {
+      setIsSearchingCustomer(false);
+    }
+  };
+
   return (
     <aside className="flex h-svh w-[351px] shrink-0 flex-col overflow-hidden border-s border-[#E5E5E5] bg-white py-5">
-      {/* Customer search */}
-      <div className="shrink-0 px-3 pb-2">
-        <div className="relative flex items-center">
-          <Search className="pointer-events-none absolute start-3.5 size-5 text-[#8B8B8B]" />
-          <input
-            value={customer}
-            onChange={(event) => onCustomerChange(event.target.value)}
-            placeholder={t("Search for a customer")}
-            className="h-[50px] w-full rounded-[8px] border border-[#CACBD4] bg-white ps-11 pe-3.5 text-[16px] text-[#333333] outline-none placeholder:text-[#8B8B8B] focus:border-[#8F6900] focus:ring-0 focus-visible:ring-0 transition-colors"
-          />
-        </div>
+      {/* Customer search & profile section */}
+      <div className="shrink-0 px-3 pb-3">
+        {selectedCustomer ? (
+          /* Selected Customer Card */
+          <div className="flex flex-col gap-2 rounded-[12px] border border-[#CACBD4] bg-[#FAFAF7] p-3 shadow-xs">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#8F6900]">
+                  <User className="size-4 text-white" />
+                </div>
+                <span className="truncate text-[14px] font-bold text-[#333333]">
+                  {selectedCustomer.name}
+                </span>
+                {selectedCustomer.tier && (
+                  <span className="inline-flex shrink-0 items-center gap-1 rounded-[20px] border border-[#C7861E] bg-[rgba(254,154,0,0.10)] px-2.5 py-0.5 text-[11px] font-semibold text-[#C7861E]">
+                    <Star className="size-3 fill-[#C7861E] text-[#C7861E]" />
+                    {selectedCustomer.tier}
+                  </span>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedCustomer(null);
+                  setPhoneQuery("");
+                  onCustomerChange("");
+                }}
+                className="p-1 text-[#8B8B8B] transition-colors hover:text-black cursor-pointer"
+                aria-label={t("Remove customer")}
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between text-[12px] font-medium text-[#595959] pt-1 border-t border-[#E5E5E5]/60">
+              <div className="flex items-center gap-1.5">
+                <Phone className="size-3.5 text-[#8B8B8B]" />
+                <span>{selectedCustomer.phone}</span>
+              </div>
+              <div className="flex items-center gap-1.5 font-bold text-[#8F6900]">
+                <Trophy className="size-3.5 text-[#8F6900]" />
+                <span>
+                  {selectedCustomer.loyaltyPoints} {t("points")}
+                </span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* Customer Search Input */
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center gap-2">
+              <div className="relative flex flex-1 items-center">
+                <Phone className="pointer-events-none absolute start-3.5 size-4 text-[#8B8B8B]" />
+                <input
+                  value={phoneQuery}
+                  onChange={(event) => {
+                    setPhoneQuery(event.target.value);
+                    onCustomerChange(event.target.value);
+                    if (searchError) setSearchError(null);
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                      handleCustomerSearch();
+                    }
+                  }}
+                  placeholder={t("Search by phone number")}
+                  className="h-[46px] w-full rounded-[8px] border border-[#CACBD4] bg-white ps-10 pe-3 text-[14px] text-[#333333] outline-none placeholder:text-[#8B8B8B] focus:border-[#8F6900] focus:ring-0 focus-visible:ring-0 transition-colors"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={handleCustomerSearch}
+                disabled={isSearchingCustomer || !phoneQuery.trim()}
+                className="flex h-[46px] items-center justify-center rounded-[8px] bg-[#8F6900] px-3.5 text-[13px] font-semibold text-white transition-colors hover:bg-[#8F6900]/90 disabled:opacity-50 cursor-pointer shrink-0"
+              >
+                {isSearchingCustomer ? (
+                  <Loader2 className="size-4 animate-spin text-white" />
+                ) : (
+                  t("Search")
+                )}
+              </button>
+            </div>
+            {searchError && (
+              <p className="text-[11px] font-medium text-[#C90000] px-1">
+                {searchError}
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Cart header */}
