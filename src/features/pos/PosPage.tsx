@@ -609,10 +609,14 @@ const PosPage = () => {
 
     const { payOrder } = await import("@/features/orders/api/ordersApi");
 
+    // Half a piaster of tolerance so paying the exact displayed "remaining"
+    // total (a value that's itself a sum of floats) doesn't fail to cover
+    // the last order due to binary floating-point rounding.
+    const EPSILON = 0.005;
     let remainingToApply = amount;
     let settledTotal = 0;
     for (const order of account.pendingOrders) {
-      if (remainingToApply < order.total) break;
+      if (remainingToApply + EPSILON < order.total) break;
       try {
         await payOrder(order.id, backendMethod);
         settledTotal += order.total;
