@@ -38,7 +38,6 @@ import { useCategories } from "@/features/categories";
 import { useOrders } from "@/features/orders/hooks/useOrders";
 import { useTables } from "@/features/tables/hooks/useTables";
 import { useShifts } from "@/features/shifts/hooks/useShifts";
-import { POS_TABLE_OPTIONS } from "./data";
 import { showSuccessToast, showErrorToast } from "@/shared/utils/toast";
 
 const DEFAULT_TABLE = "Table 3";
@@ -141,14 +140,14 @@ const PosPage = () => {
     getTables();
   }, [getProducts, getCategories, getTables]);
 
-  // Dynamically map backend tables to POS dropdown options
+  // Dynamically map backend tables to POS dropdown options. No mock fallback —
+  // a silent fallback to fake table numbers here previously masked a real bug
+  // (staff-role users got 403 from GET /tables and never noticed, since the
+  // dropdown kept showing plausible-looking fake tables instead of erroring).
   const tableOptions = useMemo(() => {
-    if (tables && tables.length > 0) {
-      return [...tables]
-        .sort((a, b) => a.number - b.number)
-        .map((t) => `Table ${t.number}`);
-    }
-    return POS_TABLE_OPTIONS;
+    return [...(tables || [])]
+      .sort((a, b) => a.number - b.number)
+      .map((t) => `Table ${t.number}`);
   }, [tables]);
 
   // Auto-select first available backend table if none selected yet
@@ -507,9 +506,48 @@ const PosPage = () => {
     setPaymentRegOpen(true);
   };
 
-  const handleConfirmPaymentRegistration = (amount: number, method: string) => {
+  const handleConfirmPaymentRegistration = async (amount: number, method: string) => {
+    const account = payAccount;
     setPaymentRegOpen(false);
-    showSuccessToast(`Registered payment of EGP ${amount.toFixed(2)} (${method})`);
+    if (!account) return;
+
+    // The backend only supports paying off a whole order at a time, so settle
+    // this employee's oldest unpaid orders one by one until the entered
+    // amount is used up — this is what actually deducts from what's owed,
+    // instead of just showing a toast with no effect on the account.
+    const backendMethod = method.toLowerCase().startsWith("cash")
+      ? "cash"
+      : method.toLowerCase().startsWith("mix")
+      ? "mix"
+      : "card";
+
+    const { payOrder } = await import("@/features/orders/api/ordersApi");
+
+    let remainingToApply = amount;
+    let settledTotal = 0;
+    for (const order of account.pendingOrders) {
+      if (remainingToApply < order.total) break;
+      try {
+        await payOrder(order.id, backendMethod);
+        settledTotal += order.total;
+        remainingToApply -= order.total;
+      } catch {
+        break;
+      }
+    }
+
+    if (settledTotal > 0) {
+      showSuccessToast(
+        `Settled EGP ${settledTotal.toFixed(2)} of ${account.name}'s account (${method})`,
+      );
+    } else {
+      showErrorToast(
+        "Amount is less than the account's oldest unpaid order — nothing was settled",
+      );
+    }
+
+    // Force EmployeeAccountsDialog to refetch fresh balances next time it opens.
+    setEmployeeAccountsOpen(false);
   };
 
   const selectPendingOrder = (order: PendingOrder) => {

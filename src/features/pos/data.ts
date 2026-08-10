@@ -147,17 +147,17 @@ export const EMPLOYEE_ACCOUNTS: EmployeeAccount[] = [
   {
     id: "omnia",
     name: "Omnia Maher",
-    daysLeft: 30,
     total: 250,
     remaining: 250,
+    pendingOrders: [],
     payBook: [],
   },
   {
     id: "esraa",
     name: "Esraa Abdallah",
-    daysLeft: 30,
     total: 1250,
     remaining: 670,
+    pendingOrders: [],
     payBook: [
       { amount: 100, method: "Cash", date: "May 13, 2026, 6:01:28 PM" },
       { amount: 100, method: "Cash", date: "May 13, 2026, 6:01:28 PM" },

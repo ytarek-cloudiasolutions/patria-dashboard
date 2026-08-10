@@ -482,6 +482,16 @@ const OrdersPage = () => {
         onOpenChange={(open) => {
           if (!open) setSelectedOrder(null);
         }}
+        onOrderUpdated={(updated) => {
+          setSelectedOrder(updated);
+          getOrdersList({
+            source: activeSource,
+            limit: 100,
+            page: currentPage,
+            status: selectedStatus === "All statuses" ? undefined : mapOrderStatusToBackend(selectedStatus),
+            search: searchValue.trim() || undefined,
+          });
+        }}
       />
 
       <NewCallOrderDialog

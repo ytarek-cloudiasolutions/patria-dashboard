@@ -72,9 +72,12 @@ export type EmployeeAccountEntry = {
 export type EmployeeAccount = {
   id: string;
   name: string;
-  daysLeft: number;
+  /** Sum of this employee's unpaid POS orders (EGP). */
   total: number;
+  /** Same as `total` until orders are settled — the backend has no partial-order payment. */
   remaining: number;
+  /** The unpaid orders behind `remaining`, oldest first — settled FIFO when a payment is registered. */
+  pendingOrders: { id: string; total: number }[];
   payBook: EmployeeAccountEntry[];
 };
 

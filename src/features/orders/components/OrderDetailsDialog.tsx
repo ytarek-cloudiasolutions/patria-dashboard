@@ -15,11 +15,14 @@ import { useTranslation } from "@/shared/i18n/useTranslation";
 import { translatePaymentMethod } from "../utils";
 import { api } from "@/config/api";
 import { showSuccessToast, showErrorToast } from "@/shared/utils/toast";
+import { mapOrder } from "../utils/orderMappers";
 
 interface OrderDetailsDialogProps {
   open: boolean;
   order: Order | null;
   onOpenChange: (open: boolean) => void;
+  /** Fired with the fresh backend order after a mutation (discount, mark-as-paid) so the caller can update its own copy. */
+  onOrderUpdated?: (order: Order) => void;
 }
 
 const formatCurrency = (amount: number) =>
@@ -32,6 +35,7 @@ const OrderDetailsDialog = ({
   open,
   order,
   onOpenChange,
+  onOrderUpdated,
 }: OrderDetailsDialogProps) => {
   const { t } = useTranslation();
   const [isDiscountOpen, setIsDiscountOpen] = useState(false);
@@ -51,12 +55,11 @@ const OrderDetailsDialog = ({
   const effectiveDiscount = adminDiscount > 0 ? adminDiscount : backendDiscount;
 
   const displayId = order.orderId || order.id;
-  const subtotal = order.subtotal || 0;
-  const deliveryFee = order.deliveryFee || 0;
-  const baseBeforeDiscount =
-    subtotal > 0
-      ? subtotal + deliveryFee
-      : (order.total || 0) + backendDiscount;
+  // gross = subtotal + tax, computed the same way the backend computes it —
+  // this must be the discount base, not subtotal + deliveryFee, or the
+  // preview and the backend's actual result diverge (e.g. on dine-in orders
+  // where tax isn't a delivery fee).
+  const baseBeforeDiscount = order.gross ?? (order.total || 0) + backendDiscount;
   const finalTotal = Math.max(baseBeforeDiscount - effectiveDiscount, 0);
   const zoneName =
     order.zone ||
@@ -103,9 +106,10 @@ const OrderDetailsDialog = ({
 
   const handleMarkAsPaid = async () => {
     try {
-      await api.patch(`/orders/${order.id}/payment-status`, {
+      const response = await api.patch(`/orders/${order.id}/payment-status`, {
         paymentStatus: "paid",
       });
+      if (response.data?.order) onOrderUpdated?.(mapOrder(response.data.order));
       showSuccessToast(t("Order marked as paid"));
     } catch {
       showErrorToast(t("Failed to update payment status"));
@@ -113,17 +117,22 @@ const OrderDetailsDialog = ({
   };
 
   const handleApplyDiscount = async (
-    discount: number,
+    discountType: "fixed" | "percentage",
+    discountValue: number,
     password: string,
     reason: string
   ) => {
-    setAdminDiscount(discount);
     try {
-      await api.patch(`/orders/${order.id}/discount`, {
-        discountAmount: discount,
+      const response = await api.patch(`/orders/${order.id}/discount`, {
+        discountType,
+        discountValue,
         password,
         reason,
       });
+      // Reflect the backend's actual resolved amount/total, not a locally
+      // guessed one — this is what was showing a stale/unchanged total before.
+      setAdminDiscount(response.data?.discountAmount ?? 0);
+      if (response.data?.order) onOrderUpdated?.(mapOrder(response.data.order));
       showSuccessToast(t("Discount applied successfully"));
     } catch (error: any) {
       const serverMessage = error?.response?.data?.message;

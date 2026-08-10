@@ -10,14 +10,19 @@ import InputField from "@/shared/components/InputField";
 import DefaultButton from "@/shared/components/DefaultButton";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 
+type DiscountMode = "fixed" | "percentage";
+
 interface AdministrativeDiscountDialogProps {
   open: boolean;
   total: number;
   onOpenChange: (open: boolean) => void;
-  onApply: (discount: number, password: string, reason: string) => void;
+  onApply: (
+    discountType: DiscountMode,
+    discountValue: number,
+    password: string,
+    reason: string,
+  ) => void;
 }
-
-type DiscountMode = "fixed" | "percentage";
 
 const formatCurrency = (amount: number) =>
   `EGP ${amount.toLocaleString(undefined, {
@@ -57,7 +62,7 @@ const AdministrativeDiscountDialog = ({
 
   const handleApply = () => {
     if (!canApply) return;
-    onApply(discount, password.trim(), reason.trim());
+    onApply(mode, Number(amount) || 0, password.trim(), reason.trim());
     onOpenChange(false);
   };
 

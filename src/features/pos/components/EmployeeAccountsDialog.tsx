@@ -32,20 +32,53 @@ const EmployeeAccountsDialog = ({
   useEffect(() => {
     if (!open) return;
     setLoading(true);
-    api
-      .get("/users", { params: { limit: 100 } })
-      .then((res) => {
-        const raw: any[] = res.data?.data ?? (Array.isArray(res.data) ? res.data : []);
-        const mapped: EmployeeAccount[] = raw.map((u) => ({
-          id: u._id || u.id,
-          name: u.name || u.email || "Staff Member",
-          daysLeft: 30,
-          total: 250,
-          remaining: 250,
-          payBook: [],
-        }));
-        setAccounts(mapped);
-      })
+
+    const buildAccounts = async () => {
+      const usersRes = await api.get("/users", { params: { limit: 100 } });
+      const rawUsers: any[] =
+        usersRes.data?.data ?? (Array.isArray(usersRes.data) ? usersRes.data : []);
+
+      const accountsList = await Promise.all(
+        rawUsers.map(async (u) => {
+          const id = u._id || u.id;
+          const name = u.name || u.email || "Staff Member";
+
+          const [pendingRes, paidRes] = await Promise.all([
+            api.get("/orders", {
+              params: { staffId: id, paymentStatus: "pending", source: "pos", limit: 100 },
+            }),
+            api.get("/orders", {
+              params: { staffId: id, paymentStatus: "paid", source: "pos", limit: 5 },
+            }),
+          ]);
+
+          const pendingOrders: any[] =
+            pendingRes.data?.data ?? pendingRes.data?.orders ?? [];
+          const paidOrders: any[] = paidRes.data?.data ?? paidRes.data?.orders ?? [];
+
+          const total = pendingOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+
+          const account: EmployeeAccount = {
+            id,
+            name,
+            total,
+            remaining: total,
+            pendingOrders: pendingOrders.map((o) => ({ id: o._id || o.id, total: o.total || 0 })),
+            payBook: paidOrders.map((o) => ({
+              amount: o.total || 0,
+              method: (o.paymentMethod || "cash").toLowerCase() === "card" ? "Card" : "Cash",
+              date: o.createdAt ? new Date(o.createdAt).toLocaleDateString() : "",
+            })),
+          };
+          return account;
+        }),
+      );
+
+      // Only staff who actually owe something belong on this screen.
+      setAccounts(accountsList.filter((a) => a.total > 0));
+    };
+
+    buildAccounts()
       .catch(() => setAccounts([]))
       .finally(() => setLoading(false));
   }, [open]);
@@ -82,7 +115,7 @@ const EmployeeAccountsDialog = ({
                   {account.name}
                 </p>
                 <span className="rounded-full bg-[#FBF6EE] px-2.5 py-0.5 text-[10px] font-semibold text-primary">
-                  {account.daysLeft} {t("days left")}
+                  {account.pendingOrders.length} {t("unpaid orders")}
                 </span>
               </div>
 
