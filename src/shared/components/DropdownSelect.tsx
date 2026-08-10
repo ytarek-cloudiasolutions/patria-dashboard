@@ -36,6 +36,7 @@ const DropdownSelect = ({
   const [searchQuery, setSearchQuery] = useState("");
 
   const normalizedOptions = normalizeOptions(options);
+  const isSelected = Boolean(selected && selected !== "");
   const selectedLabel =
     normalizedOptions.find((opt) => opt.value === selected)?.label ??
     placeholder;
@@ -58,21 +59,22 @@ const DropdownSelect = ({
           variant="outline"
           className={cn(
             "h-12 w-full justify-between rounded-[12px] border-[#E5E5E5]",
-            "bg-white px-4 py-3 text-[14px] font-medium text-[#000000] cursor-pointer",
+            "bg-white px-4 py-3 text-[14px] font-medium cursor-pointer",
             "hover:bg-white data-[state=open]:bg-white",
             "focus-visible:border-[#E5E5E5] focus-visible:ring-0",
-            "sm:w-full md:w-78",
             className
           )}
         >
-          <span className="truncate">{selectedLabel}</span>
-          <ChevronDown className="ml-2 size-6 shrink-0 text-[#000000]" />
+          <span className={cn("truncate", isSelected ? "text-[#333333]" : "text-[#8B8B8B]")}>
+            {selectedLabel}
+          </span>
+          <ChevronDown className="ml-2 size-5 shrink-0 text-[#333333]" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align={align}
         className={cn(
-          "z-70 w-[var(--radix-dropdown-menu-trigger-width)] p-2 ring-0 rounded-[16px] space-y-1 md:w-78",
+          "z-80 w-[var(--radix-dropdown-menu-trigger-width)] min-w-[var(--radix-dropdown-menu-trigger-width)] p-1.5 ring-0 rounded-[16px] space-y-1 bg-white shadow-xl border border-[#E5E5E5]",
           contentClassName
         )}
       >

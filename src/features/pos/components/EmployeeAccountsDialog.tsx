@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Wallet } from "lucide-react";
+import { CreditCard } from "lucide-react";
 import { api } from "@/config/api";
 
 import { Button } from "@/shared/components/ui/button";
@@ -87,97 +87,113 @@ const EmployeeAccountsDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="w-[520px] max-w-[calc(100%-2rem)] gap-0 rounded-[16px] border border-[#E5E5E5] bg-white p-6 sm:p-7 sm:max-w-[520px]"
+        className="w-[529px] max-w-[calc(100%-2rem)] gap-8 rounded-[12px] border border-[#CACBD4] bg-white p-6 shadow-xl sm:max-w-[529px]"
       >
-        <DialogHeader>
-          <DialogTitle className="text-[20px] font-bold text-[#333333]">
+        <DialogHeader className="p-0">
+          <DialogTitle className="text-[24px] font-semibold tracking-[0.48px] text-black">
             {t("Employee accounts")}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="mt-5 max-h-[60vh] space-y-4 overflow-y-auto pe-1">
+        <div className="max-h-[60vh] space-y-6 overflow-y-auto pe-1">
           {loading ? (
-            <p className="py-8 text-center text-[13px] text-[#8B8B8B]">
+            <p className="py-8 text-center text-[14px] text-[#8B8B8B]">
               {t("Loading staff accounts...")}
             </p>
           ) : accounts.length === 0 ? (
-            <p className="py-8 text-center text-[13px] text-[#8B8B8B]">
+            <p className="py-8 text-center text-[14px] text-[#8B8B8B]">
               {t("No employee accounts found")}
             </p>
           ) : (
             accounts.map((account) => (
-            <div
-              key={account.id}
-              className="rounded-[10px] border border-[#EDEBE7] p-4"
-            >
-              <div className="flex items-center justify-between">
-                <p className="text-[14px] font-bold text-[#333333]">
-                  {account.name}
-                </p>
-                <span className="rounded-full bg-[#FBF6EE] px-2.5 py-0.5 text-[10px] font-semibold text-primary">
-                  {account.pendingOrders.length} {t("unpaid orders")}
-                </span>
-              </div>
-
-              <div className="mt-3 flex items-end justify-between">
-                <div>
-                  <p className="text-[11px] font-medium text-[#8B8B8B]">
-                    {t("Total")}
-                  </p>
-                  <p className="text-[14px] font-bold text-[#333333]">
-                    {formatEgp(account.total)}
-                  </p>
-                </div>
-                <div className="text-end">
-                  <p className="text-[11px] font-medium text-[#8B8B8B]">
-                    {t("Remaining")}
-                  </p>
-                  <p className="text-[14px] font-bold text-[#D40000]">
-                    {formatEgp(account.remaining)}
-                  </p>
-                </div>
-              </div>
-
-              {account.payBook.length > 0 && (
-                <div className="mt-3 rounded-[8px] border border-dashed border-primary/50 bg-[#FCFBF8] p-3">
-                  <p className="mb-1.5 text-[11px] font-semibold text-[#595959]">
-                    {t("pay book")}:
-                  </p>
-                  <ul className="space-y-1">
-                    {account.payBook.map((entry, index) => (
-                      <li
-                        key={index}
-                        className="text-[10px] text-[#8B8B8B]"
-                      >
-                        {formatEgp(entry.amount)} · {t(entry.method)} ·{" "}
-                        {entry.date}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              <Button
-                className="mt-4 h-11 w-full rounded-[8px] bg-primary text-[13px] font-semibold text-white hover:opacity-90"
-                onClick={() => onPay(account)}
+              <div
+                key={account.id}
+                className="flex flex-col gap-6 rounded-[20px] border border-[#CACBD4] bg-[#FAFAF7] p-6"
               >
-                <Wallet className="size-4" />
-                {t("Pay")}
-              </Button>
-            </div>
-          ))
-        )}
+                {/* Header Row */}
+                <div className="flex items-center justify-between">
+                  <p className="text-[16px] font-semibold tracking-[0.32px] text-black">
+                    {account.name}
+                  </p>
+                  <div className="flex items-center justify-center rounded-[30px] border border-[#C7861E] bg-[rgba(254,154,0,0.10)] px-3 py-1">
+                    <span className="text-[11px] font-semibold tracking-[0.22px] text-[#C7861E]">
+                      {account.pendingOrders.length > 0
+                        ? `${account.pendingOrders.length} ${t("unpaid orders")}`
+                        : "30 days left"}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Totals Row */}
+                <div className="flex items-center justify-between">
+                  <div className="flex flex-col gap-1">
+                    <p className="text-[11px] font-semibold leading-[11.77px] tracking-[0.22px] text-black">
+                      {t("Total")}
+                    </p>
+                    <p className="text-[16px] font-normal leading-[22.40px] tracking-[0.32px] text-black">
+                      {formatEgp(account.total)}
+                    </p>
+                  </div>
+                  <div className="flex flex-col gap-1 text-end">
+                    <p className="text-[11px] font-semibold leading-[11.77px] tracking-[0.22px] text-black">
+                      {t("Remaining")}
+                    </p>
+                    <p className="text-[16px] font-normal leading-[22.40px] tracking-[0.32px] text-black">
+                      {formatEgp(account.remaining)}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Pay Book History */}
+                {account.payBook.length > 0 && (
+                  <div className="flex flex-col gap-2 rounded-[16px] border border-dashed border-[#8F6900] bg-[#FAFAF7] px-5 py-4">
+                    <p className="text-[13px] font-medium tracking-[0.26px] text-black">
+                      {t("pay book")}:
+                    </p>
+                    <div className="flex max-h-[120px] flex-col gap-2 overflow-y-auto pe-1">
+                      {account.payBook.map((entry, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center gap-2 text-[11px] font-medium tracking-[0.22px] text-[#595959]"
+                        >
+                          <span className="inline-block size-1 shrink-0 rounded-full bg-[#595959]" />
+                          <span>
+                            {formatEgp(entry.amount)} - {t(entry.method)} -{" "}
+                            {entry.date}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Pay Button */}
+                <Button
+                  type="button"
+                  className="flex h-[48px] w-full items-center justify-center gap-3 rounded-[5px] bg-[#8F6900] text-[16px] font-semibold text-white transition-colors hover:bg-[#8F6900]/90 cursor-pointer"
+                  onClick={() => onPay(account)}
+                >
+                  <CreditCard className="size-5 text-white" />
+                  {t("Pay")}
+                </Button>
+              </div>
+            ))
+          )}
         </div>
 
-        <DialogFooter className="mt-6 border-t border-[#E1E1E1] bg-white px-0 pb-0 pt-5">
-          <Button
-            variant="outline"
-            className="h-12 min-w-[110px] rounded-[8px] border-primary bg-white text-[13px] font-semibold text-primary hover:bg-[#FBF6EE]"
-            onClick={() => onOpenChange(false)}
-          >
-            {t("Cancel")}
-          </Button>
-        </DialogFooter>
+        {/* Separator Line & Footer */}
+        <div className="w-full border-t border-[#CACBD4] pt-4">
+          <div className="flex items-center justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              className="h-[56px] px-[30px] py-4 rounded-[5px] border border-[#8F6900] bg-white text-[16px] font-semibold text-[#8F6900] transition-colors hover:bg-[#F5F0EA] cursor-pointer"
+              onClick={() => onOpenChange(false)}
+            >
+              {t("Cancel")}
+            </Button>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );

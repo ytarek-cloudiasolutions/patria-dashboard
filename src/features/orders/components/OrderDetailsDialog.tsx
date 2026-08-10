@@ -114,24 +114,24 @@ const OrderDetailsDialog = ({
   const tableOrAddressText = isDineIn
     ? (rawAddr && rawAddr !== "In Store" && rawAddr !== "Takeaway" ? rawAddr : "")
     : isDelivery
-    ? rawAddr
-    : "";
+      ? rawAddr
+      : "";
 
   const orderTypeLabel = isDineIn
     ? (tableOrAddressText ? `طاولة: ${tableOrAddressText}` : "صالة")
     : isTakeaway
-    ? "تيك أواي"
-    : isDelivery
-    ? "توصيل"
-    : "صالة";
+      ? "تيك أواي"
+      : isDelivery
+        ? "توصيل"
+        : "صالة";
 
   const orderTypeDisplayUi = isDineIn
     ? `Dine-In ${tableOrAddressText ? `(${tableOrAddressText})` : ""}`
     : isTakeaway
-    ? "Takeaway"
-    : isDelivery
-    ? `Delivery ${tableOrAddressText ? `(${tableOrAddressText})` : ""}`
-    : "Dine-In";
+      ? "Takeaway"
+      : isDelivery
+        ? `Delivery ${tableOrAddressText ? `(${tableOrAddressText})` : ""}`
+        : "Dine-In";
 
   const handleMarkAsPaid = async () => {
     try {
@@ -233,17 +233,17 @@ const OrderDetailsDialog = ({
               <span class="item-qty">× ${item.quantity}</span>
             </div>
             ${item.selectedVariants && item.selectedVariants.length > 0
-              ? item.selectedVariants.map(v => `
+        ? item.selectedVariants.map(v => `
                   <div class="modifier">▸ ${v.group}: ${v.option}</div>
                 `).join("")
-              : ""
-            }
+        : ""
+      }
             ${item.selectedExtras && item.selectedExtras.length > 0
-              ? item.selectedExtras.map(e => `
+        ? item.selectedExtras.map(e => `
                   <div class="modifier">+ إضافة: ${e.name}</div>
                 `).join("")
-              : ""
-            }
+        : ""
+      }
             ${item.note ? `<div class="note">ملاحظة: ${item.note}</div>` : ""}
           </div>
           ${index < order.items.length - 1 ? '<div class="divider-thin"></div>' : ""}
@@ -331,12 +331,12 @@ const OrderDetailsDialog = ({
         <!-- Items -->
         <div class="section-label">الطلبات</div>
         ${order.items.map(item => {
-          const variantTotalAdjustment = item.selectedVariants?.reduce((sum, v) => sum + (v.priceAdjustment || 0), 0) || 0;
-          const extraTotalAdjustment = item.selectedExtras?.reduce((sum, e) => sum + (e.price || 0), 0) || 0;
-          const baseUnitPrice = item.unitPrice - variantTotalAdjustment - extraTotalAdjustment;
-          const displayBasePrice = item.quantity * baseUnitPrice;
+      const variantTotalAdjustment = item.selectedVariants?.reduce((sum, v) => sum + (v.priceAdjustment || 0), 0) || 0;
+      const extraTotalAdjustment = item.selectedExtras?.reduce((sum, e) => sum + (e.price || 0), 0) || 0;
+      const baseUnitPrice = item.unitPrice - variantTotalAdjustment - extraTotalAdjustment;
+      const displayBasePrice = item.quantity * baseUnitPrice;
 
-          return `
+      return `
             <div style="margin: 5px 0;">
               <div class="row">
                 <span class="item-name">${item.name}</span>
@@ -344,26 +344,26 @@ const OrderDetailsDialog = ({
               </div>
               <div class="item-unit">${item.quantity} × ${formatCurrency(baseUnitPrice)}</div>
               ${item.selectedVariants && item.selectedVariants.length > 0
-                ? item.selectedVariants.map(v => `
+          ? item.selectedVariants.map(v => `
                     <div class="row modifier">
                       <span>▸ ${v.group}: ${v.option}</span>
                       ${(v.priceAdjustment || 0) > 0 ? `<span>+${formatCurrency(item.quantity * (v.priceAdjustment || 0))}</span>` : ""}
                     </div>
                   `).join("")
-                : ""
-              }
+          : ""
+        }
               ${item.selectedExtras && item.selectedExtras.length > 0
-                ? item.selectedExtras.map(e => `
+          ? item.selectedExtras.map(e => `
                     <div class="row modifier">
                       <span>+ إضافة: ${e.name}</span>
                       ${(e.price || 0) > 0 ? `<span>+${formatCurrency(item.quantity * (e.price || 0))}</span>` : ""}
                     </div>
                   `).join("")
-                : ""
-              }
+          : ""
+        }
             </div>
           `;
-        }).join("")}
+    }).join("")}
 
         <div class="divider"></div>
 

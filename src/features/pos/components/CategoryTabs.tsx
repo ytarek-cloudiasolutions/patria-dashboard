@@ -8,6 +8,9 @@ type CategoryTabsProps = {
   onCategoryChange: (id: string) => void;
 };
 
+const DEFAULT_CATEGORY_IMAGE =
+  "https://images.unsplash.com/photo-1517701604599-bb29b565090c?auto=format&fit=crop&w=600&q=80";
+
 const CategoryTabs = ({
   categories,
   activeCategory,
@@ -16,35 +19,31 @@ const CategoryTabs = ({
   const { t } = useTranslation();
 
   return (
-    <div className="flex gap-3 overflow-x-auto pb-2">
+    <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-none">
       {categories.map((category) => {
         const isActive = activeCategory === category.id;
 
         return (
           <button
             key={category.id}
+            type="button"
             onClick={() => onCategoryChange(category.id)}
             className={cn(
-              "flex h-[88px] w-[104px] shrink-0 flex-col items-center justify-center gap-2 rounded-[12px] border bg-white px-2 transition-colors",
+              "flex min-w-[102px] shrink-0 flex-col items-center justify-center gap-2 rounded-[5px] bg-white px-3 py-6 transition-all cursor-pointer",
               isActive
-                ? "border-primary bg-[#FBF6EE]"
-                : "border-[#EDEBE7] hover:border-primary/50",
+                ? "border-2 border-[#725400]"
+                : "border border-[#CACBD4] hover:border-[#725400]/50",
             )}
           >
-            <span className="size-10 overflow-hidden rounded-full bg-[#F3EEE7]">
+            <div className="flex size-[56px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#F5F0EA]">
               <img
-                src={category.imageUrl}
+                src={category.imageUrl || DEFAULT_CATEGORY_IMAGE}
                 alt=""
                 loading="lazy"
                 className="size-full object-cover"
               />
-            </span>
-            <span
-              className={cn(
-                "line-clamp-1 text-center text-[11px] font-semibold",
-                isActive ? "text-primary" : "text-[#595959]",
-              )}
-            >
+            </div>
+            <span className="text-center text-[14px] font-medium leading-[14.98px] tracking-[0.28px] text-black whitespace-nowrap">
               {t(category.label)}
             </span>
           </button>

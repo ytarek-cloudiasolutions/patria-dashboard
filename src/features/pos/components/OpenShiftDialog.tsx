@@ -38,18 +38,17 @@ const OpenShiftDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="w-[480px] max-w-[calc(100%-2rem)] rounded-[16px] border border-[#E5E5E5] bg-white p-6 sm:p-7"
+        className="w-[529px] max-w-[calc(100%-2rem)] gap-6 rounded-[12px] border border-[#CACBD4] bg-white p-6 shadow-xl sm:max-w-[529px]"
       >
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2.5 text-[20px] font-bold text-[#333333]">
-            <CalendarClock className="size-5 text-primary" />
+        <DialogHeader className="p-0">
+          <DialogTitle className="text-[24px] font-semibold tracking-[0.48px] text-black">
             {t("Open POS Shift")}
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="mt-5 space-y-4">
-          <div>
-            <label className="mb-2 block text-[13px] font-semibold text-[#333333]">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          <div className="flex flex-col gap-2.5">
+            <label className="text-[16px] font-medium text-black">
               {t("Opening Cash (EGP)")} <span className="text-[#D40000]">*</span>
             </label>
             <input
@@ -60,40 +59,46 @@ const OpenShiftDialog = ({
               value={openingCash}
               onChange={(e) => setOpeningCash(e.target.value)}
               placeholder="0.00"
-              className="h-11 w-full rounded-[8px] border border-[#E5E2DD] bg-white px-4 text-[14px] font-medium text-[#333333] outline-none focus:border-primary"
+              className="h-[50px] w-full rounded-[12px] border border-[#E5E5E5] bg-white p-3 text-[16px] font-normal text-[#333333] placeholder:text-[#8B8B8B] outline-none focus:border-[#8F6900] focus:ring-0 focus-visible:ring-0 transition-colors"
             />
           </div>
 
-          <div>
-            <label className="mb-2 block text-[13px] font-semibold text-[#333333]">
-              {t("Shift Notes (Optional)")}
+          <div className="flex flex-col gap-2.5">
+            <label className="text-[16px] font-medium text-black">
+              {t("Shift Notes")}{" "}
+              <span className="text-[13px] font-medium text-[#595959]">
+                ({t("Optional")})
+              </span>
             </label>
             <textarea
               rows={3}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder={t("Any notes for this shift...")}
-              className="w-full rounded-[8px] border border-[#E5E2DD] bg-white p-3 text-[13px] text-[#333333] outline-none focus:border-primary"
+              className="min-h-[90px] w-full rounded-[8px] border border-[#8E8E8E] bg-[#FEFEFE] px-3.5 py-3 text-[13px] font-normal text-[#333333] placeholder:text-[#595959] outline-none focus:border-[#8F6900] focus:ring-0 focus-visible:ring-0 transition-colors"
             />
           </div>
 
-          <DialogFooter className="mt-6 flex items-center justify-end gap-3 border-t border-[#E1E1E1] bg-white px-0 pb-0 pt-5">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              className="h-12 min-w-[110px] rounded-[8px] border-primary bg-white text-[13px] font-semibold text-primary cursor-pointer"
-            >
-              {t("Cancel")}
-            </Button>
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="h-12 min-w-[140px] rounded-[8px] bg-primary text-[13px] font-semibold text-white cursor-pointer"
-            >
-              {isLoading ? t("Opening...") : t("Open Shift")}
-            </Button>
-          </DialogFooter>
+          {/* Separator Line & Footer */}
+          <div className="w-full border-t border-[#CACBD4] pt-4">
+            <div className="flex items-center justify-end gap-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                className="h-[56px] px-[30px] py-4 rounded-[5px] border border-[#8F6900] bg-white text-[16px] font-semibold text-[#8F6900] transition-colors hover:bg-[#F5F0EA] cursor-pointer"
+              >
+                {t("Cancel")}
+              </Button>
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="h-[56px] px-[30px] py-4 rounded-[5px] bg-[#8F6900] text-[16px] font-semibold text-white transition-colors hover:bg-[#8F6900]/90 cursor-pointer disabled:opacity-60"
+              >
+                {isLoading ? t("Opening...") : t("Open Shift")}
+              </Button>
+            </div>
+          </div>
         </form>
       </DialogContent>
     </Dialog>

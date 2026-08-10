@@ -16,7 +16,7 @@ const SearchInputField = ({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className="h-12 w-full rounded-[8px] border-[#D9D9D9] bg-white pl-10 text-[14px] text-[#000000] placeholder:text-[#8B8B8B] focus-visible:ring-0"
+        className="h-12 w-full rounded-[8px] border-[#D9D9D9] bg-white pl-10 text-[14px] text-[#000000] placeholder:text-[#8B8B8B] focus-visible:border-[#8F6900] focus-visible:ring-0"
       />
     </div>
   );

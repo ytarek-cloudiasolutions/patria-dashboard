@@ -39,10 +39,10 @@ import { useOrders } from "@/features/orders/hooks/useOrders";
 import { useTables } from "@/features/tables/hooks/useTables";
 import { useShifts } from "@/features/shifts/hooks/useShifts";
 import { showSuccessToast, showErrorToast } from "@/shared/utils/toast";
-
-const DEFAULT_TABLE = "Table 3";
+import { useTranslation } from "@/shared/i18n/useTranslation";
 
 const PosPage = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   // Backend data
@@ -61,6 +61,7 @@ const PosPage = () => {
   // Order context
   const [orderType, setOrderType] = useState<OrderType>("dine-in");
   const [selectedTable, setSelectedTable] = useState("");
+  const [customerCount, setCustomerCount] = useState(1);
   const [customer, setCustomer] = useState("");
   const [notes, setNotes] = useState("");
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -150,15 +151,6 @@ const PosPage = () => {
       .map((t) => `Table ${t.number}`);
   }, [tables]);
 
-  // Auto-select first available backend table if none selected yet
-  useEffect(() => {
-    if (tables && tables.length > 0 && !selectedTable) {
-      const sorted = [...tables].sort((a, b) => a.number - b.number);
-      if (sorted[0]) {
-        setSelectedTable(`Table ${sorted[0].number}`);
-      }
-    }
-  }, [tables, selectedTable]);
 
   useEffect(() => {
     const timer = window.setInterval(
@@ -278,7 +270,7 @@ const PosPage = () => {
     () => cartItems.map((item) => item.productId),
     [cartItems],
   );
-  const resolvedTable = selectedTable || DEFAULT_TABLE;
+  const resolvedTable = selectedTable;
 
   // --- Cart mutations -------------------------------------------------------
 
@@ -393,6 +385,11 @@ const PosPage = () => {
   const handleSendToKitchen = async () => {
     if (cartItems.length === 0) return;
 
+    if (orderType === "dine-in" && !selectedTable) {
+      showErrorToast(t("Please select a table before sending to kitchen"));
+      return;
+    }
+
     if (loadedOrderId) {
       const newItems = cartItems.filter((item) => !sentLineIds.has(item.lineId));
       if (newItems.length > 0) {
@@ -451,6 +448,11 @@ const PosPage = () => {
 
   const confirmPayment = async (method: PaymentMethod) => {
     if (cartItems.length === 0) return;
+
+    if (orderType === "dine-in" && !selectedTable) {
+      showErrorToast(t("Please select a table before proceeding"));
+      return;
+    }
 
     const currentTotal = totals.total;
     const { payOrder, createOrder } = await import("@/features/orders/api/ordersApi");
@@ -547,6 +549,7 @@ const PosPage = () => {
 
   const payEmployeeAccount = (account: EmployeeAccount) => {
     setPayAccount(account);
+    setEmployeeAccountsOpen(false);
     setPaymentRegOpen(true);
   };
 
@@ -621,7 +624,7 @@ const PosPage = () => {
   return (
     <>
       {isTableMenuOpen && (
-        <div className="fixed inset-0 z-60 bg-black/35" aria-hidden="true" />
+        <div className="fixed inset-0 z-75 bg-black/50 backdrop-blur-[2px] transition-all animate-in fade-in-0 duration-200" aria-hidden="true" />
       )}
 
       <PosShell
@@ -630,9 +633,11 @@ const PosPage = () => {
             orderType={orderType}
             selectedTable={selectedTable}
             tableOptions={tableOptions}
+            customerCount={customerCount}
             shiftOpen={isShiftActive}
             onOrderTypeChange={handleOrderTypeChange}
             onTableChange={setSelectedTable}
+            onCustomerCountChange={setCustomerCount}
             onTableMenuOpenChange={setTableMenuOpen}
             onToggleShift={() => (isShiftActive ? setIsCloseShiftDialogOpen(true) : setIsOpenShiftDialogOpen(true))}
             onOpenPendingOrders={() => setPendingOpen(true)}

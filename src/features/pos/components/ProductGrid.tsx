@@ -32,7 +32,7 @@ const ProductGrid = ({
   }
 
   return (
-    <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-4">
+    <div className="grid grid-cols-[repeat(auto-fill,minmax(186px,1fr))] gap-4">
       {products.map((product) => {
         const isInCart = cartProductIds.includes(product.id);
 
@@ -42,10 +42,10 @@ const ProductGrid = ({
             role="button"
             tabIndex={0}
             className={cn(
-              "group relative flex cursor-pointer flex-col overflow-hidden rounded-[16px] border bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)] outline-none transition",
+              "group relative flex h-[257px] w-full flex-col overflow-hidden rounded-[24px] bg-white transition cursor-pointer select-none",
               isInCart
-                ? "border-primary"
-                : "border-[#E4E1DC] hover:border-primary/60",
+                ? "border-2 border-[#8F6900]"
+                : "border-2 border-[#E5E5E5] hover:border-[#8F6900]/50",
             )}
             onClick={() => onSelectProduct(product)}
             onKeyDown={(event) => {
@@ -55,15 +55,11 @@ const ProductGrid = ({
               }
             }}
           >
-            <div
-              className={cn(
-                "relative h-[112px] overflow-hidden",
-                product.accent ?? "bg-[#F3EEE7]",
-              )}
-            >
+            {/* Image Container */}
+            <div className="relative h-[140px] w-full shrink-0 overflow-hidden bg-[#F5F0EA]">
               {product.stockBadge && (
-                <span className="absolute end-2 top-2 z-10 flex items-center gap-1 rounded-full border border-[#EF4E4E] bg-[#FFF0F0] px-2 py-0.5 text-[10px] font-semibold text-[#D40000]">
-                  <TrendingDown className="size-3" />
+                <span className="absolute start-1 top-[13px] z-10 flex items-center gap-1 rounded-[30px] border border-[#C90000] bg-[#C90000] px-3 py-1 text-[13px] font-semibold text-white">
+                  <TrendingDown className="size-3 text-white" />
                   {t(product.stockBadge)}
                 </span>
               )}
@@ -71,38 +67,45 @@ const ProductGrid = ({
                 src={product.imageUrl}
                 alt={product.name}
                 loading="lazy"
-                className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
+                className="size-full rounded-t-[24px] rounded-b-[5px] object-cover transition-transform duration-300 group-hover:scale-105"
               />
             </div>
 
-            <div className="flex flex-1 flex-col gap-2 px-3 py-3">
-              <p className="line-clamp-2 min-h-9 text-[13px] font-semibold leading-[18px] text-[#333333]">
-                {product.name}
-              </p>
-              <div className="mt-auto flex items-end justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="text-[18px] font-bold leading-5 text-[#333333]">
-                    {formatEgpAmount(product.price)}
-                    <span className="ms-1 text-[11px] font-medium text-[#8B8B8B]">
+            {/* Content Container */}
+            <div className="flex flex-1 flex-col justify-between rounded-b-[24px] bg-white px-4 py-[22px]">
+              <div>
+                <p className="line-clamp-2 text-[14px] font-semibold leading-[14.98px] tracking-[0.28px] text-[#333333]">
+                  {product.name}
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-0.5">
+                <div className="flex items-center justify-between gap-2 overflow-hidden">
+                  <div className="flex items-center gap-1">
+                    <span className="text-[18px] font-bold tracking-[0.36px] text-black">
+                      {formatEgpAmount(product.price)}
+                    </span>
+                    <span className="text-[14px] font-normal tracking-[0.28px] text-black">
                       EGP
                     </span>
-                  </p>
-                  {isInCart && (
-                    <p className="mt-1 text-[9px] font-bold uppercase tracking-wide text-primary">
-                      {t("In cart")}
-                    </p>
-                  )}
+                  </div>
+                  <button
+                    type="button"
+                    className="flex size-9 shrink-0 items-center justify-center rounded-[5.71px] bg-[#8F6900] p-2.5 text-white transition-opacity hover:opacity-90 cursor-pointer"
+                    aria-label={`${t("Add")} ${product.name}`}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onSelectProduct(product);
+                    }}
+                  >
+                    <Plus className="size-4 text-white" />
+                  </button>
                 </div>
-                <button
-                  className="flex size-8 shrink-0 items-center justify-center rounded-[6px] bg-primary text-white transition-opacity hover:opacity-90"
-                  aria-label={`${t("Add")} ${product.name}`}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    onSelectProduct(product);
-                  }}
-                >
-                  <Plus className="size-4" />
-                </button>
+                {isInCart && (
+                  <p className="text-[8px] font-semibold leading-[8.56px] tracking-[0.16px] uppercase text-[#8F6900]">
+                    {t("IN CART")}
+                  </p>
+                )}
               </div>
             </div>
           </article>

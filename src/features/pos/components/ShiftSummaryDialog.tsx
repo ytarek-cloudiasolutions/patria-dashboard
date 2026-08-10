@@ -24,10 +24,10 @@ type ShiftSummaryDialogProps = {
   closedShift?: any;
 };
 
-const methodIcons: Record<PaymentMethod, typeof WalletCards> = {
+const methodIcons: Record<PaymentMethod, typeof Banknote> = {
   cash: Banknote,
   card: CreditCard,
-  mix: WalletCards,
+  mix: Banknote,
 };
 
 const METHOD_LABELS: Record<PaymentMethod, string> = {
@@ -103,64 +103,72 @@ const ShiftSummaryDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="w-[480px] max-w-[calc(100%-2rem)] gap-0 rounded-[16px] border border-[#E5E5E5] bg-white p-6 sm:p-7 sm:max-w-[480px]"
+        className="w-[529px] max-w-[calc(100%-2rem)] gap-8 rounded-[12px] border border-[#CACBD4] bg-white p-6 shadow-xl sm:max-w-[529px]"
       >
-        <DialogHeader>
-          <DialogTitle className="text-[20px] font-bold text-[#333333]">
+        <DialogHeader className="p-0">
+          <DialogTitle className="text-[24px] font-semibold tracking-[0.48px] text-black">
             {t("Shift Summary")}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="mt-5 space-y-6">
-          <div className="flex h-[72px] items-center justify-between rounded-[10px] border border-[#D7D7D7] px-5">
-            <div>
-              <p className="text-[11px] font-semibold text-[#333333]">
+        <div className="flex flex-col gap-6">
+          {/* Summary Box */}
+          <div className="flex items-center justify-between rounded-[16px] border border-[#CACBD4] bg-[#FAFAF7] px-6 py-4">
+            <div className="flex flex-col gap-1">
+              <p className="text-[11px] font-semibold leading-[11.77px] tracking-[0.22px] text-black">
                 {t("Number of Orders")}
               </p>
-              <p className="text-[24px] font-bold leading-7 text-[#333333]">
+              <p className="text-[24px] font-bold leading-[33.60px] tracking-[0.48px] text-black">
                 {loading ? "..." : summary.orderCount}
               </p>
             </div>
-            <div className="text-end">
-              <p className="text-[11px] font-semibold text-[#333333]">
+            <div className="flex flex-col gap-1 text-end">
+              <p className="text-[11px] font-semibold leading-[11.77px] tracking-[0.22px] text-black">
                 {t("Total")}
               </p>
-              <p className="text-[24px] font-bold leading-7 text-[#00A662]">
+              <p className="text-[24px] font-bold leading-[33.60px] tracking-[0.48px] text-[#059B5A]">
                 {loading ? "..." : formatEgp(summary.grandTotal)}
               </p>
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          {/* Payment Methods Breakdown */}
+          <div className="grid grid-cols-3 gap-6">
             {(["cash", "card", "mix"] as PaymentMethod[]).map((method) => {
               const Icon = methodIcons[method];
               return (
                 <div
                   key={method}
-                  className="flex h-[110px] flex-col items-center justify-center gap-1.5 rounded-[8px] border border-[#DFDFDF] bg-white text-center"
+                  className="flex flex-1 flex-col items-center justify-center gap-2 rounded-[5px] border-2 border-[#E5E5E5] bg-[#FAFAF7] px-6 py-8 text-center"
                 >
-                  <Icon className="size-5 text-[#333333]" />
-                  <p className="text-[11px] text-[#595959]">
-                    {t(METHOD_LABELS[method])}
-                  </p>
-                  <p className="text-[12px] font-bold text-[#333333]">
-                    {loading ? "..." : formatEgp(summary.totals[method])}
-                  </p>
+                  <Icon className="size-6 text-black" />
+                  <div className="flex flex-col items-center gap-1">
+                    <p className="text-[12px] font-medium leading-[12.84px] tracking-[0.24px] text-[#595959]">
+                      {t(METHOD_LABELS[method])}
+                    </p>
+                    <p className="text-[14px] font-semibold leading-[19.60px] tracking-[0.28px] text-black">
+                      {loading ? "..." : formatEgp(summary.totals[method])}
+                    </p>
+                  </div>
                 </div>
               );
             })}
           </div>
         </div>
 
-        <DialogFooter className="mt-6 border-t border-[#E1E1E1] bg-white px-0 pb-0 pt-5">
-          <Button
-            variant="outline"
-            className="h-12 min-w-[110px] rounded-[8px] border-primary bg-white text-[13px] font-semibold text-primary cursor-pointer"
-            onClick={() => onOpenChange(false)}
-          >
-            {t("Cancel")}
-          </Button>
-        </DialogFooter>
+        {/* Separator Line & Footer */}
+        <div className="w-full border-t border-[#CACBD4] pt-4">
+          <div className="flex items-center justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              className="h-[56px] px-[30px] py-4 rounded-[5px] border border-[#8F6900] bg-white text-[16px] font-semibold text-[#8F6900] transition-colors hover:bg-[#F5F0EA] cursor-pointer"
+              onClick={() => onOpenChange(false)}
+            >
+              {t("Cancel")}
+            </Button>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );

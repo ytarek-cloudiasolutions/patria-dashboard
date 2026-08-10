@@ -42,11 +42,7 @@ export const computeTotals = (items: CartItem[]): CartTotals => {
   );
   const tax = (subtotal + extras) * TAX_RATE;
   const total = subtotal + extras + tax;
-  const itemCount = items.reduce(
-    (count, item) =>
-      count + item.qty + item.extras.filter((extra) => extra.selected).length,
-    0,
-  );
+  const itemCount = items.reduce((count, item) => count + item.qty, 0);
 
   return { subtotal, extras, tax, total, itemCount };
 };
