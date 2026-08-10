@@ -35,6 +35,177 @@ const ReceiptDialog = ({
 }: ReceiptDialogProps) => {
   const { t } = useTranslation();
 
+  const handlePrint = () => {
+    const now = new Date();
+    const printTime = now.toLocaleTimeString("ar-EG", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    const printDate = now.toLocaleDateString("ar-EG");
+
+    const orderTypeLabel =
+      orderType === "dine-in"
+        ? table
+          ? `طاولة: ${table}`
+          : "صالة"
+        : "تيك أواي";
+
+    const customerReceiptHtml = `
+      <!DOCTYPE html>
+      <html dir="rtl">
+      <head>
+        <meta charset="UTF-8" />
+        <title>Customer Receipt - طلب #${orderNumber}</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { font-family: 'Courier New', monospace; font-size: 12px; width: 80mm; padding: 10px; color: #000; }
+          .center { text-align: center; }
+          .left { text-align: left; }
+          .right { text-align: right; }
+          .divider { border-top: 1px dashed #000; margin: 7px 0; }
+          .divider-solid { border-top: 1px solid #000; margin: 7px 0; }
+          .row { display: flex; justify-content: space-between; align-items: baseline; margin: 3px 0; }
+          .restaurant-name { font-size: 18px; font-weight: bold; letter-spacing: 1px; }
+          .restaurant-ar { font-size: 13px; margin-top: 2px; }
+          .receipt-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; margin-top: 3px; color: #555; }
+          .order-num { font-size: 13px; font-weight: bold; }
+          .section-label { font-size: 10px; font-weight: bold; text-transform: uppercase; color: #555; margin-bottom: 3px; }
+          .item-name { font-size: 12px; font-weight: bold; flex: 1; }
+          .item-price { font-size: 12px; font-weight: bold; white-space: nowrap; }
+          .item-unit { font-size: 10px; color: #555; padding-right: 10px; margin: 1px 0; }
+          .modifier { font-size: 10px; color: #555; padding-right: 10px; margin: 1px 0; }
+          .total-row { font-size: 14px; font-weight: bold; }
+          .payment-badge { display: inline-block; border: 1px solid #000; padding: 2px 8px; font-size: 11px; font-weight: bold; margin-top: 4px; }
+          .thank-you { font-size: 12px; font-weight: bold; margin-top: 4px; }
+          .footer-note { font-size: 10px; color: #555; margin-top: 2px; }
+        </style>
+      </head>
+      <body>
+        <!-- Header / Branding -->
+        <div class="center">
+          <div class="restaurant-name">Patria Restaurant</div>
+          <div class="restaurant-ar">مطعم باتريا</div>
+          <div class="receipt-label">*** فاتورة العميل ***</div>
+        </div>
+
+        <div class="divider-solid"></div>
+
+        <!-- Order Info -->
+        <div class="row">
+          <span class="order-num">طلب # ${orderNumber}</span>
+          <span style="font-size:11px">${printDate} ${printTime}</span>
+        </div>
+        <div class="row">
+          <span style="font-size:11px">نوع الطلب:</span>
+          <span style="font-size:11px; font-weight:bold">${orderTypeLabel}</span>
+        </div>
+        <div class="row">
+          <span style="font-size:11px">الكاشير:</span>
+          <span style="font-size:11px; font-weight:bold">Mariam</span>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Items -->
+        <div class="section-label">الطلبات</div>
+        ${items
+          .map((item) => {
+            const selectedExtras = (item.extras || []).filter(
+              (e) => e.selected
+            );
+            const lineVal = lineTotal(item);
+            return `
+            <div style="margin: 5px 0;">
+              <div class="row">
+                <span class="item-name">${item.name}</span>
+                <span class="item-price">${formatEgp(lineVal)}</span>
+              </div>
+              <div class="item-unit">${item.qty} × ${formatEgp(
+              item.unitPrice
+            )}</div>
+              ${
+                selectedExtras.length > 0
+                  ? selectedExtras
+                      .map(
+                        (e) => `
+                    <div class="row modifier">
+                      <span>+ إضافة: ${e.name}</span>
+                      ${
+                        (e.price || 0) > 0
+                          ? `<span>+${formatEgp(item.qty * e.price)}</span>`
+                          : ""
+                      }
+                    </div>
+                  `
+                      )
+                      .join("")
+                  : ""
+              }
+              ${
+                item.instructions
+                  ? `<div class="modifier">ملاحظة: ${item.instructions}</div>`
+                  : ""
+              }
+            </div>
+          `;
+          })
+          .join("")}
+
+        <div class="divider"></div>
+
+        <!-- Totals -->
+        <div class="row">
+          <span>المجموع الفرعي:</span>
+          <span>${formatEgp(totals.subtotal)}</span>
+        </div>
+        ${
+          totals.extras > 0
+            ? `
+        <div class="row">
+          <span>الإضافات:</span>
+          <span>${formatEgp(totals.extras)}</span>
+        </div>`
+            : ""
+        }
+        ${
+          totals.tax > 0
+            ? `
+        <div class="row">
+          <span>الضريبة (14%):</span>
+          <span>${formatEgp(totals.tax)}</span>
+        </div>`
+            : ""
+        }
+
+        <div class="divider-solid"></div>
+        <div class="row total-row">
+          <span>الإجمالي:</span>
+          <span>${formatEgp(totals.total)}</span>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Footer -->
+        <div class="center">
+          <div class="thank-you">شكراً لزيارتكم 🙏</div>
+          <div class="footer-note">نتطلع لخدمتكم مجدداً</div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const win = window.open("", "_blank", "width=400,height=600");
+    if (win) {
+      win.document.write(customerReceiptHtml);
+      win.document.close();
+      win.focus();
+      setTimeout(() => {
+        win.print();
+        win.close();
+      }, 250);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -120,7 +291,7 @@ const ReceiptDialog = ({
           </Button>
           <Button
             className="h-12 flex-1 rounded-[8px] bg-primary text-[13px] font-semibold text-white cursor-pointer"
-            onClick={() => window.print()}
+            onClick={handlePrint}
           >
             <Printer className="size-4" />
             {t("Print Receipt")}
