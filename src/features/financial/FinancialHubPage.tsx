@@ -206,7 +206,7 @@ const FinancialHubPage = () => {
         </div>
       </div>
 
-      {/* 11 Sub-Tabs Navigation */}
+      {/* Sub-Tabs Navigation */}
       <FinancialTabs active={tab} onChange={handleTabChange} />
 
       {/* Tab Views */}

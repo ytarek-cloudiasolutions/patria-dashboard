@@ -18,7 +18,6 @@ const TABS: { key: FinancialTab; label: string }[] = [
   { key: "reorder", label: "Reorder" },
   { key: "cost-analysis", label: "Cost Analysis" },
   { key: "consumption", label: "Consumption" },
-  { key: "production-orders", label: "Production Orders" },
 ];
 
 const FinancialTabs = ({ active, onChange }: FinancialTabsProps) => {

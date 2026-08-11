@@ -9,7 +9,6 @@ import {
   Trash2,
   FileSpreadsheet,
   ArrowLeftRight,
-  Play,
   CircleDollarSign,
 } from "lucide-react";
 import { Badge } from "@/shared/components/ui/badge";
@@ -271,17 +270,6 @@ const AccountantDashboardView = ({
                 <Package className="size-4.5 text-black shrink-0" />
                 <span className="text-[16px] font-semibold text-black truncate">
                   {t("Opening Balance")}
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => onNavigateTab("production-orders")}
-                className="flex h-[56px] items-center gap-3 rounded-[5px] border border-[#E5E5E5] bg-[#FAFAF7] px-4 text-start hover:bg-[#F5F0EA] transition-colors cursor-pointer"
-              >
-                <Play className="size-4.5 text-black shrink-0" />
-                <span className="text-[16px] font-semibold text-black truncate">
-                  {t("Production Order")}
                 </span>
               </button>
 

@@ -22,19 +22,23 @@ const OrdersFilters = ({
   const { t } = useTranslation();
 
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4 md:gap-8">
-      <SearchInputField
-        value={searchValue}
-        onChange={onSearchChange}
-        placeholder={t("Search orders...")}
-      />
-      <DropdownSelect
-        options={ORDER_STATUS_FILTER_OPTIONS}
-        selected={selectedStatus}
-        onSelect={(value) => onStatusChange(value as OrderStatusFilter)}
-        onOpenChange={onStatusMenuOpenChange}
-        align="end"
-      />
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4 md:gap-6">
+      <div className="flex-1">
+        <SearchInputField
+          value={searchValue}
+          onChange={onSearchChange}
+          placeholder={t("Search orders...")}
+        />
+      </div>
+      <div className="w-full sm:w-64">
+        <DropdownSelect
+          options={ORDER_STATUS_FILTER_OPTIONS}
+          selected={selectedStatus}
+          onSelect={(value) => onStatusChange(value as OrderStatusFilter)}
+          onOpenChange={onStatusMenuOpenChange}
+          align="end"
+        />
+      </div>
     </div>
   );
 };

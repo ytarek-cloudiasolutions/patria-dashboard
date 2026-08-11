@@ -8,8 +8,7 @@ export type FinancialTab =
   | "item-stock-record"
   | "reorder"
   | "cost-analysis"
-  | "consumption"
-  | "production-orders";
+  | "consumption";
 
 export type TransactionType = "Income" | "Expense";
 
