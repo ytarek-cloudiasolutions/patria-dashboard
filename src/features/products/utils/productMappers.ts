@@ -68,6 +68,7 @@ export const mapProduct = (backendProduct: any): Product => {
     quantity: backendProduct.inventory ?? backendProduct.stockQty ?? 0,
     unit: (backendProduct.unit === "pcs" || backendProduct.unit === "pc" || !backendProduct.unit) ? "Piece(s)" : backendProduct.unit,
     isIngredient,
+    barcode: backendProduct.barcode || "",
   };
 };
 

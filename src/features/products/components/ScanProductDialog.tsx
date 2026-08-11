@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Camera, ScanBarcode } from "lucide-react";
+import { Camera, Loader2, ScanBarcode } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -9,30 +9,79 @@ import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { cn } from "@/lib/utils";
+import { productsApi } from "../api/productsApi";
+import { mapProduct } from "../utils/productMappers";
+import type { Product } from "../types";
+import { showErrorToast, showSuccessToast } from "@/shared/utils/toast";
 
 type ScanMode = "manual" | "camera";
 
 interface ScanProductDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSearch: (barcode: string) => void;
+  onSearch?: (barcode: string, product?: Product) => void;
+  onProductFound?: (product: Product) => void;
 }
 
 const ScanProductDialog = ({
   open,
   onOpenChange,
   onSearch,
+  onProductFound,
 }: ScanProductDialogProps) => {
   const { t } = useTranslation();
   const [mode, setMode] = useState<ScanMode>("manual");
   const [barcode, setBarcode] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
       setMode("manual");
       setBarcode("");
+      setError(null);
+      setIsSearching(false);
     }
   }, [open]);
+
+  const handleSearch = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const trimmedCode = barcode.trim();
+    if (!trimmedCode || isSearching) return;
+
+    setIsSearching(true);
+    setError(null);
+
+    try {
+      const res = await productsApi.scanProductByBarcode(trimmedCode);
+      const rawProduct = res?.data?.product || res?.product || res?.data || res;
+      if (rawProduct && (rawProduct.id || rawProduct._id || rawProduct.name)) {
+        const product = mapProduct(rawProduct);
+        showSuccessToast(`${t("Product found")}: ${product.name}`);
+        if (onProductFound) {
+          onProductFound(product);
+        }
+        if (onSearch) {
+          onSearch(trimmedCode, product);
+        }
+        onOpenChange(false);
+      } else {
+        const msg = t("No product matches this barcode/SKU");
+        setError(msg);
+        showErrorToast(msg);
+      }
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.message ||
+        (err?.response?.status === 404
+          ? t("No product matches this barcode/SKU")
+          : t("Failed to scan barcode"));
+      setError(msg);
+      showErrorToast(msg);
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   const tabClass = (active: boolean) =>
     cn(
@@ -49,14 +98,17 @@ const ScanProductDialog = ({
         className="w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-6 ring-0 sm:max-w-110"
       >
         <DialogTitle className="text-[20px] font-bold text-[#28293D]">
-          {t("Add New Product")}
+          {t("Scan Barcode")}
         </DialogTitle>
 
         <div className="mt-2 flex">
           <button
             type="button"
             className={tabClass(mode === "manual")}
-            onClick={() => setMode("manual")}
+            onClick={() => {
+              setMode("manual");
+              setError(null);
+            }}
           >
             <ScanBarcode className="size-4.5" />
             {t("Scan Barcode/Enter manually")}
@@ -64,7 +116,10 @@ const ScanProductDialog = ({
           <button
             type="button"
             className={tabClass(mode === "camera")}
-            onClick={() => setMode("camera")}
+            onClick={() => {
+              setMode("camera");
+              setError(null);
+            }}
           >
             <Camera className="size-4.5" />
             {t("Use camera")}
@@ -72,25 +127,35 @@ const ScanProductDialog = ({
         </div>
 
         {mode === "manual" ? (
-          <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-            <Input
-              value={barcode}
-              onChange={(e) => setBarcode(e.target.value)}
-              placeholder={t("Enter barcode")}
-              className="h-12 flex-1 rounded-[8px] border-[#E5E5E5] px-4 text-[14px] focus-visible:border-primary focus-visible:ring-0"
-            />
-            <Button
-              type="button"
-              disabled={!barcode.trim()}
-              onClick={() => {
-                onSearch(barcode.trim());
-                onOpenChange(false);
-              }}
-              className="h-12 rounded-[8px] px-8 text-sm font-semibold text-white disabled:opacity-50"
-            >
-              {t("Search")}
-            </Button>
-          </div>
+          <form onSubmit={handleSearch} className="mt-5 flex flex-col gap-2">
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Input
+                value={barcode}
+                onChange={(e) => {
+                  setBarcode(e.target.value);
+                  if (error) setError(null);
+                }}
+                placeholder={t("Enter barcode")}
+                disabled={isSearching}
+                autoFocus
+                className="h-12 flex-1 rounded-[8px] border-[#E5E5E5] px-4 text-[14px] focus-visible:border-primary focus-visible:ring-0"
+              />
+              <Button
+                type="submit"
+                disabled={!barcode.trim() || isSearching}
+                className="h-12 rounded-[8px] px-8 text-sm font-semibold text-white disabled:opacity-50"
+              >
+                {isSearching ? (
+                  <Loader2 className="size-5 animate-spin" />
+                ) : (
+                  t("Search")
+                )}
+              </Button>
+            </div>
+            {error && (
+              <p className="px-1 text-xs font-medium text-red-500">{error}</p>
+            )}
+          </form>
         ) : (
           <div
             className="mt-5 flex h-56 items-center justify-center rounded-[12px] border border-[#E5E5E5]"
@@ -113,3 +178,4 @@ const ScanProductDialog = ({
 };
 
 export default ScanProductDialog;
+

@@ -1203,8 +1203,13 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   "Remove group": "إزالة المجموعة",
   "Remove option": "إزالة الخيار",
   "Required": "إلزامي",
+  "Scan Barcode": "مسح الباركود",
   "Scan Barcode/Enter manually": "مسح الباركود/إدخال يدوي",
   "Scan Product": "مسح المنتج",
+  "No product matches this barcode/SKU": "لا يوجد منتج يطابق هذا الباركود/SKU",
+  "Product found": "تم العثور على المنتج",
+  "Failed to scan barcode": "فشل في مسح الباركود",
+
   "Search for customers": "ابحث عن عملاء",
   "Search recipes...": "ابحث عن الوصفات...",
   "Select Customer": "اختيار عميل",

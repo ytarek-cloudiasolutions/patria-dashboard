@@ -209,6 +209,7 @@ const ProductsPage = () => {
       quantity: p.quantity ?? 0,
       unit: p.unit || "Piece(s)",
       isExtra: false,
+      barcode: p.barcode || "",
     }));
   }, [products, tab]);
 
@@ -222,6 +223,7 @@ const ProductsPage = () => {
       quantity: p.quantity ?? 0,
       unit: p.unit || "Piece(s)",
       isExtra: false,
+      barcode: p.barcode || "",
     }));
   }, [ingredients]);
 
@@ -239,6 +241,9 @@ const ProductsPage = () => {
     const formData = new FormData();
     formData.append("name", data.name.trim());
     formData.append("description", data.description.trim());
+    if (data.barcode !== undefined) {
+      formData.append("barcode", data.barcode.trim());
+    }
     formData.append("price", String(Number(data.price) || 0));
     formData.append("categoryId", data.category);
     formData.append("stockQty", String(Number(data.quantity) || 0));
@@ -289,6 +294,9 @@ const ProductsPage = () => {
     const formData = new FormData();
     formData.append("name", data.name.trim());
     formData.append("description", data.description.trim());
+    if (data.barcode !== undefined) {
+      formData.append("barcode", data.barcode.trim());
+    }
     formData.append("price", String(Number(data.price) || 0));
     formData.append("categoryId", categoryId);
     formData.append("stockQty", String(Number(data.quantity) || 0));
@@ -646,8 +654,12 @@ const ProductsPage = () => {
       <ScanProductDialog
         open={isScanOpen}
         onOpenChange={setIsScanOpen}
-        onSearch={() => setIsScanOpen(false)}
+        onProductFound={(product) => {
+          setEditingProduct(product);
+          setIsAddProductOpen(true);
+        }}
       />
+
 
       <WhatsAppOfferDialog
         open={isWhatsAppOpen}

@@ -64,6 +64,13 @@ export const toggleProductStatus = async (productId: string) => {
   return response.data;
 };
 
+export const scanProductByBarcode = async (code: string) => {
+  const response = await api.get<any>(
+    PRODUCT_ENDPOINTS.SCAN_BY_BARCODE(code),
+  );
+  return response.data;
+};
+
 export const productsApi = {
   getProducts,
   createProduct,
@@ -71,4 +78,6 @@ export const productsApi = {
   updateProduct,
   deleteProduct,
   toggleProductStatus,
+  scanProductByBarcode,
 };
+

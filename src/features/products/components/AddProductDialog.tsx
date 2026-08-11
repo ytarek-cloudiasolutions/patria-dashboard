@@ -153,6 +153,7 @@ const AddProductDialog = ({
             name: editingProduct.name,
             category: categoryId,
             description: editingProduct.description,
+            barcode: editingProduct.barcode || "",
             price: String(editingProduct.price),
             imageUrl: editingProduct.imageUrl,
             extras: editingProduct.extras ?? [],

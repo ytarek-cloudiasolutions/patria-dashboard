@@ -25,6 +25,7 @@ export interface Product {
   unit?: string;
   productType?: string;
   isIngredient?: boolean;
+  barcode?: string;
 }
 
 // --- Ingredients (Recipes tab) ---------------------------------------------
@@ -39,7 +40,9 @@ export interface Ingredient {
   unit: string;
   isExtra?: boolean;
   extraCategories?: string[];
+  barcode?: string;
 }
+
 
 // --- Categories -------------------------------------------------------------
 

@@ -65,7 +65,7 @@ const AddIngredientDialog = ({
         ? {
             name: editingIngredient.name,
             description: editingIngredient.description || "",
-            barcode: "",
+            barcode: editingIngredient.barcode || "",
             price: String(editingIngredient.price),
             quantity: String(editingIngredient.quantity),
             unit: editingIngredient.unit || "g",
