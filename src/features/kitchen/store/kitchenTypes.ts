@@ -10,6 +10,8 @@ export interface KitchenOrderItem {
   quantity: number;
   notes?: string;
   status?: KitchenOrderStatus;
+  /** Populated product ref — fallback display name for items saved before item.name was stored. */
+  productId?: { name?: string } | string;
 }
 
 export interface KitchenOrder {

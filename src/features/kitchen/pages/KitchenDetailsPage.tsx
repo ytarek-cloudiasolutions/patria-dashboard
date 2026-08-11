@@ -116,12 +116,15 @@ const ApiKitchenOrderCard = ({ order, onStatusChange, stationColor, onCardClick 
         </div>
 
         <ul className="mb-4 space-y-1 list-disc pl-5 pr-2 text-[13px] font-medium text-black">
-          {order.items.map((item, idx) => (
-            <li key={idx} className="marker:text-black">
-              {item.quantity}x {item.name}
-              {item.notes && <span className="ml-1 text-[11px] text-[#8B8B8B]">({item.notes})</span>}
-            </li>
-          ))}
+          {order.items.map((item, idx) => {
+            const productName = typeof item.productId === "object" ? item.productId?.name : undefined;
+            return (
+              <li key={idx} className="marker:text-black">
+                {item.quantity}x {item.name || productName || t("Item")}
+                {item.notes && <span className="ml-1 text-[11px] text-[#8B8B8B]">({item.notes})</span>}
+              </li>
+            );
+          })}
         </ul>
 
         {next && (
