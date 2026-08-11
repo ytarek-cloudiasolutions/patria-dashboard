@@ -7,7 +7,6 @@ import {
 import { Button } from "@/shared/components/ui/button";
 import { Label } from "@/shared/components/ui/label";
 import { Separator } from "@/shared/components/ui/separator";
-import { Switch } from "@/shared/components/ui/switch";
 import DefaultButton from "@/shared/components/DefaultButton";
 import DropdownSelect from "@/shared/components/DropdownSelect";
 import InputField from "@/shared/components/InputField";
@@ -226,20 +225,6 @@ const AddTransactionDialog = ({
                 </div>
               </div>
 
-              {isExpense && (
-                <label className="flex items-center justify-between rounded-[16px] border border-[#E5E5E5] bg-[#FAFAF7] px-4 py-3 cursor-pointer">
-                  <span className="text-[14px] font-medium text-[#28293D]">
-                    {t("Classify as salary")}
-                  </span>
-                  <Switch
-                    checked={form.classifyAsSalary}
-                    onCheckedChange={(checked) =>
-                      set("classifyAsSalary", checked)
-                    }
-                    aria-label="Classify as salary"
-                  />
-                </label>
-              )}
             </div>
           </form>
 

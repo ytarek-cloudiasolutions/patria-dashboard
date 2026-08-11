@@ -35,9 +35,12 @@ import type {
   TransactionFormData,
 } from "./types";
 
+import { financialApi } from "./api/financialApi";
+import type { CreateTransactionRequest } from "./store/financialTypes";
+
 const mapTransaction = (t: any, idx: number): FinancialTransaction => ({
   id: t._id ?? idx,
-  statement: t.statement ?? "—",
+  statement: t.description ?? t.statement ?? "—",
   category: (t.category ?? "Other") as TransactionCategory,
   amount:
     t.type === "expense" || t.type === "salary"
@@ -127,14 +130,16 @@ const FinancialHubPage = () => {
   const handleAddTransaction = async (data: TransactionFormData) => {
     try {
       const amount = Number(data.amount) || 0;
-      await api.post("/financial/transactions", {
-        type: data.type.toLowerCase(),
-        statement: data.statement.trim(),
-        category: data.category || "Other",
+      const statementText = data.statement.trim();
+      const payload: CreateTransactionRequest = {
+        type: data.type.toLowerCase() === "income" ? "income" : "expense",
         amount: Math.abs(amount),
-        date: data.date || undefined,
-        isSalary: data.classifyAsSalary,
-      });
+        statement: statementText,
+        description: statementText,
+        category: data.category || undefined,
+        date: data.date ? new Date(data.date).toISOString() : undefined,
+      };
+      await financialApi.createTransaction(payload);
       showSuccessToast(t("Transaction added"));
       loadData();
     } catch (err: any) {

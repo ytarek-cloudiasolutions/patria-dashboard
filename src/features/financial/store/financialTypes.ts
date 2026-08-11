@@ -25,12 +25,12 @@ export interface GetTransactionsResponse {
 }
 
 export interface CreateTransactionRequest {
-  type: TransactionType;
-  description: string;
+  type: "income" | "expense";
   amount: number;
-  date?: string;
+  statement?: string;
+  description?: string;
   category?: string;
-  reference?: string;
+  date?: string;
 }
 
 export interface CreateTransactionResponse {
