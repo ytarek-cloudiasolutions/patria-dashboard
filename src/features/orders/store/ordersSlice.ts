@@ -1,5 +1,5 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import { mapOrder, mapOrders } from "../utils/orderMappers";
+import { mapOrder, mapOrders, mapOrderStatus } from "../utils/orderMappers";
 import type {
   OrdersState,
   OrdersLoadingState,
@@ -129,6 +129,58 @@ const ordersSlice = createSlice({
     updateOrderStatusFailure: (state, action: PayloadAction<string>) => {
       setOperationFailure(state, "update", action.payload);
     },
+
+    updateOrderSuccess: (
+      state,
+      action: PayloadAction<any>,
+    ) => {
+      const rawOrder = action.payload;
+      const updated = mapOrder(rawOrder);
+      state.orders = state.orders.map((o) => {
+        if (o.id === updated.id) {
+          return {
+            ...o,
+            ...updated,
+            status: updated.status || o.status,
+            driver: updated.driver || rawOrder.driver || rawOrder.assignedDriver?.name || o.driver,
+          };
+        }
+        return o;
+      });
+      if (state.selectedOrder?.id === updated.id) {
+        state.selectedOrder = {
+          ...state.selectedOrder,
+          ...updated,
+          status: updated.status || state.selectedOrder.status,
+          driver: updated.driver || rawOrder.driver || rawOrder.assignedDriver?.name || state.selectedOrder.driver,
+        };
+      }
+    },
+
+    updateOrderLocal: (
+      state,
+      action: PayloadAction<{ orderId: string; driverName: string; status?: string }>,
+    ) => {
+      const { orderId, driverName, status } = action.payload;
+      state.orders = state.orders.map((o) => {
+        if (o.id === orderId) {
+          return {
+            ...o,
+            driver: driverName,
+            status: status ? mapOrderStatus(status) : o.status,
+          };
+        }
+        return o;
+      });
+      if (state.selectedOrder?.id === orderId) {
+        state.selectedOrder = {
+          ...state.selectedOrder,
+          driver: driverName,
+          status: status ? mapOrderStatus(status) : state.selectedOrder.status,
+        };
+      }
+    },
+
 
     deleteOrderRequest: (state, _action: PayloadAction<string>) => {
       setOperationLoading(state, "delete");

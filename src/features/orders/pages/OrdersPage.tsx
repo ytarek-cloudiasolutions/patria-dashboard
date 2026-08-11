@@ -51,6 +51,8 @@ const OrdersPage = () => {
     loading,
     getOrdersList,
     updateOrderStatusValue,
+    updateOrderSuccess,
+    updateOrderLocal,
     createNewOrder,
     deleteOrderValue,
     isFetchingOrders,
@@ -269,8 +271,13 @@ const OrdersPage = () => {
     }
   };
 
-  const assignDriver = (_orderId: string, _driver: string) => {
-    showSuccessToast(t("Driver assigned successfully (local)"));
+  const assignDriver = (orderId: string, driverName: string, updatedOrderData?: any) => {
+    if (updatedOrderData && (updatedOrderData._id || updatedOrderData.id || updatedOrderData.order)) {
+      const rawOrder = updatedOrderData.order || updatedOrderData;
+      updateOrderSuccess(rawOrder);
+    } else {
+      updateOrderLocal({ orderId, driverName, status: "confirmed" });
+    }
   };
 
   const toggleSelected = (orderId: string) => {

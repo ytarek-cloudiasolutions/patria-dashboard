@@ -51,6 +51,20 @@ export const useOrders = () => {
     [dispatch],
   );
 
+  const updateOrderSuccess = useCallback(
+    (orderData: any) => {
+      dispatch(ordersActions.updateOrderSuccess(orderData));
+    },
+    [dispatch],
+  );
+
+  const updateOrderLocal = useCallback(
+    (payload: { orderId: string; driverName: string; status?: string }) => {
+      dispatch(ordersActions.updateOrderLocal(payload));
+    },
+    [dispatch],
+  );
+
   const deleteOrderValue = useCallback(
     (orderId: string) => {
       dispatch(ordersActions.deleteOrderRequest(orderId));
@@ -81,6 +95,8 @@ export const useOrders = () => {
     createNewOrder,
     getOrderDetails,
     updateOrderStatusValue,
+    updateOrderSuccess,
+    updateOrderLocal,
     deleteOrderValue,
     clearOrdersError,
     clearOrdersMessages,

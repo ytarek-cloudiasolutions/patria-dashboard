@@ -32,7 +32,7 @@ interface OrdersTableProps {
   onToggleSelectAll: () => void;
   onViewOrder: (order: Order) => void;
   onUpdateStatus: (orderId: string, status: OrderStatus) => void;
-  onAssignDriver: (orderId: string, driver: string) => void;
+  onAssignDriver: (orderId: string, driver: string, updatedOrderData?: any) => void;
   onStatusMenuOpenChange?: (open: boolean) => void;
 }
 
@@ -255,7 +255,9 @@ const OrdersTable = ({
                       <DriverCell
                         orderId={order.id}
                         driver={order.driver}
-                        onAssign={(driverName) => onAssignDriver(order.id, driverName)}
+                        onAssign={(driverName, updatedOrderData) =>
+                          onAssignDriver(order.id, driverName, updatedOrderData)
+                        }
                         onOpenChange={onStatusMenuOpenChange}
                       />
                     </TableCell>
@@ -290,7 +292,7 @@ interface ApiDriver {
 interface DriverCellProps {
   orderId: string;
   driver?: string;
-  onAssign: (driverName: string) => void;
+  onAssign: (driverName: string, updatedOrderData?: any) => void;
   onOpenChange?: (open: boolean) => void;
 }
 
@@ -319,12 +321,13 @@ const DriverCell = ({ orderId, driver, onAssign, onOpenChange }: DriverCellProps
   const handleSelect = async (selectedDriver: ApiDriver) => {
     setIsDispatching(true);
     try {
-      await api.post("/logistics/dispatch", {
+      const response = await api.post("/logistics/dispatch", {
         driverId: selectedDriver._id,
         orderId,
       });
+      const resData = response.data;
       showSuccessToast(t("Driver dispatched successfully"));
-      onAssign(selectedDriver.name);
+      onAssign(selectedDriver.name, resData?.order || resData);
     } catch {
       showErrorToast(t("Failed to dispatch driver"));
     } finally {
