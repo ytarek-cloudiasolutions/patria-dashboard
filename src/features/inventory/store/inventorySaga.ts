@@ -26,9 +26,14 @@ const getInventoryErrorMessage = (error: unknown): string => {
   return "Something went wrong";
 };
 
-function* handleGetInventory() {
+function* handleGetInventory(
+  action: PayloadAction<{ warehouseId?: string } | undefined>,
+) {
   try {
-    const response: GetInventoryResponse = yield call(inventoryApi.getInventory);
+    const response: GetInventoryResponse = yield call(
+      inventoryApi.getInventory,
+      action.payload?.warehouseId,
+    );
     yield put(
       inventoryActions.getInventorySuccess({
         products: response.products || [],

@@ -7,9 +7,10 @@ import type {
   BulkUpdateStockRequest,
 } from "../store/inventoryTypes";
 
-export const getInventory = async () => {
+export const getInventory = async (warehouseId?: string) => {
   const response = await api.get<GetInventoryResponse>(
     INVENTORY_ENDPOINTS.INVENTORY,
+    { params: warehouseId ? { warehouseId } : undefined },
   );
   return response.data;
 };

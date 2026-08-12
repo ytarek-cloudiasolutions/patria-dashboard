@@ -14,8 +14,8 @@ export const useInventory = () => {
   const errors = useSelector((state: RootState) => state.inventory.errors);
   const successMessage = useSelector((state: RootState) => state.inventory.successMessage);
 
-  const getInventoryList = useCallback(() => {
-    dispatch(inventoryActions.getInventoryRequest());
+  const getInventoryList = useCallback((warehouseId?: string) => {
+    dispatch(inventoryActions.getInventoryRequest(warehouseId ? { warehouseId } : undefined));
   }, [dispatch]);
 
   const getShortagesList = useCallback(() => {

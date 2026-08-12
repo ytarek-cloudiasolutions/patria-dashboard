@@ -11,10 +11,12 @@ import OverviewCard from "@/shared/components/OverviewCard";
 import SearchInputField from "@/shared/components/SearchInputField";
 import TabItem from "@/shared/components/TabItem";
 import DefaultButton from "@/shared/components/DefaultButton";
+import DropdownSelect from "@/shared/components/DropdownSelect";
 import { useInventory } from "./hooks/useInventory";
 import StockStatusTable from "./components/StockStatusTable";
 import ExpectedShortagesTable from "./components/ExpectedShortagesTable";
 import { useTranslation } from "@/shared/i18n/useTranslation";
+import { useWarehouses } from "@/features/warehouses/hooks/useWarehouses";
 
 type InventoryTab = "stock" | "shortages";
 
@@ -31,8 +33,10 @@ const InventoryPage = () => {
     bulkUpdateItemsStock,
   } = useInventory();
 
+  const { warehouses, getWarehouses } = useWarehouses();
   const [activeTab, setActiveTab] = useState<InventoryTab>("stock");
   const [search, setSearch] = useState("");
+  const [warehouseId, setWarehouseId] = useState("");
   const [adjustments, setAdjustments] = useState<Record<string | number, number>>({});
 
   const hasAdjustments = Object.keys(adjustments).length > 0;
@@ -61,9 +65,16 @@ const InventoryPage = () => {
 
   // Fetch lists on mount
   useEffect(() => {
-    getInventoryList();
     getShortagesList();
-  }, [getInventoryList, getShortagesList]);
+    getWarehouses();
+  }, [getShortagesList, getWarehouses]);
+
+  // Re-fetch stock whenever the selected warehouse changes — this was
+  // previously never sent at all, so GET /inventory always returned the
+  // global (unfiltered) figures no matter what a caller expected.
+  useEffect(() => {
+    getInventoryList(warehouseId || undefined);
+  }, [getInventoryList, warehouseId]);
 
   // Determine current active source items
   const activeItems = activeTab === "stock" ? items : shortages;
@@ -211,13 +222,28 @@ const InventoryPage = () => {
         />
       </div>
 
-      {/* Search */}
-      <div className="mb-4">
-        <SearchInputField
-          value={search}
-          onChange={setSearch}
-          placeholder={t("Search products...")}
-        />
+      {/* Search + Warehouse filter */}
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row">
+        <div className="flex-1">
+          <SearchInputField
+            value={search}
+            onChange={setSearch}
+            placeholder={t("Search products...")}
+          />
+        </div>
+        {activeTab === "stock" && (
+          <DropdownSelect
+            options={[
+              { value: "", label: t("All warehouses (global stock)") },
+              ...warehouses.map((w: any) => ({ value: w._id || w.id, label: w.name })),
+            ]}
+            selected={warehouseId}
+            onSelect={setWarehouseId}
+            placeholder={t("All warehouses (global stock)")}
+            align="start"
+            className="h-11 sm:w-[240px]"
+          />
+        )}
       </div>
 
       {/* Table */}

@@ -60,7 +60,10 @@ const inventorySlice = createSlice({
   name: "inventory",
   initialState,
   reducers: {
-    getInventoryRequest: (state) => {
+    getInventoryRequest: (
+      state,
+      _action: PayloadAction<{ warehouseId?: string } | undefined>,
+    ) => {
       setOperationLoading(state, "fetch");
     },
     getInventorySuccess: (
