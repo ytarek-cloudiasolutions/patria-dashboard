@@ -115,18 +115,19 @@ const OrderCart = ({
       <div className="shrink-0 px-3 pb-3">
         {selectedCustomer ? (
           /* Selected Customer Card */
-          <div className="flex flex-col gap-2 rounded-[12px] border border-[#CACBD4] bg-[#FAFAF7] p-3 shadow-xs">
+          <div className="flex flex-col gap-2 rounded-[12px] border border-[#8F6900] bg-[#F8F8F8] p-[14px]">
             <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2 min-w-0 flex-1">
-                <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#8F6900]">
-                  <User className="size-4 text-white" />
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#8F6900]">
+                    <User className="size-4.5 text-white" />
+                  </div>
+                  <span className="truncate text-[14px] font-normal text-[#333333]">
+                    {selectedCustomer.name}
+                  </span>
                 </div>
-                <span className="truncate text-[14px] font-bold text-[#333333]">
-                  {selectedCustomer.name}
-                </span>
                 {selectedCustomer.tier && (
-                  <span className="inline-flex shrink-0 items-center gap-1 rounded-[20px] border border-[#C7861E] bg-[rgba(254,154,0,0.10)] px-2.5 py-0.5 text-[11px] font-semibold text-[#C7861E]">
-                    <Star className="size-3 fill-[#C7861E] text-[#C7861E]" />
+                  <span className="inline-flex shrink-0 items-center justify-center rounded-[30px] border border-[#053CB8] bg-[#EDF4FB] px-2 py-0.5 text-[11px] font-semibold tracking-[0.22px] text-[#3574FF] uppercase">
                     {selectedCustomer.tier}
                   </span>
                 )}
@@ -138,22 +139,24 @@ const OrderCart = ({
                   setPhoneQuery("");
                   onCustomerChange("");
                 }}
-                className="p-1 text-[#8B8B8B] transition-colors hover:text-black cursor-pointer"
+                className="p-1 text-black transition-colors hover:text-[#8F6900] cursor-pointer"
                 aria-label={t("Remove customer")}
               >
-                <X className="size-4" />
+                <X className="size-4.5" />
               </button>
             </div>
 
-            <div className="flex items-center justify-between text-[12px] font-medium text-[#595959] pt-1 border-t border-[#E5E5E5]/60">
-              <div className="flex items-center gap-1.5">
-                <Phone className="size-3.5 text-[#8B8B8B]" />
+            <div className="border-t border-[#CACBD4] my-0.5" />
+
+            <div className="flex items-center justify-between text-[12px] h-9">
+              <div className="flex items-center gap-1 text-black font-medium tracking-[0.24px]">
+                <Phone className="size-4 text-black" />
                 <span>{selectedCustomer.phone}</span>
               </div>
-              <div className="flex items-center gap-1.5 font-bold text-[#8F6900]">
-                <Trophy className="size-3.5 text-[#8F6900]" />
+              <div className="flex items-center gap-1 font-bold tracking-[0.24px] text-[#8F6900]">
+                <Trophy className="size-4 text-[#8F6900]" />
                 <span>
-                  {selectedCustomer.loyaltyPoints} {t("points")}
+                  {selectedCustomer.loyaltyPoints} {t("Points")}
                 </span>
               </div>
             </div>
