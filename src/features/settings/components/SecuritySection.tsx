@@ -3,6 +3,8 @@ import { KeyRound } from "lucide-react";
 import DefaultButton from "@/shared/components/DefaultButton";
 import InputField from "@/shared/components/InputField";
 import { useTranslation } from "@/shared/i18n/useTranslation";
+import { api } from "@/config/api";
+import { showErrorToast, showSuccessToast } from "@/shared/utils/toast";
 import SectionCard from "./SectionCard";
 import type { PasswordFormData } from "../types";
 
@@ -14,9 +16,30 @@ const INITIAL: PasswordFormData = {
 const SecuritySection = () => {
   const { t } = useTranslation();
   const [form, setForm] = useState<PasswordFormData>(INITIAL);
+  const [isSaving, setIsSaving] = useState(false);
 
   const set = (key: keyof PasswordFormData, value: string) =>
     setForm((prev) => ({ ...prev, [key]: value }));
+
+  const handleUpdatePassword = async () => {
+    if (!form.currentPassword || form.newPassword.length < 6) {
+      showErrorToast(t("Enter your current password and a new password of at least 6 characters"));
+      return;
+    }
+    setIsSaving(true);
+    try {
+      await api.put("/users/change-password", {
+        currentPassword: form.currentPassword,
+        newPassword: form.newPassword,
+      });
+      showSuccessToast(t("Password updated successfully"));
+      setForm(INITIAL);
+    } catch (error: any) {
+      showErrorToast(error?.response?.data?.message || t("Failed to update password"));
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <SectionCard
@@ -53,7 +76,13 @@ const SecuritySection = () => {
           }}
         />
         <div className="mt-auto flex justify-end">
-          <DefaultButton data={{ buttonText: t("Update Password") }} />
+          <DefaultButton
+            data={{
+              buttonText: isSaving ? t("Updating...") : t("Update Password"),
+              onClick: handleUpdatePassword,
+              disabled: isSaving,
+            }}
+          />
         </div>
       </div>
     </SectionCard>

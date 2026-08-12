@@ -18,7 +18,7 @@ import type { PermissionLevel, TeamMember, TeamRole } from "../types";
 
 interface TeamSectionProps {
   members: TeamMember[];
-  onRoleChange: (id: number, role: TeamRole) => void;
+  onRoleChange: (id: string | number, role: TeamRole) => void;
   onInvite: () => void;
   onDropdownOpenChange: (open: boolean) => void;
 }
@@ -48,7 +48,7 @@ const RoleSelect = ({
   onDropdownOpenChange,
 }: {
   member: TeamMember;
-  onRoleChange: (id: number, role: TeamRole) => void;
+  onRoleChange: (id: string | number, role: TeamRole) => void;
   onDropdownOpenChange: (open: boolean) => void;
 }) => {
   const { t } = useTranslation();

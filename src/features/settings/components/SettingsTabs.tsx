@@ -1,7 +1,6 @@
 import {
   Activity,
   Bell,
-  Clock,
   Shield,
   ShieldCheck,
   User,
@@ -17,7 +16,6 @@ const TABS: { value: SettingsTab; label: string; icon: LucideIcon }[] = [
   { value: "security", label: "Security", icon: Shield },
   { value: "notifications", label: "Notifications", icon: Bell },
   { value: "team", label: "Team", icon: Users },
-  { value: "attendance", label: "Attendance", icon: Clock },
   { value: "system", label: "System", icon: Activity },
   { value: "audit", label: "Audit Logs", icon: ShieldCheck },
 ];

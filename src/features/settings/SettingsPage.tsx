@@ -8,19 +8,25 @@ import ProfileSection from "./components/ProfileSection";
 import SecuritySection from "./components/SecuritySection";
 import NotificationsSection from "./components/NotificationsSection";
 import TeamSection from "./components/TeamSection";
-import AttendanceSection from "./components/AttendanceSection";
 import SystemSection from "./components/SystemSection";
 import AuditLogsSection from "./components/AuditLogsSection";
 import InviteMemberDialog from "./components/InviteMemberDialog";
 
 import type { InviteFormData, SettingsTab, TeamMember, TeamRole } from "./types";
 import { api } from "@/config/api";
+import { showErrorToast, showSuccessToast } from "@/shared/utils/toast";
 
 const mapRole = (raw: string): TeamRole => {
   const r = (raw || "").toLowerCase();
-  if (r === "admin" || r === "super_admin") return "Admin";
+  if (r === "admin" || r === "super_admin" || r === "superadmin") return "Admin";
   if (r === "manager") return "Manager";
   return "Staff";
+};
+
+const mapRoleToBackend = (role: TeamRole): string => {
+  if (role === "Admin") return "admin";
+  if (role === "Manager") return "manager";
+  return "staff";
 };
 
 const SettingsPage = () => {
@@ -29,8 +35,9 @@ const SettingsPage = () => {
   const [team, setTeam] = useState<TeamMember[]>([]);
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [me, setMe] = useState<{ name: string; role: string }>({ name: "", role: "" });
 
-  useEffect(() => {
+  const loadTeam = () => {
     api.get("/users", { params: { limit: 50 } }).then((res) => {
       const raw: any[] = res.data?.data ?? res.data?.users ?? [];
       const mapped: TeamMember[] = raw.map((u, idx) => ({
@@ -45,31 +52,49 @@ const SettingsPage = () => {
       }));
       setTeam(mapped);
     }).catch(() => setTeam([]));
+  };
+
+  useEffect(() => {
+    loadTeam();
+    api.get("/auth/me").then(({ data }) => {
+      setMe({ name: data.name ?? "", role: mapRole(data.role) });
+    }).catch(() => {});
   }, []);
 
-  const handleRoleChange = (id: number, role: TeamRole) =>
-    setTeam((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, role } : m)),
-    );
+  const handleRoleChange = async (id: string | number, role: TeamRole) => {
+    // Was local Set/array state only — the role dropdown looked like it
+    // worked but never reached the backend, so it reset on every refresh.
+    const prevTeam = team;
+    setTeam((prev) => prev.map((m) => (m.id === id ? { ...m, role } : m)));
+    try {
+      await api.put(`/users/${id}`, { role: mapRoleToBackend(role) });
+      showSuccessToast(t("Role updated"));
+    } catch (error: any) {
+      setTeam(prevTeam);
+      showErrorToast(error?.response?.data?.message || t("Failed to update role"));
+    }
+  };
 
-  const handleInvite = (data: InviteFormData) => {
-    const newMember: TeamMember = {
-      id: Date.now(),
-      name: data.name.trim(),
-      roleLabel: data.role,
-      email: data.email.trim(),
-      phone: data.phone.trim() || "—",
-      role: data.role,
-      performance: "0 Deals",
-      permission: data.role === "Admin" ? "Edit Only" : "View Only",
-    };
-    setTeam((prev) => [newMember, ...prev]);
+  const handleInvite = async (data: InviteFormData) => {
+    try {
+      await api.post("/users", {
+        name: data.name.trim(),
+        email: data.email.trim(),
+        password: data.securityCode,
+        role: mapRoleToBackend(data.role),
+        phone: data.phone.trim() || undefined,
+      });
+      showSuccessToast(t("Team member added"));
+      loadTeam();
+    } catch (error: any) {
+      showErrorToast(error?.response?.data?.message || t("Failed to add team member"));
+    }
   };
 
   const renderSection = () => {
     switch (tab) {
       case "profile":
-        return <ProfileSection />;
+        return <ProfileSection onSaved={(data) => setMe({ name: data.name, role: mapRole(data.role) })} />;
       case "security":
         return <SecuritySection />;
       case "notifications":
@@ -83,8 +108,6 @@ const SettingsPage = () => {
             onDropdownOpenChange={setIsDropdownOpen}
           />
         );
-      case "attendance":
-        return <AttendanceSection />;
       case "system":
         return <SystemSection />;
       case "audit":
@@ -111,7 +134,7 @@ const SettingsPage = () => {
       <SettingsTabs active={tab} onChange={setTab} />
 
       <div className="grid grid-cols-1 items-stretch gap-4 lg:grid-cols-[320px_1fr]">
-        <SettingsSidebar />
+        <SettingsSidebar name={me.name} role={me.role} />
         <div className="h-full">{renderSection()}</div>
       </div>
 

@@ -3,7 +3,6 @@ export type SettingsTab =
   | "security"
   | "notifications"
   | "team"
-  | "attendance"
   | "system"
   | "audit";
 
@@ -12,7 +11,7 @@ export type TeamRole = "Staff" | "Manager" | "Admin";
 export type PermissionLevel = "View Only" | "Edit Only";
 
 export interface TeamMember {
-  id: number;
+  id: string | number;
   name: string;
   roleLabel: string;
   email: string;

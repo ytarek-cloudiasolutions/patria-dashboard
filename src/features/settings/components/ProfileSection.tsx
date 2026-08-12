@@ -1,23 +1,67 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { User } from "lucide-react";
 import DefaultButton from "@/shared/components/DefaultButton";
 import InputField from "@/shared/components/InputField";
 import { useTranslation } from "@/shared/i18n/useTranslation";
+import { api } from "@/config/api";
+import { showErrorToast, showSuccessToast } from "@/shared/utils/toast";
 import SectionCard from "./SectionCard";
 import type { ProfileFormData } from "../types";
 
-const INITIAL: ProfileFormData = {
-  displayName: "Super Admin",
-  email: "admin@erb.com",
+const EMPTY: ProfileFormData = {
+  displayName: "",
+  email: "",
   phone: "",
 };
 
-const ProfileSection = () => {
+interface ProfileSectionProps {
+  onSaved?: (data: { name: string; role: string }) => void;
+}
+
+const ProfileSection = ({ onSaved }: ProfileSectionProps) => {
   const { t } = useTranslation();
-  const [form, setForm] = useState<ProfileFormData>(INITIAL);
+  const [form, setForm] = useState<ProfileFormData>(EMPTY);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [role, setRole] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Was hardcoded to "Super Admin" / "admin@erb.com" for every user —
+  // load whoever is actually logged in.
+  useEffect(() => {
+    api
+      .get("/auth/me")
+      .then(({ data }) => {
+        setUserId(data._id ?? null);
+        setRole(data.role ?? "");
+        setForm({
+          displayName: data.name ?? "",
+          email: data.email ?? "",
+          phone: data.phone ?? "",
+        });
+      })
+      .catch(() => {});
+  }, []);
 
   const set = (key: keyof ProfileFormData, value: string) =>
     setForm((prev) => ({ ...prev, [key]: value }));
+
+  const handleSave = async () => {
+    if (!userId) return;
+    setIsSaving(true);
+    try {
+      await api.put(`/users/${userId}`, {
+        name: form.displayName,
+        email: form.email,
+        phone: form.phone || undefined,
+      });
+      showSuccessToast(t("Profile updated successfully"));
+      onSaved?.({ name: form.displayName, role });
+    } catch (err: any) {
+      showErrorToast(err?.response?.data?.message ?? t("Failed to update profile"));
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <SectionCard
@@ -63,7 +107,13 @@ const ProfileSection = () => {
           }}
         />
         <div className="mt-auto flex justify-end">
-          <DefaultButton data={{ buttonText: t("Save changes") }} />
+          <DefaultButton
+            data={{
+              buttonText: isSaving ? t("Saving...") : t("Save changes"),
+              onClick: handleSave,
+              disabled: isSaving,
+            }}
+          />
         </div>
       </div>
     </SectionCard>

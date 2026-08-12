@@ -3,8 +3,14 @@ import { Badge } from "@/shared/components/ui/badge";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 
-const SettingsSidebar = () => {
+interface SettingsSidebarProps {
+  name?: string;
+  role?: string;
+}
+
+const SettingsSidebar = ({ name = "—", role = "" }: SettingsSidebarProps) => {
   const { t } = useTranslation();
+  const initial = name.trim().charAt(0).toUpperCase() || "?";
   return (
     <div className="flex flex-col gap-4">
       {/* Profile summary card */}
@@ -13,15 +19,15 @@ const SettingsSidebar = () => {
           <div className="flex flex-col items-center gap-3 text-center">
             <div className="flex items-center justify-center rounded-full bg-[#ECEBE6] p-2.5">
               <span className="flex size-20 items-center justify-center rounded-full bg-linear-to-b from-[#8F6900] to-[#444A18] text-[28px] font-bold text-white">
-                S
+                {initial}
               </span>
             </div>
             <div>
               <p className="text-[16px] font-semibold text-[#333333]">
-                Super Admin
+                {name}
               </p>
               <p className="text-[11px] uppercase tracking-wide text-[#595959]">
-                {t("Admin")}
+                {t(role || "—")}
               </p>
             </div>
           </div>
