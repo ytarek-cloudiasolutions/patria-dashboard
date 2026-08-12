@@ -14,19 +14,25 @@ import DropdownSelect from "@/shared/components/DropdownSelect";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import {
   ALL_PERMISSION_PAGES,
-  BACKUP_WAREHOUSE_OPTIONS,
   ROLE_CARD_OPTIONS,
   ROLE_DEFAULT_PAGES,
   VIRTUAL_SHIFT_OPTIONS,
 } from "../data";
 import type { PermissionPage, UserAccount, UserRole } from "../types";
 import { PAGE_ICONS } from "../pageIcons";
+import { useWarehouses } from "@/features/warehouses/hooks/useWarehouses";
 
 interface ModifyPermissionsDialogProps {
   open: boolean;
   user?: UserAccount;
   onOpenChange: (open: boolean) => void;
-  onSave: (id: string | number, role: UserRole, pages: PermissionPage[]) => void;
+  onSave: (
+    id: string | number,
+    role: UserRole,
+    pages: PermissionPage[],
+    backupWarehouseId: string,
+    virtualShift: string,
+  ) => void;
 }
 
 const ModifyPermissionsDialog = ({
@@ -36,12 +42,22 @@ const ModifyPermissionsDialog = ({
   onSave,
 }: ModifyPermissionsDialogProps) => {
   const { t } = useTranslation();
+  const { warehouses, getWarehouses } = useWarehouses();
   const [role, setRole] = useState<UserRole>("staff");
   const [pages, setPages] = useState<Set<PermissionPage>>(new Set());
   const [backupWarehouse, setBackupWarehouse] = useState("none");
   const [virtualShift, setVirtualShift] = useState("none");
   const [isWarehouseOpen, setIsWarehouseOpen] = useState(false);
   const [isShiftOpen, setIsShiftOpen] = useState(false);
+
+  useEffect(() => {
+    getWarehouses();
+  }, [getWarehouses]);
+
+  const backupWarehouseOptions = [
+    { value: "none", label: t("Without backup storage") },
+    ...warehouses.map((w: any) => ({ value: w._id || w.id, label: w.name })),
+  ];
 
   useEffect(() => {
     if (open && user) {
@@ -52,8 +68,10 @@ const ModifyPermissionsDialog = ({
       ) as UserRole;
       setRole(initialRole);
       setPages(new Set(user.pages));
-      setBackupWarehouse("none");
-      setVirtualShift("none");
+      // Was previously always reset to "none" on open, discarding whatever
+      // had actually been saved for this user.
+      setBackupWarehouse(user.backupWarehouseId || "none");
+      setVirtualShift(user.virtualShift || "none");
       setIsWarehouseOpen(false);
       setIsShiftOpen(false);
     }
@@ -75,7 +93,7 @@ const ModifyPermissionsDialog = ({
 
   const handleSave = () => {
     if (!user) return;
-    onSave(user.id, role, Array.from(pages));
+    onSave(user.id, role, Array.from(pages), backupWarehouse, virtualShift);
     onOpenChange(false);
   };
 
@@ -146,10 +164,7 @@ const ModifyPermissionsDialog = ({
                   {t("Backup Warehouse")}
                 </Label>
                 <DropdownSelect
-                  options={BACKUP_WAREHOUSE_OPTIONS.map((o) => ({
-                    ...o,
-                    label: t(o.label),
-                  }))}
+                  options={backupWarehouseOptions}
                   selected={backupWarehouse}
                   onSelect={setBackupWarehouse}
                   onOpenChange={setIsWarehouseOpen}

@@ -24,7 +24,11 @@ export const mapUserAccount = (u: any): UserAccount => {
     email: u.email || "",
     phone: u.phone || "",
     role,
-    pages: ROLE_DEFAULT_PAGES[role] || [],
+    // Empty/unset on the backend means "never customized" — fall back to
+    // the role's default set rather than showing nothing.
+    pages: u.pages && u.pages.length > 0 ? u.pages : ROLE_DEFAULT_PAGES[role] || [],
+    backupWarehouseId: u.backupWarehouseId?._id || u.backupWarehouseId || "",
+    virtualShift: u.virtualShift || "none",
     _type: u._type || "staff",
     lifetimeValue: u.lifetimeValue || 0,
     isActive: u.isActive !== undefined ? u.isActive : true,

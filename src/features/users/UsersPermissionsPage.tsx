@@ -167,6 +167,9 @@ const UsersPermissionsPage = () => {
       email: data.email.trim(),
       password: data.password.trim(),
       role,
+      // Was silently dropped before — the backend had no phone field on
+      // createUserSchema either (now added), so it never persisted.
+      phone: data.phone?.trim() || undefined,
     });
   };
 
@@ -178,9 +181,19 @@ const UsersPermissionsPage = () => {
   const handleSaveEdit = (
     id: string | number,
     role: UserRole,
-    _pages: PermissionPage[],
+    pages: PermissionPage[],
+    backupWarehouseId: string,
+    virtualShift: string,
   ) => {
-    updateUserInfo(String(id), { role });
+    // Was only ever persisting `role` — the page-permission checkboxes,
+    // backup warehouse, and virtual shift picked in the dialog were
+    // collected and then silently discarded.
+    updateUserInfo(String(id), {
+      role,
+      pages,
+      backupWarehouseId: backupWarehouseId === "none" ? "" : backupWarehouseId,
+      virtualShift,
+    });
   };
 
   const handleConfirmDelete = () => {

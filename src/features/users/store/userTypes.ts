@@ -17,6 +17,10 @@ export interface CreateUserRequest {
   email: string;
   password?: string;
   role: string;
+  phone?: string;
+  pages?: string[];
+  backupWarehouseId?: string;
+  virtualShift?: string;
 }
 
 export type UserOperation = "fetch" | "create" | "update" | "delete";

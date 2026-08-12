@@ -4,6 +4,7 @@ import { useTranslation } from "@/shared/i18n/useTranslation";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
 import { api } from "@/config/api";
+import { getSocket } from "@/shared/lib/socket";
 
 import TrackingOverview from "./components/TrackingOverview";
 import RiderListPanel from "./components/RiderListPanel";
@@ -57,6 +58,40 @@ const DeliveryTrackingPage = () => {
   }, []);
 
   useEffect(() => { loadRiders(); }, [loadRiders]);
+
+  // The page claimed "Refreshes every 30 seconds" but nothing actually
+  // polled — only the manual Refresh button ever re-fetched.
+  useEffect(() => {
+    const interval = window.setInterval(loadRiders, 30000);
+    return () => window.clearInterval(interval);
+  }, [loadRiders]);
+
+  // Live rider position updates — the backend already emits
+  // driverLocationUpdated on every GPS ping (driverController.updateLocation),
+  // but this screen never connected to the socket, so the map only ever
+  // reflected whatever was true at the last manual/interval refresh.
+  useEffect(() => {
+    const socket = getSocket();
+    const handleLocationUpdate = (data: { driverId: string; lat: number; lng: number }) => {
+      setRiders((prev) =>
+        prev.map((r) =>
+          String(r.id) === String(data.driverId)
+            ? { ...r, location: { lat: data.lat, lng: data.lng } }
+            : r,
+        ),
+      );
+      setSelectedRider((prev) =>
+        prev && String(prev.id) === String(data.driverId)
+          ? { ...prev, location: { lat: data.lat, lng: data.lng } }
+          : prev,
+      );
+    };
+
+    socket.on("driverLocationUpdated", handleLocationUpdate);
+    return () => {
+      socket.off("driverLocationUpdated", handleLocationUpdate);
+    };
+  }, []);
 
   const overview = useMemo(() => {
     const activeRiders = riders.filter((r) => r.status !== "Delivered").length;

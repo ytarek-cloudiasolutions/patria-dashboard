@@ -20,6 +20,8 @@ export interface UserAccount {
   phone: string;
   role: UserRole;
   pages: PermissionPage[];
+  backupWarehouseId?: string;
+  virtualShift?: string;
   _type?: "staff" | "customer";
   lifetimeValue?: number;
   isActive?: boolean;
