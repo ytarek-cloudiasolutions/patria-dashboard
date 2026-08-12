@@ -9,6 +9,7 @@ import { Badge } from "@/shared/components/ui/badge";
 import { Clock3, UserRound, Smartphone } from "lucide-react";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import type { KitchenOrder } from "../store/kitchenTypes";
+import { formatTimeAgo } from "@/shared/utils/dateUtils";
 
 interface OrderDetailsDialogProps {
   order: KitchenOrder | null;
@@ -24,12 +25,7 @@ const STATUS_STYLE: Record<string, { bg: string; text: string; border: string; l
   served:    { bg: "#F0F0F0", text: "#666666", border: "#999999", label: "Served" },
 };
 
-function formatTimeAgo(createdAt: string): string {
-  const diff = Math.floor((Date.now() - new Date(createdAt).getTime()) / 60000);
-  if (diff < 1) return "Just now";
-  if (diff === 1) return "1 min ago";
-  return `${diff} mins ago`;
-}
+
 
 function getCustomerName(order: KitchenOrder): string {
   if (!order.customer) return "Walk-in";
@@ -76,7 +72,7 @@ const OrderDetailsDialog = ({ order, isOpen, onOpenChange }: OrderDetailsDialogP
           <div className="flex items-center gap-2">
             <Clock3 className="size-4 text-[#8B8B8B]" />
             <span>
-              {t("Received")} {formatTimeAgo(order.createdAt)}
+              {t("Received")} {formatTimeAgo(order.createdAt, t)}
             </span>
           </div>
           <div className="flex items-center gap-2">

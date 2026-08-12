@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/shared/components/ui/card";
 import { Clock3, UserRound, Smartphone } from "lucide-react";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import type { KitchenOrder, OrderStatus, OrderType } from "../types";
+import { formatTimeAgo } from "@/shared/utils/dateUtils";
 
 interface KitchenOrderCardProps {
   order: KitchenOrder;
@@ -77,11 +78,7 @@ const KitchenOrderCard = ({ order }: KitchenOrderCardProps) => {
         <div className="mb-4 rounded-[10px] border border-[#E5E5E5] bg-[#FAFAF7] p-2 text-[12px] text-[#595959]">
           <div className="mb-3 flex items-center gap-1">
             <Clock3 className="size-4" />
-            {t("Received")}{" "}
-            {order.receivedAt
-              .replace(/^Received\s*/i, "")
-              .replace(/mins ago/gi, t("mins ago"))
-              .replace(/^at\s/i, `${t("at")} `)}
+            {t("Received")} {formatTimeAgo(order.receivedAt, t)}
           </div>
           <div className="mb-3 flex items-center gap-1">
             <UserRound className="size-4" />

@@ -13,6 +13,7 @@ import { Clock3, UserRound } from "lucide-react";
 import { getSocket } from "@/shared/lib/socket";
 import { playNotificationSound } from "@/shared/lib/notificationSound";
 import OrderDetailsDialog from "../components/OrderDetailsDialog";
+import { formatTimeAgo } from "@/shared/utils/dateUtils";
 
 const KITCHEN_STATIONS: Record<string, { name: string; color: string; bg: string }> = {
   barista: { name: "Barista", color: "#F9A825", bg: "#FE9A001A" },
@@ -34,12 +35,7 @@ const ORDER_TYPE_STYLE: Record<string, { bg: string; text: string; border: strin
   "dine-in": { bg: "#E2F4ED", text: "#059B5A", border: "#059B5A", label: "Dine-In" },
 };
 
-function formatTimeAgo(createdAt: string): string {
-  const diff = Math.floor((Date.now() - new Date(createdAt).getTime()) / 60000);
-  if (diff < 1) return "Just now";
-  if (diff === 1) return "1 min ago";
-  return `${diff} mins ago`;
-}
+
 
 function getCustomerName(order: KitchenOrder): string {
   if (!order.customer) return "Walk-in";
@@ -100,7 +96,7 @@ const ApiKitchenOrderCard = ({ order, onStatusChange, stationColor, onCardClick 
         <div className="mb-3 rounded-[10px] border border-[#E5E5E5] bg-[#FAFAF7] p-2 text-[12px] text-[#595959] space-y-2">
           <div className="flex items-center gap-1">
             <Clock3 className="size-3.5" />
-            {t("Received")} {formatTimeAgo(order.createdAt)}
+            {t("Received")} {formatTimeAgo(order.createdAt, t)}
           </div>
           <div className="flex items-center gap-1">
             <UserRound className="size-3.5" />
