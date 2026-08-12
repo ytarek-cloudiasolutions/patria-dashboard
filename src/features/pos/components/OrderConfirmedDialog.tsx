@@ -19,6 +19,7 @@ type OrderConfirmedDialogProps = {
   selectedTable?: string;
   cartItems?: CartItem[];
   paymentMethod?: string;
+  guestCount?: number;
   onNewOrder: () => void;
 };
 
@@ -32,9 +33,11 @@ const OrderConfirmedDialog = ({
   selectedTable = "",
   cartItems = [],
   paymentMethod = "cash",
+  guestCount = 0,
   onNewOrder,
 }: OrderConfirmedDialogProps) => {
   const { t } = useTranslation();
+  const costPerPerson = guestCount > 1 ? totalAmount / guestCount : null;
 
   const handlePrint = (type: "customer" | "kitchen") => {
     const now = new Date();
@@ -173,6 +176,12 @@ const OrderConfirmedDialog = ({
           <span>الإجمالي:</span>
           <span>EGP ${totalAmount.toFixed(2)}</span>
         </div>
+        ${costPerPerson !== null ? `
+        <div class="row">
+          <span>نصيب الفرد (${guestCount}):</span>
+          <span>EGP ${costPerPerson.toFixed(2)}</span>
+        </div>
+        ` : ""}
         <div class="divider-solid"></div>
         <div class="center">
           <div class="payment-badge">طريقة الدفع: ${paymentMethod.toUpperCase()}</div>
@@ -232,6 +241,11 @@ const OrderConfirmedDialog = ({
             <p className="text-[14px] font-medium text-[#595959]">
               {t("Total")}: <span className="font-bold text-[#059B5A]">{formatEgp(totalAmount)}</span>
             </p>
+            {costPerPerson !== null && (
+              <p className="text-[14px] font-medium text-[#595959]">
+                {t("Cost per person")} ({guestCount}): <span className="font-bold text-[#333333]">{formatEgp(costPerPerson)}</span>
+              </p>
+            )}
           </div>
         </div>
 

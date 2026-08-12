@@ -129,6 +129,7 @@ const PosPage = () => {
     selectedTable: string;
     cartItems: CartItem[];
     paymentMethod: string;
+    guestCount: number;
   } | null>(null);
   const [isShiftSummaryOpen, setShiftSummaryOpen] = useState(false);
   const [isSelectStaffOpen, setSelectStaffOpen] = useState(false);
@@ -417,6 +418,7 @@ const PosPage = () => {
       selectedTable: resolvedTable,
       cartItems: [...cartItems],
       paymentMethod: method,
+      guestCount: customerCount,
     });
     setOrderConfirmedOpen(true);
   };
@@ -467,6 +469,7 @@ const PosPage = () => {
             notes: item.instructions || undefined,
           })),
           notes: notes || undefined,
+          guestCount: orderType === "dine-in" && customerCount > 0 ? customerCount : undefined,
         });
         showSuccessToast("Sent to kitchen");
       } catch {
@@ -537,6 +540,7 @@ const PosPage = () => {
         paymentMethod: method,
         items: orderItems,
         notes: notes || undefined,
+        guestCount: orderType === "dine-in" && customerCount > 0 ? customerCount : undefined,
       });
 
       const createdId =
@@ -705,6 +709,7 @@ const PosPage = () => {
             totals={totals}
             notes={notes}
             sentToKitchen={sentToKitchen}
+            customerCount={customerCount}
             onCustomerChange={setCustomer}
             onNotesChange={setNotes}
             onRemoveItem={removeItem}
@@ -770,6 +775,7 @@ const PosPage = () => {
         selectedTable={orderConfirmedData?.selectedTable || resolvedTable}
         cartItems={orderConfirmedData?.cartItems || cartItems}
         paymentMethod={orderConfirmedData?.paymentMethod || "cash"}
+        guestCount={orderConfirmedData?.guestCount || customerCount}
         onNewOrder={completeOrder}
       />
 

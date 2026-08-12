@@ -32,6 +32,7 @@ type OrderCartProps = {
   totals: CartTotals;
   notes: string;
   sentToKitchen: boolean;
+  customerCount?: number;
   onCustomerChange: (value: string) => void;
   onNotesChange: (value: string) => void;
   onRemoveItem: (lineId: string) => void;
@@ -51,6 +52,7 @@ const OrderCart = ({
   totals,
   notes,
   sentToKitchen,
+  customerCount = 0,
   onCustomerChange,
   onNotesChange,
   onRemoveItem,
@@ -374,6 +376,17 @@ const OrderCart = ({
             </span>
           </div>
         </div>
+
+        {orderType === "dine-in" && customerCount > 1 && (
+          <div className="flex items-center justify-between text-[14px]">
+            <span className="font-semibold text-[#8B8B8B] leading-[15.40px]">
+              {t("Cost per person")} ({customerCount})
+            </span>
+            <span className="font-semibold text-[#23252A] leading-[15.40px]">
+              EGP {(totals.total / customerCount).toFixed(2)}
+            </span>
+          </div>
+        )}
 
         {/* Grand Total Box */}
         <div className="flex h-[66px] items-center justify-between rounded-[16px] border border-[#059B5A] bg-[#E2F4ED] px-3.5 py-6">

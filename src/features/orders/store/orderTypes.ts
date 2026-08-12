@@ -52,6 +52,7 @@ export interface CreateOrderRequest {
   }[];
   couponCode?: string;
   notes?: string;
+  guestCount?: number;
 }
 
 export interface CreateOrderResponse {
