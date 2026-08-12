@@ -3,6 +3,7 @@ import {
   TrendingUp,
   TrendingDown,
   Package,
+  Box,
   Loader2,
 } from "lucide-react";
 import { Badge } from "@/shared/components/ui/badge";
@@ -81,12 +82,16 @@ const ItemStockRecordView = () => {
           )}
           <DropdownSelect
             options={products.map((p: any) => ({
-              value: p.id || p._id,
+              value: p._id || p.id,
               label: p.name,
             }))}
             selected={productId}
             onSelect={setProductId}
             onOpenChange={setIsDropdownOpen}
+            searchable
+            onSearchChange={(query) => {
+              getProducts({ search: query, limit: 200 });
+            }}
             placeholder={t("--- Select the item ---")}
             align="start"
             className="w-full md:!w-full h-14"
@@ -167,7 +172,7 @@ const ItemStockRecordView = () => {
             </span>
           </div>
           <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#E5E5E5]">
-            <Package size={24} className="text-[#595959]" />
+            <Box size={24} className="text-[#595959]" />
           </div>
         </div>
       </div>

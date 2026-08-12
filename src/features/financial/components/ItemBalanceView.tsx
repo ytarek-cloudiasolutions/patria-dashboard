@@ -11,7 +11,7 @@ import {
 } from "@/shared/components/ui/table";
 import DropdownSelect from "@/shared/components/DropdownSelect";
 import { useTranslation } from "@/shared/i18n/useTranslation";
-import { useCategories } from "@/features/categories";
+import { useProducts } from "@/features/products/hooks/useProducts";
 import { api } from "@/config/api";
 import { formatEgp } from "@/features/pos/utils";
 
@@ -53,23 +53,23 @@ const statusBadge = (status: string, t: (s: string) => string) => {
 
 const ItemBalanceView = () => {
   const { t } = useTranslation();
-  const { categories, getCategories } = useCategories();
-  const [category, setCategory] = useState("");
+  const { products, getProducts } = useProducts();
+  const [productId, setProductId] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [items, setItems] = useState<ItemBalanceItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
 
   useEffect(() => {
-    getCategories();
-  }, [getCategories]);
+    getProducts({ limit: 200 });
+  }, [getProducts]);
 
   const handleInquire = async () => {
     setLoading(true);
     setHasSearched(true);
     try {
       const response = await api.get("/inventory/item-balance", {
-        params: category ? { category } : undefined,
+        params: productId ? { productId } : undefined,
       });
       setItems(response.data?.items ?? []);
     } catch {
@@ -81,21 +81,25 @@ const ItemBalanceView = () => {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Top Category Select + Inquire Button Bar */}
+      {/* Top Product Select + Inquire Button Bar */}
       <div className="flex flex-col sm:flex-row items-center gap-4 justify-between">
         <div className="relative flex-1 w-full">
           {isDropdownOpen && (
             <div className="pointer-events-none fixed inset-0 z-60 bg-black/40" />
           )}
           <DropdownSelect
-            options={categories.map((c: any) => ({
-              value: c._id || c.id,
-              label: c.name,
+            options={products.map((p: any) => ({
+              value: p._id || p.id,
+              label: p.name,
             }))}
-            selected={category}
-            onSelect={setCategory}
+            selected={productId}
+            onSelect={setProductId}
             onOpenChange={setIsDropdownOpen}
-            placeholder={t("--- Select the category ---")}
+            searchable
+            onSearchChange={(query) => {
+              getProducts({ search: query, limit: 200 });
+            }}
+            placeholder={t("--- Select the product ---")}
             align="start"
             className="w-full md:!w-full h-14"
             contentClassName="w-[var(--radix-dropdown-menu-trigger-width)] md:!w-[var(--radix-dropdown-menu-trigger-width)]"
@@ -114,7 +118,7 @@ const ItemBalanceView = () => {
 
       {!hasSearched ? (
         <p className="py-10 text-center text-[14px] text-[#8B8B8B]">
-          {t("Select a category and click Inquire to see item balances")}
+          {t("Select a product and click Inquire to see item balances")}
         </p>
       ) : !loading && items.length === 0 ? (
         <p className="py-10 text-center text-[14px] text-[#8B8B8B]">

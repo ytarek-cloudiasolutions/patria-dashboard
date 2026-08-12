@@ -61,10 +61,10 @@ const FinancialHubPage = () => {
     totalExpenses: number;
     netProfit: number;
     profitMargin: string;
-    totalInventoryValue: number;
-    lowStockItems: number;
-    outOfStock: number;
-    costOfWasteMonthly: number;
+    totalInventoryValue?: number;
+    lowStockItems?: number;
+    outOfStock?: number;
+    costOfWasteMonthly?: number;
   } | null>(null);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isInventorySessionOpen, setIsInventorySessionOpen] = useState(false);
@@ -229,10 +229,10 @@ const FinancialHubPage = () => {
           totalExpenses={overview.totalExpenses}
           netProfit={overview.netProfit}
           profitMargin={overview.profitMargin}
-          totalInventoryValue={apiOverview?.totalInventoryValue ?? 0}
-          lowStockItems={apiOverview?.lowStockItems ?? 0}
-          outOfStock={apiOverview?.outOfStock ?? 0}
-          costOfWasteMonthly={apiOverview?.costOfWasteMonthly ?? 0}
+          totalInventoryValue={overview.totalInventoryValue ?? apiOverview?.totalInventoryValue ?? 0}
+          lowStockItems={overview.lowStockItems ?? apiOverview?.lowStockItems ?? 0}
+          outOfStock={overview.outOfStock ?? apiOverview?.outOfStock ?? 0}
+          costOfWasteMonthly={overview.costOfWasteMonthly ?? apiOverview?.costOfWasteMonthly ?? 0}
           transactions={transactions}
           onNavigateTab={handleTabChange}
           onOpenAddModal={() => setIsAddOpen(true)}

@@ -63,11 +63,15 @@ const financialSlice = createSlice({
     ) => {
       state.loading.fetchOverview = false;
       state.overview = {
-        totalRevenue: action.payload.totalRevenue,
-        totalExpenses: action.payload.totalExpenses,
-        netProfit: action.payload.netProfit,
+        totalRevenue: action.payload.totalRevenue ?? 0,
+        totalExpenses: action.payload.totalExpenses ?? 0,
+        netProfit: action.payload.netProfit ?? 0,
         // Backend sends profitMargin as a string like "5.23%" — parseFloat handles both string and number
         profitMargin: parseFloat(String(action.payload.profitMargin)) || 0,
+        totalInventoryValue: action.payload.totalInventoryValue ?? 0,
+        lowStockItems: action.payload.lowStockItems ?? 0,
+        outOfStock: action.payload.outOfStock ?? 0,
+        costOfWasteMonthly: action.payload.costOfWasteMonthly ?? 0,
       };
     },
     getFinancialOverviewFailure: (state, action: PayloadAction<string>) => {

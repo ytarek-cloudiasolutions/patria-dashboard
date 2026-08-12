@@ -5,6 +5,10 @@ export interface FinancialOverview {
   totalExpenses: number;
   netProfit: number;
   profitMargin: number;
+  totalInventoryValue?: number;
+  lowStockItems?: number;
+  outOfStock?: number;
+  costOfWasteMonthly?: number;
 }
 
 export interface Transaction {

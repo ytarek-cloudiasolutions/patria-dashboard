@@ -31,6 +31,7 @@ const DropdownSelect = ({
   contentClassName,
   align = "end",
   searchable = false,
+  onSearchChange,
 }: DropdownSelectProps) => {
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
@@ -86,7 +87,11 @@ const DropdownSelect = ({
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSearchQuery(val);
+                onSearchChange?.(val);
+              }}
               onKeyDown={(e) => e.stopPropagation()}
               placeholder={t("Search...")}
               className="h-9 w-full rounded-[8px] border border-[#E5E5E5] px-2.5 text-[13px] text-[#28293D] focus:outline-none focus:border-primary placeholder:text-[#8B8B8B]"

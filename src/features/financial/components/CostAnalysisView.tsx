@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { TrendingUp, Package, BarChart2, Loader2 } from "lucide-react";
+import { TrendingUp, Box, BarChart2, Loader2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -108,7 +108,7 @@ const CostAnalysisView = () => {
             </span>
           </div>
           <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#DBEAFE]">
-            <Package size={24} className="text-[#155DFC]" />
+            <Box size={24} className="text-[#155DFC]" />
           </div>
         </div>
 

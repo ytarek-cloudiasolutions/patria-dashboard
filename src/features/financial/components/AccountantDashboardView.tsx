@@ -6,6 +6,7 @@ import {
   Database,
   AlertTriangle,
   Package,
+  Box,
   Trash2,
   FileSpreadsheet,
   ArrowLeftRight,
@@ -21,10 +22,10 @@ interface AccountantDashboardViewProps {
   totalExpenses: number;
   netProfit: number;
   profitMargin: string;
-  totalInventoryValue: number;
-  lowStockItems: number;
-  outOfStock: number;
-  costOfWasteMonthly: number;
+  totalInventoryValue?: number;
+  lowStockItems?: number;
+  outOfStock?: number;
+  costOfWasteMonthly?: number;
   transactions: FinancialTransaction[];
   onNavigateTab: (tab: FinancialTab) => void;
   onOpenAddModal: () => void;
@@ -38,10 +39,10 @@ const AccountantDashboardView = ({
   totalExpenses,
   netProfit,
   profitMargin,
-  totalInventoryValue,
-  lowStockItems,
-  outOfStock,
-  costOfWasteMonthly,
+  totalInventoryValue = 0,
+  lowStockItems = 0,
+  outOfStock = 0,
+  costOfWasteMonthly = 0,
   transactions,
   onNavigateTab,
   onOpenAddModal,
@@ -160,7 +161,7 @@ const AccountantDashboardView = ({
             </span>
           </div>
           <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#C90000]">
-            <Package size={24} className="text-white" />
+            <Box size={24} className="text-white" />
           </div>
         </div>
 
