@@ -16,6 +16,8 @@ import AppUsersOverview from "./components/AppUsersOverview";
 import AppUsersTable from "./components/AppUsersTable";
 import AppUserDetailsDialog from "./components/AppUserDetailsDialog";
 import BlockCustomerDialog from "./components/BlockCustomerDialog";
+import { updateCustomer } from "@/features/customers/api/customersApi";
+import { showSuccessToast, showErrorToast } from "@/shared/utils/toast";
 
 import {
   APP_USER_STATUS_FILTER,
@@ -189,25 +191,35 @@ const UsersPermissionsPage = () => {
 
   // --- App users handlers ---------------------------------------------------
 
-  const confirmToggleBlock = () => {
+  const confirmToggleBlock = async () => {
     if (!blockingAppUser) return;
     const id = blockingAppUser.id;
-    setBlockedCustomerIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-    setViewingAppUser((current) => {
-      if (current && current.id === id) {
-        return {
-          ...current,
-          status: current.status === "Active" ? "Blocked" : "Active",
-        };
-      }
-      return current;
-    });
-    setBlockingAppUser(null);
+    // Was local-only (Set state) with no backend call — the "Blocked" badge
+    // reset on every page refresh and the customer could still log in.
+    const willBlock = !blockedCustomerIds.has(id);
+    try {
+      await updateCustomer(String(id), { isActive: !willBlock });
+      setBlockedCustomerIds((prev) => {
+        const next = new Set(prev);
+        if (willBlock) next.add(id);
+        else next.delete(id);
+        return next;
+      });
+      setViewingAppUser((current) => {
+        if (current && current.id === id) {
+          return {
+            ...current,
+            status: current.status === "Active" ? "Blocked" : "Active",
+          };
+        }
+        return current;
+      });
+      showSuccessToast(willBlock ? t("Customer blocked") : t("Customer unblocked"));
+    } catch (error: any) {
+      showErrorToast(error?.response?.data?.message || t("Failed to update customer status"));
+    } finally {
+      setBlockingAppUser(null);
+    }
   };
 
   const isLoading = !usersLoaded;

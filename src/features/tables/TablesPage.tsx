@@ -184,15 +184,15 @@ const TablesPage = () => {
     const r = reservations.find((item) => item._id === id);
     if (!r) return;
 
-    if (status === "cancelled") {
-      deleteReservationAction({ reservationId: id });
-    } else {
-      updateReservationStatusAction({
-        reservationId: id,
-        status,
-        previousStatus: r.status,
-      });
-    }
+    // "Cancelled" is a normal status value on the backend (RESERVATION_STATUS
+    // enum) — it used to hard-DELETE the reservation instead, permanently
+    // destroying the record so a cancelled booking could never be reviewed
+    // afterward.
+    updateReservationStatusAction({
+      reservationId: id,
+      status,
+      previousStatus: r.status,
+    });
   };
 
   const handleAddReservation = (data: ReservationFormData) => {

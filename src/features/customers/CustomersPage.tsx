@@ -99,7 +99,10 @@ const CustomersPage = () => {
   const handleSaveCustomer = (data: CustomerFormData, id: string | number) => {
     updateCustomerInfo(String(id), {
       loyaltyPoints: Number(data.loyaltyPoints) || 0,
-      tier: data.tier.toLowerCase(),
+      // Backend's updateCustomerSchema requires the capitalized form
+      // ('Bronze'|'Silver'|'Gold') — lowercasing it here always failed
+      // validation, so every "Save Edits" on a customer's tier 400'd.
+      tier: data.tier,
     });
   };
 

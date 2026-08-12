@@ -24,8 +24,9 @@ export interface GetCustomersResponse {
 }
 
 export interface UpdateCustomerRequest {
-  loyaltyPoints: number;
-  tier: string;
+  loyaltyPoints?: number;
+  tier?: string;
+  isActive?: boolean;
 }
 
 export type CustomersOperation = "fetch" | "update" | "delete";
