@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Package, Wallet, TrendingUp, Trash2 } from "lucide-react";
+import { Package, Wallet, TrendingUp, Trash2, Loader2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -10,84 +10,56 @@ import {
 } from "@/shared/components/ui/table";
 import DatePicker from "@/shared/components/DatePicker";
 import { useTranslation } from "@/shared/i18n/useTranslation";
+import { api } from "@/config/api";
+import { formatEgp } from "@/features/pos/utils";
 
-interface ConsumptionRow {
-  id: string;
-  item: string;
-  sales: string;
-  waste: string;
-  production: string;
-  total: string;
-  cost: string;
-  income: string;
-  profit: string;
+interface ConsumptionItem {
+  productId: string;
+  name: string;
+  sales: number;
+  waste: number;
+  production: number;
+  total: number;
+  cost: number;
+  income: number;
+  profit: number;
 }
-
-const CONSUMPTION_DATA_ROWS: ConsumptionRow[] = [
-  {
-    id: "1",
-    item: "Almond Croissant",
-    sales: "10",
-    waste: "2",
-    production: "0",
-    total: "8",
-    cost: "EGP 140.00",
-    income: "EGP 500.75",
-    profit: "EGP 0.00",
-  },
-  {
-    id: "2",
-    item: "Middle Eastern Roast Beef",
-    sales: "5",
-    waste: "0",
-    production: "0",
-    total: "5",
-    cost: "EGP 0.00",
-    income: "EGP 100.00",
-    profit: "EGP 0.00",
-  },
-  {
-    id: "3",
-    item: "Layaly Lebnan - M",
-    sales: "1",
-    waste: "0",
-    production: "0",
-    total: "1",
-    cost: "EGP 0.00",
-    income: "EGP 1000.00",
-    profit: "EGP 500.75",
-  },
-  {
-    id: "4",
-    item: "Kunafa Tiramisu - M",
-    sales: "1",
-    waste: "0",
-    production: "0",
-    total: "1",
-    cost: "EGP 0.00",
-    income: "EGP 0.00",
-    profit: "EGP 500.75",
-  },
-  {
-    id: "5",
-    item: "Banoffy Kunafa - L",
-    sales: "1",
-    waste: "0",
-    production: "0",
-    total: "1",
-    cost: "EGP 0.00",
-    income: "EGP 250.50",
-    profit: "EGP 500.75",
-  },
-];
 
 const ConsumptionView = () => {
   const { t } = useTranslation();
-  const [fromDate, setFromDate] = useState("2026-04-14");
-  const [toDate, setToDate] = useState("2026-04-14");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [hasRun, setHasRun] = useState(false);
+  const [summary, setSummary] = useState({
+    totalConsumed: 0,
+    consumptionCost: 0,
+    salesRevenue: 0,
+    totalLoss: 0,
+  });
+  const [items, setItems] = useState<ConsumptionItem[]>([]);
 
-  const handleGenerateReport = () => {
-    // Report generation action
+  const handleGenerateReport = async () => {
+    setLoading(true);
+    setHasRun(true);
+    try {
+      const response = await api.get("/inventory/consumption", {
+        params: { from: fromDate || undefined, to: toDate || undefined },
+      });
+      setSummary(
+        response.data?.summary ?? {
+          totalConsumed: 0,
+          consumptionCost: 0,
+          salesRevenue: 0,
+          totalLoss: 0,
+        },
+      );
+      setItems(response.data?.items ?? []);
+    } catch {
+      setItems([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -95,7 +67,6 @@ const ConsumptionView = () => {
       {/* Date Pickers & Action Bar */}
       <div className="flex flex-col lg:flex-row items-center gap-4 justify-between">
         <div className="flex items-center gap-4 w-full lg:w-auto flex-1">
-          {/* From Date */}
           <DatePicker
             value={fromDate}
             onChange={setFromDate}
@@ -106,7 +77,6 @@ const ConsumptionView = () => {
             buttonClassName="h-[50px] rounded-[12px] border-[#E5E5E5] px-[18px] text-[16px] font-medium text-black"
           />
 
-          {/* To Date */}
           <DatePicker
             value={toDate}
             onChange={setToDate}
@@ -122,22 +92,22 @@ const ConsumptionView = () => {
         <button
           type="button"
           onClick={handleGenerateReport}
-          className="h-14 w-full lg:w-[204px] shrink-0 rounded-[5px] bg-[#8F6900] px-4 text-[16px] font-semibold text-white hover:bg-[#785800] transition-colors cursor-pointer"
+          disabled={loading}
+          className="h-14 w-full lg:w-[204px] shrink-0 rounded-[5px] bg-[#8F6900] px-4 text-[16px] font-semibold text-white hover:bg-[#785800] transition-colors cursor-pointer disabled:opacity-60"
         >
-          {t("Generate Report")}
+          {loading ? <Loader2 className="mx-auto size-5 animate-spin" /> : t("Generate Report")}
         </button>
       </div>
 
       {/* 4 Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Card 1: Total Consumed */}
         <div className="flex h-[115px] items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm">
           <div className="flex flex-col gap-2">
             <span className="text-[10px] font-semibold tracking-[0.2px] text-black uppercase">
               {t("Total Consumed")}
             </span>
             <span className="text-[20px] font-semibold tracking-[0.4px] text-black">
-              22
+              {summary.totalConsumed}
             </span>
           </div>
           <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#F5F0EA]">
@@ -145,14 +115,13 @@ const ConsumptionView = () => {
           </div>
         </div>
 
-        {/* Card 2: Consumption cost */}
         <div className="flex h-[115px] items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm">
           <div className="flex flex-col gap-2">
             <span className="text-[10px] font-semibold tracking-[0.2px] text-black uppercase">
               {t("Consumption cost")}
             </span>
             <span className="text-[20px] font-semibold tracking-[0.4px] text-black">
-              EGP 23.6
+              {formatEgp(summary.consumptionCost)}
             </span>
           </div>
           <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#FE9A00]/10">
@@ -160,14 +129,13 @@ const ConsumptionView = () => {
           </div>
         </div>
 
-        {/* Card 3: Sales revenue */}
         <div className="flex h-[115px] items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm">
           <div className="flex flex-col gap-2">
             <span className="text-[10px] font-semibold tracking-[0.2px] text-black uppercase">
               {t("Sales revenue")}
             </span>
             <span className="text-[20px] font-semibold tracking-[0.4px] text-black">
-              EGP 3,337
+              {formatEgp(summary.salesRevenue)}
             </span>
           </div>
           <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#E2F4ED]">
@@ -175,14 +143,13 @@ const ConsumptionView = () => {
           </div>
         </div>
 
-        {/* Card 4: Total loss */}
         <div className="flex h-[115px] items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm">
           <div className="flex flex-col gap-2">
             <span className="text-[10px] font-semibold tracking-[0.2px] text-black uppercase">
               {t("Total loss")}
             </span>
             <span className="text-[20px] font-semibold tracking-[0.4px] text-black">
-              0
+              {formatEgp(summary.totalLoss)}
             </span>
           </div>
           <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#C90000]">
@@ -223,34 +190,48 @@ const ConsumptionView = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {CONSUMPTION_DATA_ROWS.map((row) => (
-              <TableRow key={row.id} className="border-b border-[#E5E5E5] hover:bg-[#FAFAF8]">
-                <TableCell className="ps-8 py-5 whitespace-nowrap text-[12px] font-bold tracking-[0.24px] text-[#333333]">
-                  {row.item}
-                </TableCell>
-                <TableCell className="px-6 py-5 whitespace-nowrap text-center text-[14px] font-medium tracking-[0.28px] text-black">
-                  {row.sales}
-                </TableCell>
-                <TableCell className="px-6 py-5 whitespace-nowrap text-center text-[14px] font-semibold tracking-[0.28px] text-[#C90000]">
-                  {row.waste}
-                </TableCell>
-                <TableCell className="px-6 py-5 whitespace-nowrap text-center text-[14px] font-medium tracking-[0.28px] text-black">
-                  {row.production}
-                </TableCell>
-                <TableCell className="px-6 py-5 whitespace-nowrap text-center text-[14px] font-bold tracking-[0.28px] text-black">
-                  {row.total}
-                </TableCell>
-                <TableCell className="px-6 py-5 whitespace-nowrap text-center text-[14px] font-semibold tracking-[0.28px] text-[#C90000]" dir="ltr">
-                  {row.cost}
-                </TableCell>
-                <TableCell className="px-6 py-5 whitespace-nowrap text-center text-[14px] font-semibold tracking-[0.28px] text-[#059B5A]" dir="ltr">
-                  {row.income}
-                </TableCell>
-                <TableCell className="pe-8 py-5 whitespace-nowrap text-center text-[14px] font-bold tracking-[0.28px] text-[#059B5A]" dir="ltr">
-                  {row.profit}
+            {!hasRun ? (
+              <TableRow className="border-none">
+                <TableCell colSpan={8} className="py-10 text-center text-[14px] text-[#8B8B8B]">
+                  {t("Pick a date range and click Generate Report")}
                 </TableCell>
               </TableRow>
-            ))}
+            ) : !loading && items.length === 0 ? (
+              <TableRow className="border-none">
+                <TableCell colSpan={8} className="py-10 text-center text-[14px] text-[#8B8B8B]">
+                  {t("No consumption in this range")}
+                </TableCell>
+              </TableRow>
+            ) : (
+              items.map((row) => (
+                <TableRow key={row.productId} className="border-b border-[#E5E5E5] hover:bg-[#FAFAF8]">
+                  <TableCell className="ps-8 py-5 whitespace-nowrap text-[12px] font-bold tracking-[0.24px] text-[#333333]">
+                    {row.name}
+                  </TableCell>
+                  <TableCell className="px-6 py-5 whitespace-nowrap text-center text-[14px] font-medium tracking-[0.28px] text-black">
+                    {row.sales}
+                  </TableCell>
+                  <TableCell className="px-6 py-5 whitespace-nowrap text-center text-[14px] font-semibold tracking-[0.28px] text-[#C90000]">
+                    {row.waste}
+                  </TableCell>
+                  <TableCell className="px-6 py-5 whitespace-nowrap text-center text-[14px] font-medium tracking-[0.28px] text-black">
+                    {row.production}
+                  </TableCell>
+                  <TableCell className="px-6 py-5 whitespace-nowrap text-center text-[14px] font-bold tracking-[0.28px] text-black">
+                    {row.total}
+                  </TableCell>
+                  <TableCell className="px-6 py-5 whitespace-nowrap text-center text-[14px] font-semibold tracking-[0.28px] text-[#C90000]" dir="ltr">
+                    {formatEgp(row.cost)}
+                  </TableCell>
+                  <TableCell className="px-6 py-5 whitespace-nowrap text-center text-[14px] font-semibold tracking-[0.28px] text-[#059B5A]" dir="ltr">
+                    {formatEgp(row.income)}
+                  </TableCell>
+                  <TableCell className="pe-8 py-5 whitespace-nowrap text-center text-[14px] font-bold tracking-[0.28px] text-[#059B5A]" dir="ltr">
+                    {formatEgp(row.profit)}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
