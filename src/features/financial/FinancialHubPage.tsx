@@ -130,6 +130,10 @@ const FinancialHubPage = () => {
       totalExpenses: expenses,
       netProfit: net,
       profitMargin: `${margin.toFixed(1)}%`,
+      totalInventoryValue: 0,
+      lowStockItems: 0,
+      outOfStock: 0,
+      costOfWasteMonthly: 0,
     };
   }, [transactions]);
 
@@ -229,10 +233,10 @@ const FinancialHubPage = () => {
           totalExpenses={overview.totalExpenses}
           netProfit={overview.netProfit}
           profitMargin={overview.profitMargin}
-          totalInventoryValue={overview.totalInventoryValue ?? apiOverview?.totalInventoryValue ?? 0}
-          lowStockItems={overview.lowStockItems ?? apiOverview?.lowStockItems ?? 0}
-          outOfStock={overview.outOfStock ?? apiOverview?.outOfStock ?? 0}
-          costOfWasteMonthly={overview.costOfWasteMonthly ?? apiOverview?.costOfWasteMonthly ?? 0}
+          totalInventoryValue={overview.totalInventoryValue ?? 0}
+          lowStockItems={overview.lowStockItems ?? 0}
+          outOfStock={overview.outOfStock ?? 0}
+          costOfWasteMonthly={overview.costOfWasteMonthly ?? 0}
           transactions={transactions}
           onNavigateTab={handleTabChange}
           onOpenAddModal={() => setIsAddOpen(true)}
