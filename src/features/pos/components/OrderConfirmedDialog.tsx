@@ -1,4 +1,4 @@
-import { CheckCircle2, Printer, Utensils, X } from "lucide-react";
+import { Banknote, CheckCheck, Printer, Users, X } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import {
   Dialog,
@@ -37,7 +37,8 @@ const OrderConfirmedDialog = ({
   onNewOrder,
 }: OrderConfirmedDialogProps) => {
   const { t } = useTranslation();
-  const costPerPerson = guestCount > 1 ? totalAmount / guestCount : null;
+  const calculatedCostPerPerson =
+    guestCount > 0 ? totalAmount / guestCount : totalAmount;
 
   const handlePrint = (type: "customer" | "kitchen") => {
     const now = new Date();
@@ -176,12 +177,10 @@ const OrderConfirmedDialog = ({
           <span>الإجمالي:</span>
           <span>EGP ${totalAmount.toFixed(2)}</span>
         </div>
-        ${costPerPerson !== null ? `
         <div class="row">
-          <span>نصيب الفرد (${guestCount}):</span>
-          <span>EGP ${costPerPerson.toFixed(2)}</span>
+          <span>نصيب الفرد (${guestCount || 1}):</span>
+          <span>EGP ${calculatedCostPerPerson.toFixed(2)}</span>
         </div>
-        ` : ""}
         <div class="divider-solid"></div>
         <div class="center">
           <div class="payment-badge">طريقة الدفع: ${paymentMethod.toUpperCase()}</div>
@@ -209,7 +208,7 @@ const OrderConfirmedDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="w-[529px] max-w-[calc(100%-2rem)] gap-6 rounded-[16px] border border-[#CACBD4] bg-white p-6 shadow-xl sm:max-w-[529px]"
+        className="w-[696px] max-w-[calc(100%-2rem)] gap-8 rounded-[12px] border border-[#CACBD4] bg-white p-6 shadow-xl sm:max-w-[696px]"
       >
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -219,42 +218,65 @@ const OrderConfirmedDialog = ({
           <button
             type="button"
             onClick={() => onOpenChange(false)}
-            className="flex size-8 items-center justify-center rounded-full text-[#8B8B8B] transition-colors hover:bg-[#FAFAF7] hover:text-black cursor-pointer"
+            className="flex size-7 items-center justify-center rounded-full text-black transition-colors hover:bg-[#FAFAF7] cursor-pointer"
           >
             <X className="size-5" />
           </button>
         </div>
 
-        {/* Center Check Circle & Order Info */}
-        <div className="flex flex-col items-center gap-4 py-2 text-center">
-          <div className="flex size-20 items-center justify-center rounded-full bg-[#059B5A]/10 text-[#059B5A]">
-            <CheckCircle2 className="size-12 stroke-[2.25]" />
+        {/* Order Placed Info Section */}
+        <div className="flex items-center gap-3">
+          <div className="flex size-10 items-center justify-center rounded-[10px] bg-[#E2F4ED] text-[#059B5A] shrink-0">
+            <CheckCheck className="size-6 stroke-[2.5]" />
           </div>
-
           <div className="flex flex-col gap-1">
-            <h2 className="text-[22px] font-bold text-[#333333]">
+            <h2 className="text-[18px] font-semibold leading-none tracking-[0.36px] text-[#333333]">
               {t("Order Placed!")}
             </h2>
-            <p className="text-[14px] font-medium text-[#595959]">
-              {t("Reference")}: <span className="font-semibold text-[#333333]">#{orderNumber}</span>
+            <p className="text-[14px] font-semibold leading-tight tracking-[0.28px] text-black">
+              {t("Reference")}: #{orderNumber}
             </p>
-            <p className="text-[14px] font-medium text-[#595959]">
-              {t("Total")}: <span className="font-bold text-[#059B5A]">{formatEgp(totalAmount)}</span>
-            </p>
-            {costPerPerson !== null && (
-              <p className="text-[14px] font-medium text-[#595959]">
-                {t("Cost per person")} ({guestCount}): <span className="font-bold text-[#333333]">{formatEgp(costPerPerson)}</span>
-              </p>
-            )}
           </div>
         </div>
 
-        {/* Action Buttons: Customer Receipt & Kitchen Ticket */}
-        <div className="grid grid-cols-2 gap-4 pt-2">
+        {/* Summary Cards Grid */}
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          {/* Card 1: Total */}
+          <div className="flex flex-col items-center justify-center gap-2 rounded-[5px] border-2 border-[#E5E5E5] bg-[#FAFAF7] px-6 py-8 text-center">
+            <Banknote className="size-6 text-[#595959]" />
+            <div className="flex flex-col items-center gap-1 w-full">
+              <span className="text-[12px] font-medium tracking-[0.24px] text-[#595959]">
+                {t("Total")}
+              </span>
+              <span className="text-[14px] font-semibold tracking-[0.28px] text-black">
+                {formatEgp(totalAmount)}
+              </span>
+            </div>
+          </div>
+
+          {/* Card 2: Cost per person */}
+          <div className="flex flex-col items-center justify-center gap-2 rounded-[5px] border-2 border-[#E5E5E5] bg-[#FAFAF7] px-6 py-8 text-center">
+            <Users className="size-6 text-[#595959]" />
+            <div className="flex flex-col items-center gap-1 w-full">
+              <span className="text-[12px] font-medium tracking-[0.24px] text-[#595959]">
+                {t("Cost per person")} ({guestCount || 1})
+              </span>
+              <span className="text-[14px] font-semibold tracking-[0.28px] text-black">
+                {formatEgp(calculatedCostPerPerson)}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Separator */}
+        <div className="border-t border-[#CACBD4]" />
+
+        {/* Action Buttons */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <button
             type="button"
             onClick={() => handlePrint("customer")}
-            className="flex h-[56px] items-center justify-center gap-2.5 rounded-[8px] border border-[#8F6900] bg-white px-3 text-[14px] font-semibold text-[#8F6900] cursor-pointer"
+            className="flex h-[56px] items-center justify-center gap-3 rounded-[5px] border border-[#8F6900] bg-white px-6 text-[16px] font-semibold text-[#8F6900] hover:bg-[#FBF6EC] transition-colors cursor-pointer"
           >
             <Printer className="size-5 text-[#8F6900]" />
             {t("Print Customer Receipt")}
@@ -263,25 +285,11 @@ const OrderConfirmedDialog = ({
           <button
             type="button"
             onClick={() => handlePrint("kitchen")}
-            className="flex h-[56px] items-center justify-center gap-2.5 rounded-[8px] bg-[#8F6900] px-3 text-[14px] font-semibold text-white cursor-pointer"
+            className="flex h-[56px] items-center justify-center gap-3 rounded-[5px] bg-[#8F6900] px-6 text-[16px] font-semibold text-white hover:bg-[#785800] transition-colors cursor-pointer"
           >
             <Printer className="size-5 text-white" />
             {t("Print Kitchen Receipt")}
           </button>
-        </div>
-
-        {/* New Order Primary Button */}
-        <div className="pt-2">
-          <Button
-            type="button"
-            className="flex h-[56px] w-full items-center justify-center rounded-[5px] bg-[#8F6900] text-[16px] font-semibold text-white cursor-pointer hover:bg-[#8F6900]"
-            onClick={() => {
-              onOpenChange(false);
-              onNewOrder();
-            }}
-          >
-            {t("New Order")}
-          </Button>
         </div>
       </DialogContent>
     </Dialog>
