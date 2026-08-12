@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useState } from "react";
 import { RefreshCw, ShieldCheck } from "lucide-react";
 import {
   Table,
@@ -10,9 +11,20 @@ import {
 import { Badge } from "@/shared/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/shared/i18n/useTranslation";
+import { api } from "@/config/api";
 import SectionCard from "./SectionCard";
-import { AUDIT_LOGS } from "../data";
-import type { AuditLog, MutationType } from "../types";
+
+type MutationType = "Create" | "Update" | "Delete";
+
+interface ApiAuditLog {
+  _id: string;
+  action: string;
+  actorName: string;
+  targetType: string;
+  targetLabel: string;
+  details: string;
+  createdAt: string;
+}
 
 const MUTATION_STYLES: Record<MutationType, string> = {
   Update: "border-[#C7861E] bg-[#FFF5DC] text-[#C7861E]",
@@ -20,15 +32,18 @@ const MUTATION_STYLES: Record<MutationType, string> = {
   Delete: "border-[#C90000] bg-[#C90000] text-white",
 };
 
+const mutationTypeFor = (action: string): MutationType => {
+  if (action.includes("created") || action.includes("unblocked")) return "Create";
+  if (action.includes("deleted") || action.includes("blocked")) return "Delete";
+  return "Update";
+};
+
 const Timestamp = ({ value }: { value: string }) => {
-  const [date, time] = value.split(", ");
+  const d = new Date(value);
   return (
     <div className="leading-tight">
-      <p>
-        {date}
-        {time ? "," : ""}
-      </p>
-      {time && <p>{time}</p>}
+      <p>{d.toLocaleDateString()}</p>
+      <p>{d.toLocaleTimeString()}</p>
     </div>
   );
 };
@@ -47,84 +62,112 @@ const MutationBadge = ({ mutation }: { mutation: MutationType }) => {
   );
 };
 
-const RefreshButton = () => (
-  <button
-    type="button"
-    aria-label="Refresh"
-    className="flex size-10 cursor-pointer items-center justify-center rounded-[8px] bg-primary text-white hover:bg-primary/90"
-  >
-    <RefreshCw className="size-4.5" />
-  </button>
-);
-
-const AuditCardRow = ({ log }: { log: AuditLog }) => (
-  <div className="rounded-2xl border border-[#E5E5E5] bg-white px-4 py-4">
-    <div className="mb-2 flex items-start justify-between gap-3">
-      <div className="min-w-0">
-        <p className="text-[14px] font-semibold text-[#333333]">{log.admin}</p>
-        <p className="text-[12px] text-[#8B8B8B]">{log.timestamp}</p>
+const AuditCardRow = ({ log }: { log: ApiAuditLog }) => {
+  const mutation = mutationTypeFor(log.action);
+  return (
+    <div className="rounded-2xl border border-[#E5E5E5] bg-white px-4 py-4">
+      <div className="mb-2 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[14px] font-semibold text-[#333333]">{log.actorName}</p>
+          <p className="text-[12px] text-[#8B8B8B]">{new Date(log.createdAt).toLocaleString()}</p>
+        </div>
+        <MutationBadge mutation={mutation} />
       </div>
-      <MutationBadge mutation={log.mutation} />
+      <p className="truncate font-mono text-[12px] text-[#28293D]">
+        {log.targetType}: {log.targetLabel}
+      </p>
+      {log.details && <p className="mt-1 font-mono text-[11px] text-[#8B8B8B]">{log.details}</p>}
     </div>
-    <p className="truncate font-mono text-[12px] text-[#28293D]">
-      {log.resource}
-    </p>
-    <p className="mt-1 font-mono text-[11px] text-[#8B8B8B]">{log.originIp}</p>
-  </div>
-);
+  );
+};
 
 const AuditLogsSection = () => {
   const { t } = useTranslation();
+  const [logs, setLogs] = useState<ApiAuditLog[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const load = useCallback(() => {
+    setLoading(true);
+    api
+      .get("/system/audit-logs", { params: { limit: 50 } })
+      .then(({ data }) => setLogs(data?.data ?? []))
+      .catch(() => setLogs([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const RefreshButton = () => (
+    <button
+      type="button"
+      aria-label="Refresh"
+      onClick={load}
+      className="flex size-10 cursor-pointer items-center justify-center rounded-[8px] bg-primary text-white hover:bg-primary/90"
+    >
+      <RefreshCw className={cn("size-4.5", loading && "animate-spin")} />
+    </button>
+  );
+
   return (
     <SectionCard
       icon={<ShieldCheck size={32} />}
-      title={t("Audit Governance")}
-      subtitle={t("Cryptographically sealed administrator activity")}
+      title={t("Audit Log")}
+      subtitle={t("Sensitive administrative actions — user, role, discount, customer, and inventory changes")}
       contentClassName="px-0 py-0 sm:px-0 sm:py-0"
       action={<RefreshButton />}
     >
-      {/* Mobile cards */}
-      <div className="flex flex-col gap-3 p-4 md:hidden">
-        {AUDIT_LOGS.map((log) => (
-          <AuditCardRow key={log.id} log={log} />
-        ))}
-      </div>
-
-      {/* Desktop table */}
-      <div className="hidden md:block **:data-[slot=table-container]:rounded-none **:data-[slot=table-container]:border-0">
-        <Table className="border-0">
-          <TableHeader className="bg-white [&_tr:hover]:bg-white">
-            <TableRow className="relative after:absolute after:inset-x-2 after:bottom-0 after:h-px after:bg-[#E5E5E5]">
-              <TableHead className="ps-6 py-4 text-start">{t("EVENT TIMESTAMP")}</TableHead>
-              <TableHead className="px-6 py-4">{t("ADMIN ENTITY")}</TableHead>
-              <TableHead className="px-6 py-4">{t("MUTATION TYPE")}</TableHead>
-              <TableHead className="px-6 py-4">{t("TARGET RESOURCE")}</TableHead>
-              <TableHead className="pe-6 py-4 text-end">{t("ORIGIN IP")}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {AUDIT_LOGS.map((log) => (
-              <TableRow key={log.id} className="hover:bg-[#FAFAF8]">
-                <TableCell className="ps-6 py-4 text-[13px] font-medium text-[#000000]" dir="ltr">
-                  <Timestamp value={log.timestamp} />
-                </TableCell>
-                <TableCell className="px-6 py-4 text-[14px] font-semibold text-[#333333]">
-                  {log.admin}
-                </TableCell>
-                <TableCell className="px-6 py-4">
-                  <MutationBadge mutation={log.mutation} />
-                </TableCell>
-                <TableCell className="px-6 py-4 font-mono text-[12px] text-[#28293D]" dir="ltr">
-                  {log.resource}
-                </TableCell>
-                <TableCell className="pe-6 py-4 font-mono text-[12px] text-[#8B8B8B] text-end" dir="ltr">
-                  {log.originIp}
-                </TableCell>
-              </TableRow>
+      {!loading && logs.length === 0 ? (
+        <p className="py-10 text-center text-[13px] text-[#8B8B8B]">
+          {t("No sensitive actions recorded yet")}
+        </p>
+      ) : (
+        <>
+          {/* Mobile cards */}
+          <div className="flex flex-col gap-3 p-4 md:hidden">
+            {logs.map((log) => (
+              <AuditCardRow key={log._id} log={log} />
             ))}
-          </TableBody>
-        </Table>
-      </div>
+          </div>
+
+          {/* Desktop table */}
+          <div className="hidden md:block **:data-[slot=table-container]:rounded-none **:data-[slot=table-container]:border-0">
+            <Table className="border-0">
+              <TableHeader className="bg-white [&_tr:hover]:bg-white">
+                <TableRow className="relative after:absolute after:inset-x-2 after:bottom-0 after:h-px after:bg-[#E5E5E5]">
+                  <TableHead className="ps-6 py-4 text-start">{t("EVENT TIMESTAMP")}</TableHead>
+                  <TableHead className="px-6 py-4">{t("ADMIN")}</TableHead>
+                  <TableHead className="px-6 py-4">{t("TYPE")}</TableHead>
+                  <TableHead className="px-6 py-4">{t("TARGET")}</TableHead>
+                  <TableHead className="pe-6 py-4 text-end">{t("DETAILS")}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {logs.map((log) => (
+                  <TableRow key={log._id} className="hover:bg-[#FAFAF8]">
+                    <TableCell className="ps-6 py-4 text-[13px] font-medium text-[#000000]" dir="ltr">
+                      <Timestamp value={log.createdAt} />
+                    </TableCell>
+                    <TableCell className="px-6 py-4 text-[14px] font-semibold text-[#333333]">
+                      {log.actorName}
+                    </TableCell>
+                    <TableCell className="px-6 py-4">
+                      <MutationBadge mutation={mutationTypeFor(log.action)} />
+                    </TableCell>
+                    <TableCell className="px-6 py-4 font-mono text-[12px] text-[#28293D]" dir="ltr">
+                      {log.targetType}: {log.targetLabel}
+                    </TableCell>
+                    <TableCell className="pe-6 py-4 font-mono text-[12px] text-[#8B8B8B] text-end" dir="ltr">
+                      {log.details}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </>
+      )}
     </SectionCard>
   );
 };
