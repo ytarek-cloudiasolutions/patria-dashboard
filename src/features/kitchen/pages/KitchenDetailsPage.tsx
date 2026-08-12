@@ -32,7 +32,12 @@ const STATUS_STYLE: Record<string, { bg: string; text: string; border: string; l
 const ORDER_TYPE_STYLE: Record<string, { bg: string; text: string; border: string; label: string }> = {
   delivery: { bg: "#EDF4FB", text: "#3574FF", border: "#3574FF", label: "Delivery" },
   takeaway: { bg: "#F5F0EA", text: "#8F6900", border: "#C8A96E", label: "Takeaway" },
-  "dine-in": { bg: "#E2F4ED", text: "#059B5A", border: "#059B5A", label: "Dine-In" },
+  // Order.type is stored as "dine_in" (underscore) — createOrder always
+  // normalizes any "dine-in" input to this before saving. Keying this map
+  // on the hyphen variant meant every dine-in order fell through to the
+  // generic fallback style below and showed the raw "dine_in" as its label.
+  dine_in: { bg: "#E2F4ED", text: "#059B5A", border: "#059B5A", label: "Dine-In" },
+  pos: { bg: "#E2F4ED", text: "#059B5A", border: "#059B5A", label: "Dine-In" },
 };
 
 
@@ -67,7 +72,7 @@ const ApiKitchenOrderCard = ({ order, onStatusChange, stationColor, onCardClick 
   const next = nextStatus[order.status];
 
   // Get order type style with fallback
-  const typeKey = (order.type ?? "dine-in").toLowerCase();
+  const typeKey = (order.type ?? "dine_in").toLowerCase();
   const typeStyle = ORDER_TYPE_STYLE[typeKey] ?? {
     bg: "#EDF4FB",
     text: "#3574FF",
