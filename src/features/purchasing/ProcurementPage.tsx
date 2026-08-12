@@ -24,6 +24,8 @@ import { usePurchasing } from "./hooks/usePurchasing";
 import { useSuppliers } from "@/features/suppliers/hooks/useSuppliers";
 import { useWarehouses } from "@/features/warehouses/hooks/useWarehouses";
 import { useProducts } from "@/features/products/hooks/useProducts";
+import { makePurchaseOrderPayment } from "./api/purchasingApi";
+import { showSuccessToast, showErrorToast } from "@/shared/utils/toast";
 
 const mapApiOrder = (o: any): PurchaseOrder => ({
   id: o._id ?? o.id,
@@ -199,8 +201,17 @@ const ProcurementPage = () => {
     submitPurchaseOrder(String(order.id));
   };
 
-  const handleConfirmPayment = (orderId: number, _amount: number) => {
-    submitPurchaseOrder(String(orderId));
+  const handleConfirmPayment = async (orderId: number, amount: number) => {
+    try {
+      // Was previously calling submitPurchaseOrder (POST /purchasing/:id/submit)
+      // instead of the actual payment endpoint — the entered amount was
+      // discarded and no payment was ever recorded against the PO.
+      await makePurchaseOrderPayment(String(orderId), amount);
+      showSuccessToast(t("Payment recorded"));
+      getPurchaseOrders();
+    } catch (error: any) {
+      showErrorToast(error?.response?.data?.message || t("Failed to record payment"));
+    }
   };
 
   const isLoading = !purchasingLoaded || !suppliersLoaded || !warehousesLoaded || !productsLoaded;

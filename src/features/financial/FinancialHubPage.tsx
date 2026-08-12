@@ -61,6 +61,10 @@ const FinancialHubPage = () => {
     totalExpenses: number;
     netProfit: number;
     profitMargin: string;
+    totalInventoryValue: number;
+    lowStockItems: number;
+    outOfStock: number;
+    costOfWasteMonthly: number;
   } | null>(null);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isInventorySessionOpen, setIsInventorySessionOpen] = useState(false);
@@ -94,6 +98,10 @@ const FinancialHubPage = () => {
             typeof ov.profitMargin === "string"
               ? ov.profitMargin
               : `${(ov.profitMargin ?? 0).toFixed(1)}%`,
+          totalInventoryValue: ov.totalInventoryValue ?? 0,
+          lowStockItems: ov.lowStockItems ?? 0,
+          outOfStock: ov.outOfStock ?? 0,
+          costOfWasteMonthly: ov.costOfWasteMonthly ?? 0,
         });
         const raw: any[] = txRes.data?.transactions ?? [];
         if (raw.length > 0) {
@@ -221,6 +229,10 @@ const FinancialHubPage = () => {
           totalExpenses={overview.totalExpenses}
           netProfit={overview.netProfit}
           profitMargin={overview.profitMargin}
+          totalInventoryValue={apiOverview?.totalInventoryValue ?? 0}
+          lowStockItems={apiOverview?.lowStockItems ?? 0}
+          outOfStock={apiOverview?.outOfStock ?? 0}
+          costOfWasteMonthly={apiOverview?.costOfWasteMonthly ?? 0}
           transactions={transactions}
           onNavigateTab={handleTabChange}
           onOpenAddModal={() => setIsAddOpen(true)}

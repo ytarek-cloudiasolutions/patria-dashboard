@@ -21,6 +21,10 @@ interface AccountantDashboardViewProps {
   totalExpenses: number;
   netProfit: number;
   profitMargin: string;
+  totalInventoryValue: number;
+  lowStockItems: number;
+  outOfStock: number;
+  costOfWasteMonthly: number;
   transactions: FinancialTransaction[];
   onNavigateTab: (tab: FinancialTab) => void;
   onOpenAddModal: () => void;
@@ -34,6 +38,10 @@ const AccountantDashboardView = ({
   totalExpenses,
   netProfit,
   profitMargin,
+  totalInventoryValue,
+  lowStockItems,
+  outOfStock,
+  costOfWasteMonthly,
   transactions,
   onNavigateTab,
   onOpenAddModal,
@@ -118,7 +126,7 @@ const AccountantDashboardView = ({
               {t("Total inventory value")}
             </span>
             <span className="text-[20px] font-semibold tracking-[0.4px] text-black" dir="ltr">
-              EGP 4,000
+              {formatEgp(totalInventoryValue)}
             </span>
           </div>
           <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#DBEAFE]">
@@ -133,7 +141,7 @@ const AccountantDashboardView = ({
               {t("Low Stock Items")}
             </span>
             <span className="text-[20px] font-semibold tracking-[0.4px] text-black">
-              2
+              {lowStockItems}
             </span>
           </div>
           <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#FE9A00]/10">
@@ -148,7 +156,7 @@ const AccountantDashboardView = ({
               {t("Out of Stock")}
             </span>
             <span className="text-[20px] font-semibold tracking-[0.4px] text-black">
-              295
+              {outOfStock}
             </span>
           </div>
           <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#C90000]">
@@ -163,7 +171,7 @@ const AccountantDashboardView = ({
               {t("Cost of Waste (Monthly)")}
             </span>
             <span className="text-[20px] font-semibold tracking-[0.4px] text-black" dir="ltr">
-              EGP 0
+              {formatEgp(costOfWasteMonthly)}
             </span>
           </div>
           <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#F3E9FA]">
@@ -205,15 +213,15 @@ const AccountantDashboardView = ({
                   {t("Revenue")}
                 </span>
                 <span className="text-[16px] font-semibold tracking-[0.32px] text-[#059B5A]" dir="ltr">
-                  EGP 4,377
+                  {formatEgp(totalRevenue)}
                 </span>
               </div>
               <div className="flex flex-col gap-1 rounded-[16px] border border-[#E5E5E5] bg-[#C90000] p-4">
                 <span className="text-[10px] font-semibold uppercase tracking-[0.2px] text-white">
-                  {t("Revenue")}
+                  {t("Expenses")}
                 </span>
                 <span className="text-[16px] font-semibold tracking-[0.32px] text-white" dir="ltr">
-                  EGP 4,377
+                  {formatEgp(totalExpenses)}
                 </span>
               </div>
             </div>
