@@ -73,6 +73,7 @@ const FinancialHubPage = () => {
   const [isWasteVoucherOpen, setIsWasteVoucherOpen] = useState(false);
   const [adjustmentsRefreshKey, setAdjustmentsRefreshKey] = useState(0);
   const [openingBalanceRefreshKey, setOpeningBalanceRefreshKey] = useState(0);
+  const [inventoryCountRefreshKey, setInventoryCountRefreshKey] = useState(0);
   const [isNewPeriodBalanceOpen, setIsNewPeriodBalanceOpen] = useState(false);
   const [selectedInventorySession, setSelectedInventorySession] = useState<InventoryCountSession | null>(null);
   const [loading, setLoading] = useState(false);
@@ -256,9 +257,11 @@ const FinancialHubPage = () => {
           <InventoryDetailView
             session={selectedInventorySession}
             onBack={() => setSelectedInventorySession(null)}
+            onCompleted={() => setInventoryCountRefreshKey((k) => k + 1)}
           />
         ) : (
           <InventoryCountView
+            refreshKey={inventoryCountRefreshKey}
             onSelectSession={(session) => setSelectedInventorySession(session)}
           />
         )
@@ -293,8 +296,16 @@ const FinancialHubPage = () => {
       <NewInventorySessionDialog
         open={isInventorySessionOpen}
         onOpenChange={setIsInventorySessionOpen}
-        onCreateSession={(warehouse) => {
-          showSuccessToast(`${t("Created new inventory session for")} ${warehouse}`);
+        onCreateSession={async (warehouseId) => {
+          // Was previously only a success toast — no session was ever
+          // created, no backend call was made at all.
+          try {
+            await api.post("/inventory/count-sessions", { warehouseId });
+            showSuccessToast(t("Inventory count session created"));
+            setInventoryCountRefreshKey((k) => k + 1);
+          } catch (error: any) {
+            showErrorToast(error?.response?.data?.message || t("Failed to create inventory count session"));
+          }
         }}
       />
 

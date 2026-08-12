@@ -11,21 +11,15 @@ import { Separator } from "@/shared/components/ui/separator";
 import DefaultButton from "@/shared/components/DefaultButton";
 import DropdownSelect from "@/shared/components/DropdownSelect";
 import { useTranslation } from "@/shared/i18n/useTranslation";
+import { useWarehouses } from "@/features/warehouses/hooks/useWarehouses";
 
 const FORM_ID = "new-inventory-session-form";
 
 interface NewInventorySessionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreateSession?: (warehouse: string) => void;
+  onCreateSession?: (warehouseId: string) => void;
 }
-
-const WAREHOUSE_OPTIONS = [
-  { value: "Main Kitchen", label: "Main Kitchen" },
-  { value: "Front Counter", label: "Front Counter" },
-  { value: "Central Store", label: "Central Store" },
-  { value: "Pastry Station", label: "Pastry Station" },
-];
 
 const NewInventorySessionDialog = ({
   open,
@@ -33,9 +27,14 @@ const NewInventorySessionDialog = ({
   onCreateSession,
 }: NewInventorySessionDialogProps) => {
   const { t } = useTranslation();
+  const { warehouses, getWarehouses } = useWarehouses();
   const [selectedWarehouse, setSelectedWarehouse] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    getWarehouses();
+  }, [getWarehouses]);
 
   useEffect(() => {
     if (open) {
@@ -85,9 +84,9 @@ const NewInventorySessionDialog = ({
                   {t("Warehouse")}<span className="text-[#C90000]">*</span>
                 </Label>
                 <DropdownSelect
-                  options={WAREHOUSE_OPTIONS.map((w) => ({
-                    ...w,
-                    label: t(w.label),
+                  options={warehouses.map((w: any) => ({
+                    value: w._id || w.id,
+                    label: w.name,
                   }))}
                   selected={selectedWarehouse}
                   onSelect={(val) => {
