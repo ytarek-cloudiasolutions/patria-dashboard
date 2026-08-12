@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Bell, Users, Zap, Activity } from "lucide-react";
 import DefaultButton from "@/shared/components/DefaultButton";
 import { Switch } from "@/shared/components/ui/switch";
 import { useTranslation } from "@/shared/i18n/useTranslation";
+import { api } from "@/config/api";
+import { showErrorToast, showSuccessToast } from "@/shared/utils/toast";
 import SectionCard from "./SectionCard";
 import { INITIAL_NOTIFICATIONS } from "../data";
 import type { NotificationSetting } from "../types";
@@ -21,11 +23,46 @@ const NotificationsSection = () => {
   const [settings, setSettings] = useState<NotificationSetting[]>(
     INITIAL_NOTIFICATIONS,
   );
+  const [userId, setUserId] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Toggles operated on local state only before, with no backend field to
+  // persist them in at all — reset to the defaults on every page load.
+  useEffect(() => {
+    api
+      .get("/auth/me")
+      .then(({ data }) => {
+        setUserId(data._id ?? null);
+        const prefs = data.notificationPreferences;
+        if (prefs) {
+          setSettings((prev) =>
+            prev.map((s) => ({ ...s, enabled: prefs[s.id] ?? s.enabled })),
+          );
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const toggle = (id: string) =>
     setSettings((prev) =>
       prev.map((s) => (s.id === id ? { ...s, enabled: !s.enabled } : s)),
     );
+
+  const handleSave = async () => {
+    if (!userId) return;
+    setIsSaving(true);
+    try {
+      const notificationPreferences = Object.fromEntries(
+        settings.map((s) => [s.id, s.enabled]),
+      );
+      await api.put(`/users/${userId}`, { notificationPreferences });
+      showSuccessToast(t("Notification preferences saved"));
+    } catch (error: any) {
+      showErrorToast(error?.response?.data?.message || t("Failed to save preferences"));
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <SectionCard
@@ -63,7 +100,13 @@ const NotificationsSection = () => {
           );
         })}
         <div className="mt-auto flex justify-end">
-          <DefaultButton data={{ buttonText: t("Save changes") }} />
+          <DefaultButton
+            data={{
+              buttonText: isSaving ? t("Saving...") : t("Save changes"),
+              onClick: handleSave,
+              disabled: isSaving,
+            }}
+          />
         </div>
       </div>
     </SectionCard>
