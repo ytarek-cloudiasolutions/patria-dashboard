@@ -62,7 +62,7 @@ const PricingPage = () => {
         setWholesaleLists(res.priceLists);
         setStats(res.stats);
       })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => {
         setHasLoaded(true);
       });

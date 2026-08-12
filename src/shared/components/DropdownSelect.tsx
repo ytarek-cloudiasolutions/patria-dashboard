@@ -95,7 +95,7 @@ const DropdownSelect = ({
           </div>
         )}
         {filteredOptions.length === 0 ? (
-          <div className="px-3 py-2 text-[13px] text-[#8B8B8B] text-center font-medium">
+          <div className="px-4 py-2.5 text-[14px] text-[#8B8B8B] text-center font-normal">
             {t("No results found.")}
           </div>
         ) : (
@@ -103,10 +103,10 @@ const DropdownSelect = ({
             <DropdownMenuItem
               key={option.value}
               className={cn(
-                "px-3 py-2 text-[14px] font-medium rounded-[16px] cursor-pointer",
+                "px-4 py-2.5 text-[14px] font-normal rounded-[12px] cursor-pointer transition-colors outline-none",
                 selected === option.value
-                  ? "bg-primary text-primary-foreground pointer-events-none"
-                  : "text-[#28293D] data-highlighted:bg-[#F5F0EA]"
+                  ? "bg-[#8F6900] text-white font-medium cursor-default data-highlighted:bg-[#8F6900] data-highlighted:text-white"
+                  : "text-[#28293D] hover:bg-[#FAFAF7] data-highlighted:bg-[#FAFAF7] data-highlighted:text-[#28293D]"
               )}
               onSelect={() => onSelect(option.value)}
             >
