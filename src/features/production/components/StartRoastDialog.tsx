@@ -7,20 +7,23 @@ import {
 import { Button } from "@/shared/components/ui/button";
 import { Label } from "@/shared/components/ui/label";
 import { Separator } from "@/shared/components/ui/separator";
+import { Textarea } from "@/shared/components/ui/textarea";
 import DefaultButton from "@/shared/components/DefaultButton";
 import InputField from "@/shared/components/InputField";
+import DropdownSelect from "@/shared/components/DropdownSelect";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { cn } from "@/lib/utils";
-import type { BatchFormData, RoastingDegree } from "../types";
+import type { RoastingDegree, StartRoastFormData } from "../types";
 
 const FORM_ID = "start-roast-form";
 
-const INITIAL_FORM: BatchFormData = {
+const INITIAL_FORM: StartRoastFormData = {
   batchNumber: "",
-  rawCoffeeType: "",
-  weightBefore: "",
-  weightAfter: "",
+  productId: "",
+  weightIn: "",
+  moistureGreen: "",
   degree: "Medium",
+  notes: "",
 };
 
 const DEGREES: RoastingDegree[] = ["Light", "Medium", "Dark"];
@@ -28,45 +31,47 @@ const DEGREES: RoastingDegree[] = ["Light", "Medium", "Dark"];
 interface StartRoastDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (data: BatchFormData) => void;
+  onSave: (data: StartRoastFormData) => void;
+  productOptions: { value: string; label: string }[];
 }
 
 const StartRoastDialog = ({
   open,
   onOpenChange,
   onSave,
+  productOptions,
 }: StartRoastDialogProps) => {
   const { t } = useTranslation();
-  const [form, setForm] = useState<BatchFormData>(INITIAL_FORM);
+  const [form, setForm] = useState<StartRoastFormData>(INITIAL_FORM);
   const [errors, setErrors] = useState<
-    Partial<Record<keyof BatchFormData, string>>
+    Partial<Record<keyof StartRoastFormData, string>>
   >({});
+  const [isProductOpen, setIsProductOpen] = useState(false);
 
   useEffect(() => {
     if (open) {
-      setForm(INITIAL_FORM);
+      setForm({
+        ...INITIAL_FORM,
+        batchNumber: `B-${Date.now().toString().slice(-6)}`,
+      });
       setErrors({});
     }
   }, [open]);
 
-  const set = <K extends keyof BatchFormData>(
+  const set = <K extends keyof StartRoastFormData>(
     key: K,
-    value: BatchFormData[K],
+    value: StartRoastFormData[K],
   ) => {
     setForm((prev) => ({ ...prev, [key]: value }));
     if (errors[key]) setErrors((prev) => ({ ...prev, [key]: "" }));
   };
 
   const validate = () => {
-    const next: Partial<Record<keyof BatchFormData, string>> = {};
+    const next: Partial<Record<keyof StartRoastFormData, string>> = {};
     if (!form.batchNumber.trim()) next.batchNumber = t("Batch number is required");
-    if (!form.rawCoffeeType.trim())
-      next.rawCoffeeType = t("Raw coffee type is required");
-    if (!form.weightBefore.trim() || Number(form.weightBefore) <= 0) {
-      next.weightBefore = t("Enter a valid weight");
-    }
-    if (!form.weightAfter.trim() || Number(form.weightAfter) < 0) {
-      next.weightAfter = t("Enter a valid weight");
+    if (!form.productId) next.productId = t("Select a product");
+    if (!form.weightIn.trim() || Number(form.weightIn) <= 0) {
+      next.weightIn = t("Enter a valid weight");
     }
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -85,6 +90,10 @@ const StartRoastDialog = ({
         showCloseButton={false}
         className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-140"
       >
+        {isProductOpen && (
+          <div className="pointer-events-none fixed inset-0 z-60 bg-black/40" />
+        )}
+
         <div className="flex max-h-[calc(100vh-2rem)] flex-col">
           {/* Header */}
           <div className="px-5 pt-5 sm:px-7 sm:pt-7">
@@ -125,25 +134,23 @@ const StartRoastDialog = ({
                   )}
                 </div>
 
-                <div>
-                  <InputField
-                    data={{
-                      id: "raw-coffee",
-                      label: {
-                        htmlFor: "raw-coffee",
-                        labelText: t("Raw Coffee Type"),
-                      },
-                      placeholder: t("Raw Coffee Type"),
-                      required: true,
-                      inputProps: {
-                        value: form.rawCoffeeType,
-                        onChange: (e) => set("rawCoffeeType", e.target.value),
-                      },
-                    }}
+                <div className="flex flex-col">
+                  <Label className="mb-2.5 text-[16px] font-medium text-black">
+                    {t("Product")}<span className="text-[#C90000]">*</span>
+                  </Label>
+                  <DropdownSelect
+                    options={productOptions}
+                    selected={form.productId}
+                    onSelect={(value) => set("productId", value)}
+                    onOpenChange={setIsProductOpen}
+                    placeholder={t("Select a product")}
+                    align="start"
+                    className="md:w-full"
+                    contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
                   />
-                  {errors.rawCoffeeType && (
+                  {errors.productId && (
                     <p className="mt-1 text-[13px] text-[#C90000]">
-                      {errors.rawCoffeeType}
+                      {errors.productId}
                     </p>
                   )}
                 </div>
@@ -151,10 +158,10 @@ const StartRoastDialog = ({
                 <div>
                   <InputField
                     data={{
-                      id: "weight-before",
+                      id: "weight-in",
                       label: {
-                        htmlFor: "weight-before",
-                        labelText: t("Weight before roasting (kg)"),
+                        htmlFor: "weight-in",
+                        labelText: t("Green weight in (kg)"),
                       },
                       placeholder: "0",
                       required: true,
@@ -162,43 +169,36 @@ const StartRoastDialog = ({
                         type: "number",
                         min: "0",
                         step: "0.01",
-                        value: form.weightBefore,
-                        onChange: (e) => set("weightBefore", e.target.value),
+                        value: form.weightIn,
+                        onChange: (e) => set("weightIn", e.target.value),
                       },
                     }}
                   />
-                  {errors.weightBefore && (
+                  {errors.weightIn && (
                     <p className="mt-1 text-[13px] text-[#C90000]">
-                      {errors.weightBefore}
+                      {errors.weightIn}
                     </p>
                   )}
                 </div>
 
-                <div>
-                  <InputField
-                    data={{
-                      id: "weight-after",
-                      label: {
-                        htmlFor: "weight-after",
-                        labelText: t("Weight after roasting (kg)"),
-                      },
-                      placeholder: "0",
-                      required: true,
-                      inputProps: {
-                        type: "number",
-                        min: "0",
-                        step: "0.01",
-                        value: form.weightAfter,
-                        onChange: (e) => set("weightAfter", e.target.value),
-                      },
-                    }}
-                  />
-                  {errors.weightAfter && (
-                    <p className="mt-1 text-[13px] text-[#C90000]">
-                      {errors.weightAfter}
-                    </p>
-                  )}
-                </div>
+                <InputField
+                  data={{
+                    id: "moisture-green",
+                    label: {
+                      htmlFor: "moisture-green",
+                      labelText: t("Green moisture (%) (Optional)"),
+                    },
+                    placeholder: "0",
+                    inputProps: {
+                      type: "number",
+                      min: "0",
+                      max: "100",
+                      step: "0.01",
+                      value: form.moistureGreen,
+                      onChange: (e) => set("moistureGreen", e.target.value),
+                    },
+                  }}
+                />
               </div>
 
               {/* Degree selector */}
@@ -226,6 +226,22 @@ const StartRoastDialog = ({
                     );
                   })}
                 </div>
+              </div>
+
+              <div className="flex flex-col">
+                <Label
+                  htmlFor="roast-notes"
+                  className="mb-2.5 text-[16px] font-medium text-black"
+                >
+                  {t("Notes (Optional)")}
+                </Label>
+                <Textarea
+                  id="roast-notes"
+                  rows={3}
+                  value={form.notes}
+                  onChange={(e) => set("notes", e.target.value)}
+                  className="field-sizing-fixed resize-none rounded-xl border border-[#E5E5E5] bg-white px-4.5 py-3 text-[14px] text-[#23252A] placeholder:text-[#8B8B8B] focus-visible:border-primary focus-visible:ring-0"
+                />
               </div>
             </div>
           </form>

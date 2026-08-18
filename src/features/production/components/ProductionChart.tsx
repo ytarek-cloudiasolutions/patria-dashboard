@@ -1,15 +1,17 @@
 import { Activity } from "lucide-react";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { useTranslation } from "@/shared/i18n/useTranslation";
-import { PRODUCTION_CHART_DATA } from "../data";
 
 const HEIGHT = 200;
 const WIDTH = 320;
 const PADDING = { top: 16, right: 16, bottom: 28, left: 32 };
 
-const ProductionChart = () => {
+interface ProductionChartProps {
+  data: { label: string; value: number }[];
+}
+
+const ProductionChart = ({ data }: ProductionChartProps) => {
   const { t } = useTranslation();
-  const data = PRODUCTION_CHART_DATA;
   const max = 100;
   const innerW = WIDTH - PADDING.left - PADDING.right;
   const innerH = HEIGHT - PADDING.top - PADDING.bottom;
@@ -24,7 +26,10 @@ const ProductionChart = () => {
     .map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`)
     .join(" ");
 
-  const areaPath = `${path} L${points[points.length - 1].x},${PADDING.top + innerH} L${points[0].x},${PADDING.top + innerH} Z`;
+  const areaPath =
+    points.length > 0
+      ? `${path} L${points[points.length - 1].x},${PADDING.top + innerH} L${points[0].x},${PADDING.top + innerH} Z`
+      : "";
 
   const gridLines = [100, 80, 60, 40, 20];
 

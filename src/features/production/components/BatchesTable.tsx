@@ -14,6 +14,7 @@ import type { BatchStatus, RoastBatch, RoastingDegree } from "../types";
 
 interface BatchesTableProps {
   batches: RoastBatch[];
+  onCompleteRoast: (batch: RoastBatch) => void;
   onVerifyQuality: (batch: RoastBatch) => void;
 }
 
@@ -38,40 +39,59 @@ const DegreeBadge = ({ degree }: { degree: RoastingDegree }) => {
 };
 
 const STATUS_STYLES: Record<BatchStatus, string> = {
-  "Verify Quality": "bg-primary text-primary-foreground",
-  "IN-QC": "bg-[#E5E5E5] text-[#23252A] border-[#595959]",
+  Roasted: "bg-[#E5E5E5] text-[#23252A] border-[#595959]",
+  "In-QC": "bg-primary text-primary-foreground",
   Released: "bg-[#E2F4ED] text-[#059B5A]",
-  Failed: "bg-[#FFF0F0] text-[#C90000]",
+  Rejected: "bg-[#FFF0F0] text-[#C90000]",
+  Quarantined: "bg-[#FFF5DC] text-[#B56C00]",
 };
 
 const MassCell = ({ batch }: { batch: RoastBatch }) => {
   const { t } = useTranslation();
+  const weightOut = batch.weightOut ?? 0;
   const loss =
-    batch.weightBefore > 0
-      ? ((batch.weightBefore - batch.weightAfter) / batch.weightBefore) * 100
-      : 0;
-  const lossColor = loss < 50 ? "text-[#059B5A]" : "text-[#C90000]";
+    batch.weightOut != null && batch.weightIn > 0
+      ? ((batch.weightIn - weightOut) / batch.weightIn) * 100
+      : null;
+  const lossColor = loss != null && loss < 50 ? "text-[#059B5A]" : "text-[#C90000]";
   return (
     <div>
       <p className="text-[13px] font-medium text-[#28293D]" dir="ltr">
-        {batch.weightBefore}Kg + {batch.weightAfter}kg
+        {batch.weightIn}kg{batch.weightOut != null ? ` → ${batch.weightOut}kg` : ""}
       </p>
-      <p className={cn("text-[12px] font-semibold", lossColor)}>
-        {t("Missing")} {loss.toFixed(1)}%
-      </p>
+      {loss != null && (
+        <p className={cn("text-[12px] font-semibold", lossColor)}>
+          {t("Missing")} {loss.toFixed(1)}%
+        </p>
+      )}
     </div>
   );
 };
 
 const StatusCell = ({
   batch,
+  onCompleteRoast,
   onVerifyQuality,
 }: {
   batch: RoastBatch;
+  onCompleteRoast: (b: RoastBatch) => void;
   onVerifyQuality: (b: RoastBatch) => void;
 }) => {
   const { t } = useTranslation();
-  if (batch.status === "Verify Quality") {
+  if (batch.status === "Roasted") {
+    return (
+      <DefaultButton
+        data={{
+          buttonText: t("Complete Roast"),
+          type: "button",
+          onClick: () => onCompleteRoast(batch),
+          className:
+            "h-9 sm:h-9 px-3 sm:px-3 text-[12px] sm:text-[12px] gap-1 sm:gap-1 rounded-[16px]",
+        }}
+      />
+    );
+  }
+  if (batch.status === "In-QC") {
     return (
       <DefaultButton
         data={{
@@ -96,7 +116,7 @@ const StatusCell = ({
   );
 };
 
-const BatchesTable = ({ batches, onVerifyQuality }: BatchesTableProps) => {
+const BatchesTable = ({ batches, onCompleteRoast, onVerifyQuality }: BatchesTableProps) => {
   const { t } = useTranslation();
   return (
     <>
@@ -132,7 +152,11 @@ const BatchesTable = ({ batches, onVerifyQuality }: BatchesTableProps) => {
               </div>
             </div>
 
-            <StatusCell batch={batch} onVerifyQuality={onVerifyQuality} />
+            <StatusCell
+              batch={batch}
+              onCompleteRoast={onCompleteRoast}
+              onVerifyQuality={onVerifyQuality}
+            />
           </div>
         ))}
 
@@ -174,6 +198,7 @@ const BatchesTable = ({ batches, onVerifyQuality }: BatchesTableProps) => {
                 <TableCell className="px-6 py-4 whitespace-nowrap">
                   <StatusCell
                     batch={batch}
+                    onCompleteRoast={onCompleteRoast}
                     onVerifyQuality={onVerifyQuality}
                   />
                 </TableCell>

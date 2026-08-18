@@ -14,16 +14,18 @@ import InputField from "@/shared/components/InputField";
 import DatePicker from "@/shared/components/DatePicker";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { cn } from "@/lib/utils";
-import { EQUIPMENT_TASK_OPTIONS } from "../data";
-import type { EquipmentTask, ServiceLogFormData } from "../types";
+import { EQUIPMENT_TASK_OPTIONS, MAINTENANCE_STATUS_OPTIONS } from "../data";
+import type { MaintenanceStatus, MaintenanceTaskType, ServiceLogFormData } from "../types";
 
 const FORM_ID = "service-log-form";
 
 const INITIAL_FORM: ServiceLogFormData = {
-  machine: "",
-  task: "Routine Sterilization",
+  equipmentName: "",
+  taskType: "Cleaning",
   cost: "",
   deadline: "",
+  status: "Pending",
+  notes: "",
 };
 
 interface LogServiceDialogProps {
@@ -43,12 +45,14 @@ const LogServiceDialog = ({
     Partial<Record<keyof ServiceLogFormData, string>>
   >({});
   const [isTaskOpen, setIsTaskOpen] = useState(false);
+  const [isStatusOpen, setIsStatusOpen] = useState(false);
 
   useEffect(() => {
     if (open) {
       setForm(INITIAL_FORM);
       setErrors({});
       setIsTaskOpen(false);
+      setIsStatusOpen(false);
     }
   }, [open]);
 
@@ -62,9 +66,9 @@ const LogServiceDialog = ({
 
   const validate = () => {
     const next: Partial<Record<keyof ServiceLogFormData, string>> = {};
-    if (!form.machine.trim())
-      next.machine = t("Machine designation is required");
-    if (!form.deadline) next.deadline = t("Deadline is required");
+    if (!form.equipmentName.trim())
+      next.equipmentName = t("Equipment name is required");
+    if (!form.deadline) next.deadline = t("Next due date is required");
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -82,7 +86,7 @@ const LogServiceDialog = ({
         showCloseButton={false}
         className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-140"
       >
-        {isTaskOpen && (
+        {(isTaskOpen || isStatusOpen) && (
           <div className="pointer-events-none fixed inset-0 z-60 bg-black/40" />
         )}
 
@@ -107,22 +111,22 @@ const LogServiceDialog = ({
                   htmlFor="machine-designation"
                   className="mb-2.5 text-[16px] font-medium text-black"
                 >
-                  {t("Machine Designation")}<span className="text-[#C90000]">*</span>
+                  {t("Equipment Name")}<span className="text-[#C90000]">*</span>
                 </Label>
                 <Textarea
                   id="machine-designation"
-                  rows={3}
+                  rows={2}
                   placeholder="e.g. Probat P05 - unit 01"
-                  value={form.machine}
-                  onChange={(e) => set("machine", e.target.value)}
+                  value={form.equipmentName}
+                  onChange={(e) => set("equipmentName", e.target.value)}
                   className={cn(
                     "field-sizing-fixed resize-none rounded-xl border border-[#E5E5E5] bg-white px-4.5 py-3 text-[14px] text-[#23252A] placeholder:text-[#8B8B8B] focus-visible:border-primary focus-visible:ring-0",
-                    errors.machine && "border-[#C90000]",
+                    errors.equipmentName && "border-[#C90000]",
                   )}
                 />
-                {errors.machine && (
+                {errors.equipmentName && (
                   <p className="mt-1 text-[13px] text-[#C90000]">
-                    {errors.machine}
+                    {errors.equipmentName}
                   </p>
                 )}
               </div>
@@ -133,16 +137,37 @@ const LogServiceDialog = ({
                     htmlFor="task-taxonomy"
                     className="mb-2.5 text-[16px] font-medium text-black"
                   >
-                    {t("Task Taxonomy")}<span className="text-[#C90000]">*</span>
+                    {t("Task Type")}<span className="text-[#C90000]">*</span>
                   </Label>
                   <DropdownSelect
                     options={EQUIPMENT_TASK_OPTIONS.map((o) => ({ ...o, label: t(o.label) }))}
-                    selected={form.task}
+                    selected={form.taskType}
                     onSelect={(value) =>
-                      set("task", value as EquipmentTask)
+                      set("taskType", value as MaintenanceTaskType)
                     }
                     onOpenChange={setIsTaskOpen}
                     placeholder={t("Select task")}
+                    align="start"
+                    className="md:w-full"
+                    contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
+                  />
+                </div>
+
+                <div className="flex flex-col">
+                  <Label
+                    htmlFor="log-status"
+                    className="mb-2.5 text-[16px] font-medium text-black"
+                  >
+                    {t("Status")}
+                  </Label>
+                  <DropdownSelect
+                    options={MAINTENANCE_STATUS_OPTIONS.map((o) => ({ ...o, label: t(o.label) }))}
+                    selected={form.status}
+                    onSelect={(value) =>
+                      set("status", value as MaintenanceStatus)
+                    }
+                    onOpenChange={setIsStatusOpen}
+                    placeholder={t("Select status")}
                     align="start"
                     className="md:w-full"
                     contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
@@ -166,25 +191,40 @@ const LogServiceDialog = ({
                     },
                   }}
                 />
+
+                <div className="flex flex-col">
+                  <Label className="mb-2.5 text-[16px] font-medium text-black">
+                    {t("Next Due Date")}
+                    <span className="text-[#C90000]">*</span>
+                  </Label>
+                  <DatePicker
+                    value={form.deadline}
+                    onChange={(date) => set("deadline", date)}
+                    placeholder="DD/MM/YYYY"
+                    withBackdrop
+                  />
+                  {errors.deadline && (
+                    <p className="mt-1 text-[13px] text-[#C90000]">
+                      {errors.deadline}
+                    </p>
+                  )}
+                </div>
               </div>
 
               <div className="flex flex-col">
-                <Label className="mb-2.5 text-[16px] font-medium text-black">
-                  {t("Next Recalibration Deadline")}
-                  <span className="text-[#C90000]">*</span>
+                <Label
+                  htmlFor="log-notes"
+                  className="mb-2.5 text-[16px] font-medium text-black"
+                >
+                  {t("Notes (Optional)")}
                 </Label>
-                <DatePicker
-                  value={form.deadline}
-                  onChange={(date) => set("deadline", date)}
-                  placeholder="DD/MM/YYYY"
-                  withBackdrop
-                  minDate={new Date().toISOString().slice(0, 10)}
+                <Textarea
+                  id="log-notes"
+                  rows={2}
+                  value={form.notes}
+                  onChange={(e) => set("notes", e.target.value)}
+                  className="field-sizing-fixed resize-none rounded-xl border border-[#E5E5E5] bg-white px-4.5 py-3 text-[14px] text-[#23252A] placeholder:text-[#8B8B8B] focus-visible:border-primary focus-visible:ring-0"
                 />
-                {errors.deadline && (
-                  <p className="mt-1 text-[13px] text-[#C90000]">
-                    {errors.deadline}
-                  </p>
-                )}
               </div>
             </div>
           </form>

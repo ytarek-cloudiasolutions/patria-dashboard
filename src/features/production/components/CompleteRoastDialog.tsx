@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-
 import {
   Dialog,
   DialogContent,
@@ -11,37 +10,35 @@ import { Separator } from "@/shared/components/ui/separator";
 import DefaultButton from "@/shared/components/DefaultButton";
 import InputField from "@/shared/components/InputField";
 import { useTranslation } from "@/shared/i18n/useTranslation";
-import type { QualityCheckFormData, RoastBatch } from "../types";
+import type { CompleteRoastFormData, RoastBatch } from "../types";
 
-const FORM_ID = "quality-check-form";
+const FORM_ID = "complete-roast-form";
 
-const INITIAL_FORM: QualityCheckFormData = {
-  cuppingScore: "",
-  aroma: "",
-  acidity: "",
-  body: "",
-  aftertaste: "",
-  cupper: "",
+const INITIAL_FORM: CompleteRoastFormData = {
+  weightOut: "",
+  moistureRoasted: "",
+  roastColor: "",
+  cupScore: "",
   notes: "",
 };
 
-interface QualityCheckDialogProps {
+interface CompleteRoastDialogProps {
   open: boolean;
   batch: RoastBatch | null;
   onOpenChange: (open: boolean) => void;
-  onConfirm: (batchId: string, data: QualityCheckFormData) => void;
+  onConfirm: (batchId: string, data: CompleteRoastFormData) => void;
 }
 
-const QualityCheckDialog = ({
+const CompleteRoastDialog = ({
   open,
   batch,
   onOpenChange,
   onConfirm,
-}: QualityCheckDialogProps) => {
+}: CompleteRoastDialogProps) => {
   const { t } = useTranslation();
-  const [form, setForm] = useState<QualityCheckFormData>(INITIAL_FORM);
+  const [form, setForm] = useState<CompleteRoastFormData>(INITIAL_FORM);
   const [errors, setErrors] = useState<
-    Partial<Record<keyof QualityCheckFormData, string>>
+    Partial<Record<keyof CompleteRoastFormData, string>>
   >({});
 
   useEffect(() => {
@@ -51,19 +48,18 @@ const QualityCheckDialog = ({
     }
   }, [open, batch?.id]);
 
-  const set = <K extends keyof QualityCheckFormData>(
+  const set = <K extends keyof CompleteRoastFormData>(
     key: K,
-    value: QualityCheckFormData[K],
+    value: CompleteRoastFormData[K],
   ) => {
     setForm((prev) => ({ ...prev, [key]: value }));
     if (errors[key]) setErrors((prev) => ({ ...prev, [key]: "" }));
   };
 
   const validate = () => {
-    const next: Partial<Record<keyof QualityCheckFormData, string>> = {};
-    const score = Number(form.cuppingScore);
-    if (!form.cuppingScore.trim() || Number.isNaN(score) || score < 0 || score > 100) {
-      next.cuppingScore = t("Score must be between 0 and 100");
+    const next: Partial<Record<keyof CompleteRoastFormData, string>> = {};
+    if (!form.weightOut.trim() || Number(form.weightOut) <= 0) {
+      next.weightOut = t("Enter the roasted output weight");
     }
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -88,7 +84,7 @@ const QualityCheckDialog = ({
           {/* Header */}
           <div className="px-5 pt-5 sm:px-7 sm:pt-7">
             <DialogTitle className="text-[20px] font-semibold text-[#28293D] sm:text-[22px]">
-              {t("Quality Check")}
+              {t("Complete Roast")}
             </DialogTitle>
           </div>
 
@@ -100,14 +96,13 @@ const QualityCheckDialog = ({
             className="flex-1 overflow-y-auto px-5 py-5 sm:px-7 sm:py-6"
           >
             <div className="flex flex-col gap-5">
-              {/* Target card */}
               <div className="flex items-center gap-3 rounded-[12px] border border-[#E5E5E5] bg-[#FAFAF7] px-4 py-3">
                 <Badge className="h-7 rounded-[10px] bg-primary px-3 py-0 text-[12px] font-semibold text-primary-foreground">
                   {batch.batchNumber}
                 </Badge>
                 <div className="min-w-0">
                   <p className="text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
-                    {t("Active Verification Target")}
+                    {t("Roasting")}
                   </p>
                   <p className="text-[15px] font-semibold text-[#28293D]">
                     {batch.product}
@@ -119,116 +114,77 @@ const QualityCheckDialog = ({
                 <div>
                   <InputField
                     data={{
-                      id: "cupping",
+                      id: "weight-out",
                       label: {
-                        htmlFor: "cupping",
-                        labelText: t("Total Cupping Score (0-100)"),
+                        htmlFor: "weight-out",
+                        labelText: t("Roasted weight out (kg)"),
                       },
                       placeholder: "0",
                       required: true,
                       inputProps: {
                         type: "number",
                         min: "0",
-                        max: "100",
-                        value: form.cuppingScore,
-                        onChange: (e) => set("cuppingScore", e.target.value),
+                        step: "0.01",
+                        value: form.weightOut,
+                        onChange: (e) => set("weightOut", e.target.value),
                       },
                     }}
                   />
-                  {errors.cuppingScore && (
+                  {errors.weightOut && (
                     <p className="mt-1 text-[13px] text-[#C90000]">
-                      {errors.cuppingScore}
+                      {errors.weightOut}
                     </p>
                   )}
                 </div>
 
                 <InputField
                   data={{
-                    id: "cupper",
+                    id: "moisture-roasted",
                     label: {
-                      htmlFor: "cupper",
-                      labelText: t("Cupper (Optional)"),
+                      htmlFor: "moisture-roasted",
+                      labelText: t("Roasted moisture (%) (Optional)"),
                     },
-                    placeholder: t("Cupper name"),
+                    placeholder: "0",
                     inputProps: {
-                      value: form.cupper,
-                      onChange: (e) => set("cupper", e.target.value),
+                      type: "number",
+                      min: "0",
+                      max: "100",
+                      step: "0.01",
+                      value: form.moistureRoasted,
+                      onChange: (e) => set("moistureRoasted", e.target.value),
                     },
                   }}
                 />
 
                 <InputField
                   data={{
-                    id: "aroma",
+                    id: "roast-color",
                     label: {
-                      htmlFor: "aroma",
-                      labelText: t("Aroma (0-10) (Optional)"),
+                      htmlFor: "roast-color",
+                      labelText: t("Roast color (Optional)"),
                     },
-                    placeholder: "0",
+                    placeholder: t("e.g. Agtron 55"),
                     inputProps: {
-                      type: "number",
-                      min: "0",
-                      max: "10",
-                      step: "0.25",
-                      value: form.aroma,
-                      onChange: (e) => set("aroma", e.target.value),
+                      value: form.roastColor,
+                      onChange: (e) => set("roastColor", e.target.value),
                     },
                   }}
                 />
 
                 <InputField
                   data={{
-                    id: "acidity",
+                    id: "cup-score",
                     label: {
-                      htmlFor: "acidity",
-                      labelText: t("Acidity (0-10) (Optional)"),
+                      htmlFor: "cup-score",
+                      labelText: t("Cup score (0-100) (Optional)"),
                     },
                     placeholder: "0",
                     inputProps: {
                       type: "number",
                       min: "0",
-                      max: "10",
-                      step: "0.25",
-                      value: form.acidity,
-                      onChange: (e) => set("acidity", e.target.value),
-                    },
-                  }}
-                />
-
-                <InputField
-                  data={{
-                    id: "body",
-                    label: {
-                      htmlFor: "body",
-                      labelText: t("Body (0-10) (Optional)"),
-                    },
-                    placeholder: "0",
-                    inputProps: {
-                      type: "number",
-                      min: "0",
-                      max: "10",
-                      step: "0.25",
-                      value: form.body,
-                      onChange: (e) => set("body", e.target.value),
-                    },
-                  }}
-                />
-
-                <InputField
-                  data={{
-                    id: "aftertaste",
-                    label: {
-                      htmlFor: "aftertaste",
-                      labelText: t("Aftertaste (0-10) (Optional)"),
-                    },
-                    placeholder: "0",
-                    inputProps: {
-                      type: "number",
-                      min: "0",
-                      max: "10",
-                      step: "0.25",
-                      value: form.aftertaste,
-                      onChange: (e) => set("aftertaste", e.target.value),
+                      max: "100",
+                      value: form.cupScore,
+                      onChange: (e) => set("cupScore", e.target.value),
                     },
                   }}
                 />
@@ -255,7 +211,7 @@ const QualityCheckDialog = ({
                 type="submit"
                 className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
               >
-                {t("Certify & Release")}
+                {t("Send to QC")}
               </Button>
             </div>
           </div>
@@ -265,4 +221,4 @@ const QualityCheckDialog = ({
   );
 };
 
-export default QualityCheckDialog;
+export default CompleteRoastDialog;

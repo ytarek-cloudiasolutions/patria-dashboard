@@ -1,13 +1,20 @@
 import { Flame, ShieldCheck, Gauge, XCircle } from "lucide-react";
 import OverviewCard from "@/shared/components/OverviewCard";
 import { useTranslation } from "@/shared/i18n/useTranslation";
-import { ROAST_OVERVIEW } from "../data";
 
 interface RoastOverviewProps {
   activeBatches: number;
+  qualityIndex: string;
+  productionEfficiency: string;
+  averageLossRate: string;
 }
 
-const RoastOverview = ({ activeBatches }: RoastOverviewProps) => {
+const RoastOverview = ({
+  activeBatches,
+  qualityIndex,
+  productionEfficiency,
+  averageLossRate,
+}: RoastOverviewProps) => {
   const { t } = useTranslation();
   return (
     <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
@@ -23,7 +30,7 @@ const RoastOverview = ({ activeBatches }: RoastOverviewProps) => {
       <OverviewCard
         data={{
           title: t("Quality Index"),
-          value: ROAST_OVERVIEW.qualityIndex,
+          value: qualityIndex,
           icon: <ShieldCheck size={18} />,
           iconColor: "text-[#1A7A45]",
           badgeColor: "bg-[#E2F4ED]",
@@ -32,7 +39,7 @@ const RoastOverview = ({ activeBatches }: RoastOverviewProps) => {
       <OverviewCard
         data={{
           title: t("Production Efficiency"),
-          value: ROAST_OVERVIEW.productionEfficiency,
+          value: productionEfficiency,
           icon: <Gauge size={18} />,
           iconColor: "text-[#C7861E]",
           badgeColor: "bg-[#FFF7E6]",
@@ -41,7 +48,7 @@ const RoastOverview = ({ activeBatches }: RoastOverviewProps) => {
       <OverviewCard
         data={{
           title: t("Average Loss Rate"),
-          value: ROAST_OVERVIEW.averageLossRate,
+          value: averageLossRate,
           icon: <XCircle size={18} />,
           iconColor: "text-[#C90000]",
           badgeColor: "bg-[#FFF0F0]",

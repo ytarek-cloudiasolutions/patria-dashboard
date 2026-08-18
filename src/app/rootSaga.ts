@@ -13,7 +13,6 @@ import { suppliersSaga } from "@/features/suppliers/store/supplierSaga";
 import { userSaga } from "@/features/users/store/userSaga";
 import logisticsSaga from "@/features/logistics/store/logisticsSaga";
 import warehousesSaga from "@/features/warehouses/store/warehousesSaga";
-import productionSaga from "@/features/production/store/productionSaga";
 import purchasingSaga from "@/features/purchasing/store/purchasingSaga";
 import shiftsSaga from "@/features/shifts/store/shiftsSaga";
 import couponsSaga from "@/features/coupons/store/couponsSaga";
@@ -36,7 +35,6 @@ export default function* rootSaga() {
     userSaga(),
     logisticsSaga(),
     warehousesSaga(),
-    productionSaga(),
     purchasingSaga(),
     shiftsSaga(),
     couponsSaga(),

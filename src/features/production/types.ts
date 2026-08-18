@@ -2,54 +2,79 @@ export type ProductionTab = "roast" | "equipment";
 
 export type RoastingDegree = "Light" | "Medium" | "Dark";
 
-export type BatchStatus = "Verify Quality" | "IN-QC" | "Released" | "Failed";
+export type BatchStatus =
+  | "Roasted"
+  | "In-QC"
+  | "Released"
+  | "Rejected"
+  | "Quarantined";
 
 export interface RoastBatch {
-  id: number;
+  id: string;
   batchNumber: string;
+  productId: string;
   product: string;
   degree: RoastingDegree;
-  weightBefore: number;
-  weightAfter: number;
+  weightIn: number;
+  weightOut: number | null;
+  moistureGreen: number | null;
+  moistureRoasted: number | null;
+  roastColor: string;
+  cupScore: number | null;
   status: BatchStatus;
   date: string;
+  notes: string;
 }
 
-export interface BatchFormData {
+export interface StartRoastFormData {
   batchNumber: string;
-  rawCoffeeType: string;
-  weightBefore: string;
-  weightAfter: string;
+  productId: string;
+  weightIn: string;
+  moistureGreen: string;
   degree: RoastingDegree;
+  notes: string;
+}
+
+export interface CompleteRoastFormData {
+  weightOut: string;
+  moistureRoasted: string;
+  roastColor: string;
+  cupScore: string;
+  notes: string;
 }
 
 export interface QualityCheckFormData {
-  outputMass: string;
-  atmosphericMoisture: string;
-  agtronIndex: string;
   cuppingScore: string;
+  aroma: string;
+  acidity: string;
+  body: string;
+  aftertaste: string;
+  cupper: string;
+  notes: string;
 }
 
-export type EquipmentStatus = "Healthy" | "Poor" | "Maintenance";
-export type EquipmentTask =
-  | "Calibration"
+export type MaintenanceStatus = "Completed" | "Pending" | "Overdue";
+export type MaintenanceTaskType =
+  | "Cleaning"
   | "Repair"
-  | "Routine Sterilization"
-  | "Inspection";
+  | "Calibration"
+  | "Parts Replacement";
 
 export interface EquipmentRecord {
-  id: number;
-  machine: string;
-  task: EquipmentTask;
+  id: string;
+  equipmentName: string;
+  taskType: MaintenanceTaskType;
   operator: string;
   deadline: string;
   cost: number;
-  status: EquipmentStatus;
+  status: MaintenanceStatus;
 }
 
 export interface ServiceLogFormData {
-  machine: string;
-  task: EquipmentTask;
+  equipmentName: string;
+  taskType: MaintenanceTaskType;
   cost: string;
   deadline: string;
+  status: MaintenanceStatus;
+  notes: string;
 }
