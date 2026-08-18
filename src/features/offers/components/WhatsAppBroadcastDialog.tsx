@@ -17,7 +17,7 @@ import { showSuccessToast, showErrorToast } from "@/shared/utils/toast";
 import { getCustomers } from "@/features/customers/api/customersApi";
 import { mapCustomers } from "@/features/customers/utils/customerMappers";
 import { sendWhatsAppBroadcast } from "../api/offersApi";
-import { CUSTOMER_COUNT_OPTIONS, MOCK_CUSTOMERS } from "../data";
+import { CUSTOMER_COUNT_OPTIONS } from "../data";
 import type {
   Customer,
   Offer,
@@ -57,30 +57,31 @@ const WhatsAppBroadcastDialog = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSending, setIsSending] = useState(false);
-  const [customers, setCustomers] = useState<Customer[]>(MOCK_CUSTOMERS as any);
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [isLoadingCustomers, setIsLoadingCustomers] = useState(false);
+  const [loadCustomersFailed, setLoadCustomersFailed] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const activeTab = form.targetType;
 
-  // Fetch real customers from GET /customers endpoint
+  // Fetch real customers from GET /customers endpoint. Previously silently
+  // fell back to MOCK_CUSTOMERS on an empty result or a request failure —
+  // that let a broadcast get "sent" to fabricated phone numbers with no
+  // indication anything was wrong.
   useEffect(() => {
     if (!isOpen) return;
 
     const timer = setTimeout(() => {
       setIsLoadingCustomers(true);
+      setLoadCustomersFailed(false);
       getCustomers({ limit: 200, search: searchQuery || undefined })
         .then((res: any) => {
           const raw = res?.data || res?.customers || [];
-          const list = mapCustomers(raw);
-          if (list.length > 0) {
-            setCustomers(list as any);
-          } else {
-            setCustomers(MOCK_CUSTOMERS as any);
-          }
+          setCustomers(mapCustomers(raw) as any);
         })
         .catch(() => {
-          setCustomers(MOCK_CUSTOMERS as any);
+          setCustomers([]);
+          setLoadCustomersFailed(true);
         })
         .finally(() => {
           setIsLoadingCustomers(false);
@@ -183,6 +184,7 @@ const WhatsAppBroadcastDialog = ({
       await sendWhatsAppBroadcast({
         phones,
         message: form.body.trim(),
+        image: form.image ? imagePreview ?? undefined : undefined,
       });
       showSuccessToast(t("WhatsApp message sent successfully"));
       onSend?.(form);
@@ -246,6 +248,7 @@ const WhatsAppBroadcastDialog = ({
                   setSearchQuery={setSearchQuery}
                   filteredCustomers={filteredCustomers}
                   isLoadingCustomers={isLoadingCustomers}
+                  loadFailed={loadCustomersFailed}
                   onToggleCustomer={toggleCustomer}
                   t={t}
                 />
@@ -395,6 +398,7 @@ interface SelectCustomerTabProps {
   setSearchQuery: (q: string) => void;
   filteredCustomers: Customer[];
   isLoadingCustomers: boolean;
+  loadFailed: boolean;
   onToggleCustomer: (id: string | number) => void;
   t: (key: string) => string;
 }
@@ -405,6 +409,7 @@ const SelectCustomerTab = ({
   setSearchQuery,
   filteredCustomers,
   isLoadingCustomers,
+  loadFailed,
   onToggleCustomer,
   t,
 }: SelectCustomerTabProps) => (
@@ -433,6 +438,10 @@ const SelectCustomerTab = ({
             <Loader2 className="size-5 animate-spin mr-2" />
             <span className="text-[13px]">{t("Loading customers...")}</span>
           </div>
+        ) : loadFailed ? (
+          <p className="py-2 text-center text-[13px] text-[#C90000]">
+            {t("Failed to load customers")}
+          </p>
         ) : filteredCustomers.length === 0 ? (
           <p className="py-2 text-center text-[13px] text-[#8B8B8B]">
             {t("No customers found")}

@@ -51,6 +51,8 @@ export const toggleOfferStatus = async (id: string) => {
 export interface SendWhatsAppBroadcastRequest {
   phones: string[];
   message: string;
+  /** Base64 data URL (e.g. "data:image/png;base64,...") — optional. */
+  image?: string;
 }
 
 export const sendWhatsAppBroadcast = async (data: SendWhatsAppBroadcastRequest) => {

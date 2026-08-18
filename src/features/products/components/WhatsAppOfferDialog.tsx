@@ -18,9 +18,17 @@ import { getCustomers } from "@/features/customers/api/customersApi";
 import { mapCustomers } from "@/features/customers/utils/customerMappers";
 import { sendWhatsAppBroadcast } from "@/features/offers/api/offersApi";
 import { cn } from "@/lib/utils";
-import { CUSTOMER_CONTACTS, WHATSAPP_AUDIENCE_PRESETS } from "../data";
+import { WHATSAPP_AUDIENCE_PRESETS } from "../data";
 import type { WhatsAppMode } from "../types";
 import UploadDropzone from "./UploadDropzone";
+
+const fileToBase64 = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 
 interface WhatsAppOfferDialogProps {
   open: boolean;
@@ -41,9 +49,11 @@ const WhatsAppOfferDialog = ({
   const [selectedIds, setSelectedIds] = useState<(string | number)[]>([]);
   const [imageUrl, setImageUrl] = useState<string | undefined>(undefined);
   const [message, setMessage] = useState("");
-  const [contacts, setContacts] = useState<any[]>(CUSTOMER_CONTACTS);
+  const [contacts, setContacts] = useState<any[]>([]);
   const [isLoadingCustomers, setIsLoadingCustomers] = useState(false);
+  const [loadCustomersFailed, setLoadCustomersFailed] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   useEffect(() => {
     if (open) {
@@ -53,29 +63,29 @@ const WhatsAppOfferDialog = ({
       setSearch("");
       setSelectedIds([]);
       setImageUrl(undefined);
+      setImageFile(null);
       setMessage("");
       setIsSending(false);
     }
   }, [open]);
 
-  // Fetch real customers from GET /customers endpoint
+  // Fetch real customers from GET /customers endpoint. Previously silently
+  // fell back to CUSTOMER_CONTACTS mock data on an empty result or failure,
+  // which could let a broadcast "send" to fabricated phone numbers.
   useEffect(() => {
     if (!open) return;
 
     const timer = setTimeout(() => {
       setIsLoadingCustomers(true);
+      setLoadCustomersFailed(false);
       getCustomers({ limit: 200, search: search.trim() || undefined })
         .then((res: any) => {
           const raw = res?.data || res?.customers || [];
-          const list = mapCustomers(raw);
-          if (list.length > 0) {
-            setContacts(list);
-          } else {
-            setContacts(CUSTOMER_CONTACTS as any);
-          }
+          setContacts(mapCustomers(raw));
         })
         .catch(() => {
-          setContacts(CUSTOMER_CONTACTS as any);
+          setContacts([]);
+          setLoadCustomersFailed(true);
         })
         .finally(() => {
           setIsLoadingCustomers(false);
@@ -154,9 +164,11 @@ const WhatsAppOfferDialog = ({
 
     try {
       setIsSending(true);
+      const image = imageFile ? await fileToBase64(imageFile) : undefined;
       await sendWhatsAppBroadcast({
         phones,
         message: message.trim(),
+        image,
       });
       showSuccessToast(t("WhatsApp message sent successfully"));
       onSend(recipientCount, message.trim());
@@ -270,6 +282,10 @@ const WhatsAppOfferDialog = ({
                       <Loader2 className="size-5 animate-spin mr-2" />
                       <span className="text-[13px]">{t("Loading customers...")}</span>
                     </div>
+                  ) : loadCustomersFailed ? (
+                    <p className="py-4 text-center text-[13px] text-[#C90000]">
+                      {t("Failed to load customers")}
+                    </p>
                   ) : filteredContacts.length === 0 ? (
                     <p className="py-4 text-center text-[13px] text-[#8B8B8B]">
                       {t("No customers found.")}
@@ -307,7 +323,10 @@ const WhatsAppOfferDialog = ({
 
             <UploadDropzone
               value={imageUrl}
-              onSelect={(_, url) => setImageUrl(url)}
+              onSelect={(file, url) => {
+                setImageFile(file);
+                setImageUrl(url);
+              }}
               title="Click to upload image"
               hint="PNG, JPG up to 5MB"
             />
