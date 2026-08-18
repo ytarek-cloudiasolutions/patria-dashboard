@@ -55,8 +55,8 @@ const PricingPage = () => {
   const [listToDelete, setListToDelete] = useState<WholesalePriceList | null>(null);
   const [hasLoaded, setHasLoaded] = useState(false);
 
-  const loadPricingData = () => {
-    fetchPricing()
+  const loadPricingData = (range: PricingDateRangeType = dateRange) => {
+    fetchPricing(range)
       .then((res) => {
         setRules(res.rules);
         setWholesaleLists(res.priceLists);
@@ -69,8 +69,9 @@ const PricingPage = () => {
   };
 
   useEffect(() => {
-    loadPricingData();
-  }, []);
+    loadPricingData(dateRange);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dateRange.from, dateRange.to]);
 
   const handleSaveRule = (data: PricingRuleFormData) => {
     if (editingRule) {

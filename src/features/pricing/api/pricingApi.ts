@@ -89,8 +89,15 @@ export interface FetchPricingResult {
   stats: PricingStats;
 }
 
-export async function fetchPricing(): Promise<FetchPricingResult> {
-  const { data } = await api.get("/pricing");
+export async function fetchPricing(
+  dateRange?: { from?: string; to?: string },
+): Promise<FetchPricingResult> {
+  const { data } = await api.get("/pricing", {
+    params: {
+      from: dateRange?.from || undefined,
+      to: dateRange?.to || undefined,
+    },
+  });
   return {
     rules: ((data.rules ?? []) as unknown[])
       .filter((r: unknown) => (r as { isActive?: boolean }).isActive !== false)
