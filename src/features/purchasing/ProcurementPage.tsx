@@ -24,7 +24,11 @@ import { usePurchasing } from "./hooks/usePurchasing";
 import { useSuppliers } from "@/features/suppliers/hooks/useSuppliers";
 import { useWarehouses } from "@/features/warehouses/hooks/useWarehouses";
 import { useProducts } from "@/features/products/hooks/useProducts";
-import { makePurchaseOrderPayment } from "./api/purchasingApi";
+import {
+  makePurchaseOrderPayment,
+  receivePurchaseOrder,
+  cancelPurchaseOrder,
+} from "./api/purchasingApi";
 import { showSuccessToast, showErrorToast } from "@/shared/utils/toast";
 
 const mapApiOrder = (o: any): PurchaseOrder => ({
@@ -214,6 +218,26 @@ const ProcurementPage = () => {
     }
   };
 
+  const handleMarkReceived = async (order: PurchaseOrder) => {
+    try {
+      await receivePurchaseOrder(String(order.id));
+      showSuccessToast(t("Purchase order marked as received"));
+      getPurchaseOrders();
+    } catch (error: any) {
+      showErrorToast(error?.response?.data?.message || t("Failed to mark as received"));
+    }
+  };
+
+  const handleCancelPo = async (order: PurchaseOrder) => {
+    try {
+      await cancelPurchaseOrder(String(order.id));
+      showSuccessToast(t("Purchase order canceled"));
+      getPurchaseOrders();
+    } catch (error: any) {
+      showErrorToast(error?.response?.data?.message || t("Failed to cancel purchase order"));
+    }
+  };
+
   const isLoading = !purchasingLoaded || !suppliersLoaded || !warehousesLoaded || !productsLoaded;
 
   if (isLoading) {
@@ -277,6 +301,8 @@ const ProcurementPage = () => {
         orders={filteredOrders}
         onSubmitToSupplier={handleSubmitToSupplier}
         onMakePayment={setPaymentTarget}
+        onMarkReceived={handleMarkReceived}
+        onCancel={handleCancelPo}
       />
 
       <CreatePoDialog

@@ -16,6 +16,8 @@ interface PurchasingTableProps {
   orders: PurchaseOrder[];
   onSubmitToSupplier: (order: PurchaseOrder) => void;
   onMakePayment: (order: PurchaseOrder) => void;
+  onMarkReceived: (order: PurchaseOrder) => void;
+  onCancel: (order: PurchaseOrder) => void;
 }
 
 const formatEgp = (value: number) =>
@@ -35,30 +37,65 @@ const PoActions = ({
   order,
   onSubmitToSupplier,
   onMakePayment,
+  onMarkReceived,
+  onCancel,
 }: {
   order: PurchaseOrder;
   onSubmitToSupplier: (o: PurchaseOrder) => void;
   onMakePayment: (o: PurchaseOrder) => void;
+  onMarkReceived: (o: PurchaseOrder) => void;
+  onCancel: (o: PurchaseOrder) => void;
 }) => {
   const { t } = useTranslation();
+  // Was previously always showing Submit + Make a payment regardless of
+  // status — there was also no way at all to mark a PO received or
+  // cancel it (both real backend endpoints existed and were unused).
+  if (order.status === "Paid" || order.status === "Canceled") {
+    return null;
+  }
+
   return (
     <div className="flex flex-wrap gap-2">
+      {order.status === "Pending" && (
+        <DefaultButton
+          data={{
+            buttonText: t("Submit to Supplier"),
+            type: "button",
+            onClick: () => onSubmitToSupplier(order),
+            className:
+              "h-9 sm:h-9 px-3 sm:px-3 text-[12px] sm:text-[12px] gap-1 sm:gap-1 bg-[#F5F0EA] text-primary rounded-[16px]",
+          }}
+        />
+      )}
+      {order.status === "Unpaid" && (
+        <>
+          <DefaultButton
+            data={{
+              buttonText: t("Make a payment"),
+              type: "button",
+              onClick: () => onMakePayment(order),
+              className:
+                "h-9 sm:h-9 px-3 sm:px-3 text-[12px] sm:text-[12px] gap-1 sm:gap-1 rounded-[16px]",
+            }}
+          />
+          <DefaultButton
+            data={{
+              buttonText: t("Mark Received"),
+              type: "button",
+              onClick: () => onMarkReceived(order),
+              className:
+                "h-9 sm:h-9 px-3 sm:px-3 text-[12px] sm:text-[12px] gap-1 sm:gap-1 bg-[#E2F4ED] text-[#059B5A] rounded-[16px]",
+            }}
+          />
+        </>
+      )}
       <DefaultButton
         data={{
-          buttonText: t("Submit to Supplier"),
+          buttonText: t("Cancel"),
           type: "button",
-          onClick: () => onSubmitToSupplier(order),
+          onClick: () => onCancel(order),
           className:
-            "h-9 sm:h-9 px-3 sm:px-3 text-[12px] sm:text-[12px] gap-1 sm:gap-1 bg-[#F5F0EA] text-primary rounded-[16px]",
-        }}
-      />
-      <DefaultButton
-        data={{
-          buttonText: t("Make a payment"),
-          type: "button",
-          onClick: () => onMakePayment(order),
-          className:
-            "h-9 sm:h-9 px-3 sm:px-3 text-[12px] sm:text-[12px] gap-1 sm:gap-1 rounded-[16px]",
+            "h-9 sm:h-9 px-3 sm:px-3 text-[12px] sm:text-[12px] gap-1 sm:gap-1 bg-[#FFECEC] text-[#C90000] rounded-[16px]",
         }}
       />
     </div>
@@ -103,6 +140,8 @@ const PurchasingTable = ({
   orders,
   onSubmitToSupplier,
   onMakePayment,
+  onMarkReceived,
+  onCancel,
 }: PurchasingTableProps) => {
   const { t } = useTranslation();
   return (
@@ -144,6 +183,8 @@ const PurchasingTable = ({
               order={order}
               onSubmitToSupplier={onSubmitToSupplier}
               onMakePayment={onMakePayment}
+              onMarkReceived={onMarkReceived}
+              onCancel={onCancel}
             />
           </div>
         ))}
@@ -205,6 +246,8 @@ const PurchasingTable = ({
                       order={order}
                       onSubmitToSupplier={onSubmitToSupplier}
                       onMakePayment={onMakePayment}
+                      onMarkReceived={onMarkReceived}
+                      onCancel={onCancel}
                     />
                   </div>
                 </TableCell>
