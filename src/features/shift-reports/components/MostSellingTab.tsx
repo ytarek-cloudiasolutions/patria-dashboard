@@ -29,8 +29,13 @@ const MostSellingTab = ({ onMenuOpenChange, onExportDataReady }: MostSellingTabP
 
   useEffect(() => {
     setLoading(true);
+    const params: Record<string, string> = {};
+    if (date) {
+      params.from = date;
+      params.to = date;
+    }
     api
-      .get("/reports/overview")
+      .get("/reports/overview", { params })
       .then((res) => {
         const data = res.data;
 
@@ -43,14 +48,52 @@ const MostSellingTab = ({ onMenuOpenChange, onExportDataReady }: MostSellingTabP
         );
         setTopProducts(mapped);
 
-        const sales: DailySale[] = (data.dailyRevenue ?? []).map(
-          (entry: { _id: string; revenue: number; orders: number }) => ({
-            id: entry._id,
-            date: new Date(entry._id).toLocaleDateString("en-US"),
-            orders: entry.orders,
-            revenue: entry.revenue,
-          }),
-        );
+        const daily: { key: string; date: string; orders: number; revenue: number }[] = (
+          data.dailyRevenue ?? []
+        ).map((entry: { _id: string; revenue: number; orders: number }) => ({
+          key: entry._id,
+          date: entry._id,
+          orders: entry.orders,
+          revenue: entry.revenue,
+        }));
+
+        // dailyRevenue is always bucketed per-day server-side (no week/month
+        // grouping backend support) — aggregate it here for Weekly/Monthly.
+        let buckets = daily;
+        if (period === "weekly" || period === "monthly") {
+          const grouped = new Map<string, { orders: number; revenue: number; label: string }>();
+          daily.forEach((d) => {
+            const dt = new Date(d.date);
+            let bucketKey: string;
+            let label: string;
+            if (period === "weekly") {
+              const weekStart = new Date(dt);
+              weekStart.setDate(dt.getDate() - dt.getDay());
+              bucketKey = weekStart.toISOString().slice(0, 10);
+              label = `Week of ${weekStart.toLocaleDateString("en-US")}`;
+            } else {
+              bucketKey = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}`;
+              label = dt.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+            }
+            const existing = grouped.get(bucketKey) ?? { orders: 0, revenue: 0, label };
+            existing.orders += d.orders;
+            existing.revenue += d.revenue;
+            grouped.set(bucketKey, existing);
+          });
+          buckets = Array.from(grouped.entries()).map(([key, v]) => ({
+            key,
+            date: v.label,
+            orders: v.orders,
+            revenue: v.revenue,
+          }));
+        }
+
+        const sales: DailySale[] = buckets.map((b) => ({
+          id: b.key,
+          date: period === "daily" ? new Date(b.date).toLocaleDateString("en-US") : b.date,
+          orders: b.orders,
+          revenue: b.revenue,
+        }));
         setDailySales(sales.slice(-14));
       })
       .catch(() => {

@@ -56,8 +56,21 @@ const DailyReportTab = ({
     setLoading(true);
     const params: Record<string, string> = {};
     if (date) {
-      params.from = date;
-      params.to = date;
+      // Morning/Evening/Night map to hour-of-day windows within the
+      // selected date — there's no separate "shift period" field on
+      // Order, so the date filter's from/to range is narrowed instead.
+      const hourRanges: Record<string, [number, number]> = {
+        Morning: [6, 14],
+        Evening: [14, 22],
+        Night: [22, 30], // 30 = 6am next day
+      };
+      const [startHour, endHour] = hourRanges[shift] ?? [0, 24];
+      const from = new Date(`${date}T00:00:00`);
+      from.setHours(startHour, 0, 0, 0);
+      const to = new Date(`${date}T00:00:00`);
+      to.setHours(endHour, 0, 0, 0);
+      params.from = from.toISOString();
+      params.to = to.toISOString();
     }
     api
       .get("/reports/overview", { params })
@@ -92,7 +105,7 @@ const DailyReportTab = ({
         setLoading(false);
         onInitialLoadComplete?.();
       });
-  }, [date]);
+  }, [date, shift]);
 
   useEffect(() => {
     if (onExportDataReady) {

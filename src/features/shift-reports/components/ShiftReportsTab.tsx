@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { cn } from "@/lib/utils";
-import { PERIOD_OPTIONS } from "../data";
 import type { ShiftRow, ShiftStatus } from "../types";
 import { formatEgp } from "../utils";
-import ReportFilters from "./ReportFilters";
+import { Label } from "@/shared/components/ui/label";
+import DatePicker from "@/shared/components/DatePicker";
 import { api } from "@/config/api";
 
 import type { ExportPayload } from "./DailyReportTab";
@@ -75,17 +75,23 @@ const renderEgpFormatted = (amount?: number) => {
   );
 };
 
-const ShiftReportsTab = ({ onMenuOpenChange, onExportDataReady }: ShiftReportsTabProps) => {
+const ShiftReportsTab = ({ onExportDataReady }: ShiftReportsTabProps) => {
   const { t } = useTranslation();
   const [date, setDate] = useState("");
-  const [period, setPeriod] = useState("weekly");
   const [rows, setRows] = useState<ShiftRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setLoading(true);
+    const params: Record<string, string | number> = { limit: 50 };
+    if (date) {
+      const from = new Date(`${date}T00:00:00`);
+      const to = new Date(`${date}T23:59:59`);
+      params.from = from.toISOString();
+      params.to = to.toISOString();
+    }
     api
-      .get("/pos/shifts", { params: { limit: 50 } })
+      .get("/pos/shifts", { params })
       .then((res) => {
         const raw: any[] = res.data?.shifts ?? res.data?.data ?? [];
         const mapped: ShiftRow[] = raw.map((s, idx) => {
@@ -113,7 +119,7 @@ const ShiftReportsTab = ({ onMenuOpenChange, onExportDataReady }: ShiftReportsTa
       })
       .catch(() => setRows([]))
       .finally(() => setLoading(false));
-  }, [period, date]);
+  }, [date]);
 
   useEffect(() => {
     if (onExportDataReady) {
@@ -149,15 +155,20 @@ const ShiftReportsTab = ({ onMenuOpenChange, onExportDataReady }: ShiftReportsTa
 
   return (
     <>
-      <ReportFilters
-        date={date}
-        onDateChange={setDate}
-        selectLabel="Period"
-        options={PERIOD_OPTIONS}
-        selected={period}
-        onSelect={setPeriod}
-        onMenuOpenChange={onMenuOpenChange}
-      />
+      <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="flex flex-col">
+          <Label className="mb-2 text-[16px] font-medium text-black">
+            {t("Date")}
+          </Label>
+          <DatePicker
+            value={date}
+            onChange={setDate}
+            placeholder="15/6/2026"
+            popoverPlacement="bottom-right"
+            withBackdrop
+          />
+        </div>
+      </div>
 
       <div className="overflow-x-auto rounded-[16px] border border-[#E5E5E5] bg-white">
         <table className="w-full min-w-[1050px]">
