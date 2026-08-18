@@ -191,12 +191,20 @@ const OrderCard = ({ order }: OrderCardProps) => {
         </div>
       </div>
 
-      {/* Show on map button */}
+      {/* Show on map button — the order only carries a text address (no
+          lat/lng), so this opens it in Google Maps rather than faking a
+          pin position on the internal map. */}
       <DefaultButton
         data={{
           buttonText: t("Show on map"),
           icon: <MapPinned size={18} />,
           className: "w-full",
+          onClick: () =>
+            window.open(
+              `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(order.address)}`,
+              "_blank",
+              "noopener,noreferrer",
+            ),
         }}
       />
     </div>

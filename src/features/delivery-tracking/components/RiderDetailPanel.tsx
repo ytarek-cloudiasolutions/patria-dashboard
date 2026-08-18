@@ -88,15 +88,17 @@ const RiderDetailPanel = ({ rider, onBack }: RiderDetailPanelProps) => {
           </div>
         </div>
 
-        {/* Location info card */}
+        {/* Duty time card — previously showed a hardcoded "2h 30 min"
+            regardless of the selected rider; now shows their real
+            shift duration from the backend. */}
         <div className="flex items-center justify-between rounded-[10px] bg-[#E5E5E5] p-2">
           <div className="flex items-center gap-2">
             <MapPin size={16} className="text-[#595959]" />
             <span className="text-[12px] font-medium text-[#28293D]">
-              {t("Location on map")}
+              {t("On duty for")}
             </span>
           </div>
-          <span className="text-[12px] text-[#28293D]">2h 30 min</span>
+          <span className="text-[12px] text-[#28293D]">{rider.dutyTime}</span>
         </div>
       </div>
 
