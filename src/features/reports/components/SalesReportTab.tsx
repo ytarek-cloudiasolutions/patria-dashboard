@@ -29,10 +29,9 @@ interface SalesRow {
 interface SalesReportTabProps {
   fromDate: string;
   toDate: string;
-  warehouse?: string;
 }
 
-const SalesReportTab = ({ fromDate, toDate, warehouse }: SalesReportTabProps) => {
+const SalesReportTab = ({ fromDate, toDate }: SalesReportTabProps) => {
   const { t } = useTranslation();
   const [summary, setSummary] = useState<SalesSummary | null>(null);
   const [rows, setRows] = useState<SalesRow[]>([]);
@@ -43,7 +42,6 @@ const SalesReportTab = ({ fromDate, toDate, warehouse }: SalesReportTabProps) =>
     const params: Record<string, string> = {};
     if (fromDate) params.from = fromDate;
     if (toDate) params.to = toDate;
-    if (warehouse && warehouse !== "All") params.warehouse = warehouse;
 
     api
       .get("/reports/sales", { params })
@@ -57,7 +55,7 @@ const SalesReportTab = ({ fromDate, toDate, warehouse }: SalesReportTabProps) =>
         setRows([]);
       })
       .finally(() => setLoading(false));
-  }, [fromDate, toDate, warehouse]);
+  }, [fromDate, toDate]);
 
   const handleExportCSV = () => {
     if (rows.length === 0) return;

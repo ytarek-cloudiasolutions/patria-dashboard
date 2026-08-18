@@ -34,13 +34,11 @@ interface ResponsibleGroup {
 interface DiscountsReportTabProps {
   fromDate: string;
   toDate: string;
-  warehouse: string;
 }
 
 const DiscountsReportTab = ({
   fromDate,
   toDate,
-  warehouse,
 }: DiscountsReportTabProps) => {
   const { t } = useTranslation();
   const [summary, setSummary] = useState<DiscountSummary | null>(null);
@@ -55,7 +53,6 @@ const DiscountsReportTab = ({
     const params: Record<string, string> = {};
     if (fromDate) params.from = fromDate;
     if (toDate) params.to = toDate;
-    if (warehouse && warehouse !== "All") params.warehouse = warehouse;
 
     api
       .get("/reports/discounts", { params })
@@ -71,7 +68,7 @@ const DiscountsReportTab = ({
         setResponsibleGroups([]);
       })
       .finally(() => setLoading(false));
-  }, [fromDate, toDate, warehouse]);
+  }, [fromDate, toDate]);
 
   const displayResponsibleGroups: ResponsibleGroup[] =
     responsibleGroups.length > 0

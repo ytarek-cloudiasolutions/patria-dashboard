@@ -10,8 +10,6 @@ const TH = "px-4 py-3.5 text-[13px] font-semibold text-[#28293D] uppercase track
 const TD = "px-4 py-4 text-[14px] text-[#28293D]";
 
 interface InventoryReportTabProps {
-  fromDate?: string;
-  toDate?: string;
   warehouse?: string;
 }
 
@@ -40,8 +38,6 @@ interface InventoryStats {
 }
 
 const InventoryReportTab = ({
-  fromDate,
-  toDate,
   warehouse,
 }: InventoryReportTabProps) => {
   const { t } = useTranslation();
@@ -53,13 +49,10 @@ const InventoryReportTab = ({
   useEffect(() => {
     setLoading(true);
     const params: Record<string, string> = {};
-    if (fromDate) params.from = fromDate;
-    if (toDate) params.to = toDate;
-    if (warehouse && warehouse !== "All") params.warehouse = warehouse;
+    if (warehouse && warehouse !== "All") params.warehouseId = warehouse;
 
     api
-      .get("/reports/inventory", { params })
-      .catch(() => api.get("/inventory", { params }))
+      .get("/inventory", { params })
       .then((res) => {
         const data = res.data?.data ?? res.data ?? {};
         if (data.products && Array.isArray(data.products)) {
@@ -73,7 +66,7 @@ const InventoryReportTab = ({
         getInventoryList();
       })
       .finally(() => setLoading(false));
-  }, [fromDate, toDate, warehouse, getInventoryList]);
+  }, [warehouse, getInventoryList]);
 
   const displayProducts: InventoryProduct[] =
     products.length > 0

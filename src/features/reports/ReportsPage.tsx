@@ -72,7 +72,7 @@ const ReportsPage = () => {
     return [
       { value: "All", label: t("All") },
       ...list.map((w: any) => ({
-        value: w.name || w._id,
+        value: w._id,
         label: w.name,
       })),
     ];
@@ -120,7 +120,7 @@ const ReportsPage = () => {
         {/* Filters Container (Above the Tabs) */}
         <div className="mb-6 w-full">
           {tab === "orders" && (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3 w-full">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 w-full">
               <div className="flex flex-col gap-1.5 w-full">
                 <label className="text-[12px] font-medium text-[#333333]">
                   {t("From")}
@@ -144,27 +144,13 @@ const ReportsPage = () => {
                   popoverPlacement="bottom-right"
                   minDate={fromDate || undefined}
                   withBackdrop
-                />
-              </div>
-              <div className="flex flex-col gap-1.5 w-full">
-                <label className="text-[12px] font-medium text-[#333333]">
-                  {t("Warehouse")}
-                </label>
-                <DropdownSelect
-                  options={warehouseOptions}
-                  selected={warehouse}
-                  onSelect={(val) => setWarehouse(val)}
-                  onOpenChange={setIsDropdownOpen}
-                  className="h-[50px] w-full md:w-full"
-                  contentClassName="w-[var(--radix-dropdown-menu-trigger-width)] md:w-[var(--radix-dropdown-menu-trigger-width)]"
-                  align="start"
                 />
               </div>
             </div>
           )}
 
           {tab === "sales" && (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3 w-full">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 w-full">
               <div className="flex flex-col gap-1.5 w-full">
                 <label className="text-[12px] font-medium text-[#333333]">
                   {t("From")}
@@ -188,20 +174,6 @@ const ReportsPage = () => {
                   popoverPlacement="bottom-right"
                   minDate={fromDate || undefined}
                   withBackdrop
-                />
-              </div>
-              <div className="flex flex-col gap-1.5 w-full">
-                <label className="text-[12px] font-medium text-[#333333]">
-                  {t("Warehouse")}
-                </label>
-                <DropdownSelect
-                  options={warehouseOptions}
-                  selected={warehouse}
-                  onSelect={(val) => setWarehouse(val)}
-                  onOpenChange={setIsDropdownOpen}
-                  className="h-[50px] w-full md:w-full"
-                  contentClassName="w-[var(--radix-dropdown-menu-trigger-width)] md:w-[var(--radix-dropdown-menu-trigger-width)]"
-                  align="start"
                 />
               </div>
             </div>
@@ -252,7 +224,7 @@ const ReportsPage = () => {
           )}
 
           {tab === "discounts" && (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3 w-full">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 w-full">
               <div className="flex flex-col gap-1.5 w-full">
                 <label className="text-[12px] font-medium text-[#333333]">
                   {t("From")}
@@ -276,20 +248,6 @@ const ReportsPage = () => {
                   popoverPlacement="bottom-right"
                   minDate={fromDate || undefined}
                   withBackdrop
-                />
-              </div>
-              <div className="flex flex-col gap-1.5 w-full">
-                <label className="text-[12px] font-medium text-[#333333]">
-                  {t("Warehouse")}
-                </label>
-                <DropdownSelect
-                  options={warehouseOptions}
-                  selected={warehouse}
-                  onSelect={(val) => setWarehouse(val)}
-                  onOpenChange={setIsDropdownOpen}
-                  className="h-[50px] w-full md:w-full"
-                  contentClassName="w-[var(--radix-dropdown-menu-trigger-width)] md:w-[var(--radix-dropdown-menu-trigger-width)]"
-                  align="start"
                 />
               </div>
             </div>
@@ -315,13 +273,10 @@ const ReportsPage = () => {
             <SalesReportTab
               fromDate={fromDate}
               toDate={toDate}
-              warehouse={warehouse}
             />
           )}
           {tab === "inventory" && (
             <InventoryReportTab
-              fromDate={fromDate}
-              toDate={toDate}
               warehouse={warehouse}
             />
           )}
@@ -329,7 +284,6 @@ const ReportsPage = () => {
             <DiscountsReportTab
               fromDate={fromDate}
               toDate={toDate}
-              warehouse={warehouse}
             />
           )}
         </div>
