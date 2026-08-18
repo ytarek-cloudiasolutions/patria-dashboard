@@ -33,6 +33,7 @@ export const mapCustomer = (c: any): Customer => {
     tier: mapTier(c.tier || ""),
     loyaltyPoints: c.loyaltyPoints ?? 0,
     lifetimeValue: c.lifetimeValue ?? c.totalLTV ?? 0,
+    orderCount: c.orderCount ?? 0,
     segment: mapCustomerSegment(c.segment),
     createdBy: c.createdBy,
   };

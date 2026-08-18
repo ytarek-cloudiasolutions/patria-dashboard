@@ -152,7 +152,7 @@ const EditCustomerDialog = ({
                       <div>
                         <p>{t("Orders")}</p>
                         <p className="mt-1 text-[14px] font-semibold normal-case tracking-normal text-[#059B5A]">
-                          {formatEgp(0)}
+                          {customer.orderCount}
                         </p>
                       </div>
                     </div>

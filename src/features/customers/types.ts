@@ -11,6 +11,7 @@ export interface Customer {
   tier: CustomerTier;
   loyaltyPoints: number;
   lifetimeValue: number;
+  orderCount: number;
   segment: CustomerSegment;
   createdBy?: string;
 }
