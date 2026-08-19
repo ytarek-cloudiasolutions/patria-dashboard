@@ -51,7 +51,6 @@ export const NAV_SECTIONS: NavSection[] = [
       { label: "Suppliers", href: "/suppliers", icon: Truck },
       { label: "Locations", href: "/locations", icon: MapPin },
       { label: "Reviews", href: "/reviews", icon: Star },
-      { label: "Delivery Tracking", href: "/delivery-tracking", icon: Navigation },
     ],
   },
   {
@@ -60,6 +59,8 @@ export const NAV_SECTIONS: NavSection[] = [
       { label: "Purchasing", href: "/purchasing", icon: ShoppingCart },
       { label: "Warehouses", href: "/warehouses", icon: Warehouse },
       { label: "Logistics", href: "/logistics", icon: BarChart2 },
+      { label: "Delivery Tracking", href: "/delivery-tracking", icon: Navigation },
+      { label: "Production", href: "/production", icon: Coffee },
       { label: "Subscription", href: "/subscriptions", icon: UserCircle },
     ],
   },
