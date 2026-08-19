@@ -30,10 +30,10 @@ const DashboardMetrics = ({ metrics }: DashboardMetricsProps) => {
               trend: metric.trend
                 ? {
                     value: (
-                      <>
-                        <TrendIcon className="mx-0.75 size-3" />
-                        {metric.trend.value}
-                      </>
+                      <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                        <TrendIcon className="size-3 shrink-0" />
+                        <span>{metric.trend.value}</span>
+                      </span>
                     ),
                     tone: metric.trend.tone,
                   }

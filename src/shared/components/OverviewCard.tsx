@@ -1,14 +1,37 @@
 import type { OverviewCardProps } from "../types/overviewCard.types";
 import { Badge } from "./ui/badge";
 import { Card, CardContent } from "./ui/card";
+import { TrendingUp, TrendingDown } from "lucide-react";
+import { cn } from "@/lib/utils";
+import React from "react";
 
 const OverviewCard = ({ data }: { data: OverviewCardProps }) => {
-  const trendClassName =
-    data.trend?.tone === "positive"
-      ? "border-current bg-[#E2F4ED] text-[#059B5A]"
-      : data.trend?.tone === "negative"
-        ? "border-current bg-[#FFF0F0] text-[#C90000]"
-        : "border-[#D4D4D4] bg-[#F5F5F5] text-[#595959]";
+  const isPositive = data.trend?.tone === "positive";
+  const isNegative = data.trend?.tone === "negative";
+
+  const trendClassName = isPositive
+    ? "border-[#059B5A] bg-[#E2F4ED] text-[#059B5A]"
+    : isNegative
+      ? "border-[#C90000] bg-[#C90000] text-white"
+      : "border-[#D4D4D4] bg-[#F5F5F5] text-[#595959]";
+
+  const renderTrendContent = () => {
+    if (!data.trend) return null;
+    if (React.isValidElement(data.trend.value)) {
+      return (
+        <span className="inline-flex items-center gap-1 whitespace-nowrap">
+          {data.trend.value}
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center gap-1 whitespace-nowrap">
+        {isPositive && <TrendingUp className="size-3 shrink-0 text-[#059B5A]" />}
+        {isNegative && <TrendingDown className="size-3 shrink-0 text-white" />}
+        <span>{data.trend.value}</span>
+      </span>
+    );
+  };
 
   return (
     <Card className="py-0 rounded-[16px] border border-[#E5E5E5] ring-0 shadow-sm w-full">
@@ -16,9 +39,12 @@ const OverviewCard = ({ data }: { data: OverviewCardProps }) => {
         <div className="min-w-0 flex-1 pr-3">
           {data.trend && (
             <span
-              className={`${trendClassName} mb-[6.5px] inline-flex h-4 min-w-12 items-center justify-center rounded-[30px] border px-2 text-[10px] font-semibold leading-none`}
+              className={cn(
+                "mb-[6.5px] inline-flex items-center justify-center gap-1 rounded-[30px] border px-2 py-[2px] text-[10px] font-semibold tracking-[0.20px] leading-none whitespace-nowrap shrink-0 max-w-fit",
+                trendClassName
+              )}
             >
-              {data.trend.value}
+              {renderTrendContent()}
             </span>
           )}
           <p className="mb-2 truncate text-[#28293D] text-[10px] font-semibold">
