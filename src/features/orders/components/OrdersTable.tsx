@@ -24,6 +24,7 @@ import { useTranslation } from "@/shared/i18n/useTranslation";
 import { translatePaymentMethod } from "../utils";
 import { api } from "@/config/api";
 import { showSuccessToast, showErrorToast } from "@/shared/utils/toast";
+import { cn } from "@/lib/utils";
 
 interface OrdersTableProps {
   orders: Order[];
@@ -118,11 +119,25 @@ const OrdersTable = ({
           ) : (
             orders.map((order, index) => {
               const isLast = index === orders.length - 1;
+              const isNewOrder = Boolean(order.isNew || order.status === "Pending");
 
               return (
                 <Fragment key={order.id}>
-                  <TableRow>
-                    <TableCell className="ps-4 text-center">
+                  <TableRow
+                    className={cn(
+                      "transition-colors",
+                      isNewOrder
+                        ? "bg-[#F5F0EA] hover:bg-[#EFE6DC]"
+                        : "hover:bg-gray-50/80"
+                    )}
+                  >
+                    <TableCell
+                      className={cn(
+                        "ps-4 text-center relative",
+                        isNewOrder &&
+                          "before:absolute before:start-0 before:top-0 before:bottom-0 before:w-[3px] before:bg-[#8F6900]"
+                      )}
+                    >
                       <div className="flex justify-center">
                         <div
                           className={`rounded-[10px] p-1 ${
@@ -174,7 +189,12 @@ const OrdersTable = ({
                       <button
                         type="button"
                         onClick={() => onViewOrder(order)}
-                        className="inline-flex h-8 cursor-pointer items-center gap-2 rounded-[8px] bg-[#F5F0EA] px-3 text-[13px] text-[#333333]"
+                        className={cn(
+                          "inline-flex h-8 cursor-pointer items-center gap-2 rounded-[8px] px-3 text-[13px] text-[#333333] transition-colors",
+                          isNewOrder
+                            ? "bg-[#F5F0EA] border border-[#E5E5E5] hover:bg-white"
+                            : "bg-[#F5F0EA] hover:bg-[#EFE7DE]"
+                        )}
                       >
                         <span>
                           <span className="font-semibold">
@@ -352,17 +372,17 @@ const DriverCell = ({ orderId, driver, onAssign, onOpenChange }: DriverCellProps
         {driver ? (
           <button
             type="button"
-            className="inline-flex h-7 cursor-pointer items-center justify-center rounded-full bg-[#DCDCDC] px-4 text-[12px] font-semibold text-[#23252A]"
+            className="inline-flex h-8 cursor-pointer items-center justify-center rounded-full bg-[#E5E5E5] px-4 text-[13px] font-semibold text-[#23252A] border border-[#CCCCCC]"
           >
             {driver}
           </button>
         ) : (
           <button
             type="button"
-            className="inline-flex h-7 cursor-pointer items-center justify-center gap-1 rounded-full border border-[#8B16FF]/30 bg-[#F4E8FF] px-3 text-[12px] font-semibold text-[#8B16FF]"
+            className="inline-flex h-8 cursor-pointer items-center justify-center gap-1.5 rounded-full border border-[#7E00D7] bg-[#F3E9FA] px-3.5 text-[13px] font-semibold text-[#9524E4] hover:bg-[#EBD8F7] transition-colors"
           >
-            {t("Rider")}
-            <ChevronDown className="size-3.5" />
+            <span>{t("Rider")}</span>
+            <ChevronDown className="size-3.5 text-[#9524E4]" />
           </button>
         )}
       </DropdownMenuTrigger>

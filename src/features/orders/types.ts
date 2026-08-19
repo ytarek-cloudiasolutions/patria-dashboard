@@ -40,6 +40,7 @@ export interface OrderLineItem {
 export interface Order {
   id: string;
   orderId?: string | null;
+  isNew?: boolean;
   customerName: string;
   customerPhone: string;
   customerEmail?: string;
