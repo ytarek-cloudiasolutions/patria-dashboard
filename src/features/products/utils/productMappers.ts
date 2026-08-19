@@ -36,6 +36,15 @@ export const mapProduct = (backendProduct: any): Product => {
       id: o._id || o.id,
       name: o.label || o.name || "",
       price: o.priceAdjustment ?? o.price ?? 0,
+      recipe: (o.recipe || []).map((r: any) => ({
+        id: r._id || r.id,
+        material: r.material || r.ingredientId || "",
+        name: r.name || "",
+        price: r.price ?? 0,
+        quantity: r.quantity ?? r.amount ?? 0,
+        unit: r.unit || "pcs",
+        ingredientUnit: r.ingredientUnit || r.unit || "pcs",
+      })),
     })),
   }));
 
@@ -44,6 +53,15 @@ export const mapProduct = (backendProduct: any): Product => {
     name: e.name,
     price: e.price,
     active: e.active ?? e.isActive ?? true,
+    recipe: (e.recipe || []).map((r: any) => ({
+      id: r._id || r.id,
+      material: r.material || r.ingredientId || "",
+      name: r.name || "",
+      price: r.price ?? 0,
+      quantity: r.quantity ?? r.amount ?? 0,
+      unit: r.unit || "pcs",
+      ingredientUnit: r.ingredientUnit || r.unit || "pcs",
+    })),
   }));
 
   const isIngredient = Boolean(

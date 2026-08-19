@@ -56,10 +56,21 @@ export interface Category {
 
 // --- Add Product form -------------------------------------------------------
 
+export interface OptionRecipeItem {
+  id?: string;
+  material: string; // Raw ingredient product ID
+  name: string;
+  price: number;
+  quantity: number;
+  unit: string;
+  ingredientUnit?: string;
+}
+
 export interface VariantOption {
   id: string;
   name: string;
   price: number;
+  recipe?: OptionRecipeItem[];
 }
 
 export interface VariantGroup {
@@ -81,6 +92,7 @@ export interface ProductExtra {
   name: string;
   price: number;
   active: boolean;
+  recipe?: OptionRecipeItem[];
 }
 
 export interface ProductFormData {

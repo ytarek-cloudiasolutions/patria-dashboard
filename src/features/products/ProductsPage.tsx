@@ -260,6 +260,15 @@ const ProductsPage = () => {
             name: o.name.trim(),
             label: o.name.trim(),
             priceAdjustment: Number(o.price) || 0,
+            recipe: (o.recipe || []).map((r) => ({
+              material: r.material,
+              ingredientId: r.material,
+              name: r.name,
+              price: Number(r.price) || 0,
+              quantity: Number(r.quantity) || 0,
+              unit: r.unit || "pcs",
+              ingredientUnit: r.ingredientUnit || r.unit || "pcs",
+            })),
           })),
       }));
     formData.append("variantGroups", JSON.stringify(mappedVariantGroups));
@@ -269,6 +278,15 @@ const ProductsPage = () => {
       .map((e) => ({
         name: e.name.trim(),
         price: Number(e.price) || 0,
+        recipe: (e.recipe || []).map((r) => ({
+          material: r.material,
+          ingredientId: r.material,
+          name: r.name,
+          price: Number(r.price) || 0,
+          quantity: Number(r.quantity) || 0,
+          unit: r.unit || "pcs",
+          ingredientUnit: r.ingredientUnit || r.unit || "pcs",
+        })),
       }));
     formData.append("extras", JSON.stringify(mappedExtras));
 
