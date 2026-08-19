@@ -1,13 +1,23 @@
-import { Truck, Zap, Users, Star } from "lucide-react";
+import { Truck, Zap, Users, CheckCircle2 } from "lucide-react";
 import OverviewCard from "@/shared/components/OverviewCard";
 import { useTranslation } from "@/shared/i18n/useTranslation";
-import { SUPPLIER_OVERVIEW } from "../data";
 
 interface SuppliersOverviewProps {
   totalSuppliers: number;
+  onTimeRate: number | null;
+  averageSupplyCycleHours: number | null;
+  fulfillmentRate: number | null;
 }
 
-const SuppliersOverview = ({ totalSuppliers }: SuppliersOverviewProps) => {
+const formatHours = (hours: number) =>
+  hours >= 24 ? `${(hours / 24).toFixed(1)} ${"days"}` : `${hours.toFixed(1)} Hrs`;
+
+const SuppliersOverview = ({
+  totalSuppliers,
+  onTimeRate,
+  averageSupplyCycleHours,
+  fulfillmentRate,
+}: SuppliersOverviewProps) => {
   const { t } = useTranslation();
   return (
     <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
@@ -22,8 +32,8 @@ const SuppliersOverview = ({ totalSuppliers }: SuppliersOverviewProps) => {
       />
       <OverviewCard
         data={{
-          title: t("Supply speed"),
-          value: SUPPLIER_OVERVIEW.supplySpeed,
+          title: t("On-time delivery rate"),
+          value: onTimeRate != null ? `${onTimeRate}%` : "—",
           icon: <Zap size={18} />,
           iconColor: "text-[#059B5A]",
           badgeColor: "bg-[#E2F4ED]",
@@ -32,7 +42,7 @@ const SuppliersOverview = ({ totalSuppliers }: SuppliersOverviewProps) => {
       <OverviewCard
         data={{
           title: t("Average supply cycle"),
-          value: SUPPLIER_OVERVIEW.averageSupplyCycle,
+          value: averageSupplyCycleHours != null ? formatHours(averageSupplyCycleHours) : "—",
           icon: <Users size={18} />,
           iconColor: "text-[#2563EB]",
           badgeColor: "bg-[#DBEAFE]",
@@ -40,9 +50,9 @@ const SuppliersOverview = ({ totalSuppliers }: SuppliersOverviewProps) => {
       />
       <OverviewCard
         data={{
-          title: t("quality assurance"),
-          value: SUPPLIER_OVERVIEW.qualityAssurance,
-          icon: <Star size={18} />,
+          title: t("Fulfillment rate"),
+          value: fulfillmentRate != null ? `${fulfillmentRate}%` : "—",
+          icon: <CheckCircle2 size={18} />,
           iconColor: "text-[#8B16FF]",
           badgeColor: "bg-[#F3E9FA]",
         }}

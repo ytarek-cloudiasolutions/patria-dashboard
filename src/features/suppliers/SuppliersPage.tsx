@@ -6,6 +6,7 @@ import DefaultButton from "@/shared/components/DefaultButton";
 import SearchInputField from "@/shared/components/SearchInputField";
 import DeleteDialog from "@/shared/components/DeleteDialog";
 import { useTranslation } from "@/shared/i18n/useTranslation";
+import { api } from "@/config/api";
 
 import SuppliersOverview from "./components/SuppliersOverview";
 import SuppliersTable from "./components/SuppliersTable";
@@ -41,6 +42,25 @@ const SuppliersPage = () => {
 
   const [suppliersLoaded, setSuppliersLoaded] = useState(false);
   const suppliersStarted = useRef(loading.fetch);
+
+  const [overview, setOverview] = useState<{
+    onTimeRate: number | null;
+    averageSupplyCycleHours: number | null;
+    fulfillmentRate: number | null;
+  }>({ onTimeRate: null, averageSupplyCycleHours: null, fulfillmentRate: null });
+
+  useEffect(() => {
+    api
+      .get("/suppliers/overview")
+      .then(({ data }) =>
+        setOverview({
+          onTimeRate: data?.onTimeRate ?? null,
+          averageSupplyCycleHours: data?.averageSupplyCycleHours ?? null,
+          fulfillmentRate: data?.fulfillmentRate ?? null,
+        }),
+      )
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (loading.fetch) {
@@ -141,7 +161,12 @@ const SuppliersPage = () => {
         />
       </div>
 
-      <SuppliersOverview totalSuppliers={suppliers.length} />
+      <SuppliersOverview
+        totalSuppliers={suppliers.length}
+        onTimeRate={overview.onTimeRate}
+        averageSupplyCycleHours={overview.averageSupplyCycleHours}
+        fulfillmentRate={overview.fulfillmentRate}
+      />
 
       <div className="mb-5">
         <SearchInputField
