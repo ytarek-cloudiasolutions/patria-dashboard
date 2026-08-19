@@ -15,7 +15,6 @@ import logisticsReducer from "@/features/logistics/store/logisticsSlice";
 import warehousesReducer from "@/features/warehouses/store/warehousesSlice";
 import purchasingReducer from "@/features/purchasing/store/purchasingSlice";
 import shiftsReducer from "@/features/shifts/store/shiftsSlice";
-import { couponsReducer } from "@/features/coupons/store/couponsSlice";
 import kitchenReducer from "@/features/kitchen/store/kitchenSlice";
 import financialReducer from "@/features/financial/store/financialSlice";
 
@@ -36,7 +35,6 @@ const rootReducer = combineReducers({
   warehouses: warehousesReducer,
   purchasing: purchasingReducer,
   shifts: shiftsReducer,
-  coupons: couponsReducer,
   kitchen: kitchenReducer,
   financial: financialReducer,
 });
