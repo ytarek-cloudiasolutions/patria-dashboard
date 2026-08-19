@@ -472,8 +472,8 @@ const PosPage = () => {
           guestCount: orderType === "dine-in" && customerCount > 0 ? customerCount : undefined,
         });
         showSuccessToast("Sent to kitchen");
-      } catch {
-        showErrorToast("Failed to send order to kitchen");
+      } catch (err: any) {
+        showErrorToast(err?.response?.data?.message || "Failed to send order to kitchen");
         return;
       }
     }
