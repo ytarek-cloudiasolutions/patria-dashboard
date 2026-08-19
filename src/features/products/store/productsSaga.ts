@@ -10,9 +10,7 @@ import {
 import { getProductErrorMessage } from "../utils/productHelpers";
 import { showErrorToast, showSuccessToast } from "@/shared/utils/toast";
 import { productsActions } from "./productsSlice";
-import { selectProducts } from "./productsSelectors";
-import type { RootState } from "@/app/store";
-import type { Product, Category } from "../types";
+import type { Category } from "../types";
 import { getCategories } from "@/features/categories/api/categoriesApi";
 import { mapCategories } from "@/features/categories/utils/categoryMappers";
 import { selectCategories } from "@/features/categories/store/categoriesSelectors";
@@ -24,9 +22,11 @@ import type {
   DeleteProductResponse,
 } from "./productTypes";
 
-function* handleGetProducts(action: PayloadAction<GetProductsRequest | undefined>) {
+function* handleGetProducts(
+  action: PayloadAction<GetProductsRequest | undefined>,
+): Generator<any, void, any> {
   try {
-    const response: any = yield call(getProducts, action.payload);
+    const response: any = (yield call(getProducts, action.payload)) as any;
     const rawProds = response.products || response.data?.products || response.data || [];
     const pag = response.pagination || response.data?.pagination || response;
     const pageNum = pag.page || response.page || action.payload?.page || 1;
@@ -50,12 +50,14 @@ function* handleGetProducts(action: PayloadAction<GetProductsRequest | undefined
   }
 }
 
-function* handleCreateProduct(action: PayloadAction<FormData>) {
+function* handleCreateProduct(
+  action: PayloadAction<FormData>,
+): Generator<any, void, any> {
   try {
-    const response: CreateProductResponse = yield call(
+    const response: CreateProductResponse = (yield call(
       createProduct,
       action.payload,
-    );
+    )) as CreateProductResponse;
     const product = response.data?.product || (response as any).product || response;
     yield call(showSuccessToast, "Product created successfully");
     yield put(
@@ -73,14 +75,14 @@ function* handleCreateProduct(action: PayloadAction<FormData>) {
 
 function* handleUpdateProduct(
   action: PayloadAction<{ productId: string; formData: FormData }>,
-) {
+): Generator<any, void, any> {
   try {
     const { productId, formData } = action.payload;
-    const response: UpdateProductResponse = yield call(
+    const response: UpdateProductResponse = (yield call(
       updateProduct,
       productId,
       formData,
-    );
+    )) as UpdateProductResponse;
     const product = response.data?.product || (response as any).product || response;
     yield call(showSuccessToast, "Product updated successfully");
     yield put(
@@ -96,10 +98,15 @@ function* handleUpdateProduct(
   }
 }
 
-function* handleDeleteProduct(action: PayloadAction<{ productId: string }>) {
+function* handleDeleteProduct(
+  action: PayloadAction<{ productId: string }>,
+): Generator<any, void, any> {
   try {
     const { productId } = action.payload;
-    const response: DeleteProductResponse = yield call(deleteProduct, productId);
+    const response: DeleteProductResponse = (yield call(
+      deleteProduct,
+      productId,
+    )) as DeleteProductResponse;
     yield call(showSuccessToast, response.message || "Product deleted successfully");
     yield put(
       productsActions.deleteProductSuccess({
@@ -116,13 +123,13 @@ function* handleDeleteProduct(action: PayloadAction<{ productId: string }>) {
 
 function* handleToggleProductActive(
   action: PayloadAction<{ productId: string; isActive: boolean }>,
-) {
+): Generator<any, void, any> {
   try {
     const { productId } = action.payload;
-    const response: UpdateProductResponse = yield call(
+    const response: UpdateProductResponse = (yield call(
       toggleProductStatus,
       productId,
-    );
+    )) as UpdateProductResponse;
     const updatedProduct = response.data?.product || (response as any).product || response;
     yield call(showSuccessToast, "Product status updated successfully");
     yield put(
@@ -138,11 +145,11 @@ function* handleToggleProductActive(
   }
 }
 
-function* handleGetIngredients() {
+function* handleGetIngredients(): Generator<any, void, any> {
   try {
-    let categories: Category[] = yield select(selectCategories);
+    let categories: Category[] = (yield select(selectCategories)) as Category[];
     if (categories.length === 0) {
-      const response: any[] = yield call(getCategories);
+      const response: any[] = (yield call(getCategories)) as any[];
       categories = mapCategories(response || []);
     }
     const rawCat = categories.find(
@@ -150,10 +157,10 @@ function* handleGetIngredients() {
     );
     const categoryId = rawCat ? rawCat.id : undefined;
 
-    const response: GetProductsResponse = yield call(getProducts, {
+    const response: GetProductsResponse = (yield call(getProducts, {
       category: categoryId,
       limit: 100,
-    });
+    })) as GetProductsResponse;
     yield put(productsActions.getIngredientsSuccess(response.products || []));
   } catch (error) {
     const errorMessage = getProductErrorMessage(error);
@@ -161,7 +168,7 @@ function* handleGetIngredients() {
   }
 }
 
-export default function* productsSaga() {
+export default function* productsSaga(): Generator<any, void, any> {
   yield all([
     takeLatest(productsActions.getProductsRequest.type, handleGetProducts),
     takeLatest(productsActions.getIngredientsRequest.type, handleGetIngredients),

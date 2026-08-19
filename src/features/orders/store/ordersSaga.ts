@@ -33,9 +33,11 @@ function getOrderErrorMessage(error: unknown) {
   return "Something went wrong";
 }
 
-function* handleGetOrders(action: PayloadAction<GetOrdersRequest | undefined>) {
+function* handleGetOrders(
+  action: PayloadAction<GetOrdersRequest | undefined>,
+): Generator<any, void, any> {
   try {
-    const response: GetOrdersResponse = yield call(getOrders, action.payload);
+    const response: GetOrdersResponse = (yield call(getOrders, action.payload)) as GetOrdersResponse;
     yield put(
       ordersActions.getOrdersSuccess({
         orders: response.data || response.orders || [],
@@ -49,9 +51,11 @@ function* handleGetOrders(action: PayloadAction<GetOrdersRequest | undefined>) {
   }
 }
 
-function* handleCreateOrder(action: PayloadAction<CreateOrderRequest>) {
+function* handleCreateOrder(
+  action: PayloadAction<CreateOrderRequest>,
+): Generator<any, void, any> {
   try {
-    const response: CreateOrderResponse = yield call(createOrder, action.payload);
+    const response: CreateOrderResponse = (yield call(createOrder, action.payload)) as CreateOrderResponse;
     yield put(
       ordersActions.createOrderSuccess({
         order: response.order,
@@ -66,9 +70,11 @@ function* handleCreateOrder(action: PayloadAction<CreateOrderRequest>) {
   }
 }
 
-function* handleGetOrderById(action: PayloadAction<string>) {
+function* handleGetOrderById(
+  action: PayloadAction<string>,
+): Generator<any, void, any> {
   try {
-    const response: { order: any } = yield call(getOrderById, action.payload);
+    const response: { order: any } = (yield call(getOrderById, action.payload)) as { order: any };
     yield put(ordersActions.getOrderByIdSuccess(response.order));
   } catch (error) {
     const errorMessage = getOrderErrorMessage(error);
@@ -79,15 +85,15 @@ function* handleGetOrderById(action: PayloadAction<string>) {
 
 function* handleUpdateOrderStatus(
   action: PayloadAction<{ orderId: string; status: string }>,
-) {
+): Generator<any, void, any> {
   try {
     const { orderId, status } = action.payload;
     const backendStatus = mapOrderStatusToBackend(status as OrderStatus);
-    const response: UpdateOrderResponse = yield call(
+    const response: UpdateOrderResponse = (yield call(
       updateOrderStatus,
       orderId,
       backendStatus,
-    );
+    )) as UpdateOrderResponse;
     yield put(
       ordersActions.updateOrderStatusSuccess({
         order: response.order,
@@ -102,10 +108,12 @@ function* handleUpdateOrderStatus(
   }
 }
 
-function* handleDeleteOrder(action: PayloadAction<string>) {
+function* handleDeleteOrder(
+  action: PayloadAction<string>,
+): Generator<any, void, any> {
   try {
     const orderId = action.payload;
-    const response: { message: string } = yield call(deleteOrder, orderId);
+    const response: { message: string } = (yield call(deleteOrder, orderId)) as { message: string };
     yield put(
       ordersActions.deleteOrderSuccess({
         orderId,
@@ -120,7 +128,7 @@ function* handleDeleteOrder(action: PayloadAction<string>) {
   }
 }
 
-export default function* ordersSaga() {
+export default function* ordersSaga(): Generator<any, void, any> {
   yield all([
     takeLatest(ordersActions.getOrdersRequest.type, handleGetOrders),
     takeLatest(ordersActions.createOrderRequest.type, handleCreateOrder),
