@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FileText } from "lucide-react";
+import { FileText, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -14,19 +14,25 @@ import UploadDropzone from "./UploadDropzone";
 interface ImportDataDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onUpload: (fileName: string) => void;
+  onUpload: (file: File) => Promise<void> | void;
+  isUploading?: boolean;
 }
 
 const ImportDataDialog = ({
   open,
   onOpenChange,
   onUpload,
+  isUploading,
 }: ImportDataDialogProps) => {
   const { t } = useTranslation();
   const [fileName, setFileName] = useState("");
+  const [file, setFile] = useState<File | null>(null);
 
   useEffect(() => {
-    if (open) setFileName("");
+    if (open) {
+      setFileName("");
+      setFile(null);
+    }
   }, [open]);
 
   return (
@@ -66,7 +72,10 @@ const ImportDataDialog = ({
 
             <UploadDropzone
               fileOnly
-              onSelect={(file) => setFileName(file.name)}
+              onSelect={(selected) => {
+                setFile(selected);
+                setFileName(selected.name);
+              }}
               title="Click to upload File"
               hint={fileName || "CSV or Excel (.xlsx)"}
               accept=".csv,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -88,13 +97,14 @@ const ImportDataDialog = ({
               />
               <Button
                 type="button"
-                disabled={!fileName}
-                onClick={() => {
-                  onUpload(fileName);
-                  onOpenChange(false);
+                disabled={!file || isUploading}
+                onClick={async () => {
+                  if (!file) return;
+                  await onUpload(file);
                 }}
                 className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white disabled:opacity-50 sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
               >
+                {isUploading && <Loader2 className="size-4 animate-spin" />}
                 {t("Upload File")}
               </Button>
             </div>

@@ -9,6 +9,8 @@ import SearchInputField from "@/shared/components/SearchInputField";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { useCategories } from "@/features/categories";
 import { useProducts } from "@/features/products";
+import { api } from "@/config/api";
+import { showSuccessToast, showErrorToast } from "@/shared/utils/toast";
 
 import ProductsTabs from "./components/ProductsTabs";
 import ProductsTable from "./components/ProductsTable";
@@ -167,6 +169,7 @@ const ProductsPage = () => {
   const [isAddIngredientOpen, setIsAddIngredientOpen] = useState(false);
   const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
   const [isScanOpen, setIsScanOpen] = useState(false);
   const [isWhatsAppOpen, setIsWhatsAppOpen] = useState(false);
   const [selectedCategoryForProducts, setSelectedCategoryForProducts] = useState<Category | null>(null);
@@ -346,6 +349,30 @@ const ProductsPage = () => {
         name: data.name.trim(),
         ...(data.kitchenType ? { kitchenType: data.kitchenType } : {}),
       });
+    }
+  };
+
+  const handleImportProducts = async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    setIsImporting(true);
+    try {
+      const { data } = await api.post("/products/bulk-import", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      const created = data?.created ?? 0;
+      const skipped = data?.skipped ?? 0;
+      if (skipped > 0) {
+        showErrorToast(t(`Imported ${created} product(s), ${skipped} row(s) skipped`));
+      } else {
+        showSuccessToast(t(`Imported ${created} product(s)`));
+      }
+      setIsImportOpen(false);
+      getProducts({ page: 1, limit: 100 });
+    } catch (err: any) {
+      showErrorToast(err?.response?.data?.message || t("Failed to import products"));
+    } finally {
+      setIsImporting(false);
     }
   };
 
@@ -666,7 +693,8 @@ const ProductsPage = () => {
       <ImportDataDialog
         open={isImportOpen}
         onOpenChange={setIsImportOpen}
-        onUpload={() => setIsImportOpen(false)}
+        onUpload={handleImportProducts}
+        isUploading={isImporting}
       />
 
       <ScanProductDialog
