@@ -180,14 +180,14 @@ const MyAccountPage = () => {
 
       <AccountDateRange value={dateRange} onChange={setDateRange} />
 
-      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[322px_1fr]">
+      <div className="grid w-full min-w-0 grid-cols-1 items-start gap-4 lg:grid-cols-[300px_1fr]">
         <AccountSettingsCard
           form={form}
           onChange={handleChange}
           onSave={handleSave as any}
         />
 
-        <div className="flex flex-col gap-4">
+        <div className="flex w-full min-w-0 flex-col gap-4">
           <AccountStats
             totalOrders={totalOrders}
             totalRevenue={totalRevenue}

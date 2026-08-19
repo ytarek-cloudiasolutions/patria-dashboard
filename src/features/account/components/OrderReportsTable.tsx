@@ -100,35 +100,42 @@ const OrderReportsTable = ({
       </div>
 
       {/* Desktop table */}
-      <div className="hidden md:block **:data-[slot=table-container]:rounded-none **:data-[slot=table-container]:border-0">
-        <Table>
+      <div className="hidden md:block w-full min-w-0 [&_[data-slot=table-container]]:rounded-none [&_[data-slot=table-container]]:border-0 [&_[data-slot=table-container]]:overflow-hidden">
+        <Table className="w-full table-fixed">
+          <colgroup>
+            <col className="w-[18%]" />
+            <col className="w-[28%]" />
+            <col className="w-[18%]" />
+            <col className="w-[18%]" />
+            <col className="w-[18%]" />
+          </colgroup>
           <TableHeader>
             <TableRow className="bg-[#F5F0EA]">
-              <TableHead className="px-4 py-4 text-center text-[13px] font-semibold uppercase tracking-[0.26px] text-[#28293D]">{t("ORDER NO.")}</TableHead>
-              <TableHead className="px-4 py-4 text-center text-[13px] font-semibold uppercase tracking-[0.26px] text-[#28293D]">{t("CUSTOMER")}</TableHead>
-              <TableHead className="px-4 py-4 text-center text-[13px] font-semibold uppercase tracking-[0.26px] text-[#28293D]">{t("DATE")}</TableHead>
-              <TableHead className="px-4 py-4 text-center text-[13px] font-semibold uppercase tracking-[0.26px] text-[#28293D]">{t("STATUS")}</TableHead>
-              <TableHead className="px-4 py-4 text-center text-[13px] font-semibold uppercase tracking-[0.26px] text-[#28293D]">{t("TOTAL")}</TableHead>
+              <TableHead className="px-2 py-4 text-center text-[13px] font-semibold uppercase tracking-[0.26px] text-[#28293D]">{t("ORDER NO.")}</TableHead>
+              <TableHead className="px-2 py-4 text-center text-[13px] font-semibold uppercase tracking-[0.26px] text-[#28293D]">{t("CUSTOMER")}</TableHead>
+              <TableHead className="px-2 py-4 text-center text-[13px] font-semibold uppercase tracking-[0.26px] text-[#28293D]">{t("DATE")}</TableHead>
+              <TableHead className="px-2 py-4 text-center text-[13px] font-semibold uppercase tracking-[0.26px] text-[#28293D]">{t("STATUS")}</TableHead>
+              <TableHead className="px-2 py-4 text-center text-[13px] font-semibold uppercase tracking-[0.26px] text-[#28293D]">{t("TOTAL")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {orders.map((order) => (
               <TableRow key={order.id} className="hover:bg-[#FAFAF8]">
-                <TableCell className="px-4 py-4 text-center text-[12px] font-bold text-[#333333]">
+                <TableCell className="px-2 py-4 text-center text-[12px] font-bold text-[#333333] truncate">
                   {order.orderNo}
                 </TableCell>
-                <TableCell className="px-4 py-4 text-center text-[14px] font-medium text-black">
+                <TableCell className="px-2 py-4 text-center text-[14px] font-medium text-black truncate">
                   {order.customer}
                 </TableCell>
-                <TableCell className="px-4 py-4 text-center text-[14px] font-medium text-black">
+                <TableCell className="px-2 py-4 text-center text-[14px] font-medium text-black whitespace-nowrap">
                   {order.date}
                 </TableCell>
-                <TableCell className="px-4 py-4 text-center">
+                <TableCell className="px-2 py-4 text-center">
                   <div className="flex justify-center">
                     <StatusBadge status={order.status} />
                   </div>
                 </TableCell>
-                <TableCell className="px-4 py-4 text-center text-[14px] font-medium text-black" dir="ltr">
+                <TableCell className="px-2 py-4 text-center text-[14px] font-medium text-black whitespace-nowrap" dir="ltr">
                   {formatTotal(order.total)}
                 </TableCell>
               </TableRow>
