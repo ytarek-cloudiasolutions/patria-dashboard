@@ -86,6 +86,18 @@ const DashboardPage = () => {
 
         const ov = overviewRes.data;
         const summary = ov.summary ?? {};
+        const trends = ov.trends ?? {};
+
+        const toTrend = (percent: number | undefined) => {
+          if (percent == null) return undefined;
+          return {
+            value: `${percent > 0 ? "+" : ""}${percent}%`,
+            tone: (percent > 0 ? "positive" : percent < 0 ? "negative" : "neutral") as
+              | "positive"
+              | "negative"
+              | "neutral",
+          };
+        };
 
         setMetrics([
           {
@@ -98,6 +110,7 @@ const DashboardPage = () => {
             icon: TrendingUp,
             iconColor: "text-primary",
             badgeColor: "bg-[#F5F0EA]",
+            trend: toTrend(trends.revenueChangePercent),
           },
           {
             id: "orders",
@@ -106,6 +119,7 @@ const DashboardPage = () => {
             icon: ShoppingBag,
             iconColor: "text-[#155DFC]",
             badgeColor: "bg-[#DBEAFE]",
+            trend: toTrend(trends.ordersChangePercent),
           },
           {
             id: "products",
