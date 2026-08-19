@@ -145,22 +145,26 @@ const ProductsPage = () => {
   }, [isCreatingProduct, productErrors.create, productSuccessMessage]);
 
   useEffect(() => {
-    if (tab === "products") {
-      getProducts({
-        search: productSearch.trim() || undefined,
-        category: categoryFilter !== "all" ? categoryFilter : undefined,
-        page,
-        limit: 100,
-      });
-    } else if (tab === "recipes") {
-      getProducts({
-        search: ingredientSearch.trim() || undefined,
-        category: "6a3927888bbe5f4d11bde590",
-        page,
-        limit: 100,
-      });
-    }
-  }, [tab, productSearch, categoryFilter, ingredientSearch, page, getProducts, categories]);
+    const delayDebounceId = setTimeout(() => {
+      if (tab === "products") {
+        getProducts({
+          search: productSearch.trim() || undefined,
+          category: categoryFilter !== "all" ? categoryFilter : undefined,
+          page,
+          limit: 100,
+        });
+      } else if (tab === "recipes") {
+        getProducts({
+          search: ingredientSearch.trim() || undefined,
+          category: "6a3927888bbe5f4d11bde590",
+          page,
+          limit: 100,
+        });
+      }
+    }, 300);
+
+    return () => clearTimeout(delayDebounceId);
+  }, [tab, productSearch, categoryFilter, ingredientSearch, page, getProducts]);
 
   // Dialogs
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);

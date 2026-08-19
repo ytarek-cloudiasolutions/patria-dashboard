@@ -26,14 +26,20 @@ import type {
 
 function* handleGetProducts(action: PayloadAction<GetProductsRequest | undefined>) {
   try {
-    const response: GetProductsResponse = yield call(getProducts, action.payload);
+    const response: any = yield call(getProducts, action.payload);
+    const rawProds = response.products || response.data?.products || response.data || [];
+    const pag = response.pagination || response.data?.pagination || response;
+    const pageNum = pag.page || response.page || action.payload?.page || 1;
+    const totalPages = pag.pages || pag.totalPages || response.pages || response.totalPages || 1;
+    const totalItems = pag.total || response.total || rawProds.length;
+
     yield put(
       productsActions.getProductsSuccess({
-        products: response.products || [],
+        products: rawProds,
         pagination: {
-          page: response.page || 1,
-          pages: response.pages || 1,
-          total: response.total || 0,
+          page: pageNum,
+          pages: totalPages,
+          total: totalItems,
         },
       }),
     );
