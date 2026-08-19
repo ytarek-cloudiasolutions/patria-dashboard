@@ -60,7 +60,6 @@ export const NAV_SECTIONS: NavSection[] = [
       { label: "Warehouses", href: "/warehouses", icon: Warehouse },
       { label: "Logistics", href: "/logistics", icon: BarChart2 },
       { label: "Delivery Tracking", href: "/delivery-tracking", icon: Navigation },
-      { label: "Production", href: "/production", icon: Coffee },
       { label: "Subscription", href: "/subscriptions", icon: UserCircle },
     ],
   },
