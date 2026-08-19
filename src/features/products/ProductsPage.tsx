@@ -438,11 +438,10 @@ const ProductsPage = () => {
           <DefaultButton
             data={{
               buttonText: t("import data"),
-              variant: "outline",
-              icon: <Upload className="size-[18px]" />,
+              icon: <Upload className="size-[18px] text-[#9524E4]" />,
               onClick: () => setIsImportOpen(true),
               className:
-                "border-[#7E00D7] bg-[#F3E9FA] text-[#9524E4] hover:bg-[#F3E9FA] hover:text-[#9524E4] hover:border-[#7E00D7]",
+                "border border-[#7E00D7] bg-[#F3E9FA] text-[#9524E4] hover:bg-[#F3E9FA] hover:text-[#9524E4] hover:border-[#7E00D7] active:translate-y-0 shadow-none ring-0 focus:ring-0",
             }}
           />
           <DefaultButton
