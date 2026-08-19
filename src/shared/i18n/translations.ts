@@ -533,6 +533,12 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   "GOLD (WHOLESALE VIP)": "ذهبي (جملة VIP)",
   "SILVER (PRO)": "فضي (محترف)",
   "BRONZE (STANDARD)": "برونزي (عادي)",
+  GOLD: "ذهبي",
+  SILVER: "فضي",
+  BRONZE: "برونزي",
+  Gold: "ذهبي",
+  Silver: "فضي",
+  Bronze: "برونزي",
   // Roles & segments
   Subscriber: "مشترك",
   STAFF: "طاقم العمل",

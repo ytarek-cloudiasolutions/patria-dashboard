@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 
 import { api } from "@/config/api";
+import TierBadge from "@/features/customers/components/TierBadge";
 import { Checkbox } from "@/shared/components/ui/checkbox";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { useTranslation } from "@/shared/i18n/useTranslation";
@@ -117,19 +118,17 @@ const OrderCart = ({
           /* Selected Customer Card */
           <div className="flex flex-col gap-2 rounded-[12px] border border-[#8F6900] bg-[#F8F8F8] p-[14px]">
             <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-3 min-w-0 flex-1">
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#8F6900]">
-                    <User className="size-4.5 text-white" />
+              <div className="flex items-center gap-[13px] min-w-0 flex-1">
+                <div className="flex items-center gap-1 min-w-0">
+                  <div className="flex size-[36px] shrink-0 items-center justify-center rounded-full bg-[#8F6900]">
+                    <User className="size-5 text-white" />
                   </div>
-                  <span className="truncate text-[14px] font-normal text-[#333333]">
+                  <span className="truncate text-[14px] font-semibold tracking-[0.28px] leading-[15px] text-[#333333]">
                     {selectedCustomer.name}
                   </span>
                 </div>
                 {selectedCustomer.tier && (
-                  <span className="inline-flex shrink-0 items-center justify-center rounded-[30px] border border-[#053CB8] bg-[#EDF4FB] px-2 py-0.5 text-[11px] font-semibold tracking-[0.22px] text-[#3574FF] uppercase">
-                    {selectedCustomer.tier}
-                  </span>
+                  <TierBadge tier={selectedCustomer.tier} />
                 )}
               </div>
               <button
@@ -139,17 +138,17 @@ const OrderCart = ({
                   setPhoneQuery("");
                   onCustomerChange("");
                 }}
-                className="p-1 text-black transition-colors hover:text-[#8F6900] cursor-pointer"
+                className="p-0.5 text-black transition-colors hover:text-[#8F6900] cursor-pointer"
                 aria-label={t("Remove customer")}
               >
-                <X className="size-4.5" />
+                <X className="size-[18px] text-black" />
               </button>
             </div>
 
-            <div className="border-t border-[#CACBD4] my-0.5" />
+            <div className="w-full border-t border-[#CACBD4]" />
 
-            <div className="flex items-center justify-between text-[12px] h-9">
-              <div className="flex items-center gap-1 text-black font-medium tracking-[0.24px]">
+            <div className="flex h-9 items-center justify-between text-[12px]">
+              <div className="flex items-center gap-1 font-medium tracking-[0.24px] text-black">
                 <Phone className="size-4 text-black" />
                 <span>{selectedCustomer.phone}</span>
               </div>
