@@ -67,11 +67,10 @@ const OrderReportsTable = ({
         <DefaultButton
           data={{
             buttonText: t("Download EXCEL"),
-            icon: <FileDown className="size-4.5" />,
-            variant: "outline",
+            icon: <FileDown className="size-4.5 text-[#8F6900]" />,
             onClick: onDownload,
             className:
-              "h-10 border-transparent bg-[#F5F0EA] text-primary hover:bg-[#EFE7DA] hover:text-primary sm:h-11",
+              "h-10 border-transparent bg-[#F5F0EA] text-[#8F6900] hover:bg-[#F5F0EA] hover:text-[#8F6900] active:translate-y-0 shadow-none ring-0 focus:ring-0 sm:h-11",
           }}
         />
       </div>
