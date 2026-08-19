@@ -1,5 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Camera, Loader2, ScanBarcode } from "lucide-react";
+import { BrowserMultiFormatReader } from "@zxing/browser";
+import type { IScannerControls } from "@zxing/browser";
 import {
   Dialog,
   DialogContent,
@@ -34,21 +36,26 @@ const ScanProductDialog = ({
   const [barcode, setBarcode] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const controlsRef = useRef<IScannerControls | null>(null);
+  const scanLockRef = useRef(false);
 
   useEffect(() => {
     if (open) {
       setMode("manual");
       setBarcode("");
       setError(null);
+      setCameraError(null);
       setIsSearching(false);
     }
   }, [open]);
 
-  const handleSearch = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    const trimmedCode = barcode.trim();
-    if (!trimmedCode || isSearching) return;
+  const runSearch = async (code: string) => {
+    const trimmedCode = code.trim();
+    if (!trimmedCode || scanLockRef.current) return;
 
+    scanLockRef.current = true;
     setIsSearching(true);
     setError(null);
 
@@ -80,8 +87,62 @@ const ScanProductDialog = ({
       showErrorToast(msg);
     } finally {
       setIsSearching(false);
+      scanLockRef.current = false;
     }
   };
+
+  const handleSearch = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    runSearch(barcode);
+  };
+
+  // Live camera barcode scanning — decodes continuously from the video
+  // stream via zxing and fires the same lookup as manual entry the moment
+  // a code is recognized.
+  useEffect(() => {
+    if (!open || mode !== "camera") {
+      controlsRef.current?.stop();
+      controlsRef.current = null;
+      return;
+    }
+
+    let cancelled = false;
+    setCameraError(null);
+    const reader = new BrowserMultiFormatReader();
+
+    reader
+      .decodeFromConstraints(
+        { video: { facingMode: "environment" } },
+        videoRef.current!,
+        (result) => {
+          if (result && !scanLockRef.current) {
+            runSearch(result.getText());
+          }
+        },
+      )
+      .then((controls) => {
+        if (cancelled) {
+          controls.stop();
+          return;
+        }
+        controlsRef.current = controls;
+      })
+      .catch((err: any) => {
+        if (cancelled) return;
+        setCameraError(
+          err?.name === "NotAllowedError"
+            ? t("Camera access was denied")
+            : t("No camera available on this device"),
+        );
+      });
+
+    return () => {
+      cancelled = true;
+      controlsRef.current?.stop();
+      controlsRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, mode]);
 
   const tabClass = (active: boolean) =>
     cn(
@@ -157,19 +218,39 @@ const ScanProductDialog = ({
             )}
           </form>
         ) : (
-          <div
-            className="mt-5 flex h-56 items-center justify-center rounded-[12px] border border-[#E5E5E5]"
-            style={{
-              backgroundColor: "#F3F3F3",
-              backgroundImage:
-                "linear-gradient(45deg, #E5E5E5 25%, transparent 25%, transparent 75%, #E5E5E5 75%), linear-gradient(45deg, #E5E5E5 25%, transparent 25%, transparent 75%, #E5E5E5 75%)",
-              backgroundSize: "22px 22px",
-              backgroundPosition: "0 0, 11px 11px",
-            }}
-          >
-            <div className="flex size-32 items-center justify-center rounded-[12px] border-2 border-white shadow-[0_0_0_2000px_rgba(0,0,0,0.04)]">
-              <Camera className="size-8 text-[#8B8B8B]" />
+          <div className="mt-5 flex flex-col gap-2">
+            <div className="relative flex h-56 items-center justify-center overflow-hidden rounded-[12px] border border-[#E5E5E5] bg-black">
+              {cameraError ? (
+                <div
+                  className="flex h-full w-full items-center justify-center px-6 text-center"
+                  style={{
+                    backgroundColor: "#F3F3F3",
+                    backgroundImage:
+                      "linear-gradient(45deg, #E5E5E5 25%, transparent 25%, transparent 75%, #E5E5E5 75%), linear-gradient(45deg, #E5E5E5 25%, transparent 25%, transparent 75%, #E5E5E5 75%)",
+                    backgroundSize: "22px 22px",
+                    backgroundPosition: "0 0, 11px 11px",
+                  }}
+                >
+                  <p className="text-xs font-medium text-red-500">{cameraError}</p>
+                </div>
+              ) : (
+                <>
+                  {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+                  <video
+                    ref={videoRef}
+                    muted
+                    playsInline
+                    className="h-full w-full object-cover"
+                  />
+                  <div className="pointer-events-none absolute flex size-32 items-center justify-center rounded-[12px] border-2 border-white shadow-[0_0_0_2000px_rgba(0,0,0,0.25)]">
+                    {isSearching && <Loader2 className="size-8 animate-spin text-white" />}
+                  </div>
+                </>
+              )}
             </div>
+            {error && (
+              <p className="px-1 text-xs font-medium text-red-500">{error}</p>
+            )}
           </div>
         )}
       </DialogContent>
