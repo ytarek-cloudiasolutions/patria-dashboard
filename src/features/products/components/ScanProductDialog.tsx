@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { Camera, Loader2, ScanBarcode } from "lucide-react";
-import { BrowserMultiFormatReader } from "@zxing/browser";
-import type { IScannerControls } from "@zxing/browser";
 import {
   Dialog,
   DialogContent,
@@ -38,7 +36,7 @@ const ScanProductDialog = ({
   const [error, setError] = useState<string | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const controlsRef = useRef<IScannerControls | null>(null);
+  const controlsRef = useRef<{ stop: () => void } | null>(null);
   const scanLockRef = useRef(false);
 
   useEffect(() => {
@@ -108,21 +106,24 @@ const ScanProductDialog = ({
 
     let cancelled = false;
     setCameraError(null);
-    const reader = new BrowserMultiFormatReader();
 
-    reader
-      .decodeFromConstraints(
-        { video: { facingMode: "environment" } },
-        videoRef.current!,
-        (result) => {
-          if (result && !scanLockRef.current) {
-            runSearch(result.getText());
-          }
-        },
-      )
+    import("@zxing/browser")
+      .then(({ BrowserMultiFormatReader }) => {
+        if (cancelled || !videoRef.current) return;
+        const reader = new BrowserMultiFormatReader();
+        return reader.decodeFromConstraints(
+          { video: { facingMode: "environment" } },
+          videoRef.current,
+          (result) => {
+            if (result && !scanLockRef.current) {
+              runSearch(result.getText());
+            }
+          },
+        );
+      })
       .then((controls) => {
-        if (cancelled) {
-          controls.stop();
+        if (cancelled || !controls) {
+          controls?.stop();
           return;
         }
         controlsRef.current = controls;
