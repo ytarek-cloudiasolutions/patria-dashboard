@@ -3,10 +3,10 @@ import { useTranslation } from "@/shared/i18n/useTranslation";
 import GatewayCard from "./GatewayCard";
 
 interface GatewaySecurityCardProps {
-  lastAudit: string;
+  connectedSince: string | null;
 }
 
-const GatewaySecurityCard = ({ lastAudit }: GatewaySecurityCardProps) => {
+const GatewaySecurityCard = ({ connectedSince }: GatewaySecurityCardProps) => {
   const { t } = useTranslation();
   return (
     <GatewayCard
@@ -25,7 +25,7 @@ const GatewaySecurityCard = ({ lastAudit }: GatewaySecurityCardProps) => {
           {t("System compliant with WhatsApp security protocols.")}
         </p>
         <p className="text-[13px] font-medium text-[#000000]">
-          {t("Last audit:")} <span dir="ltr">{lastAudit}</span>
+          {t("Connected since:")} <span dir="ltr">{connectedSince ?? t("—")}</span>
         </p>
       </div>
     </GatewayCard>

@@ -10,12 +10,14 @@ import HowToLinkCard from "./components/HowToLinkCard";
 import NeedHelpCard from "./components/NeedHelpCard";
 import TechnicalPerformanceCard from "./components/TechnicalPerformanceCard";
 
-import { LINK_STEPS, PERFORMANCE_METRICS, SECURITY_LAST_AUDIT } from "./data";
-import type { GatewayConnectionStatus } from "./types";
+import { LINK_STEPS } from "./data";
+import type { GatewayConnectionStatus, PerformanceMetric } from "./types";
 
 const WhatsAppGatewayPage = () => {
   const { t } = useTranslation();
   const [status, setStatus] = useState<GatewayConnectionStatus>("disconnected");
+  const [connectedSince, setConnectedSince] = useState<string | null>(null);
+  const [metrics, setMetrics] = useState<PerformanceMetric[]>([]);
   const isConnected = status === "connected";
 
   useEffect(() => {
@@ -23,10 +25,40 @@ const WhatsAppGatewayPage = () => {
       .get("/whatsapp/status")
       .then((res) => {
         const s = res.data?.status ?? res.data?.state ?? "";
-        setStatus(s === "connected" || s === "CONNECTED" ? "connected" : "disconnected");
+        const connected = s === "connected" || s === "CONNECTED";
+        setStatus(connected ? "connected" : "disconnected");
+        setConnectedSince(
+          connected && res.data?.connectedAt
+            ? new Date(res.data.connectedAt).toLocaleString()
+            : null,
+        );
+        setMetrics([
+          {
+            id: "response-time",
+            label: "Avg. Response Time",
+            value: res.data?.avgLatencyMs != null ? `${res.data.avgLatencyMs}ms` : t("No data yet"),
+            tone: "neutral",
+          },
+          {
+            id: "queue-status",
+            label: "Connection Status",
+            value: connected ? t("Active") : t("Disconnected"),
+            tone: connected ? "positive" : "neutral",
+          },
+          {
+            id: "messages",
+            label: "Messages Sent / Failed",
+            value: `${res.data?.messagesSent ?? 0} / ${res.data?.messagesFailed ?? 0}`,
+            tone: "highlight",
+          },
+        ]);
       })
-      .catch(() => setStatus("disconnected"));
-  }, []);
+      .catch(() => {
+        setStatus("disconnected");
+        setConnectedSince(null);
+        setMetrics([]);
+      });
+  }, [t]);
 
   return (
     <>
@@ -54,12 +86,12 @@ const WhatsAppGatewayPage = () => {
             onConnect={() => setStatus("connected")}
             className="flex-1"
           />
-          <TechnicalPerformanceCard metrics={PERFORMANCE_METRICS} />
+          <TechnicalPerformanceCard metrics={metrics} />
         </div>
 
         <div className="flex flex-col gap-4">
           <HowToLinkCard steps={LINK_STEPS} />
-          <GatewaySecurityCard lastAudit={SECURITY_LAST_AUDIT} />
+          <GatewaySecurityCard connectedSince={connectedSince} />
           <NeedHelpCard className="flex-1" />
         </div>
       </div>
