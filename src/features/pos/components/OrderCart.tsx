@@ -34,6 +34,7 @@ type OrderCartProps = {
   notes: string;
   sentToKitchen: boolean;
   customerCount?: number;
+  isShiftActive?: boolean;
   onCustomerChange: (value: string) => void;
   onNotesChange: (value: string) => void;
   onRemoveItem: (lineId: string) => void;
@@ -54,6 +55,7 @@ const OrderCart = ({
   notes,
   sentToKitchen,
   customerCount = 0,
+  isShiftActive = true,
   onCustomerChange,
   onNotesChange,
   onRemoveItem,
@@ -72,7 +74,8 @@ const OrderCart = ({
 
   const isCartEmpty = items.length === 0;
   const showSendToKitchen = orderType === "dine-in" && !sentToKitchen;
-  const isActionDisabled = isCartEmpty || (orderType === "dine-in" && !selectedTable);
+  const isActionDisabled =
+    isCartEmpty || (orderType === "dine-in" && !selectedTable) || !isShiftActive;
 
   const handleCustomerSearch = async () => {
     const normalized = phoneQuery.replace(/\s+/g, "").trim();

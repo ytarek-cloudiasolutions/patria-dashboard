@@ -424,6 +424,12 @@ const PosPage = () => {
   };
 
   const handleSendToKitchen = async () => {
+    if (!isShiftActive) {
+      showErrorToast(t("Please open a shift before sending orders to kitchen"));
+      setIsOpenShiftDialogOpen(true);
+      return;
+    }
+
     if (cartItems.length === 0) return;
 
     if (orderType === "dine-in" && !selectedTable) {
@@ -486,7 +492,14 @@ const PosPage = () => {
     finishWithReceipt();
   };
 
-  const handleCheckout = () => setPaymentOpen(true);
+  const handleCheckout = () => {
+    if (!isShiftActive) {
+      showErrorToast(t("Please open a shift before proceeding to checkout"));
+      setIsOpenShiftDialogOpen(true);
+      return;
+    }
+    setPaymentOpen(true);
+  };
 
   const confirmPayment = async (method: PaymentMethod) => {
     if (cartItems.length === 0) return;
@@ -608,8 +621,8 @@ const PosPage = () => {
     const backendMethod = method.toLowerCase().startsWith("cash")
       ? "cash"
       : method.toLowerCase().startsWith("mix")
-      ? "mix"
-      : "card";
+        ? "mix"
+        : "card";
 
     const { payOrder } = await import("@/features/orders/api/ordersApi");
 
@@ -710,6 +723,7 @@ const PosPage = () => {
             notes={notes}
             sentToKitchen={sentToKitchen}
             customerCount={customerCount}
+            isShiftActive={isShiftActive}
             onCustomerChange={setCustomer}
             onNotesChange={setNotes}
             onRemoveItem={removeItem}
