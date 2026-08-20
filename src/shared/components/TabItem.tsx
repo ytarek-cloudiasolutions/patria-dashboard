@@ -14,7 +14,7 @@ const TabItem = ({
       type="button"
       onClick={() => onClick(value)}
       className={cn(
-        "flex h-11 items-center justify-center gap-1.5 border-b-2 px-2 text-[13px] font-semibold transition-colors cursor-pointer sm:h-12 sm:gap-2 sm:text-[15px]",
+        "flex h-11 w-full items-center justify-center gap-1.5 border-b-2 px-2 text-[13px] font-semibold transition-colors cursor-pointer sm:h-12 sm:gap-2 sm:text-[15px]",
         isActive
           ? "border-primary text-[#333333]"
           : "border-[#8B8B8B] font-medium text-[#8B8B8B]"

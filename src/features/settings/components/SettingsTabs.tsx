@@ -28,7 +28,7 @@ interface SettingsTabsProps {
 const SettingsTabs = ({ active, onChange }: SettingsTabsProps) => {
   const { t } = useTranslation();
   return (
-    <div className="mb-6 grid grid-cols-2 gap-1.5 sm:grid-cols-4 lg:grid-cols-7">
+    <div className="mb-6 grid w-full grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
       {TABS.map((tab) => (
         <TabItem
           key={tab.value}
