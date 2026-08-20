@@ -418,61 +418,77 @@ const OrderDetailsDialog = ({
     }
   };
 
+  const rawSource = String(order.source || rawOrder.source || "").toLowerCase();
+  const isPosOrder =
+    rawSource === "pos" ||
+    (rawType !== "delivery" &&
+      rawType !== "app" &&
+      rawType !== "application" &&
+      rawType !== "call" &&
+      rawSource !== "app" &&
+      rawSource !== "application" &&
+      rawSource !== "call" &&
+      rawSource !== "call_center");
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={true}
-        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[8px] bg-white p-0 ring-0 sm:max-w-140 lg:max-w-174"
+        className="max-h-[92vh] h-[92vh] w-[696px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[12px] border border-[#CACBD4] bg-white p-6 shadow-xl ring-0 flex flex-col sm:max-w-[696px]"
       >
-        <div ref={printRef} className="flex max-h-[calc(100vh-2rem)] flex-col">
-          {/* Header (fixed) */}
-          <div className="flex flex-wrap items-center gap-2 px-4 pt-4 sm:gap-3 sm:px-6 sm:pt-6">
-            <DialogTitle className="text-[20px] font-semibold text-[#333333] sm:text-[24px]">
-              {t("Order")} #{displayId}
-            </DialogTitle>
-            <OrdersStatusBadge status={order.status} />
+        <div ref={printRef} className="flex h-full min-h-0 flex-col gap-5">
+          {/* Header (shrink-0) */}
+          <div className="shrink-0 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <DialogTitle className="text-[24px] font-semibold tracking-[0.48px] text-[#333333]">
+                {t("Order")} #{displayId}
+              </DialogTitle>
+              <OrdersStatusBadge status={order.status} />
+            </div>
           </div>
 
-          {/* Body (scrollable) */}
-          <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
-            {/* Customer details · address · zone — single combined card */}
-            <section className="rounded-[12px] border border-[#D9D9D9] bg-[#FAFAF7] p-3 sm:p-4">
-              <div className="mb-5 flex items-start justify-between sm:mb-6">
-                <p className="text-[10px] font-bold uppercase text-[#595959]">
-                  {t("Customer Details")}
+          {/* Body (scrollable flex-1) */}
+          <div className="min-h-0 flex-1 overflow-y-auto space-y-6 pe-2">
+            {/* Customer details · address/order type · zone card */}
+            <section className="flex flex-col gap-4 rounded-[16px] border border-[#E5E5E5] bg-[#FAFAF7] p-4">
+              <div className="flex items-center justify-between">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.20px] text-[#595959]">
+                  {t("CUSTOMER DETAILS")}
                 </p>
-                <p className="text-[10px] font-bold uppercase text-[#595959]">
-                  {t("Date")}
+                <p className="text-[10px] font-semibold uppercase tracking-[0.20px] text-[#595959]">
+                  {t("DATE")}
                 </p>
               </div>
 
               <div className="flex items-start justify-between gap-4">
-                <div className="min-w-0">
-                  <p className="truncate text-[14px] font-semibold text-[#333333] sm:text-[15px]">
+                <div className="flex flex-col gap-1">
+                  <p className="text-[16px] font-semibold leading-[17.12px] tracking-[0.32px] text-[#333333]">
                     {order.customerName}
                   </p>
-                  <p className="mt-1 text-[12px] text-[#8B8B8B]" dir="ltr">
-                    {order.customerPhone}
-                  </p>
+                  {order.customerPhone && (
+                    <p className="text-[12px] font-normal leading-[16.80px] tracking-[0.24px] text-[#8B8B8B]" dir="ltr">
+                      {order.customerPhone}
+                    </p>
+                  )}
                 </div>
-                <div className="shrink-0 text-right">
-                  <p className="text-[12px] font-medium text-[#28293D]">
+                <div className="flex flex-col items-end gap-1.5 text-right">
+                  <p className="text-[12px] font-medium tracking-[0.24px] text-[#28293D]">
                     {order.date}
                   </p>
-                  <p className="mt-1 text-[12px] text-[#8B8B8B]">
+                  <p className="text-[12px] font-normal tracking-[0.24px] text-[#595959]">
                     {order.time}
                   </p>
                   {order.paymentState !== "None" && (
-                    <div className="mt-2 flex justify-end">
+                    <div className="mt-1 flex justify-end">
                       {order.paymentState === "Paid" ? (
-                        <span className="inline-flex h-5 items-center justify-center rounded-full border border-[#00A86B] bg-[#E2F4ED] px-2 text-[10px] font-semibold text-[#00A86B]">
+                        <span className="inline-flex items-center rounded-full border border-[#00A86B] bg-[#E2F4ED] px-2.5 py-0.5 text-[13px] font-semibold tracking-[0.26px] text-[#00A86B]">
                           {t("Paid")}
                         </span>
                       ) : (
                         <button
                           type="button"
                           onClick={handleMarkAsPaid}
-                          className="inline-flex h-5 cursor-pointer items-center justify-center rounded-full border border-[#C7861E] bg-[#FFF7E6] px-2 text-[10px] font-semibold text-[#C7861E] transition-colors hover:border-primary hover:bg-primary hover:text-white"
+                          className="inline-flex cursor-pointer items-center rounded-full border border-[#C7861E] bg-[rgba(254,154,0,0.10)] px-3 py-0.5 text-[13px] font-semibold tracking-[0.26px] text-[#C7861E] transition-colors hover:border-[#8F6900] hover:bg-[#8F6900] hover:text-white"
                           title={t("Mark as Paid")}
                         >
                           {t("Pending")} · {t("Mark as Paid")}
@@ -483,77 +499,103 @@ const OrderDetailsDialog = ({
                 </div>
               </div>
 
-              <Separator className="my-4 bg-[#E5E5E5]" />
+              <div className="w-full border-t border-[#CACBD4]" />
 
-              {/* Order Type / Address */}
-              <div className="flex items-start justify-between gap-3">
-                <p className="min-w-0 text-[13px] text-[#333333]">
-                  <span className="text-[10px] font-bold uppercase text-[#595959]">
-                    {t("Order Type")}:{" "}
+              {/* Address (for Application & Call orders) vs Order Type (for POS orders) */}
+              {!isPosOrder ? (
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[12px] font-semibold uppercase tracking-[0.24px] text-[#8B8B8B]">
+                    {t("ADDRESS")}:
                   </span>
-                  <span className="font-semibold">{orderTypeDisplayUi}</span>
-                </p>
-              </div>
+                  <span className="text-[13px] font-semibold tracking-[0.26px] text-[#333333]">
+                    {tableOrAddressText || rawAddr || t("No address specified")}
+                  </span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[12px] font-semibold uppercase tracking-[0.24px] text-[#8B8B8B]">
+                    {t("ORDER TYPE")}:
+                  </span>
+                  <span className="text-[13px] font-semibold tracking-[0.26px] text-[#333333]">
+                    {orderTypeDisplayUi}
+                  </span>
+                </div>
+              )}
 
-              {(zoneName || order.deliveryFee > 0) && (
+              {/* Zone & Delivery Fees (Application & Call orders) */}
+              {!isPosOrder && (zoneName || order.deliveryFee >= 0) && (
                 <>
-                  <Separator className="my-4 bg-[#E5E5E5]" />
-                  <div className="flex items-end justify-between gap-3">
-                    <div>
-                      <p className="mb-1 text-[10px] font-bold uppercase text-[#595959]">
-                        {t("Zone")}
-                      </p>
-                      <p className="text-[13px] text-[#333333]">
+                  <div className="w-full border-t border-[#CACBD4]" />
+                  <div className="flex items-center justify-between">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[12px] font-semibold uppercase tracking-[0.24px] text-[#8B8B8B]">
+                        {t("ZONE")}
+                      </span>
+                      <span className="text-[13px] font-semibold tracking-[0.26px] text-[#333333]">
                         {zoneName || "-"}
-                      </p>
+                      </span>
                     </div>
-                    <div className="text-right">
-                      <p className="mb-1 text-[10px] font-bold uppercase text-[#595959]">
-                        {t("Delivery Fees")}
-                      </p>
-                      <p className="text-[13px] font-semibold text-[#333333]">
+                    <div className="flex flex-col items-end gap-1 text-right">
+                      <span className="text-[12px] font-semibold uppercase tracking-[0.24px] text-[#8B8B8B]">
+                        {t("DELIVERY FEES")}
+                      </span>
+                      <span className="text-[13px] font-semibold tracking-[0.26px] text-[#333333]">
                         {formatCurrency(order.deliveryFee)}
-                      </p>
+                      </span>
                     </div>
                   </div>
                 </>
               )}
             </section>
 
-            <section className="mt-4 rounded-[12px] border border-[#D9D9D9] bg-[#FAFAF7] p-3 sm:mt-5 sm:p-4">
-              <p className="mb-4 text-[10px] font-bold uppercase text-[#595959]">
-                {t("Orders")}
+            {/* Orders list card */}
+            <section className="flex flex-col gap-4 rounded-[16px] border border-[#E5E5E5] bg-[#FAFAF7] p-4">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.20px] text-[#595959]">
+                {t("ORDERS")}
               </p>
-              <div className="space-y-2.5 sm:space-y-3">
+              <div className="flex flex-col gap-3">
                 {order.items.map((item) => {
-                  const variantTotalAdjustment = item.selectedVariants?.reduce((sum, v) => sum + (v.priceAdjustment || 0), 0) || 0;
-                  const extraTotalAdjustment = item.selectedExtras?.reduce((sum, e) => sum + (e.price || 0), 0) || 0;
-                  const baseUnitPrice = item.unitPrice - variantTotalAdjustment - extraTotalAdjustment;
+                  const variantTotalAdjustment =
+                    item.selectedVariants?.reduce(
+                      (sum, v) => sum + (v.priceAdjustment || 0),
+                      0
+                    ) || 0;
+                  const extraTotalAdjustment =
+                    item.selectedExtras?.reduce(
+                      (sum, e) => sum + (e.price || 0),
+                      0
+                    ) || 0;
+                  const baseUnitPrice =
+                    item.unitPrice - variantTotalAdjustment - extraTotalAdjustment;
                   const displayBasePrice = item.quantity * baseUnitPrice;
 
                   return (
                     <div
                       key={item.id}
-                      className="flex flex-col rounded-[8px] border border-[#E5E5E5] bg-white px-3 py-2.5 gap-2"
+                      className="flex flex-col gap-3 rounded-[12px] border border-[#E5E5E5] bg-white p-3"
                     >
-                      <div className="flex items-center justify-between gap-3 w-full">
-                        <p className="truncate text-[13px] font-medium text-[#333333] sm:text-[14px]">
-                          {item.quantity}X {item.name}
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="truncate text-[16px] text-black">
+                          <span className="font-medium">{item.quantity}X </span>
+                          <span className="font-normal">{item.name}</span>
                         </p>
-                        <span className="shrink-0 text-[12px] font-semibold text-[#28293D]">
+                        <span className="shrink-0 text-[13px] font-semibold tracking-[0.26px] text-[#28293D]">
                           {formatCurrency(displayBasePrice)}
                         </span>
                       </div>
 
                       {item.selectedVariants && item.selectedVariants.length > 0 && (
-                        <div className="space-y-1.5 w-full">
+                        <div className="flex flex-col gap-2">
                           {item.selectedVariants.map((v, idx) => (
-                            <div key={idx} className="flex items-center justify-between gap-3 w-full">
-                              <span className="inline-flex h-5 items-center rounded-full border border-[#C7861E]/30 bg-[#FFF7E6] px-2 text-[10px] font-semibold text-[#C7861E]">
+                            <div
+                              key={idx}
+                              className="flex items-center justify-between gap-3"
+                            >
+                              <span className="inline-flex items-center rounded-full border border-[#C7861E] bg-[rgba(254,154,0,0.10)] px-3 py-1 text-[13px] font-semibold tracking-[0.26px] text-[#C7861E]">
                                 {v.group}: {v.option}
                               </span>
                               {(v.priceAdjustment || 0) > 0 && (
-                                <span className="shrink-0 text-[12px] font-semibold text-[#28293D]">
+                                <span className="shrink-0 text-[13px] font-semibold tracking-[0.26px] text-[#28293D]">
                                   +{formatCurrency(item.quantity * (v.priceAdjustment || 0))}
                                 </span>
                               )}
@@ -563,14 +605,17 @@ const OrderDetailsDialog = ({
                       )}
 
                       {item.selectedExtras && item.selectedExtras.length > 0 && (
-                        <div className="space-y-1.5 w-full">
+                        <div className="flex flex-col gap-2">
                           {item.selectedExtras.map((e, idx) => (
-                            <div key={idx} className="flex items-center justify-between gap-3 w-full">
-                              <span className="inline-flex h-5 items-center rounded-full border border-[#C7861E]/30 bg-[#FFF7E6] px-2 text-[10px] font-semibold text-[#C7861E]">
-                                {t("Extra")}: {e.name}
+                            <div
+                              key={idx}
+                              className="flex items-center justify-between gap-3"
+                            >
+                              <span className="inline-flex items-center rounded-full border border-[#C7861E] bg-[rgba(254,154,0,0.10)] px-3 py-1 text-[13px] font-semibold tracking-[0.26px] text-[#C7861E]">
+                                Extra: {e.name}
                               </span>
                               {(e.price || 0) > 0 && (
-                                <span className="shrink-0 text-[12px] font-semibold text-[#28293D]">
+                                <span className="shrink-0 text-[13px] font-semibold tracking-[0.26px] text-[#28293D]">
                                   +{formatCurrency(item.quantity * (e.price || 0))}
                                 </span>
                               )}
@@ -580,9 +625,9 @@ const OrderDetailsDialog = ({
                       )}
 
                       {item.note && (
-                        <div className="flex items-center justify-between gap-3 w-full">
-                          <span className="inline-flex h-5 items-center rounded-full border border-[#C7861E]/30 bg-[#FFF7E6] px-2 text-[10px] font-semibold text-[#C7861E]">
-                            {t("Notes")}: {item.note}
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="inline-flex items-center rounded-full border border-[#C7861E] bg-[rgba(254,154,0,0.10)] px-3 py-1 text-[13px] font-semibold tracking-[0.26px] text-[#C7861E]">
+                            Notes: {item.note}
                           </span>
                         </div>
                       )}
@@ -592,67 +637,82 @@ const OrderDetailsDialog = ({
               </div>
             </section>
 
-            <section className="mt-4 rounded-[12px] border border-[#D9D9D9] bg-[#FAFAF7] p-3 sm:mt-5 sm:p-4">
-              <div className="space-y-3 text-[13px] sm:space-y-4 sm:text-[14px]">
-                <div className="flex items-center justify-between text-[#333333]">
-                  <span>{t("Subtotal")}:</span>
-                  <span>{formatCurrency(order.subtotal)}</span>
+            {/* Payment & Totals summary card */}
+            <section className="flex flex-col gap-4 rounded-[16px] border border-[#E5E5E5] bg-[#FAFAF7] p-4">
+              <div className="flex flex-col gap-4.5 text-[16px]">
+                <div className="flex items-center justify-between text-[#23252A]">
+                  <span className="font-medium leading-[17.60px]">{t("Subtotal")}:</span>
+                  <span className="font-semibold tracking-[0.32px] text-[#333333]">
+                    {formatCurrency(order.subtotal)}
+                  </span>
                 </div>
-                <div className="flex items-center justify-between text-[#333333]">
-                  <span>{t("Delivery Fees")}:</span>
-                  <span>{formatCurrency(order.deliveryFee)}</span>
-                </div>
-                {effectiveDiscount > 0 && (
-                  <div className="flex items-center justify-between text-[#059B5A]">
-                    <span>{t("Discount")}:</span>
-                    <span>{getDiscountDisplayText()}</span>
+
+                {order.deliveryFee > 0 && (
+                  <div className="flex items-center justify-between text-[#23252A]">
+                    <span className="font-medium leading-[17.60px]">{t("Delivery Fees")}:</span>
+                    <span className="font-semibold tracking-[0.32px] text-[#333333]">
+                      {formatCurrency(order.deliveryFee)}
+                    </span>
                   </div>
                 )}
-                <Separator className="bg-[#D9D9D9]" />
-                <div className="flex items-center justify-between text-[15px] font-semibold text-[#111111] sm:text-[16px]">
-                  <span>{t("Total")}:</span>
-                  <span>{formatCurrency(finalTotal)}</span>
-                </div>
-                <span className="inline-flex h-6 items-center rounded-full border border-[#3574FF] bg-[#EDF4FB] px-3 text-[12px] font-semibold text-[#3574FF]">
+
+                {effectiveDiscount > 0 && (
+                  <div className="flex items-center justify-between text-[#059B5A]">
+                    <span className="font-medium leading-[17.60px]">{t("Discount")}:</span>
+                    <span className="font-semibold tracking-[0.32px]">
+                      {getDiscountDisplayText()}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <div className="w-full border-t border-[#CACBD4]" />
+
+              <div className="flex items-center justify-between">
+                <span className="text-[18px] font-semibold leading-[19.80px] text-black">
+                  {t("Total")}:
+                </span>
+                <span className="text-[18px] font-semibold tracking-[0.36px] text-black">
+                  {formatCurrency(finalTotal)}
+                </span>
+              </div>
+
+              <div>
+                <span className="inline-flex items-center rounded-full border border-[#004EF9] bg-[#EDF4FB] px-3 py-1.5 text-[13px] font-semibold tracking-[0.26px] text-[#3574FF]">
                   {translatePaymentMethod(order.paymentMethod, t)}
                 </span>
               </div>
             </section>
           </div>
 
-          {/* Footer (fixed) */}
-          <div className="bg-white px-4 pb-4 sm:px-6 sm:pb-6">
-            <Separator className="mb-4 bg-[#D9D9D9] sm:mb-5" />
-
+          {/* Action buttons footer (shrink-0) */}
+          <div className="shrink-0 flex flex-col gap-4 border-t border-[#CACBD4] pt-4 bg-white">
             <button
               type="button"
               onClick={() => setIsDiscountOpen(true)}
-              className="mb-3 flex w-full cursor-pointer items-center justify-center gap-2 rounded-[8px] border border-primary bg-white py-3 text-[14px] font-semibold text-primary transition-colors hover:bg-[#F5F0EA] sm:mb-4"
+              className="flex h-[56px] w-full cursor-pointer items-center justify-center gap-3 rounded-[5px] border border-[#8F6900] bg-white text-[16px] font-semibold text-[#8F6900] transition-colors hover:bg-[#F5F0EA]"
             >
-              <Wallet className="size-4" />
+              <Wallet className="size-[18px] text-[#8F6900]" />
               {t("Administrative discount application")}
             </button>
 
-            <div className="grid gap-2.5 sm:grid-cols-2 sm:gap-3">
-              <DefaultButton
-                data={{
-                  buttonText: t("Print Customer Receipt"),
-                  variant: "outline",
-                  type: "button",
-                  icon: <Printer className="size-4" />,
-                  className:
-                    "border-primary bg-white text-primary hover:bg-white hover:text-primary",
-                  onClick: () => handlePrint("customer"),
-                }}
-              />
-              <DefaultButton
-                data={{
-                  buttonText: t("Print Kitchen Receipt"),
-                  type: "button",
-                  icon: <Printer className="size-4" />,
-                  onClick: () => handlePrint("kitchen"),
-                }}
-              />
+            <div className="flex items-center gap-4">
+              <button
+                type="button"
+                onClick={() => handlePrint("customer")}
+                className="flex h-[56px] flex-1 cursor-pointer items-center justify-center gap-3 rounded-[5px] border border-[#8F6900] bg-white text-[16px] font-semibold text-[#8F6900] transition-colors hover:bg-[#F5F0EA]"
+              >
+                <Printer className="size-[18px] text-[#8F6900]" />
+                {t("Print Customer Receipt")}
+              </button>
+              <button
+                type="button"
+                onClick={() => handlePrint("kitchen")}
+                className="flex h-[56px] flex-1 cursor-pointer items-center justify-center gap-3 rounded-[5px] bg-[#8F6900] text-[16px] font-semibold text-white transition-colors hover:bg-[#8F6900]/90"
+              >
+                <Printer className="size-[18px] text-white" />
+                {t("Print Kitchen Receipt")}
+              </button>
             </div>
           </div>
         </div>
