@@ -23,38 +23,60 @@ interface RevenueTrendChartProps {
 const chartConfig = {
   value: {
     label: "Revenue",
-    color: "#A17600",
+    color: "#8F6900",
   },
 } satisfies ChartConfig;
+
+const CustomYTick = (props: any) => {
+  const { x, y, payload } = props;
+  const tickX = typeof x === "number" ? Math.max(x - 65, 0) : 0;
+  return (
+    <text
+      x={tickX}
+      y={y + 3}
+      fill="#595959"
+      fontSize={10}
+      fontWeight={500}
+      textAnchor="start"
+      dominantBaseline="middle"
+    >
+      {`EGP\u00A0${payload.value}`}
+    </text>
+  );
+};
 
 const RevenueTrendChart = ({ data }: RevenueTrendChartProps) => {
   const { t } = useTranslation();
 
   return (
-    <Card className="gap-0 rounded-[16px] border-[#E5E5E5] bg-white py-0 shadow-none">
-      <CardHeader className="min-h-14 grid-cols-[1fr_auto] items-center rounded-t-[16px] bg-[#F5F0EA] px-4 py-3">
-        <div>
-          <CardTitle className="text-[18px] font-bold text-[#333333] mb-1">
+    <Card className="gap-0 overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white py-0 shadow-none">
+      <CardHeader className="flex flex-row items-center justify-between rounded-t-[16px] bg-[#F5F0EA] px-4 py-3 space-y-0">
+        <div className="flex flex-col gap-1">
+          <CardTitle className="text-[18px] font-bold leading-[19.26px] tracking-[0.36px] text-[#333333]">
             {t("Revenue trend")}
           </CardTitle>
-          <p className="text-[12px] text-[#595959]">{t("Last 7 days")}</p>
+          <p className="text-[12px] font-normal leading-[16.80px] tracking-[0.24px] text-[#595959]">
+            {t("Last 7 days")}
+          </p>
         </div>
-        <Activity className="size-5 text-[#000000]" />
+        <Activity className="size-6 text-[#000000]" />
       </CardHeader>
-      <CardContent className="px-2 py-6 sm:px-4 sm:py-8">
+      <CardContent className="px-2 py-6 sm:px-4 sm:py-6" dir="ltr" style={{ direction: "ltr" }}>
         <ChartContainer
           config={chartConfig}
-          className="h-56 w-full sm:h-64 lg:h-72 aspect-auto"
+          className="h-56 w-full sm:h-64 lg:h-72 aspect-auto [direction:ltr]"
+          dir="ltr"
+          style={{ direction: "ltr" }}
         >
           <AreaChart
             accessibilityLayer
             data={data}
-            margin={{ left: 0, right: 8, top: 6, bottom: 0 }}
+            margin={{ left: 0, right: 12, top: 10, bottom: 0 }}
           >
             <defs>
               <linearGradient id="revenueFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#A17600" stopOpacity={0.26} />
-                <stop offset="100%" stopColor="#A17600" stopOpacity={0.02} />
+                <stop offset="5%" stopColor="#8F6900" stopOpacity={0.24} />
+                <stop offset="95%" stopColor="#8F6900" stopOpacity={0.0} />
               </linearGradient>
             </defs>
             <CartesianGrid vertical={false} stroke="#EFEFEF" />
@@ -62,19 +84,18 @@ const RevenueTrendChart = ({ data }: RevenueTrendChartProps) => {
               dataKey="day"
               axisLine={false}
               tickLine={false}
-              tickMargin={16}
-              interval={1}
-              tick={{ fill: "#595959", fontSize: 10 }}
+              tickMargin={12}
+              interval={0}
+              tick={{ fill: "#595959", fontSize: 10, fontWeight: 500 }}
             />
             <YAxis
+              orientation="left"
               axisLine={false}
               tickLine={false}
-              tickMargin={8}
-              width={68}
+              width={75}
               domain={[0, 8000]}
               ticks={[0, 2000, 4000, 6000, 8000]}
-              tickFormatter={(value) => `EGP ${value}`}
-              tick={{ fill: "#595959", fontSize: 10 }}
+              tick={<CustomYTick />}
             />
             <ChartTooltip
               cursor={false}
@@ -82,7 +103,7 @@ const RevenueTrendChart = ({ data }: RevenueTrendChartProps) => {
                 <ChartTooltipContent
                   indicator="dot"
                   formatter={(value) => (
-                    <span className="font-medium text-[#28293D]">
+                    <span className="font-semibold text-[#333333]">
                       EGP {Number(value).toLocaleString()}
                     </span>
                   )}
@@ -99,11 +120,11 @@ const RevenueTrendChart = ({ data }: RevenueTrendChartProps) => {
             <Line
               type="monotone"
               dataKey="value"
-              stroke="#A17600"
+              stroke="#8F6900"
               strokeWidth={2}
               strokeDasharray="4 4"
-              dot={{ r: 3, fill: "#A17600", strokeWidth: 0 }}
-              activeDot={{ r: 4, fill: "#A17600", stroke: "#FFFFFF" }}
+              dot={{ r: 3.5, fill: "#8F6900", stroke: "#FFFFFF", strokeWidth: 1.5 }}
+              activeDot={{ r: 5, fill: "#8F6900", stroke: "#FFFFFF", strokeWidth: 2 }}
               isAnimationActive={false}
             />
           </AreaChart>
