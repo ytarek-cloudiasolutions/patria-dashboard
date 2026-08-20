@@ -36,6 +36,7 @@ type OrderCartProps = {
   customerCount?: number;
   isShiftActive?: boolean;
   onCustomerChange: (value: string) => void;
+  onCustomerPhoneChange?: (value: string) => void;
   onNotesChange: (value: string) => void;
   onRemoveItem: (lineId: string) => void;
   onUpdateQty: (lineId: string, delta: number) => void;
@@ -57,6 +58,7 @@ const OrderCart = ({
   customerCount = 0,
   isShiftActive = true,
   onCustomerChange,
+  onCustomerPhoneChange,
   onNotesChange,
   onRemoveItem,
   onUpdateQty,
@@ -100,6 +102,7 @@ const OrderCart = ({
         };
         setSelectedCustomer(found);
         onCustomerChange(found.name);
+        onCustomerPhoneChange?.(found.phone);
         setSearchError(null);
       } else {
         setSelectedCustomer(null);
@@ -140,6 +143,7 @@ const OrderCart = ({
                   setSelectedCustomer(null);
                   setPhoneQuery("");
                   onCustomerChange("");
+                  onCustomerPhoneChange?.("");
                 }}
                 className="p-0.5 text-black transition-colors hover:text-[#8F6900] cursor-pointer"
                 aria-label={t("Remove customer")}
@@ -172,8 +176,10 @@ const OrderCart = ({
                 <input
                   value={phoneQuery}
                   onChange={(event) => {
-                    setPhoneQuery(event.target.value);
-                    onCustomerChange(event.target.value);
+                    const val = event.target.value;
+                    setPhoneQuery(val);
+                    onCustomerChange(val);
+                    onCustomerPhoneChange?.(val);
                     if (searchError) setSearchError(null);
                   }}
                   onKeyDown={(event) => {

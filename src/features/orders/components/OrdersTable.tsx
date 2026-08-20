@@ -172,16 +172,18 @@ const OrdersTable = ({
                         <p className="text-[13px] font-semibold text-[#333333]">
                           {order.customerName}
                         </p>
-                        <div className="mt-1 flex items-center gap-1">
-                          <span className="text-[11px] text-[#8B8B8B]" dir="ltr">
-                            {order.customerPhone}
-                          </span>
-                          <img
-                            src={Whatsapp}
-                            alt="Whatsapp"
-                            className="size-4"
-                          />
-                        </div>
+                        {Boolean(order.customerPhone && order.customerPhone.trim()) && (
+                          <div className="mt-1 flex items-center gap-1">
+                            <span className="text-[11px] text-[#8B8B8B]" dir="ltr">
+                              {order.customerPhone}
+                            </span>
+                            <img
+                              src={Whatsapp}
+                              alt="Whatsapp"
+                              className="size-4"
+                            />
+                          </div>
+                        )}
                       </div>
                     </TableCell>
 

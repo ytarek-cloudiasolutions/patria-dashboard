@@ -64,6 +64,7 @@ const PosPage = () => {
   const [selectedTable, setSelectedTable] = useState("");
   const [customerCount, setCustomerCount] = useState(0);
   const [customer, setCustomer] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
   const [notes, setNotes] = useState("");
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [sentToKitchen, setSentToKitchen] = useState(false);
@@ -400,6 +401,7 @@ const PosPage = () => {
     setCartItems([]);
     setNotes("");
     setCustomer("");
+    setCustomerPhone("");
     setSelectedTable("");
     setCustomerCount(0);
     setSentToKitchen(false);
@@ -466,7 +468,7 @@ const PosPage = () => {
           type: orderType === "dine-in" ? "dine_in" : "takeaway",
           source: "pos",
           customerName: customer || "Walk-in Customer",
-          customerPhone: "",
+          customerPhone: customerPhone || undefined,
           address: orderType === "dine-in" ? resolvedTable : undefined,
           items: cartItems.map((item) => ({
             productId: item.productId,
@@ -548,7 +550,7 @@ const PosPage = () => {
         type: orderType === "dine-in" ? "dine_in" : "takeaway",
         source: "pos",
         customerName: customer || "Walk-in Customer",
-        customerPhone: "",
+        customerPhone: customerPhone || undefined,
         address: orderType === "dine-in" ? resolvedTable : undefined,
         paymentMethod: method,
         items: orderItems,
@@ -725,6 +727,7 @@ const PosPage = () => {
             customerCount={customerCount}
             isShiftActive={isShiftActive}
             onCustomerChange={setCustomer}
+            onCustomerPhoneChange={setCustomerPhone}
             onNotesChange={setNotes}
             onRemoveItem={removeItem}
             onUpdateQty={updateQty}
