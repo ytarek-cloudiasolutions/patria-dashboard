@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ChevronDown, ChevronUp, Plus, Trash2, Sparkles, Box } from "lucide-react";
+import { ChevronDown, ChevronUp, Plus, Trash2, PlusCircle, Box, BadgePlus, Layers, ListPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Dialog,
@@ -35,6 +35,7 @@ import type {
 } from "../types";
 import UploadDropzone from "./UploadDropzone";
 import OptionRecipeEditor from "./OptionRecipeEditor";
+import { getRecipe } from "../api/recipeApi";
 
 const FORM_ID = "add-product-form";
 
@@ -67,6 +68,7 @@ const INITIAL_FORM: ProductFormData = {
   imageFile: undefined,
   variantGroups: [],
   ingredients: [],
+  recipe: [],
   extras: [],
 };
 
@@ -161,6 +163,7 @@ const AddProductDialog = ({
             imageUrl: editingProduct.imageUrl,
             extras: editingProduct.extras ?? [],
             variantGroups: editingProduct.variantGroups ?? [],
+            recipe: editingProduct.recipe ?? [],
             productType: editingProduct.productType ?? "ready",
           }
         : INITIAL_FORM,
@@ -169,7 +172,54 @@ const AddProductDialog = ({
     setIsCategoryOpen(false);
     setIsRecipeOpen(false);
     setIsItemTypeOpen(false);
-  }, [open, editingProduct, categories]);
+
+    if (editingProduct?.id) {
+      getRecipe(editingProduct.id)
+        .then((recipeRes: any) => {
+          const recipeObj = recipeRes?.recipe || recipeRes;
+          const ingredientsList = recipeObj?.ingredients || recipeObj?.recipe?.ingredients || [];
+
+          if (Array.isArray(ingredientsList) && ingredientsList.length > 0) {
+            const mappedRecipe = ingredientsList.map((ing: any) => {
+              const matObj =
+                typeof ing.productId === "object" && ing.productId !== null
+                  ? ing.productId
+                  : typeof ing.material === "object" && ing.material !== null
+                    ? ing.material
+                    : {};
+              const matId = String(
+                matObj._id ||
+                  matObj.id ||
+                  (typeof ing.productId === "string" ? ing.productId : "") ||
+                  (typeof ing.material === "string" ? ing.material : "") ||
+                  ""
+              );
+              const localIng = ingredients.find(
+                (item) => String(item.id) === String(matId)
+              );
+              const matName = ing.name || matObj.name || localIng?.name || "";
+              const matPrice = Number(
+                ing.price ?? matObj.price ?? localIng?.price ?? 0
+              );
+
+              return {
+                id: String(ing._id || ing.id || ""),
+                material: matId,
+                name: matName,
+                price: matPrice,
+                quantity: Number(ing.quantity || ing.amount || 0),
+                unit: ing.unit || "pcs",
+                ingredientUnit: ing.unit || "pcs",
+              };
+            });
+            setForm((prev) => ({ ...prev, recipe: mappedRecipe }));
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to fetch product recipe:", err);
+        });
+    }
+  }, [open, editingProduct, categories, ingredients]);
 
   const set = <K extends keyof ProductFormData>(
     key: K,
@@ -187,14 +237,14 @@ const AddProductDialog = ({
   const removeGroup = (groupId: string) =>
     set(
       "variantGroups",
-      form.variantGroups.filter((g) => g.id !== groupId),
+      form.variantGroups.filter((g) => String(g.id) !== String(groupId)),
     );
 
   const updateGroup = (groupId: string, patch: Partial<VariantGroup>) =>
     set(
       "variantGroups",
       form.variantGroups.map((g) =>
-        g.id === groupId ? { ...g, ...patch } : g,
+        String(g.id) === String(groupId) ? { ...g, ...patch } : g,
       ),
     );
 
@@ -202,7 +252,7 @@ const AddProductDialog = ({
     set(
       "variantGroups",
       form.variantGroups.map((g) =>
-        g.id === groupId ? { ...g, options: [...g.options, emptyOption()] } : g,
+        String(g.id) === String(groupId) ? { ...g, options: [...g.options, emptyOption()] } : g,
       ),
     );
 
@@ -214,11 +264,11 @@ const AddProductDialog = ({
     set(
       "variantGroups",
       form.variantGroups.map((g) =>
-        g.id === groupId
+        String(g.id) === String(groupId)
           ? {
               ...g,
               options: g.options.map((o) =>
-                o.id === optionId ? { ...o, ...patch } : o,
+                String(o.id) === String(optionId) ? { ...o, ...patch } : o,
               ),
             }
           : g,
@@ -229,8 +279,8 @@ const AddProductDialog = ({
     set(
       "variantGroups",
       form.variantGroups.map((g) =>
-        g.id === groupId
-          ? { ...g, options: g.options.filter((o) => o.id !== optionId) }
+        String(g.id) === String(groupId)
+          ? { ...g, options: g.options.filter((o) => String(o.id) !== String(optionId)) }
           : g,
       ),
     );
@@ -521,121 +571,27 @@ const AddProductDialog = ({
                   {t("(Optional)")}
                 </span>
               </Label>
-              <DropdownSelect
-                options={ingredientOptions}
-                selected=""
-                onSelect={addIngredient}
-                onOpenChange={setIsRecipeOpen}
-                onSearchChange={setRecipeSearch}
-                isLoading={isSearchingRecipes}
-                placeholder={t("Select a recipe")}
-                align="start"
-                searchable
-                className="md:w-full"
-                contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
+              <OptionRecipeEditor
+                recipe={form.recipe || []}
+                onChange={(newRecipe) => set("recipe", newRecipe)}
+                ingredients={ingredients}
+                categories={categories}
               />
-
-              {form.ingredients.length > 0 && (
-                <div className="mt-3 rounded-[12px] border border-[#E5E5E5] p-4 bg-[#FAFAF7]/30 space-y-3">
-                  {form.ingredients.map((ingredient) => (
-                    <div
-                      key={ingredient.ingredientId}
-                      className="flex items-center gap-3"
-                    >
-                      <div className="flex-1 h-12 flex items-center rounded-xl border border-[#E5E5E5] bg-white px-4.5 text-[14px] text-[#28293D] font-medium">
-                        {ingredient.name}
-                      </div>
-                      <div className="h-12 w-36 flex items-center rounded-xl border border-[#E5E5E5] bg-white px-3 gap-1 justify-between">
-                        <input
-                          type="number"
-                          min="0"
-                          value={ingredient.amount}
-                          onChange={(e) =>
-                            updateIngredientAmount(
-                              ingredient.ingredientId,
-                              Number(e.target.value) || 0,
-                            )
-                          }
-                          className="w-12 h-full bg-transparent text-center text-[14px] text-[#28293D] focus:outline-none focus:ring-0 border-0 p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                        />
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <button
-                              type="button"
-                              className="h-full flex items-center gap-1 bg-transparent border-0 text-[12px] text-[#8B8B8B] font-semibold focus:outline-none cursor-pointer select-none"
-                            >
-                              <span>{t(ingredient.unit)}</span>
-                              <ChevronDown className="size-3.5 text-[#8B8B8B]" />
-                            </button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent
-                            align="end"
-                            className="z-70 p-2 ring-0 rounded-[16px] space-y-1 w-28 bg-white border border-[#E5E5E5] shadow-md"
-                          >
-                            <DropdownMenuItem
-                              className={cn(
-                                "px-3 py-2 text-[13px] font-semibold rounded-[16px] cursor-pointer focus:bg-[#F5F0EA] focus:text-[#28293D] hover:bg-[#F5F0EA]",
-                                ingredient.unit === "Gram(s)"
-                                  ? "bg-primary text-primary-foreground pointer-events-none"
-                                  : "text-[#28293D]"
-                              )}
-                              onSelect={() =>
-                                updateIngredientUnit(
-                                  ingredient.ingredientId,
-                                  "Gram(s)",
-                                )
-                              }
-                            >
-                              {t("Gram(s)")}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              className={cn(
-                                "px-3 py-2 text-[13px] font-semibold rounded-[16px] cursor-pointer focus:bg-[#F5F0EA] focus:text-[#28293D] hover:bg-[#F5F0EA]",
-                                ingredient.unit === "Piece(s)"
-                                  ? "bg-primary text-primary-foreground pointer-events-none"
-                                  : "text-[#28293D]"
-                              )}
-                              onSelect={() =>
-                                updateIngredientUnit(
-                                  ingredient.ingredientId,
-                                  "Piece(s)",
-                                )
-                              }
-                            >
-                              {t("Piece(s)")}
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          removeIngredient(ingredient.ingredientId)
-                        }
-                        aria-label={`${t("Remove")} ${ingredient.name}`}
-                        className="h-12 w-12 rounded-xl bg-[#C90000] text-white flex items-center justify-center hover:bg-[#A80000] transition-colors cursor-pointer shrink-0"
-                      >
-                        <Trash2 className="size-5" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
 
             {/* Variants */}
-            <div className="rounded-[12px] border border-[#E5E5E5] p-4">
-              <div className="mb-3 flex items-center justify-between">
-                <span className="text-[15px] font-semibold text-[#28293D] flex items-center gap-1.5">
-                  <Box className="size-4.5 text-[#28293D]" />
+            <div className="rounded-[16px] border border-[#CACBD4] bg-[#FAFAF7] p-4 sm:p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-[12px] font-semibold text-[#333333] flex items-center gap-1">
+                  <Box className="size-4.5 text-[#333333]" />
                   {t("Variants")}
                 </span>
                 <button
                   type="button"
                   onClick={addGroup}
-                  className="flex h-9 cursor-pointer items-center gap-1.5 rounded-[8px] border border-[#B28A15] px-3 text-[13px] font-semibold text-[#B28A15] hover:bg-[#FDFBF7]"
+                  className="flex h-[36px] cursor-pointer items-center gap-1.5 rounded-[5px] border border-[#8F6900] px-3 text-[12px] font-semibold text-[#8F6900] hover:bg-[#FDFBF7]"
                 >
-                  <Plus className="size-4" />
+                  <Plus className="size-4 text-[#8F6900]" />
                   {t("Add Group")}
                 </button>
               </div>
@@ -649,24 +605,25 @@ const AddProductDialog = ({
                   {form.variantGroups.map((group) => (
                     <div
                       key={group.id}
-                      className="rounded-[10px] border border-dashed border-[#624F1C] bg-[#F5F0EA4D] p-3"
+                      className="border-dashed-gold bg-white p-3.5 sm:p-4 space-y-3"
                     >
-                      <div className="flex items-center gap-2">
+                      {/* Group Header Row */}
+                      <div className="flex items-center gap-2.5">
                         <Input
                           value={group.name}
                           onChange={(e) =>
                             updateGroup(group.id, { name: e.target.value })
                           }
                           placeholder={t("Group Name(e.g. Bread Type)")}
-                          className="h-10 flex-1 rounded-[8px] border-[#E5E5E5] bg-white px-3 text-[13px] focus-visible:border-primary focus-visible:ring-0"
+                          className="h-[50px] flex-1 rounded-[12px] border-[#E5E5E5] bg-white px-3.5 text-[14px] font-normal text-[#28293D] focus-visible:border-primary focus-visible:ring-0"
                         />
-                        <label className="flex cursor-pointer items-center gap-1.5 text-[12px] font-medium text-[#28293D]">
+                        <label className="flex cursor-pointer items-center gap-1.5 text-[12px] font-medium text-[#333333] shrink-0">
                           <Checkbox
                             checked={group.required}
                             onCheckedChange={(val) =>
                               updateGroup(group.id, { required: Boolean(val) })
                             }
-                            className="size-4.5 rounded-[5px] border-[#8F6900]"
+                            className="size-[20px] rounded-[6px] border-[#8F6900]"
                           />
                           {t("Required")}
                         </label>
@@ -676,126 +633,130 @@ const AddProductDialog = ({
                           aria-label={t("Remove group")}
                           className="cursor-pointer p-1 text-[#C90000]"
                         >
-                          <Trash2 className="size-4" />
+                          <Trash2 className="size-4.5" />
                         </button>
                       </div>
 
-                      <div className="mt-3 space-y-3">
-                        {group.options.map((option) => {
-                          const optionRecipeKey = `opt-${group.id}-${option.id}`;
-                          const isRecipeOpen = openRecipeKey === optionRecipeKey;
-                          const recipeCount = option.recipe?.length || 0;
+                      {/* Options with Vertical Gold Accent Bar */}
+                      <div className="flex gap-2.5 w-full">
+                        <div className="w-1 self-stretch rounded-full bg-[#8F6900] shrink-0" />
+                        <div className="flex-1 flex flex-col gap-2.5">
+                          {group.options.map((option) => {
+                            const optionRecipeKey = `opt-${group.id}-${option.id}`;
+                            const isRecipeOpen = openRecipeKey === optionRecipeKey;
+                            const recipeCount = option.recipe?.length || 0;
 
-                          return (
-                            <div key={option.id} className="flex flex-col gap-2">
-                              <div className="flex items-center gap-2">
-                                <Input
-                                  value={option.name}
-                                  onChange={(e) =>
-                                    updateOption(group.id, option.id, {
-                                      name: e.target.value,
-                                    })
-                                  }
-                                  placeholder={t("Option name")}
-                                  className="h-10 flex-1 rounded-[8px] border-[#E5E5E5] bg-white px-3 text-[13px] focus-visible:border-primary focus-visible:ring-0"
-                                />
-                                <div className="flex h-10 items-center gap-2 rounded-[8px] border border-[#E5E5E5] bg-white px-2">
-                                  <input
-                                    type="number"
-                                    min="0"
-                                    value={option.price}
+                            return (
+                              <div key={option.id} className="flex flex-col gap-2">
+                                <div className="flex items-center gap-2.5">
+                                  <Input
+                                    value={option.name}
                                     onChange={(e) =>
                                       updateOption(group.id, option.id, {
-                                        price: Number(e.target.value) || 0,
+                                        name: e.target.value,
                                       })
                                     }
-                                    className="w-10 bg-transparent text-center text-[13px] font-semibold text-[#28293D] focus:outline-none focus:ring-0 border-0 p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                    placeholder={t("Option name")}
+                                    className="h-[50px] flex-1 rounded-[12px] border-[#E5E5E5] bg-white px-3.5 text-[14px] font-normal text-[#28293D] focus-visible:border-primary focus-visible:ring-0"
                                   />
-                                  <div className="flex flex-col">
-                                    <button
-                                      type="button"
-                                      aria-label={t("Increase")}
-                                      onClick={() =>
+                                  <div className="flex h-[50px] items-center gap-2 rounded-[12px] border border-[#E5E5E5] bg-white px-3">
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      value={option.price}
+                                      onChange={(e) =>
                                         updateOption(group.id, option.id, {
-                                          price: option.price + 1,
+                                          price: Number(e.target.value) || 0,
                                         })
                                       }
-                                      className="cursor-pointer text-[#8B8B8B] hover:text-[#28293D]"
-                                    >
-                                      <ChevronUp className="size-3.5" />
-                                    </button>
-                                    <button
-                                      type="button"
-                                      aria-label={t("Decrease")}
-                                      onClick={() =>
-                                        updateOption(group.id, option.id, {
-                                          price: Math.max(0, option.price - 1),
-                                        })
-                                      }
-                                      className="cursor-pointer text-[#8B8B8B] hover:text-[#28293D]"
-                                    >
-                                      <ChevronDown className="size-3.5" />
-                                    </button>
+                                      className="w-10 bg-transparent text-center text-[15px] font-normal text-[#28293D] focus:outline-none focus:ring-0 border-0 p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                    />
+                                    <div className="flex flex-col">
+                                      <button
+                                        type="button"
+                                        aria-label={t("Increase")}
+                                        onClick={() =>
+                                          updateOption(group.id, option.id, {
+                                            price: option.price + 1,
+                                          })
+                                        }
+                                        className="cursor-pointer text-[#333333] hover:text-black"
+                                      >
+                                        <ChevronUp className="size-3.5" />
+                                      </button>
+                                      <button
+                                        type="button"
+                                        aria-label={t("Decrease")}
+                                        onClick={() =>
+                                          updateOption(group.id, option.id, {
+                                            price: Math.max(0, option.price - 1),
+                                          })
+                                        }
+                                        className="cursor-pointer text-[#333333] hover:text-black"
+                                      >
+                                        <ChevronDown className="size-3.5" />
+                                      </button>
+                                    </div>
                                   </div>
+
+                                  {/* Recipe Button */}
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setOpenRecipeKey(
+                                        isRecipeOpen ? null : optionRecipeKey
+                                      )
+                                    }
+                                    className={cn(
+                                      "h-[40px] px-3.5 text-[13px] font-semibold rounded-[5px] border transition-colors flex items-center gap-1.5 cursor-pointer shrink-0",
+                                      isRecipeOpen
+                                        ? "bg-[#8F6900] text-white border-[#8F6900]"
+                                        : recipeCount > 0
+                                          ? "bg-[#F5F0EA] text-[#8F6900] border-[#8F6900]"
+                                          : "bg-[#F5F0EA] text-[#8F6900] border-[#8F6900] hover:bg-[#EFE8DE]"
+                                    )}
+                                  >
+                                    {language === "ar" ? "وصفة" : t("Recipe")}
+                                    {recipeCount > 0 && ` (${recipeCount})`}
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => removeOption(group.id, option.id)}
+                                    aria-label={t("Remove option")}
+                                    className="cursor-pointer p-1 text-[#C90000]"
+                                  >
+                                    <Trash2 className="size-4.5" />
+                                  </button>
                                 </div>
 
-                                {/* Recipe Button */}
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    setOpenRecipeKey(
-                                      isRecipeOpen ? null : optionRecipeKey
-                                    )
-                                  }
-                                  className={cn(
-                                    "h-10 px-3 text-[13px] font-semibold rounded-[5px] border transition-colors flex items-center gap-1.5 cursor-pointer shrink-0",
-                                    isRecipeOpen
-                                      ? "bg-[#8F6900] text-white border-[#8F6900]"
-                                      : recipeCount > 0
-                                        ? "bg-[#F5F0EA] text-[#8F6900] border-[#8F6900]"
-                                        : "bg-[#F5F0EA] text-[#8F6900] border-[#8F6900]/40 hover:border-[#8F6900]"
-                                  )}
-                                >
-                                  {language === "ar" ? "وصفة" : t("Recipe")}
-                                  {recipeCount > 0 && ` (${recipeCount})`}
-                                </button>
-
-                                <button
-                                  type="button"
-                                  onClick={() => removeOption(group.id, option.id)}
-                                  aria-label={t("Remove option")}
-                                  className="cursor-pointer p-1 text-[#C90000]"
-                                >
-                                  <Trash2 className="size-4" />
-                                </button>
+                                {/* Recipe Editor */}
+                                {isRecipeOpen && (
+                                  <OptionRecipeEditor
+                                    recipe={option.recipe || []}
+                                    onChange={(newRecipe) =>
+                                      updateOption(group.id, option.id, {
+                                        recipe: newRecipe,
+                                      })
+                                    }
+                                    ingredients={ingredients}
+                                    categories={categories}
+                                  />
+                                )}
                               </div>
+                            );
+                          })}
 
-                              {/* Recipe Editor */}
-                              {isRecipeOpen && (
-                                <OptionRecipeEditor
-                                  recipe={option.recipe || []}
-                                  onChange={(newRecipe) =>
-                                    updateOption(group.id, option.id, {
-                                      recipe: newRecipe,
-                                    })
-                                  }
-                                  ingredients={ingredients}
-                                  categories={categories}
-                                />
-                              )}
-                            </div>
-                          );
-                        })}
+                          <button
+                            type="button"
+                            onClick={() => addOption(group.id)}
+                            className="mt-1 flex h-[40px] cursor-pointer items-center justify-center gap-1.5 rounded-[5px] text-[12px] font-semibold text-[#8F6900] hover:bg-[#FDFBF7]"
+                          >
+                            <Plus className="size-3.5 text-[#8F6900]" />
+                            {t("New Option")}
+                          </button>
+                        </div>
                       </div>
-
-                      <button
-                        type="button"
-                        onClick={() => addOption(group.id)}
-                        className="mt-2.5 flex cursor-pointer items-center gap-1.5 text-[12px] font-semibold text-primary"
-                      >
-                        <Plus className="size-3.5" />
-                        {t("New Option")}
-                      </button>
                     </div>
                   ))}
                 </div>
@@ -803,18 +764,18 @@ const AddProductDialog = ({
             </div>
 
             {/* Extras */}
-            <div className="rounded-[12px] border border-[#E5E5E5] p-4">
-              <div className="mb-3 flex items-center justify-between">
-                <span className="text-[15px] font-semibold text-[#28293D] flex items-center gap-1.5">
-                  <Sparkles className="size-4.5 text-[#28293D]" />
+            <div className="rounded-[16px] border border-[#CACBD4] bg-[#FAFAF7] p-4 sm:p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-[12px] font-semibold text-[#333333] flex items-center gap-1.5">
+                  <BadgePlus className="size-5 text-[#333333]" />
                   {language === "ar" ? "الإضافات (Extras)" : t("Extras")}
                 </span>
                 <button
                   type="button"
                   onClick={addExtra}
-                  className="flex h-9 cursor-pointer items-center gap-1.5 rounded-[8px] border border-[#B28A15] px-3 text-[13px] font-semibold text-[#B28A15] hover:bg-[#FDFBF7]"
+                  className="flex h-[36px] cursor-pointer items-center gap-1.5 rounded-[5px] border border-[#8F6900] px-3 text-[12px] font-semibold text-[#8F6900] hover:bg-[#FDFBF7]"
                 >
-                  <Plus className="size-4" />
+                  <Plus className="size-4 text-[#8F6900]" />
                   {t("Add Extra")}
                 </button>
               </div>
@@ -824,33 +785,65 @@ const AddProductDialog = ({
                   {t("No extras added yet.")}
                 </div>
               ) : (
-                <div className="mt-3 rounded-[12px] border border-[#E5E5E5] p-4 bg-[#FAFAF7]/30 space-y-3">
+                <div className="space-y-4">
                   {form.extras.map((extra) => {
                     const extraRecipeKey = `ext-${extra.id}`;
                     const isExtraRecipeOpen = openRecipeKey === extraRecipeKey;
                     const extraRecipeCount = extra.recipe?.length || 0;
 
                     return (
-                      <div key={extra.id} className="flex flex-col gap-2">
-                        <div className="flex items-center gap-3">
+                      <div
+                        key={extra.id}
+                        className="border-dashed-gold bg-white p-3.5 sm:p-4 flex flex-col gap-2"
+                      >
+                        <div className="flex items-center gap-2.5">
                           <Input
                             value={extra.name}
                             onChange={(e) =>
                               updateExtra(extra.id, { name: e.target.value })
                             }
                             placeholder={t("Extra name")}
-                            className="h-12 flex-1 rounded-xl border-[#E5E5E5] bg-white px-4.5 text-[14px] focus-visible:border-primary focus-visible:ring-0"
+                            className="h-[50px] flex-1 rounded-[12px] border-[#E5E5E5] bg-white px-3.5 text-[14px] font-normal text-[#28293D] focus-visible:border-primary focus-visible:ring-0"
                           />
-                          <Input
-                            type="number"
-                            min="0"
-                            value={extra.price === 0 ? "" : extra.price}
-                            onChange={(e) =>
-                              updateExtra(extra.id, { price: Number(e.target.value) || 0 })
-                            }
-                            placeholder="0"
-                            className="h-12 w-20 rounded-xl border-[#E5E5E5] bg-white px-3 text-[14px] text-center focus-visible:border-primary focus-visible:ring-0"
-                          />
+                          <div className="flex h-[50px] items-center gap-2 rounded-[12px] border border-[#E5E5E5] bg-white px-3">
+                            <input
+                              type="number"
+                              min="0"
+                              value={extra.price}
+                              onChange={(e) =>
+                                updateExtra(extra.id, {
+                                  price: Number(e.target.value) || 0,
+                                })
+                              }
+                              className="w-10 bg-transparent text-center text-[15px] font-normal text-[#28293D] focus:outline-none focus:ring-0 border-0 p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            />
+                            <div className="flex flex-col">
+                              <button
+                                type="button"
+                                aria-label={t("Increase")}
+                                onClick={() =>
+                                  updateExtra(extra.id, {
+                                    price: extra.price + 1,
+                                  })
+                                }
+                                className="cursor-pointer text-[#333333] hover:text-black"
+                              >
+                                <ChevronUp className="size-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                aria-label={t("Decrease")}
+                                onClick={() =>
+                                  updateExtra(extra.id, {
+                                    price: Math.max(0, extra.price - 1),
+                                  })
+                                }
+                                className="cursor-pointer text-[#333333] hover:text-black"
+                              >
+                                <ChevronDown className="size-3.5" />
+                              </button>
+                            </div>
+                          </div>
 
                           {/* Recipe Button for Extras */}
                           <button
@@ -861,25 +854,25 @@ const AddProductDialog = ({
                               )
                             }
                             className={cn(
-                              "h-12 px-3 text-[13px] font-semibold rounded-xl border transition-colors flex items-center gap-1.5 cursor-pointer shrink-0",
+                              "h-[40px] px-3.5 text-[13px] font-semibold rounded-[5px] border transition-colors flex items-center gap-1.5 cursor-pointer shrink-0",
                               isExtraRecipeOpen
                                 ? "bg-[#8F6900] text-white border-[#8F6900]"
                                 : extraRecipeCount > 0
                                   ? "bg-[#F5F0EA] text-[#8F6900] border-[#8F6900]"
-                                  : "bg-[#F5F0EA] text-[#8F6900] border-[#8F6900]/40 hover:border-[#8F6900]"
+                                  : "bg-[#F5F0EA] text-[#8F6900] border-[#8F6900] hover:bg-[#EFE8DE]"
                             )}
                           >
                             {language === "ar" ? "وصفة" : t("Recipe")}
                             {extraRecipeCount > 0 && ` (${extraRecipeCount})`}
                           </button>
 
-                          <label className="flex cursor-pointer items-center gap-1.5 text-[13px] font-semibold text-[#28293D] shrink-0">
+                          <label className="flex cursor-pointer items-center gap-1.5 text-[12px] font-medium text-[#333333] shrink-0 px-1">
                             <Checkbox
                               checked={extra.active}
                               onCheckedChange={(val) =>
                                 updateExtra(extra.id, { active: Boolean(val) })
                               }
-                              className="size-5 rounded-[6px] border-[#8F6900]"
+                              className="size-[20px] rounded-[6px] border-[#8F6900]"
                             />
                             {t("Active")}
                           </label>
@@ -887,9 +880,9 @@ const AddProductDialog = ({
                             type="button"
                             onClick={() => removeExtra(extra.id)}
                             aria-label={t("Remove")}
-                            className="h-12 w-12 rounded-xl bg-[#C90000] text-white flex items-center justify-center hover:bg-[#A80000] transition-colors cursor-pointer shrink-0"
+                            className="cursor-pointer p-1 text-[#C90000]"
                           >
-                            <Trash2 className="size-5" />
+                            <Trash2 className="size-4.5" />
                           </button>
                         </div>
 

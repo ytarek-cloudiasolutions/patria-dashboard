@@ -29,40 +29,71 @@ export const mapProduct = (backendProduct: any): Product => {
         : backendProduct.category || "";
 
   const variantGroups: VariantGroup[] = (backendProduct.variantGroups || []).map((g: any) => ({
-    id: g._id || g.id,
-    name: g.name,
+    id: String(g._id || g.id || ""),
+    name: g.name || "",
     required: g.required ?? false,
     options: (g.options || []).map((o: any) => ({
-      id: o._id || o.id,
+      id: String(o._id || o.id || ""),
       name: o.label || o.name || "",
       price: o.priceAdjustment ?? o.price ?? 0,
-      recipe: (o.recipe || []).map((r: any) => ({
-        id: r._id || r.id,
-        material: r.material || r.ingredientId || "",
-        name: r.name || "",
-        price: r.price ?? 0,
-        quantity: r.quantity ?? r.amount ?? 0,
-        unit: r.unit || "pcs",
-        ingredientUnit: r.ingredientUnit || r.unit || "pcs",
-      })),
+      recipe: (o.recipe || []).map((r: any) => {
+        const matId = typeof r.material === "object" && r.material !== null
+          ? String(r.material._id || r.material.id || "")
+          : String(r.material || r.ingredientId || "");
+        const matName = r.name || (typeof r.material === "object" && r.material !== null ? r.material.name : "") || "";
+        const matPrice = r.price ?? (typeof r.material === "object" && r.material !== null ? r.material.price : 0) ?? 0;
+        return {
+          id: String(r._id || r.id || ""),
+          material: matId,
+          name: matName,
+          price: Number(matPrice) || 0,
+          quantity: Number(r.quantity ?? r.amount ?? 0),
+          unit: r.unit || "pcs",
+          ingredientUnit: r.ingredientUnit || r.unit || "pcs",
+        };
+      }),
     })),
   }));
 
   const extras: ProductExtra[] = (backendProduct.extras || []).map((e: any) => ({
-    id: e._id || e.id,
-    name: e.name,
-    price: e.price,
+    id: String(e._id || e.id || ""),
+    name: e.name || "",
+    price: Number(e.price) || 0,
     active: e.active ?? e.isActive ?? true,
-    recipe: (e.recipe || []).map((r: any) => ({
-      id: r._id || r.id,
-      material: r.material || r.ingredientId || "",
-      name: r.name || "",
-      price: r.price ?? 0,
-      quantity: r.quantity ?? r.amount ?? 0,
+    recipe: (e.recipe || []).map((r: any) => {
+      const matId = typeof r.material === "object" && r.material !== null
+        ? String(r.material._id || r.material.id || "")
+        : String(r.material || r.ingredientId || "");
+      const matName = r.name || (typeof r.material === "object" && r.material !== null ? r.material.name : "") || "";
+      const matPrice = r.price ?? (typeof r.material === "object" && r.material !== null ? r.material.price : 0) ?? 0;
+      return {
+        id: String(r._id || r.id || ""),
+        material: matId,
+        name: matName,
+        price: Number(matPrice) || 0,
+        quantity: Number(r.quantity ?? r.amount ?? 0),
+        unit: r.unit || "pcs",
+        ingredientUnit: r.ingredientUnit || r.unit || "pcs",
+      };
+    }),
+  }));
+
+  const recipe = (backendProduct.recipe || backendProduct.ingredients || []).map((r: any) => {
+    const matId = typeof r.material === "object" && r.material !== null
+      ? String(r.material._id || r.material.id || "")
+      : String(r.material || r.ingredientId || "");
+    const matName = r.name || (typeof r.material === "object" && r.material !== null ? r.material.name : "") || "";
+    const matPrice = r.price ?? (typeof r.material === "object" && r.material !== null ? r.material.price : 0) ?? 0;
+    return {
+      id: String(r._id || r.id || ""),
+      material: matId,
+      name: matName,
+      price: Number(matPrice) || 0,
+      quantity: Number(r.quantity ?? r.amount ?? 0),
       unit: r.unit || "pcs",
       ingredientUnit: r.ingredientUnit || r.unit || "pcs",
-    })),
-  }));
+    };
+  });
 
   const isIngredient = Boolean(
     backendProduct.isIngredient ||
@@ -83,6 +114,7 @@ export const mapProduct = (backendProduct: any): Product => {
     available: backendProduct.isActive ?? backendProduct.available ?? true,
     extras,
     variantGroups,
+    recipe,
     quantity: backendProduct.inventory ?? backendProduct.stockQty ?? 0,
     unit: (backendProduct.unit === "pcs" || backendProduct.unit === "pc" || !backendProduct.unit) ? "Piece(s)" : backendProduct.unit,
     isIngredient,

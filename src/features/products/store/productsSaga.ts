@@ -14,6 +14,7 @@ import type { Category } from "../types";
 import { getCategories } from "@/features/categories/api/categoriesApi";
 import { mapCategories } from "@/features/categories/utils/categoryMappers";
 import { selectCategories } from "@/features/categories/store/categoriesSelectors";
+import { saveRecipe, deleteRecipe } from "../api/recipeApi";
 import type {
   GetProductsRequest,
   GetProductsResponse,
@@ -59,6 +60,25 @@ function* handleCreateProduct(
       action.payload,
     )) as CreateProductResponse;
     const product = response.data?.product || (response as any).product || response;
+    const productId = String(product._id || product.id || "");
+
+    const recipeStr = action.payload.get("recipe") as string;
+    if (recipeStr && productId) {
+      try {
+        const recipeItems = JSON.parse(recipeStr);
+        if (Array.isArray(recipeItems) && recipeItems.length > 0) {
+          const ingredientsPayload = recipeItems.map((r: any) => ({
+            productId: String(r.material || r.ingredientId || ""),
+            quantity: Number(r.quantity) || 0,
+            unit: r.unit || "pcs",
+          }));
+          yield call(saveRecipe, productId, { ingredients: ingredientsPayload });
+        }
+      } catch (recipeErr) {
+        console.error("Failed to save product recipe:", recipeErr);
+      }
+    }
+
     yield call(showSuccessToast, "Product created successfully");
     yield put(
       productsActions.createProductSuccess({
@@ -84,6 +104,26 @@ function* handleUpdateProduct(
       formData,
     )) as UpdateProductResponse;
     const product = response.data?.product || (response as any).product || response;
+
+    const recipeStr = formData.get("recipe") as string;
+    if (recipeStr && productId) {
+      try {
+        const recipeItems = JSON.parse(recipeStr);
+        if (Array.isArray(recipeItems) && recipeItems.length > 0) {
+          const ingredientsPayload = recipeItems.map((r: any) => ({
+            productId: String(r.material || r.ingredientId || ""),
+            quantity: Number(r.quantity) || 0,
+            unit: r.unit || "pcs",
+          }));
+          yield call(saveRecipe, productId, { ingredients: ingredientsPayload });
+        } else {
+          yield call(deleteRecipe, productId);
+        }
+      } catch (recipeErr) {
+        console.error("Failed to update product recipe:", recipeErr);
+      }
+    }
+
     yield call(showSuccessToast, "Product updated successfully");
     yield put(
       productsActions.updateProductSuccess({
@@ -103,6 +143,11 @@ function* handleDeleteProduct(
 ): Generator<any, void, any> {
   try {
     const { productId } = action.payload;
+    try {
+      yield call(deleteRecipe, productId);
+    } catch {
+      // Ignore if product had no recipe
+    }
     const response: DeleteProductResponse = (yield call(
       deleteProduct,
       productId,

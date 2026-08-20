@@ -21,6 +21,7 @@ export interface Product {
   available: boolean;
   extras?: ProductExtra[];
   variantGroups?: VariantGroup[];
+  recipe?: OptionRecipeItem[];
   quantity?: number;
   unit?: string;
   productType?: string;
@@ -107,6 +108,7 @@ export interface ProductFormData {
   imageFile?: File;
   variantGroups: VariantGroup[];
   ingredients: RecipeIngredient[];
+  recipe: OptionRecipeItem[];
   extras: ProductExtra[];
 }
 

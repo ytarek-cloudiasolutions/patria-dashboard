@@ -257,26 +257,35 @@ const ProductsPage = () => {
     formData.append("productType", data.productType);
 
     const mappedVariantGroups = data.variantGroups
-      .filter((g) => g.name.trim())
+      .filter((g) => g.name && g.name.trim())
       .map((g) => ({
         name: g.name.trim(),
-        required: g.required,
-        options: g.options
-          .filter((o) => o.name.trim())
-          .map((o) => ({
-            name: o.name.trim(),
-            label: o.name.trim(),
-            priceAdjustment: Number(o.price) || 0,
-            recipe: (o.recipe || []).map((r) => ({
-              material: r.material,
-              ingredientId: r.material,
-              name: r.name,
-              price: Number(r.price) || 0,
-              quantity: Number(r.quantity) || 0,
-              unit: r.unit || "pcs",
-              ingredientUnit: r.ingredientUnit || r.unit || "pcs",
-            })),
-          })),
+        required: Boolean(g.required),
+        options: (g.options || [])
+          .filter((o) => (o.name || (o as any).label || "").trim())
+          .map((o) => {
+            const optName = (o.name || (o as any).label || "").trim();
+            return {
+              name: optName,
+              label: optName,
+              priceAdjustment: Number(o.price) || 0,
+              recipe: (o.recipe || []).map((r) => {
+                const matId =
+                  typeof r.material === "object" && r.material !== null
+                    ? String((r.material as any)._id || (r.material as any).id || "")
+                    : String(r.material || (r as any).ingredientId || "");
+                return {
+                  material: matId,
+                  ingredientId: matId,
+                  name: r.name || "",
+                  price: Number(r.price) || 0,
+                  quantity: Number(r.quantity) || 0,
+                  unit: r.unit || "pcs",
+                  ingredientUnit: r.ingredientUnit || r.unit || "pcs",
+                };
+              }),
+            };
+          }),
       }));
     formData.append("variantGroups", JSON.stringify(mappedVariantGroups));
 
@@ -296,6 +305,23 @@ const ProductsPage = () => {
         })),
       }));
     formData.append("extras", JSON.stringify(mappedExtras));
+
+    const mappedRecipe = (data.recipe || []).map((r) => {
+      const matId =
+        typeof r.material === "object" && r.material !== null
+          ? String((r.material as any)._id || (r.material as any).id || "")
+          : String(r.material || (r as any).ingredientId || "");
+      return {
+        material: matId,
+        ingredientId: matId,
+        name: r.name || "",
+        price: Number(r.price) || 0,
+        quantity: Number(r.quantity) || 0,
+        unit: r.unit || "pcs",
+        ingredientUnit: r.ingredientUnit || r.unit || "pcs",
+      };
+    });
+    formData.append("recipe", JSON.stringify(mappedRecipe));
 
     if (data.imageFile) {
       formData.append("images", data.imageFile);

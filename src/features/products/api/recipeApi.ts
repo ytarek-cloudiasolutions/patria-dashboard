@@ -16,16 +16,16 @@ export interface Recipe {
 }
 
 export const getRecipe = async (productId: string): Promise<Recipe | null> => {
-  const res = await api.get<{ data: { recipe: Recipe | null } }>(`/recipes/${productId}`);
-  return res.data.data.recipe;
+  const res = await api.get<any>(`/recipes/${productId}`);
+  return res.data?.data?.recipe || res.data?.recipe || res.data || null;
 };
 
 export const saveRecipe = async (
   productId: string,
   data: { ingredients: RecipeIngredient[]; notes?: string },
 ): Promise<Recipe> => {
-  const res = await api.post<{ data: { recipe: Recipe } }>(`/recipes/${productId}`, data);
-  return res.data.data.recipe;
+  const res = await api.post<any>(`/recipes/${productId}`, data);
+  return res.data?.data?.recipe || res.data?.recipe || res.data || null;
 };
 
 export const deleteRecipe = async (productId: string): Promise<void> => {
