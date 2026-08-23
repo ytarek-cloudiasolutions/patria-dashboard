@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { getSocket } from "@/shared/lib/socket";
 import { startLoopingAlert, stopLoopingAlert, unlockAudio } from "@/shared/lib/notificationSound";
-import { updateOrderStatus } from "../api/ordersApi";
+import { getOrders, updateOrderStatus } from "../api/ordersApi";
 import { showErrorToast, showSuccessToast } from "@/shared/utils/toast";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import IncomingOrderDialog from "./IncomingOrderDialog";
@@ -69,18 +69,40 @@ const IncomingOrderWatcher = () => {
     };
   }, []);
 
+  const addToQueue = (order: IncomingOrder | null) => {
+    if (!order) return;
+    setQueue((prev) => (prev.some((o) => o._id === order._id) ? prev : [...prev, order]));
+  };
+
+  // Catch up on any app orders the live socket missed — a page load, a
+  // refresh, or a socket reconnect after a dropped connection all leave a
+  // window where a real newOrder event could have fired with nobody
+  // listening. GET /orders?source=application&status=pending returns
+  // exactly the same "still needs staff acknowledgment" set a live event
+  // represents, so seed the queue with it up front and again on reconnect.
+  const fetchPendingAppOrders = () => {
+    getOrders({ source: "application", status: "pending", limit: 50 })
+      .then((res: any) => {
+        const raw: any[] = res?.data ?? res?.orders ?? [];
+        raw.forEach((o) => addToQueue(mapIncomingOrder(o)));
+      })
+      .catch(() => {});
+  };
+
   useEffect(() => {
+    fetchPendingAppOrders();
     const socket = getSocket();
     const handleNewOrder = (raw: any) => {
       if (raw?.source !== "application") return;
-      const order = mapIncomingOrder(raw);
-      if (!order) return;
-      setQueue((prev) => (prev.some((o) => o._id === order._id) ? prev : [...prev, order]));
+      addToQueue(mapIncomingOrder(raw));
     };
     socket.on("newOrder", handleNewOrder);
+    socket.on("connect", fetchPendingAppOrders);
     return () => {
       socket.off("newOrder", handleNewOrder);
+      socket.off("connect", fetchPendingAppOrders);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
