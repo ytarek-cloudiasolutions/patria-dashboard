@@ -1,25 +1,47 @@
 let audioCtx: AudioContext | null = null;
 
+function getAudioContext(): AudioContext {
+  const AudioContextCtor =
+    window.AudioContext ||
+    (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+  audioCtx ??= new AudioContextCtor();
+  return audioCtx;
+}
+
+/**
+ * Browsers refuse to start/resume an AudioContext outside a real user
+ * gesture — calling resume() later from a socket-event handler is not a
+ * gesture and silently fails in most browsers, which is why the incoming-
+ * order alert could show its popup with no sound. Call this from a one-time
+ * click/keydown/touchstart listener (see IncomingOrderWatcher) so the
+ * context is already running by the time a real alert needs to play.
+ */
+export function unlockAudio() {
+  try {
+    const ctx = getAudioContext();
+    if (ctx.state === "suspended") ctx.resume();
+  } catch {
+    // ignore
+  }
+}
+
 /** Two-tone notification beep — no audio file needed, works after any user interaction unlocks audio. */
 export function playNotificationSound() {
   try {
-    const AudioContextCtor =
-      window.AudioContext ||
-      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-    audioCtx ??= new AudioContextCtor();
+    const audioCtx = getAudioContext();
     if (audioCtx.state === "suspended") audioCtx.resume();
 
     const now = audioCtx.currentTime;
     [880, 1175].forEach((freq, i) => {
-      const osc = audioCtx!.createOscillator();
-      const gain = audioCtx!.createGain();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
       osc.type = "sine";
       osc.frequency.value = freq;
       const start = now + i * 0.18;
       gain.gain.setValueAtTime(0, start);
       gain.gain.linearRampToValueAtTime(0.3, start + 0.02);
       gain.gain.exponentialRampToValueAtTime(0.001, start + 0.16);
-      osc.connect(gain).connect(audioCtx!.destination);
+      osc.connect(gain).connect(audioCtx.destination);
       osc.start(start);
       osc.stop(start + 0.18);
     });

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { getSocket } from "@/shared/lib/socket";
-import { startLoopingAlert, stopLoopingAlert } from "@/shared/lib/notificationSound";
+import { startLoopingAlert, stopLoopingAlert, unlockAudio } from "@/shared/lib/notificationSound";
 import { updateOrderStatus } from "../api/ordersApi";
 import { showErrorToast, showSuccessToast } from "@/shared/utils/toast";
 import { useTranslation } from "@/shared/i18n/useTranslation";
@@ -46,6 +46,28 @@ const IncomingOrderWatcher = () => {
   const [isConfirming, setIsConfirming] = useState(false);
   const current = queue[0] ?? null;
   const soundActiveRef = useRef(false);
+
+  // Browsers block audio from starting outside a real user gesture — prime
+  // the AudioContext on the very first click/keypress/tap anywhere in the
+  // app so it's already unlocked by the time a real order alert fires
+  // (calling resume() later, from a socket handler, is too late to count
+  // as a gesture in most browsers and silently does nothing).
+  useEffect(() => {
+    const unlock = () => {
+      unlockAudio();
+      window.removeEventListener("click", unlock);
+      window.removeEventListener("keydown", unlock);
+      window.removeEventListener("touchstart", unlock);
+    };
+    window.addEventListener("click", unlock);
+    window.addEventListener("keydown", unlock);
+    window.addEventListener("touchstart", unlock);
+    return () => {
+      window.removeEventListener("click", unlock);
+      window.removeEventListener("keydown", unlock);
+      window.removeEventListener("touchstart", unlock);
+    };
+  }, []);
 
   useEffect(() => {
     const socket = getSocket();
