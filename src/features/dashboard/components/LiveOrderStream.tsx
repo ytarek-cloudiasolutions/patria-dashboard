@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 
 interface LiveOrderStreamProps {
   orders: LiveOrder[];
+  onOrderClick?: (orderId: string) => void;
 }
 
 const statusStyles: Record<OrderStatus, string> = {
@@ -17,7 +18,7 @@ const statusStyles: Record<OrderStatus, string> = {
 const formatAmount = (amount: number) =>
   Number.isInteger(amount) ? amount.toLocaleString() : amount.toFixed(2);
 
-const LiveOrderStream = ({ orders }: LiveOrderStreamProps) => {
+const LiveOrderStream = ({ orders, onOrderClick }: LiveOrderStreamProps) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const StreamIcon = ORDER_STREAM_ICON;
@@ -41,7 +42,10 @@ const LiveOrderStream = ({ orders }: LiveOrderStreamProps) => {
         {orders.map((order) => (
           <article
             key={order.id}
-            className="flex min-h-16 items-center gap-2.5 rounded-[16px] border border-[#E5E5E5] bg-white px-3 py-3 sm:min-h-19 sm:gap-3"
+            onClick={() => onOrderClick?.(order.id)}
+            role="button"
+            tabIndex={0}
+            className="flex min-h-16 items-center gap-2.5 rounded-[16px] border border-[#E5E5E5] bg-white px-3 py-3 sm:min-h-19 sm:gap-3 cursor-pointer transition-colors hover:border-[#8F6900]/40 hover:bg-[#FAFAF7]"
           >
             <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-[13px] font-bold text-white sm:size-10">
               {order.initials}

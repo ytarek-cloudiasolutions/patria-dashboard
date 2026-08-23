@@ -31,6 +31,9 @@ import { useTranslation } from "@/shared/i18n/useTranslation";
 import DefaultButton from "@/shared/components/DefaultButton";
 import DatePicker from "@/shared/components/DatePicker";
 import CustomerNotificationDialog from "./components/CustomerNotificationDialog";
+import OrderDetailsDialog from "@/features/orders/components/OrderDetailsDialog";
+import { mapOrder } from "@/features/orders/utils/orderMappers";
+import type { Order } from "@/features/orders/types";
 
 const getTodayDateString = () => {
   const d = new Date();
@@ -64,6 +67,10 @@ const DashboardPage = () => {
   const [revenueTrend, setRevenueTrend] = useState<RevenuePoint[]>([]);
   const [topProducts, setTopProducts] = useState<SoldProduct[]>([]);
   const [liveOrders, setLiveOrders] = useState<LiveOrder[]>([]);
+  const [rawOrdersMap, setRawOrdersMap] = useState<Map<string, any>>(new Map());
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [isOrderDetailsOpen, setIsOrderDetailsOpen] = useState(false);
+
   const [indicators, setIndicators] = useState<PerformanceIndicator[]>([]);
   const [posRevenuePercent, setPosRevenuePercent] = useState(0);
   const [dateRange, setDateRange] = useState({
@@ -191,13 +198,20 @@ const DashboardPage = () => {
         setPosRevenuePercent(ov.posRevenuePercent ?? 0);
 
         const rawOrders: any[] = ordersRes.data?.data ?? ordersRes.data?.orders ?? [];
+        const ordersMap = new Map<string, any>();
+
         const live: LiveOrder[] = rawOrders.map((o: any) => {
+          const idKey = String(o.orderId || o._id || o.id);
+          ordersMap.set(idKey, o);
+          if (o._id) ordersMap.set(String(o._id), o);
+          if (o.orderId) ordersMap.set(String(o.orderId), o);
+
           const customerName =
             typeof o.customer === "string"
               ? o.customer
               : o.customer?.name ?? "Walk-in";
           return {
-            id: o.orderId ?? o._id,
+            id: idKey,
             customer: customerName,
             initials: customerName.charAt(0).toUpperCase(),
             amount: o.total ?? 0,
@@ -211,6 +225,8 @@ const DashboardPage = () => {
             status: mapOrderStatus(o.status),
           };
         });
+
+        setRawOrdersMap(ordersMap);
         setLiveOrders(live);
       } catch {
         // silently fail — static fallback via initial empty state
@@ -221,6 +237,26 @@ const DashboardPage = () => {
 
     load();
   }, [dateRange.from, dateRange.to]);
+
+  const handleOrderClick = async (orderId: string) => {
+    const cachedRaw = rawOrdersMap.get(String(orderId));
+    if (cachedRaw) {
+      setSelectedOrder(mapOrder(cachedRaw));
+      setIsOrderDetailsOpen(true);
+      return;
+    }
+
+    try {
+      const res = await api.get(`/orders/${orderId}`);
+      const fetchedRaw = res.data?.data || res.data?.order || res.data;
+      if (fetchedRaw) {
+        setSelectedOrder(mapOrder(fetchedRaw));
+        setIsOrderDetailsOpen(true);
+      }
+    } catch (err) {
+      console.error("Failed to fetch order details:", err);
+    }
+  };
 
   const today = new Date().toLocaleDateString("en-US", {
     weekday: "long",
@@ -282,6 +318,13 @@ const DashboardPage = () => {
         onOpenChange={setIsNotificationOpen}
       />
 
+      <OrderDetailsDialog
+        open={isOrderDetailsOpen}
+        order={selectedOrder}
+        onOpenChange={setIsOrderDetailsOpen}
+        onOrderUpdated={(updated) => setSelectedOrder(updated)}
+      />
+
       <DashboardMetrics metrics={metrics} />
 
       <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[1.6fr_1fr]">
@@ -294,7 +337,7 @@ const DashboardPage = () => {
 
       <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[1fr_1.4fr]">
         <TopSoldProducts products={topProducts} />
-        <LiveOrderStream orders={liveOrders} />
+        <LiveOrderStream orders={liveOrders} onOrderClick={handleOrderClick} />
       </div>
     </div>
   );
