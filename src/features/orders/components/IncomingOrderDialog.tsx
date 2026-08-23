@@ -4,12 +4,11 @@ import {
   DialogContent,
   DialogTitle,
 } from "@/shared/components/ui/dialog";
-import { Button } from "@/shared/components/ui/button";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import type { IncomingOrder } from "./IncomingOrderWatcher";
 
 const formatEgp = (value: number) =>
-  `EGP ${value.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+  `EGP ${value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 interface IncomingOrderDialogProps {
   order: IncomingOrder | null;
@@ -27,52 +26,60 @@ const IncomingOrderDialog = ({ order, isConfirming, onConfirm }: IncomingOrderDi
   const { t } = useTranslation();
   if (!order) return null;
 
+  const orderDisplayId = order.orderId.startsWith("#") ? order.orderId : `#${order.orderId}`;
+
   return (
     <Dialog open={!!order} onOpenChange={() => {}}>
       <DialogContent
         showCloseButton={false}
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
-        className="w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-115"
+        className="w-[610px] max-w-[610px] sm:max-w-[610px] overflow-hidden rounded-[12px] border-[6px] border-[#8F6900] bg-white pt-8 pb-6 px-6 shadow-[0px_4px_6px_-4px_rgba(0,0,0,0.1),0px_10px_15px_-3px_rgba(0,0,0,0.1)] ring-0 outline-none flex flex-col gap-6"
       >
-        <div className="flex items-center gap-3 bg-[#C90000] px-5 py-4">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-[10px] bg-white/20">
-            <ShoppingBag className="size-5 text-white" />
+        {/* Header Row */}
+        <div className="flex items-center gap-4 text-start">
+          <div className="flex h-[47px] w-[47px] shrink-0 items-center justify-center rounded-[20.89px] bg-[#FAFAF7]">
+            <ShoppingBag className="size-[24px] text-[#8F6900]" />
           </div>
-          <div className="min-w-0">
-            <DialogTitle className="text-[13px] font-medium text-white/90">
-              {t("New Order — from the app")}
+          <div className="flex flex-col justify-center gap-1">
+            <span className="text-[16px] font-normal leading-[22.4px] tracking-[0.32px] text-[#595959]">
+              {t("New Order · App Order")}
+            </span>
+            <DialogTitle className="text-[24px] font-semibold tracking-[0.48px] text-[#28293D]" dir="ltr">
+              {orderDisplayId}
             </DialogTitle>
-            <p className="truncate text-[18px] font-bold text-white" dir="ltr">
-              #{order.orderId}
-            </p>
           </div>
         </div>
 
-        <div className="flex flex-col gap-4 px-5 py-5">
-          <div>
-            <p className="text-[16px] font-bold text-[#28293D]">{order.customer.name}</p>
-            <div className="mt-1.5 flex flex-col gap-1 text-[13px] text-[#595959]">
-              {order.customer.phone && (
-                <div className="flex items-center gap-1.5" dir="ltr">
-                  <Phone size={14} className="shrink-0" />
-                  {order.customer.phone}
-                </div>
-              )}
-              {order.customer.address && (
-                <div className="flex items-start gap-1.5">
-                  <MapPin size={14} className="mt-0.5 shrink-0" />
-                  <span>{order.customer.address}</span>
-                </div>
-              )}
-            </div>
-          </div>
+        {/* Separator */}
+        <div className="w-full border-t border-[#CACBD4]" />
 
-          <div className="flex flex-col gap-2 rounded-[12px] border border-[#E5E5E5] bg-[#FAFAF7] px-4 py-3">
+        {/* Customer Details Card */}
+        <div className="flex flex-col gap-2.5 rounded-[16px] border border-[#E5E5E5] bg-[#FAFAF7] p-4 text-start">
+          <p className="text-[16px] font-semibold leading-[17.12px] tracking-[0.32px] text-[#333333]">
+            {order.customer.name}
+          </p>
+          {order.customer.phone && (
+            <div className="flex items-center gap-1.5 text-[12px] font-semibold tracking-[0.24px] text-[#595959]" dir="ltr">
+              <Phone className="size-3.5 text-[#595959]" />
+              <span>{order.customer.phone}</span>
+            </div>
+          )}
+          {order.customer.address && (
+            <div className="flex items-center gap-1.5 text-[12px] font-semibold tracking-[0.24px] text-[#595959]">
+              <MapPin className="size-3.5 text-black" />
+              <span>{order.customer.address}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Items & Total Card */}
+        <div className="flex flex-col gap-4 rounded-[16px] border border-[#E5E5E5] bg-[#FAFAF7] p-4 text-start">
+          <div className="flex flex-col gap-3">
             {order.items.map((item, idx) => (
               <div key={idx} className="flex items-center justify-between text-[14px]">
-                <span className="text-[#28293D]">
-                  {item.quantity}× {item.name}
+                <span className="font-medium text-black">
+                  {item.quantity}X {item.name}
                 </span>
                 <span className="font-medium text-[#28293D]" dir="ltr">
                   {formatEgp(item.price * item.quantity)}
@@ -81,27 +88,31 @@ const IncomingOrderDialog = ({ order, isConfirming, onConfirm }: IncomingOrderDi
             ))}
           </div>
 
-          <div className="flex items-center justify-between border-t border-[#E5E5E5] pt-3">
-            <span className="text-[15px] font-semibold text-[#28293D]">{t("Total")}</span>
-            <span className="text-[20px] font-bold text-[#C90000]" dir="ltr">
-              {formatEgp(order.total)}
+          <div className="w-full border-t border-[#CACBD4]" />
+
+          <div className="flex items-center justify-between text-[18px]">
+            <span className="font-semibold text-black">{t("Total:")}</span>
+            <span className="text-black" dir="ltr">
+              <span className="font-medium">EGP </span>
+              <span className="font-semibold">{Number(order.total || 0).toFixed(2)}</span>
             </span>
           </div>
-
-          <Button
-            type="button"
-            disabled={isConfirming}
-            onClick={onConfirm}
-            className="flex h-13 w-full cursor-pointer items-center justify-center gap-2 rounded-[8px] bg-[#059B5A] text-[16px] font-semibold text-white hover:bg-[#04824c] disabled:opacity-60"
-          >
-            {isConfirming ? (
-              <Loader2 className="size-5 animate-spin" />
-            ) : (
-              <CheckCircle2 className="size-5" />
-            )}
-            {t("Confirm Order")}
-          </Button>
         </div>
+
+        {/* Confirm Order Button */}
+        <button
+          type="button"
+          disabled={isConfirming}
+          onClick={onConfirm}
+          className="flex h-[56px] w-full cursor-pointer items-center justify-center gap-3 rounded-[5px] border border-[#059B5A] bg-[#E2F4ED] text-[16px] font-semibold text-[#059B5A] transition-colors hover:bg-[#E2F4ED]/80 disabled:opacity-60"
+        >
+          {isConfirming ? (
+            <Loader2 className="size-5 animate-spin text-[#059B5A]" />
+          ) : (
+            <CheckCircle2 className="size-5 text-[#059B5A]" />
+          )}
+          {t("Confirm Order")}
+        </button>
       </DialogContent>
     </Dialog>
   );
