@@ -191,12 +191,7 @@ const OrdersTable = ({
                       <button
                         type="button"
                         onClick={() => onViewOrder(order)}
-                        className={cn(
-                          "inline-flex h-8 cursor-pointer items-center gap-2 rounded-[8px] px-3 text-[13px] text-[#333333] transition-colors",
-                          isNewOrder
-                            ? "bg-[#F5F0EA] border border-[#E5E5E5] hover:bg-white"
-                            : "bg-[#F5F0EA] hover:bg-[#EFE7DE]"
-                        )}
+                        className="inline-flex h-8 cursor-pointer items-center gap-2 rounded-[8px] border border-[#E5E5E5] bg-[#F5F0EA] px-3 text-[13px] text-[#333333] transition-colors hover:border-[#8F6900]/40 hover:bg-[#FAFAF7]"
                       >
                         <span>
                           <span className="font-semibold">

@@ -488,7 +488,7 @@ const OrderDetailsDialog = ({
                         <button
                           type="button"
                           onClick={handleMarkAsPaid}
-                          className="inline-flex cursor-pointer items-center rounded-full border border-[#C7861E] bg-[rgba(254,154,0,0.10)] px-3 py-0.5 text-[13px] font-semibold tracking-[0.26px] text-[#C7861E] transition-colors hover:border-[#8F6900] hover:bg-[#8F6900] hover:text-white"
+                          className="inline-flex cursor-pointer items-center rounded-full border border-[#C7861E] bg-[rgba(254,154,0,0.10)] px-3 py-0.5 text-[13px] font-semibold tracking-[0.26px] text-[#C7861E]"
                           title={t("Mark as Paid")}
                         >
                           {t("Pending")} · {t("Mark as Paid")}
@@ -690,7 +690,7 @@ const OrderDetailsDialog = ({
             <button
               type="button"
               onClick={() => setIsDiscountOpen(true)}
-              className="flex h-[56px] w-full cursor-pointer items-center justify-center gap-3 rounded-[5px] border border-[#8F6900] bg-white text-[16px] font-semibold text-[#8F6900] transition-colors hover:bg-[#F5F0EA]"
+              className="flex h-[56px] w-full cursor-pointer items-center justify-center gap-3 rounded-[5px] border border-[#8F6900] bg-white text-[16px] font-semibold text-[#8F6900]"
             >
               <Wallet className="size-[18px] text-[#8F6900]" />
               {t("Administrative discount application")}
@@ -700,7 +700,7 @@ const OrderDetailsDialog = ({
               <button
                 type="button"
                 onClick={() => handlePrint("customer")}
-                className="flex h-[56px] flex-1 cursor-pointer items-center justify-center gap-3 rounded-[5px] border border-[#8F6900] bg-white text-[16px] font-semibold text-[#8F6900] transition-colors hover:bg-[#F5F0EA]"
+                className="flex h-[56px] flex-1 cursor-pointer items-center justify-center gap-3 rounded-[5px] border border-[#8F6900] bg-white text-[16px] font-semibold text-[#8F6900]"
               >
                 <Printer className="size-[18px] text-[#8F6900]" />
                 {t("Print Customer Receipt")}
@@ -708,7 +708,7 @@ const OrderDetailsDialog = ({
               <button
                 type="button"
                 onClick={() => handlePrint("kitchen")}
-                className="flex h-[56px] flex-1 cursor-pointer items-center justify-center gap-3 rounded-[5px] bg-[#8F6900] text-[16px] font-semibold text-white transition-colors hover:bg-[#8F6900]/90"
+                className="flex h-[56px] flex-1 cursor-pointer items-center justify-center gap-3 rounded-[5px] bg-[#8F6900] text-[16px] font-semibold text-white"
               >
                 <Printer className="size-[18px] text-white" />
                 {t("Print Kitchen Receipt")}
