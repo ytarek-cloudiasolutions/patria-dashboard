@@ -1,3 +1,31 @@
+const MUTE_KEY = "patria_order_sound_muted";
+
+export function isSoundMuted(): boolean {
+  try {
+    return localStorage.getItem(MUTE_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+export function setSoundMuted(muted: boolean) {
+  try {
+    localStorage.setItem(MUTE_KEY, String(muted));
+    if (muted) {
+      stopLoopingAlert();
+    }
+    window.dispatchEvent(new CustomEvent("orderSoundMuteChanged", { detail: { muted } }));
+  } catch {
+    // ignore
+  }
+}
+
+export function toggleSoundMuted(): boolean {
+  const next = !isSoundMuted();
+  setSoundMuted(next);
+  return next;
+}
+
 let audioCtx: AudioContext | null = null;
 
 function getAudioContext(): AudioContext {
@@ -27,6 +55,7 @@ export function unlockAudio() {
 
 /** Two-tone notification beep — no audio file needed, works after any user interaction unlocks audio. */
 export function playNotificationSound() {
+  if (isSoundMuted()) return;
   try {
     const audioCtx = getAudioContext();
     if (audioCtx.state === "suspended") audioCtx.resume();
@@ -56,6 +85,7 @@ let loopTimer: ReturnType<typeof setInterval> | null = null;
  * for alerts that must keep the staff's attention until they act (e.g. a
  * new incoming order), not just a one-shot "something happened" chime. */
 export function startLoopingAlert() {
+  if (isSoundMuted()) return;
   if (loopTimer) return; // already looping
   playNotificationSound();
   loopTimer = setInterval(playNotificationSound, 1500);

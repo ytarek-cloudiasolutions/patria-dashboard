@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Sun, Bell, PanelLeftClose, PanelRightClose, Languages } from "lucide-react";
+import { Bell, PanelLeftClose, PanelRightClose, Languages, Volume2, VolumeX } from "lucide-react";
 import { useSelector } from "react-redux";
 import { useSidebar } from "@/shared/components/ui/sidebar";
 import { useTranslation } from "@/shared/i18n/useTranslation";
@@ -7,6 +7,7 @@ import NotificationsPanel from "@/features/notifications/components/Notification
 import { selectAuthUser } from "@/features/auth/store/authSelectors";
 import { api } from "@/config/api";
 import { getSocket } from "@/shared/lib/socket";
+import { isSoundMuted, toggleSoundMuted } from "@/shared/lib/notificationSound";
 
 interface AppTopbarProps {
   adminName?: string;
@@ -36,14 +37,26 @@ const AppTopbar = ({
 }: AppTopbarProps) => {
   const user = useSelector(selectAuthUser);
   const { toggleSidebar } = useSidebar();
-  const { language, toggleLanguage, dir } = useTranslation();
+  const { t, language, toggleLanguage, dir } = useTranslation();
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState<number | null>(null);
+  const [isMuted, setIsMuted] = useState(() => isSoundMuted());
 
   const PanelIcon = dir === "rtl" ? PanelRightClose : PanelLeftClose;
   const displayName = user?.name ?? adminName;
   const displayEmail = user?.email ?? adminEmail;
   const displayInitials = adminInitials ?? getInitials(displayName);
+
+  useEffect(() => {
+    const handleMuteChange = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.muted !== undefined) {
+        setIsMuted(detail.muted);
+      }
+    };
+    window.addEventListener("orderSoundMuteChanged", handleMuteChange);
+    return () => window.removeEventListener("orderSoundMuteChanged", handleMuteChange);
+  }, []);
 
   useEffect(() => {
     const fetchUnread = () => {
@@ -72,6 +85,11 @@ const AppTopbar = ({
     };
   }, [isNotifOpen]);
 
+  const handleToggleMute = () => {
+    const next = toggleSoundMuted();
+    setIsMuted(next);
+  };
+
   const displayCount = unreadCount ?? propNotificationCount ?? 0;
 
   return (
@@ -97,9 +115,19 @@ const AppTopbar = ({
           {language === "en" ? "العربية" : "English"}
         </button>
 
-        {/* Theme toggle */}
-        <button className="flex h-8 w-8 items-center justify-center rounded-[16px] text-[#000000] bg-[#FAFAF7] cursor-pointer sm:h-9 sm:w-9">
-          <Sun size={20} />
+        {/* Order Alarm Sound Mute / Unmute Toggle */}
+        <button
+          type="button"
+          onClick={handleToggleMute}
+          aria-label={isMuted ? t("Unmute Order Alert Sound") : t("Mute Order Alert Sound")}
+          title={isMuted ? t("Unmute Order Alert Sound") : t("Mute Order Alert Sound")}
+          className="flex h-8 w-8 items-center justify-center rounded-[16px] text-[#000000] bg-[#FAFAF7] cursor-pointer sm:h-9 sm:w-9 transition-colors"
+        >
+          {isMuted ? (
+            <VolumeX size={20} className="text-[#C90000]" />
+          ) : (
+            <Volume2 size={20} className="text-[#28293D]" />
+          )}
         </button>
 
         {/* Notifications */}
