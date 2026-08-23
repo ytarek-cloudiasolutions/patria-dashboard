@@ -5,6 +5,7 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "@/app/store";
 import { authActions } from "@/features/auth/store/authSlice";
+import IncomingOrderWatcher from "@/features/orders/components/IncomingOrderWatcher";
 
 interface AppLayoutProps {
   children?: React.ReactNode;
@@ -32,6 +33,8 @@ const AppLayout = ({ children }: AppLayoutProps) => {
           </main>
         </SidebarInset>
       </div>
+
+      <IncomingOrderWatcher />
     </SidebarProvider>
   );
 };

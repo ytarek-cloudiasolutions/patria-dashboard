@@ -27,3 +27,21 @@ export function playNotificationSound() {
     // Audio not available (e.g. autoplay blocked before first user interaction) — ignore
   }
 }
+
+let loopTimer: ReturnType<typeof setInterval> | null = null;
+
+/** Repeats the two-tone beep every 1.5s until stopLoopingAlert() is called —
+ * for alerts that must keep the staff's attention until they act (e.g. a
+ * new incoming order), not just a one-shot "something happened" chime. */
+export function startLoopingAlert() {
+  if (loopTimer) return; // already looping
+  playNotificationSound();
+  loopTimer = setInterval(playNotificationSound, 1500);
+}
+
+export function stopLoopingAlert() {
+  if (loopTimer) {
+    clearInterval(loopTimer);
+    loopTimer = null;
+  }
+}
