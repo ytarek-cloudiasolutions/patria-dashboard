@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ChevronDown, ChevronUp, Plus, Trash2, PlusCircle, Box, BadgePlus, Layers, ListPlus } from "lucide-react";
+import { ChevronDown, ChevronUp, Plus, Trash2, PlusCircle, Box, BadgePlus, Layers, ListPlus, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Dialog,
@@ -565,9 +565,9 @@ const AddProductDialog = ({
 
             {/* Recipe / Ingredients */}
             <div className="flex flex-col">
-              <Label className="mb-2.5 text-[16px] font-semibold text-black">
+              <Label className="mb-2.5 text-[13px] font-medium text-black">
                 {t("Recipe/Ingredients")}{" "}
-                <span className="text-[13px] font-normal text-[#8B8B8B]">
+                <span className="text-[13px] font-medium text-[#595959]">
                   {t("(Optional)")}
                 </span>
               </Label>
@@ -576,6 +576,9 @@ const AddProductDialog = ({
                 onChange={(newRecipe) => set("recipe", newRecipe)}
                 ingredients={ingredients}
                 categories={categories}
+                placeholder={language === "ar" ? "اختر وصفة / مكون" : "Select a reciepe"}
+                showSubtext={false}
+                inputPosition="top"
               />
             </div>
 
@@ -605,7 +608,7 @@ const AddProductDialog = ({
                   {form.variantGroups.map((group) => (
                     <div
                       key={group.id}
-                      className="border-dashed-gold bg-white p-3.5 sm:p-4 space-y-3"
+                      className="border-dashed-gold bg-white p-3 sm:p-4 space-y-3"
                     >
                       {/* Group Header Row */}
                       <div className="flex items-center gap-2.5">
@@ -615,7 +618,7 @@ const AddProductDialog = ({
                             updateGroup(group.id, { name: e.target.value })
                           }
                           placeholder={t("Group Name(e.g. Bread Type)")}
-                          className="h-[50px] flex-1 rounded-[12px] border-[#E5E5E5] bg-white px-3.5 text-[14px] font-normal text-[#28293D] focus-visible:border-primary focus-visible:ring-0"
+                          className="h-[50px] flex-1 rounded-[12px] border-[#E5E5E5] bg-white px-3.5 text-[16px] font-normal text-black focus-visible:border-[#8F6900] focus-visible:ring-0"
                         />
                         <label className="flex cursor-pointer items-center gap-1.5 text-[12px] font-medium text-[#333333] shrink-0">
                           <Checkbox
@@ -638,7 +641,7 @@ const AddProductDialog = ({
                       </div>
 
                       {/* Options with Vertical Gold Accent Bar */}
-                      <div className="flex gap-2.5 w-full">
+                      <div className="flex gap-2.5 w-full ps-1">
                         <div className="w-1 self-stretch rounded-full bg-[#8F6900] shrink-0" />
                         <div className="flex-1 flex flex-col gap-2.5">
                           {group.options.map((option) => {
@@ -657,9 +660,9 @@ const AddProductDialog = ({
                                       })
                                     }
                                     placeholder={t("Option name")}
-                                    className="h-[50px] flex-1 rounded-[12px] border-[#E5E5E5] bg-white px-3.5 text-[14px] font-normal text-[#28293D] focus-visible:border-primary focus-visible:ring-0"
+                                    className="h-[50px] flex-1 rounded-[12px] border-[#E5E5E5] bg-white px-3.5 text-[16px] font-normal text-black focus-visible:border-[#8F6900] focus-visible:ring-0"
                                   />
-                                  <div className="flex h-[50px] items-center gap-2 rounded-[12px] border border-[#E5E5E5] bg-white px-3">
+                                  <div className="flex h-[50px] w-[93px] min-w-[93px] items-center justify-between rounded-[12px] border border-[#E5E5E5] bg-white px-3">
                                     <input
                                       type="number"
                                       min="0"
@@ -669,7 +672,7 @@ const AddProductDialog = ({
                                           price: Number(e.target.value) || 0,
                                         })
                                       }
-                                      className="w-10 bg-transparent text-center text-[15px] font-normal text-[#28293D] focus:outline-none focus:ring-0 border-0 p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                      className="w-10 bg-transparent text-center text-[16px] font-normal text-black focus:outline-none focus:ring-0 border-0 p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                     />
                                     <div className="flex flex-col">
                                       <button
@@ -708,12 +711,10 @@ const AddProductDialog = ({
                                       )
                                     }
                                     className={cn(
-                                      "h-[40px] px-3.5 text-[13px] font-semibold rounded-[5px] border transition-colors flex items-center gap-1.5 cursor-pointer shrink-0",
+                                      "h-[40px] px-3.5 text-[16px] font-semibold rounded-[5px] border transition-colors flex items-center gap-1.5 cursor-pointer shrink-0",
                                       isRecipeOpen
                                         ? "bg-[#8F6900] text-white border-[#8F6900]"
-                                        : recipeCount > 0
-                                          ? "bg-[#F5F0EA] text-[#8F6900] border-[#8F6900]"
-                                          : "bg-[#F5F0EA] text-[#8F6900] border-[#8F6900] hover:bg-[#EFE8DE]"
+                                        : "bg-[#F5F0EA] text-[#8F6900] border-[#8F6900] hover:bg-[#EFE8DE]"
                                     )}
                                   >
                                     {language === "ar" ? "وصفة" : t("Recipe")}
@@ -730,18 +731,23 @@ const AddProductDialog = ({
                                   </button>
                                 </div>
 
-                                {/* Recipe Editor */}
+                                {/* Option Recipe Editor Container */}
                                 {isRecipeOpen && (
-                                  <OptionRecipeEditor
-                                    recipe={option.recipe || []}
-                                    onChange={(newRecipe) =>
-                                      updateOption(group.id, option.id, {
-                                        recipe: newRecipe,
-                                      })
-                                    }
-                                    ingredients={ingredients}
-                                    categories={categories}
-                                  />
+                                  <div className="w-full rounded-[16px] border border-[#E5E5E5] bg-[#F5F0EA] p-3 text-start flex flex-col gap-2">
+                                    <OptionRecipeEditor
+                                      recipe={option.recipe || []}
+                                      onChange={(newRecipe) =>
+                                        updateOption(group.id, option.id, {
+                                          recipe: newRecipe,
+                                        })
+                                      }
+                                      ingredients={ingredients}
+                                      categories={categories}
+                                      placeholder={language === "ar" ? "أضف مكون / وصفة" : "Add reciepe"}
+                                      showSubtext={true}
+                                      inputPosition="bottom"
+                                    />
+                                  </div>
                                 )}
                               </div>
                             );
@@ -767,7 +773,7 @@ const AddProductDialog = ({
             <div className="rounded-[16px] border border-[#CACBD4] bg-[#FAFAF7] p-4 sm:p-6 space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-[12px] font-semibold text-[#333333] flex items-center gap-1.5">
-                  <BadgePlus className="size-5 text-[#333333]" />
+                  <Sparkles className="size-5 text-[#333333]" />
                   {language === "ar" ? "الإضافات (Extras)" : t("Extras")}
                 </span>
                 <button
@@ -888,14 +894,19 @@ const AddProductDialog = ({
 
                         {/* Extra Recipe Editor */}
                         {isExtraRecipeOpen && (
-                          <OptionRecipeEditor
-                            recipe={extra.recipe || []}
-                            onChange={(newRecipe) =>
-                              updateExtra(extra.id, { recipe: newRecipe })
-                            }
-                            ingredients={ingredients}
-                            categories={categories}
-                          />
+                          <div className="w-full rounded-[16px] border border-[#E5E5E5] bg-[#F5F0EA] p-3 text-start flex flex-col gap-2">
+                            <OptionRecipeEditor
+                              recipe={extra.recipe || []}
+                              onChange={(newRecipe) =>
+                                updateExtra(extra.id, { recipe: newRecipe })
+                              }
+                              ingredients={ingredients}
+                              categories={categories}
+                              placeholder={language === "ar" ? "أضف مكون / وصفة" : "Add reciepe"}
+                              showSubtext={true}
+                              inputPosition="bottom"
+                            />
+                          </div>
                         )}
                       </div>
                     );
