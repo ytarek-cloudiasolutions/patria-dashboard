@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Sun, Bell, PanelLeftClose, PanelRightClose, Languages } from "lucide-react";
 import { useSelector } from "react-redux";
 import { useSidebar } from "@/shared/components/ui/sidebar";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import NotificationsPanel from "@/features/notifications/components/NotificationsPanel";
 import { selectAuthUser } from "@/features/auth/store/authSelectors";
+import { api } from "@/config/api";
+import { getSocket } from "@/shared/lib/socket";
 
 interface AppTopbarProps {
   adminName?: string;
@@ -30,16 +32,47 @@ const AppTopbar = ({
   adminName = "Admin User",
   adminEmail = "admin@erb.com",
   adminInitials,
-  notificationCount = 2,
+  notificationCount: propNotificationCount,
 }: AppTopbarProps) => {
   const user = useSelector(selectAuthUser);
   const { toggleSidebar } = useSidebar();
   const { language, toggleLanguage, dir } = useTranslation();
   const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState<number | null>(null);
+
   const PanelIcon = dir === "rtl" ? PanelRightClose : PanelLeftClose;
   const displayName = user?.name ?? adminName;
   const displayEmail = user?.email ?? adminEmail;
   const displayInitials = adminInitials ?? getInitials(displayName);
+
+  useEffect(() => {
+    const fetchUnread = () => {
+      api
+        .get("/notifications")
+        .then((res) => {
+          const raw: any[] = res.data?.notifications ?? [];
+          const count = raw.filter((n: any) => !n.isRead).length;
+          setUnreadCount(count);
+        })
+        .catch(() => {
+          setUnreadCount(0);
+        });
+    };
+
+    fetchUnread();
+
+    const socket = getSocket();
+    const handleNewOrder = () => {
+      setUnreadCount((prev) => (prev !== null ? prev + 1 : 1));
+    };
+
+    socket.on("newOrder", handleNewOrder);
+    return () => {
+      socket.off("newOrder", handleNewOrder);
+    };
+  }, [isNotifOpen]);
+
+  const displayCount = unreadCount ?? propNotificationCount ?? 0;
 
   return (
     <header className="flex h-16 items-center justify-between border-b border-white bg-white px-4 sm:h-21 sm:px-8 sm:pt-6">
@@ -77,9 +110,9 @@ const AppTopbar = ({
           className="relative flex h-8 w-8 items-center justify-center rounded-[16px] text-[#000000] bg-[#FAFAF7] cursor-pointer sm:h-9 sm:w-9"
         >
           <Bell size={20} />
-          {notificationCount > 0 && (
+          {displayCount > 0 && (
             <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#C90000] text-[8px] font-semibold text-white">
-              {notificationCount}
+              {displayCount}
             </span>
           )}
         </button>

@@ -5,6 +5,10 @@ import { getOrders, updateOrderStatus } from "../api/ordersApi";
 import { showErrorToast, showSuccessToast } from "@/shared/utils/toast";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import IncomingOrderDialog from "./IncomingOrderDialog";
+import OrderDetailsDialog from "./OrderDetailsDialog";
+import { mapOrder } from "../utils/orderMappers";
+import type { Order } from "../types";
+import { api } from "@/config/api";
 
 export interface IncomingOrder {
   _id: string;
@@ -44,6 +48,9 @@ const IncomingOrderWatcher = () => {
   const { t } = useTranslation();
   const [queue, setQueue] = useState<IncomingOrder[]>([]);
   const [isConfirming, setIsConfirming] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [isOrderDetailsOpen, setIsOrderDetailsOpen] = useState(false);
+
   const current = queue[0] ?? null;
   const soundActiveRef = useRef(false);
 
@@ -71,7 +78,19 @@ const IncomingOrderWatcher = () => {
 
   const addToQueue = (order: IncomingOrder | null) => {
     if (!order) return;
-    setQueue((prev) => (prev.some((o) => o._id === order._id) ? prev : [...prev, order]));
+    setQueue((prev) => {
+      const exists = prev.some((o) => o._id === order._id);
+      if (!exists) {
+        // Persist notification for incoming order alert
+        api.post("/notifications", {
+          type: "order",
+          title: `New Order Alert #${order.orderId}`,
+          message: `New application order received from ${order.customer.name} - EGP ${order.total.toFixed(2)}`,
+        }).catch(() => {});
+        return [...prev, order];
+      }
+      return prev;
+    });
   };
 
   // Catch up on any app orders the live socket missed — a page load, a
@@ -123,6 +142,19 @@ const IncomingOrderWatcher = () => {
     try {
       await updateOrderStatus(current._id, "confirmed");
       showSuccessToast(t("Order confirmed"));
+
+      // Open OrderDetailsDialog for the confirmed order
+      try {
+        const fullRes = await api.get(`/orders/${current._id}`);
+        const rawOrder = fullRes.data?.data || fullRes.data?.order || fullRes.data;
+        if (rawOrder) {
+          setSelectedOrder(mapOrder(rawOrder));
+          setIsOrderDetailsOpen(true);
+        }
+      } catch {
+        // Fallback
+      }
+
       setQueue((prev) => prev.filter((o) => o._id !== current._id));
     } catch (err: any) {
       showErrorToast(err?.response?.data?.message || t("Failed to confirm order"));
@@ -132,7 +164,15 @@ const IncomingOrderWatcher = () => {
   };
 
   return (
-    <IncomingOrderDialog order={current} isConfirming={isConfirming} onConfirm={handleConfirm} />
+    <>
+      <IncomingOrderDialog order={current} isConfirming={isConfirming} onConfirm={handleConfirm} />
+      <OrderDetailsDialog
+        open={isOrderDetailsOpen}
+        order={selectedOrder}
+        onOpenChange={setIsOrderDetailsOpen}
+        onOrderUpdated={(updated) => setSelectedOrder(updated)}
+      />
+    </>
   );
 };
 

@@ -13,6 +13,7 @@ interface NotificationItemProps {
   onAccept: (id: number) => void;
   onDecline: (id: number) => void;
   onResolve: (id: number) => void;
+  onClick?: (id: number) => void;
 }
 
 const CATEGORY_ICON: Record<
@@ -29,14 +30,18 @@ const NotificationItem = ({
   onAccept,
   onDecline,
   onResolve,
+  onClick,
 }: NotificationItemProps) => {
   const { t } = useTranslation();
   const { icon: Icon, bg, color } = CATEGORY_ICON[notification.category];
 
   return (
     <div
+      onClick={() => onClick?.(notification.id)}
+      role={notification.category === "orders" ? "button" : undefined}
       className={cn(
-        "flex gap-3 px-4 py-4 sm:px-5",
+        "flex gap-3 px-4 py-4 sm:px-5 transition-colors",
+        notification.category === "orders" && "cursor-pointer hover:bg-[#F5F0EA]/60",
         !notification.read && "bg-[#FAFAF7]",
       )}
     >

@@ -76,6 +76,13 @@ const notificationsSlice = createSlice({
     markAsReadFailure: (state, action: PayloadAction<string>) => {
       setOperationFailure(state, "markAsRead", action.payload);
     },
+
+    addNotification: (state, action: PayloadAction<ApiNotification>) => {
+      const existing = state.notifications.some((n) => n._id === action.payload._id);
+      if (!existing) {
+        state.notifications.unshift(action.payload);
+      }
+    },
   },
 });
 

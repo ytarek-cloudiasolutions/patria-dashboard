@@ -10,8 +10,12 @@ import {
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { api } from "@/config/api";
+import { getSocket } from "@/shared/lib/socket";
 import type { AppNotification, NotificationCategory, NotificationTab } from "../types";
 import NotificationItem from "./NotificationItem";
+import OrderDetailsDialog from "@/features/orders/components/OrderDetailsDialog";
+import { mapOrder } from "@/features/orders/utils/orderMappers";
+import type { Order } from "@/features/orders/types";
 
 const mapCategory = (type: string): NotificationCategory => {
   if (type === "order" || type === "orders") return "orders";
@@ -46,18 +50,74 @@ const TABS: { value: NotificationTab; label: string }[] = [
 const NotificationsPanel = ({ open, onOpenChange }: NotificationsPanelProps) => {
   const { t, dir } = useTranslation();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [isOrderDetailsOpen, setIsOrderDetailsOpen] = useState(false);
 
   useEffect(() => {
-    if (!open) return;
-    api
-      .get("/notifications")
-      .then((res) => {
-        const raw: any[] = res.data?.notifications ?? [];
-        setNotifications(raw.map(mapNotification));
-      })
-      .catch(() => {});
-  }, [open]);
+    const fetchNotifs = () => {
+      api
+        .get("/notifications")
+        .then((res) => {
+          const raw: any[] = res.data?.notifications ?? [];
+          setNotifications(raw.map(mapNotification));
+        })
+        .catch(() => {});
+    };
+
+    fetchNotifs();
+
+    const socket = getSocket();
+    const handleNewOrder = (raw: any) => {
+      const orderId = raw.orderId || String(raw._id || "").slice(-6).toUpperCase();
+      const custName = raw.customer?.name || "Walk-in";
+      const newNotif: AppNotification = {
+        id: raw._id || Date.now(),
+        category: "orders",
+        title: `New Order Alert #${orderId}`,
+        description: `Order received from ${custName} (${raw.items?.length || 0} items) - EGP ${Number(raw.total || 0).toFixed(2)}`,
+        time: new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true }),
+        read: false,
+        resolved: false,
+      };
+      setNotifications((prev) => [newNotif, ...prev.filter((n) => n.id !== newNotif.id)]);
+    };
+
+    socket.on("newOrder", handleNewOrder);
+    return () => {
+      socket.off("newOrder", handleNewOrder);
+    };
+  }, []);
   const [activeTab, setActiveTab] = useState<NotificationTab>("all");
+
+  const handleOpenOrderDetails = async (notification: AppNotification) => {
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === notification.id ? { ...n, read: true } : n))
+    );
+
+    const rawId = String(notification.id);
+    try {
+      const res = await api.get(`/orders/${rawId}`);
+      const rawOrder = res.data?.data || res.data?.order || res.data;
+      if (rawOrder) {
+        setSelectedOrder(mapOrder(rawOrder));
+        setIsOrderDetailsOpen(true);
+        return;
+      }
+    } catch {}
+
+    const match = notification.title.match(/#([A-Za-z0-9]+)/) || notification.description.match(/#([A-Za-z0-9]+)/);
+    if (match && match[1]) {
+      try {
+        const res = await api.get(`/orders/${match[1]}`);
+        const rawOrder = res.data?.data || res.data?.order || res.data;
+        if (rawOrder) {
+          setSelectedOrder(mapOrder(rawOrder));
+          setIsOrderDetailsOpen(true);
+          return;
+        }
+      } catch {}
+    }
+  };
 
   const counts = useMemo(
     () => ({
@@ -91,121 +151,137 @@ const NotificationsPanel = ({ open, onOpenChange }: NotificationsPanelProps) => 
 
   const clearAll = () => setNotifications([]);
 
-  const resolve = (id: number) =>
+  const resolve = (id: number | string) =>
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, resolved: true, read: true } : n)),
     );
 
-  const removeOne = (id: number) =>
+  const removeOne = (id: number | string) =>
     setNotifications((prev) => prev.filter((n) => n.id !== id));
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
-        side={dir === "rtl" ? "left" : "right"}
-        showCloseButton={false}
-        className="w-full gap-0 bg-white p-0 sm:max-w-md"
-      >
-        <SheetDescription className="sr-only">
-          {t("Notifications")}
-        </SheetDescription>
+    <>
+      <Sheet open={open} onOpenChange={onOpenChange}>
+        <SheetContent
+          side={dir === "rtl" ? "left" : "right"}
+          showCloseButton={false}
+          className="w-full gap-0 bg-white p-0 sm:max-w-md"
+        >
+          <SheetDescription className="sr-only">
+            {t("Notifications")}
+          </SheetDescription>
 
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-4 sm:px-5">
-          <div className="flex items-center gap-2">
-            <Bell size={20} className="text-[#28293D]" />
-            <SheetTitle className="text-[18px] font-bold text-[#333333]">
-              {t("Notifications")}
-            </SheetTitle>
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={markAllRead}
-              aria-label={t("Mark all as read")}
-              className="cursor-pointer text-[#595959] hover:text-[#28293D]"
-            >
-              <CheckCheck size={18} />
-            </button>
-            <button
-              type="button"
-              onClick={clearAll}
-              aria-label={t("Clear all")}
-              className="cursor-pointer text-[#C90000]"
-            >
-              <Trash2 size={18} />
-            </button>
-            <SheetClose asChild>
+          {/* Header */}
+          <div className="flex items-center justify-between px-4 py-4 sm:px-5">
+            <div className="flex items-center gap-2">
+              <Bell size={20} className="text-[#28293D]" />
+              <SheetTitle className="text-[18px] font-bold text-[#333333]">
+                {t("Notifications")}
+              </SheetTitle>
+            </div>
+            <div className="flex items-center gap-3">
               <button
                 type="button"
-                aria-label={t("Close")}
-                className="cursor-pointer text-[#000000]"
+                onClick={markAllRead}
+                aria-label={t("Mark all as read")}
+                className="cursor-pointer text-[#595959] hover:text-[#28293D]"
               >
-                <X size={18} />
+                <CheckCheck size={18} />
               </button>
-            </SheetClose>
-          </div>
-        </div>
-
-        {/* Tabs */}
-        <div className="px-4 pb-3 sm:px-5">
-          <div className="flex items-center gap-1 rounded-[16px] bg-[#F5F0EA] p-1">
-            {TABS.map((tab) => {
-              const isActive = activeTab === tab.value;
-              return (
+              <button
+                type="button"
+                onClick={clearAll}
+                aria-label={t("Clear all")}
+                className="cursor-pointer text-[#C90000]"
+              >
+                <Trash2 size={18} />
+              </button>
+              <SheetClose asChild>
                 <button
-                  key={tab.value}
                   type="button"
-                  onClick={() => setActiveTab(tab.value)}
-                  className={cn(
-                    "flex flex-1 items-center justify-center gap-1.5 rounded-[12px] px-2 py-2 text-[12px] font-semibold transition-colors sm:text-[13px]",
-                    isActive
-                      ? "bg-white text-[#333333] shadow-sm"
-                      : "text-[#8B8B8B] hover:text-[#28293D]",
-                  )}
+                  aria-label={t("Close")}
+                  className="cursor-pointer text-[#000000]"
                 >
-                  {t(tab.label)}
-                  <span
+                  <X size={18} />
+                </button>
+              </SheetClose>
+            </div>
+          </div>
+
+          {/* Tabs */}
+          <div className="px-4 pb-3 sm:px-5">
+            <div className="flex items-center gap-1 rounded-[16px] bg-[#F5F0EA] p-1">
+              {TABS.map((tab) => {
+                const isActive = activeTab === tab.value;
+                return (
+                  <button
+                    key={tab.value}
+                    type="button"
+                    onClick={() => setActiveTab(tab.value)}
                     className={cn(
-                      "flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold",
+                      "flex flex-1 items-center justify-center gap-1.5 rounded-[12px] px-2 py-2 text-[12px] font-semibold transition-colors sm:text-[13px]",
                       isActive
-                        ? "bg-primary text-white"
-                        : "bg-white text-[#8B8B8B]",
+                        ? "bg-white text-[#333333] shadow-sm"
+                        : "text-[#8B8B8B] hover:text-[#28293D]",
                     )}
                   >
-                    {counts[tab.value]}
-                  </span>
-                </button>
-              );
-            })}
+                    {t(tab.label)}
+                    <span
+                      className={cn(
+                        "flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold",
+                        isActive
+                          ? "bg-primary text-white"
+                          : "bg-white text-[#8B8B8B]",
+                      )}
+                    >
+                      {counts[tab.value]}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
 
-        {/* List */}
-        <div className="flex-1 divide-y divide-[#E5E5E5] overflow-y-auto border-t border-[#CACBD4]">
-          {visible.length === 0 ? (
-            <p className="px-4 py-12 text-center text-[14px] text-[#8B8B8B]">
-              {t("No notifications")}
-            </p>
-          ) : (
-            visible.map((notification) => (
-              <NotificationItem
-                key={notification.id}
-                notification={notification}
-                onAccept={removeOne}
-                onDecline={removeOne}
-                onResolve={resolve}
-              />
-            ))
-          )}
-        </div>
+          {/* List */}
+          <div className="flex-1 divide-y divide-[#E5E5E5] overflow-y-auto border-t border-[#CACBD4]">
+            {visible.length === 0 ? (
+              <p className="px-4 py-12 text-center text-[14px] text-[#8B8B8B]">
+                {t("No notifications")}
+              </p>
+            ) : (
+              visible.map((notification) => (
+                <NotificationItem
+                  key={notification.id}
+                  notification={notification}
+                  onAccept={(id) => {
+                    const n = notifications.find((item) => item.id === id);
+                    if (n) handleOpenOrderDetails(n);
+                  }}
+                  onDecline={(id) => removeOne(id)}
+                  onResolve={(id) => resolve(id)}
+                  onClick={(id) => {
+                    const n = notifications.find((item) => item.id === id);
+                    if (n && n.category === "orders") handleOpenOrderDetails(n);
+                  }}
+                />
+              ))
+            )}
+          </div>
 
-        {/* Footer */}
-        <div className="border-t border-[#CACBD4] px-4 py-3 text-[13px] text-[#595959] sm:px-5">
-          {counts.all} {t("total")} · {resolvedCount} {t("resolved")}
-        </div>
-      </SheetContent>
-    </Sheet>
+          {/* Footer */}
+          <div className="border-t border-[#CACBD4] px-4 py-3 text-[13px] text-[#595959] sm:px-5">
+            {counts.all} {t("total")} · {resolvedCount} {t("resolved")}
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      <OrderDetailsDialog
+        open={isOrderDetailsOpen}
+        order={selectedOrder}
+        onOpenChange={setIsOrderDetailsOpen}
+        onOrderUpdated={(updated) => setSelectedOrder(updated)}
+      />
+    </>
   );
 };
 
