@@ -88,8 +88,15 @@ const OrderDetailsDialog = ({
   // this must be the discount base, not subtotal + deliveryFee, or the
   // preview and the backend's actual result diverge (e.g. on dine-in orders
   // where tax isn't a delivery fee).
-  const baseBeforeDiscount = order.gross ?? (order.total || 0) + backendDiscount;
-  const finalTotal = Math.max(baseBeforeDiscount - effectiveDiscount, 0);
+  const subtotalVal = Number(order.subtotal || rawOrder.subtotal || 0);
+  const deliveryFeeVal = Number(order.deliveryFee || rawOrder.deliveryFee || 0);
+  const taxVal = Number(rawOrder.tax || order.tax || 0);
+  const orderTotalVal = Number(order.total || rawOrder.total || 0);
+
+  const baseTotal = orderTotalVal > 0 ? orderTotalVal : subtotalVal + deliveryFeeVal + taxVal;
+  const finalTotal = adminDiscount > 0
+    ? Math.max(subtotalVal + deliveryFeeVal + taxVal - adminDiscount, 0)
+    : Math.max(baseTotal, 0);
   const zoneName =
     order.zone ||
     (typeof rawOrder.customer?.region === "object"
@@ -720,7 +727,7 @@ const OrderDetailsDialog = ({
 
       <AdministrativeDiscountDialog
         open={isDiscountOpen}
-        total={baseBeforeDiscount}
+        total={baseTotal}
         onOpenChange={setIsDiscountOpen}
         onApply={handleApplyDiscount}
       />
