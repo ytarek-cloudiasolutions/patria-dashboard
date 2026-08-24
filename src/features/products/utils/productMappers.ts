@@ -60,6 +60,8 @@ export const mapProduct = (backendProduct: any): Product => {
     name: e.name || "",
     price: Number(e.price) || 0,
     active: e.active ?? e.isActive ?? true,
+    quantity: Number(e.quantity) || 30,
+    unit: e.unit || "ml",
     recipe: (e.recipe || []).map((r: any) => {
       const matId = typeof r.material === "object" && r.material !== null
         ? String(r.material._id || r.material.id || "")
@@ -104,20 +106,37 @@ export const mapProduct = (backendProduct: any): Product => {
     categoryName.trim() === "المكونات الخام"
   );
 
+  let extraTargetProductIds: string[] = [];
+  if (typeof backendProduct.extraTargetProductIds === "string") {
+    try {
+      const parsed = JSON.parse(backendProduct.extraTargetProductIds);
+      if (Array.isArray(parsed)) {
+        extraTargetProductIds = parsed.map(String);
+      }
+    } catch {
+      extraTargetProductIds = [];
+    }
+  } else if (Array.isArray(backendProduct.extraTargetProductIds)) {
+    extraTargetProductIds = backendProduct.extraTargetProductIds.map(String);
+  }
+
   return {
-    id: backendProduct._id || backendProduct.id,
+    id: String(backendProduct._id || backendProduct.id || ""),
     name: backendProduct.name,
     description: backendProduct.description || "",
     category: categoryName,
     imageUrl: resolveImageUrl(backendProduct.image || backendProduct.images),
     price: backendProduct.price,
     available: backendProduct.isActive ?? backendProduct.available ?? true,
+    isActive: backendProduct.isActive ?? backendProduct.available ?? true,
     extras,
     variantGroups,
     recipe,
     quantity: backendProduct.inventory ?? backendProduct.stockQty ?? 0,
     unit: (backendProduct.unit === "pcs" || backendProduct.unit === "pc" || !backendProduct.unit) ? "Piece(s)" : backendProduct.unit,
     isIngredient,
+    isExtra: Boolean(backendProduct.isExtra),
+    extraTargetProductIds,
     barcode: backendProduct.barcode || "",
   };
 };

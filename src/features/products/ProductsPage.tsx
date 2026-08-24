@@ -201,12 +201,34 @@ const ProductsPage = () => {
 
   const filteredProducts = useMemo(() => {
     return products.filter(
-      (p) => (p.category || "").toLowerCase() !== "raw ingredients"
+      (p) =>
+        (p.category || "").toLowerCase() !== "raw ingredients" &&
+        p.isActive !== false &&
+        p.available !== false
     );
   }, [products]);
 
   const filteredIngredients = useMemo(() => {
     if (tab !== "recipes") return [];
+    return products
+      .filter((p) => p.isActive !== false && p.available !== false)
+      .map((p) => ({
+        id: p.id,
+        name: p.name,
+        description: p.description || "",
+        imageUrl: p.imageUrl,
+        price: p.price,
+        quantity: p.quantity ?? 0,
+        unit: p.unit || "Piece(s)",
+        recipe: p.recipe || [],
+        isExtra: p.isExtra ?? false,
+        extraTargetProductIds: p.extraTargetProductIds || [],
+        barcode: p.barcode || "",
+        isActive: p.isActive ?? p.available ?? true,
+      }));
+  }, [products, tab]);
+
+  const ingredientOptions = useMemo(() => {
     return products.map((p) => ({
       id: p.id,
       name: p.name,
@@ -215,24 +237,11 @@ const ProductsPage = () => {
       price: p.price,
       quantity: p.quantity ?? 0,
       unit: p.unit || "Piece(s)",
-      isExtra: false,
+      isExtra: p.isExtra ?? false,
+      extraTargetProductIds: p.extraTargetProductIds || [],
       barcode: p.barcode || "",
     }));
-  }, [products, tab]);
-
-  const ingredientOptions = useMemo(() => {
-    return ingredients.map((p) => ({
-      id: p.id,
-      name: p.name,
-      description: p.description || "",
-      imageUrl: p.imageUrl,
-      price: p.price,
-      quantity: p.quantity ?? 0,
-      unit: p.unit || "Piece(s)",
-      isExtra: false,
-      barcode: p.barcode || "",
-    }));
-  }, [ingredients]);
+  }, [products]);
 
   // --- Mutations ------------------------------------------------------------
 
@@ -289,11 +298,21 @@ const ProductsPage = () => {
       }));
     formData.append("variantGroups", JSON.stringify(mappedVariantGroups));
 
-    const mappedExtras = data.extras
-      .filter((e) => e.name.trim())
-      .map((e) => ({
+    const seenExtraNames = new Set<string>();
+    const mappedExtras: any[] = [];
+
+    for (const e of data.extras || []) {
+      const normName = (e.name || "").trim().toLowerCase();
+      if (!normName || seenExtraNames.has(normName)) continue;
+      seenExtraNames.add(normName);
+
+      mappedExtras.push({
+        id: e.id,
         name: e.name.trim(),
         price: Number(e.price) || 0,
+        active: e.active !== false,
+        quantity: Number(e.quantity) || 30,
+        unit: e.unit || "ml",
         recipe: (e.recipe || []).map((r) => ({
           material: r.material,
           ingredientId: r.material,
@@ -303,7 +322,8 @@ const ProductsPage = () => {
           unit: r.unit || "pcs",
           ingredientUnit: r.ingredientUnit || r.unit || "pcs",
         })),
-      }));
+      });
+    }
     formData.append("extras", JSON.stringify(mappedExtras));
 
     const mappedRecipe = (data.recipe || []).map((r) => {
@@ -352,8 +372,30 @@ const ProductsPage = () => {
     formData.append("categoryId", categoryId);
     formData.append("stockQty", String(Number(data.quantity) || 0));
     formData.append("unit", data.unit || "g");
+    formData.append("isExtra", String(Boolean(data.isExtra)));
+    formData.append(
+      "extraTargetProductIds",
+      JSON.stringify(data.extraTargetProductIds || [])
+    );
     formData.append("variantGroups", JSON.stringify([]));
     formData.append("extras", JSON.stringify([]));
+
+    const mappedRecipe = (data.recipe || []).map((r) => {
+      const matId =
+        typeof r.material === "object" && r.material !== null
+          ? String((r.material as any)._id || (r.material as any).id || "")
+          : String(r.material || (r as any).ingredientId || "");
+      return {
+        material: matId,
+        ingredientId: matId,
+        name: r.name || "",
+        price: Number(r.price) || 0,
+        quantity: Number(r.quantity) || 0,
+        unit: r.unit || "pcs",
+        ingredientUnit: r.ingredientUnit || r.unit || "pcs",
+      };
+    });
+    formData.append("recipe", JSON.stringify(mappedRecipe));
 
     if (data.imageFile) {
       formData.append("images", data.imageFile);

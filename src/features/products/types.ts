@@ -19,6 +19,7 @@ export interface Product {
   price: number;
   discount?: ProductDiscount;
   available: boolean;
+  isActive?: boolean;
   extras?: ProductExtra[];
   variantGroups?: VariantGroup[];
   recipe?: OptionRecipeItem[];
@@ -26,6 +27,8 @@ export interface Product {
   unit?: string;
   productType?: string;
   isIngredient?: boolean;
+  isExtra?: boolean;
+  extraTargetProductIds?: string[];
   barcode?: string;
 }
 
@@ -39,8 +42,11 @@ export interface Ingredient {
   price: number;
   quantity: number;
   unit: string;
+  recipe?: OptionRecipeItem[];
   isExtra?: boolean;
+  isActive?: boolean;
   extraCategories?: string[];
+  extraTargetProductIds?: string[];
   barcode?: string;
 }
 
@@ -93,6 +99,8 @@ export interface ProductExtra {
   name: string;
   price: number;
   active: boolean;
+  quantity?: number;
+  unit?: string;
   recipe?: OptionRecipeItem[];
 }
 
@@ -123,8 +131,10 @@ export interface IngredientFormData {
   unit: string;
   imageUrl?: string;
   imageFile?: File;
+  recipe?: OptionRecipeItem[];
   isExtra: boolean;
   extraCategories: string[];
+  extraTargetProductIds?: string[];
 }
 
 // --- Add Category form ------------------------------------------------------

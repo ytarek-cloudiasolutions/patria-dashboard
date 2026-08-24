@@ -29,7 +29,7 @@ const IncomingOrderDialog = ({ order, isConfirming, onConfirm }: IncomingOrderDi
   const orderDisplayId = order.orderId.startsWith("#") ? order.orderId : `#${order.orderId}`;
 
   return (
-    <Dialog open={!!order} onOpenChange={() => {}}>
+    <Dialog open={!!order} onOpenChange={() => { }}>
       <DialogContent
         showCloseButton={false}
         onInteractOutside={(e) => e.preventDefault()}

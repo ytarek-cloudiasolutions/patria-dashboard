@@ -10,12 +10,12 @@ import {
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { api } from "@/config/api";
 import { cn } from "@/lib/utils";
-import type { OptionRecipeItem, Ingredient, Category } from "../types";
+import type { OptionRecipeItem, Ingredient, Product, Category } from "../types";
 
 interface OptionRecipeEditorProps {
   recipe: OptionRecipeItem[];
   onChange: (recipe: OptionRecipeItem[]) => void;
-  ingredients: Ingredient[];
+  ingredients: (Ingredient | Product)[];
   categories: Category[];
   placeholder?: string;
   showSubtext?: boolean;
@@ -165,12 +165,12 @@ const OptionRecipeEditor = ({
       {isDropdownOpen && (
         <>
           <div
-            className="fixed inset-0 z-40 bg-transparent"
+            className="fixed inset-0 z-50 bg-transparent"
             onClick={() => setIsDropdownOpen(false)}
           />
           <div
             className={cn(
-              "absolute start-0 end-0 z-70 max-h-60 overflow-y-auto rounded-[16px] border border-[#E5E5E5] bg-white p-1.5 shadow-2xl space-y-1",
+              "absolute start-0 end-0 z-99 max-h-60 overflow-y-auto rounded-[16px] border border-[#E5E5E5] bg-white p-1.5 shadow-2xl space-y-1",
               inputPosition === "bottom" ? "bottom-full mb-2" : "top-[54px]"
             )}
           >
@@ -306,17 +306,8 @@ const OptionRecipeEditor = ({
         <div className="pointer-events-none fixed inset-0 z-60 bg-black/40" />
       )}
 
-      {inputPosition === "top" ? (
-        <>
-          {searchInputJSX}
-          {addedIngredientsJSX}
-        </>
-      ) : (
-        <>
-          {addedIngredientsJSX}
-          {searchInputJSX}
-        </>
-      )}
+      {searchInputJSX}
+      {addedIngredientsJSX}
     </div>
   );
 };
