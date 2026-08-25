@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Search, ChevronDown, ChevronRight, Check, CornerDownRight } from "lucide-react";
+import { Search, ChevronDown, ChevronUp, ChevronRight, Check, CornerDownRight } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -519,8 +519,8 @@ const AddIngredientDialog = ({
               />
             </div>
 
-            {/* Add as Extra section matching Figma screenshot exactly */}
-            <div className="flex flex-col gap-4 rounded-[16px] border border-[#CACBD4] bg-[#FAFAF7] p-4 sm:px-6 sm:py-4">
+            {/* Add as Extra section matching Figma specification */}
+            <div className="flex flex-col gap-[18px] rounded-[16px] border border-[#CACBD4] bg-[#FAFAF7] p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <span className="text-[16px] font-medium text-[#333333] tracking-[0.32px]">
                   {t("Add as extra")}
@@ -532,52 +532,104 @@ const AddIngredientDialog = ({
               </div>
 
               {form.isExtra && (
-                <div
-                  className="flex flex-col gap-3.5 rounded-[16px] bg-[#FAFAF7] p-3 text-start"
-                  style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='none' rx='16' ry='16' stroke='%238F6900' stroke-width='1.5' stroke-dasharray='7%2c 7' stroke-dashoffset='0' stroke-linecap='square'/%3E%3C/svg%3E")`,
-                  }}
-                >
-                  <span className="text-[12px] font-medium text-black tracking-[0.24px]">
-                    {t("Categories")}
-                  </span>
-
-                  {/* Search Bar */}
-                  <div className="flex h-[37px] w-full items-center gap-[10px] rounded-[8px] border border-[#CACBD4] bg-white px-3.5">
-                    <Search className="size-4 shrink-0 text-[#8B8B8B]" />
-                    <input
-                      type="text"
-                      value={extraSearchQuery}
-                      onChange={(e) => setExtraSearchQuery(e.target.value)}
-                      placeholder={t("Search products...")}
-                      className="w-full bg-transparent text-[14px] font-normal text-black placeholder:text-[#8B8B8B] outline-none"
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-2 max-h-80 overflow-y-auto pr-1">
-                    {/* All option */}
-                    <div className="flex items-center justify-between py-1">
-                      <div
-                        onClick={toggleAllExtras}
-                        className="flex items-center gap-2 cursor-pointer flex-1"
-                      >
-                        <div
-                          className={cn(
-                            "flex size-[19.98px] items-center justify-center rounded-[5.99px] border transition-all cursor-pointer",
-                            isAllExtraSelected
-                              ? "border-[#8F6900] bg-[#8F6900] text-white shadow-sm ring-4 ring-[#624F1C]/10"
-                              : "border-[#8F6900] bg-white shadow-sm"
-                          )}
-                        >
-                          {isAllExtraSelected && <Check className="size-3.5 stroke-[3]" />}
+                <>
+                  {/* Extra initial quantity Card matching Figma */}
+                  <div className="flex flex-col gap-2 rounded-[16px] border border-[#CACBD4] bg-[#F5F0EA] p-3 text-start">
+                    <div className="flex flex-col gap-[10px]">
+                      <span className="text-[13px] font-medium text-[#23252A]">
+                        {t("Extra initial quantity")}
+                      </span>
+                      <div className="flex flex-col gap-1">
+                        <div className="flex h-[50px] w-full items-center justify-between gap-3 rounded-[12px] border border-[#E5E5E5] bg-white px-3">
+                          <div className="flex items-center gap-1.5 flex-1">
+                            <input
+                              type="number"
+                              min="0"
+                              value={form.quantity}
+                              onChange={(e) => set("quantity", e.target.value)}
+                              style={{ width: `${Math.max(1, (form.quantity || "0").length) * 11 + 6}px` }}
+                              className="bg-transparent text-[16px] font-normal text-black outline-none focus:ring-0 border-0 p-0 text-start [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                              placeholder="0"
+                            />
+                            <span className="text-[16px] font-normal text-black">
+                              {form.unit || "ml"}
+                            </span>
+                          </div>
+                          <div className="flex flex-col items-center">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const currentVal = Number(form.quantity) || 0;
+                                set("quantity", String(currentVal + 1));
+                              }}
+                              className="cursor-pointer text-[#8B8B8B] hover:text-black"
+                            >
+                              <ChevronUp className="size-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const currentVal = Number(form.quantity) || 0;
+                                set("quantity", String(Math.max(0, currentVal - 1)));
+                              }}
+                              className="cursor-pointer text-[#8B8B8B] hover:text-black"
+                            >
+                              <ChevronDown className="size-3.5" />
+                            </button>
+                          </div>
                         </div>
-                        <span className="text-[14px] font-semibold text-black tracking-[0.28px]">
-                          {t("All")}
+                        <span className="text-[10px] font-normal text-[#8B8B8B] leading-[22px] tracking-[0.10px]">
+                          {t(
+                            "Set the amount used each time this extra is added. This will be used as the initial quantity for this item."
+                          )}
                         </span>
                       </div>
                     </div>
+                  </div>
 
-                    <div className="w-full border-t border-[#CACBD4] my-1" />
+                  {/* Categories Box with dashed gold border */}
+                  <div className="border-dashed-gold bg-[#FAFAF7] p-4 flex flex-col gap-2 text-start">
+                    <span className="text-[12px] font-normal text-black tracking-[0.24px]">
+                      {t("Categories")}
+                    </span>
+
+                    <div className="flex flex-col gap-[14px] w-full">
+                      {/* Search Bar */}
+                      <div className="flex h-[37px] w-full items-center gap-[10px] rounded-[8px] border border-[#CACBD4] bg-white px-3.5">
+                        <Search className="size-4 shrink-0 text-[#8B8B8B]" />
+                        <input
+                          type="text"
+                          value={extraSearchQuery}
+                          onChange={(e) => setExtraSearchQuery(e.target.value)}
+                          placeholder={t("Search products...")}
+                          className="w-full bg-transparent text-[14px] font-normal text-black placeholder:text-[#8B8B8B] outline-none"
+                        />
+                      </div>
+
+                      <div className="flex flex-col gap-2 max-h-80 overflow-y-auto pr-2 pb-4">
+                        {/* All option */}
+                        <div className="flex items-center justify-between py-1">
+                          <div
+                            onClick={toggleAllExtras}
+                            className="flex items-center gap-2 cursor-pointer flex-1"
+                          >
+                            <div
+                              className={cn(
+                                "flex size-[19.98px] items-center justify-center rounded-[5.99px] border transition-all cursor-pointer",
+                                isAllExtraSelected
+                                  ? "border-[#8F6900] bg-[#8F6900] text-white shadow-sm ring-4 ring-[#624F1C]/10"
+                                  : "border-[#8F6900] bg-white shadow-sm"
+                              )}
+                            >
+                              {isAllExtraSelected && <Check className="size-3.5 stroke-[3]" />}
+                            </div>
+                            <span className="text-[14px] font-semibold text-[#333333] tracking-[0.28px]">
+                              {t("All")}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="w-full border-t border-[#CACBD4] my-1" />
 
                     {/* Categories list */}
                     {availableCategoryObjects.map((catObj, catIdx) => {
@@ -682,8 +734,10 @@ const AddIngredientDialog = ({
                     })}
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
+            </>
+          )}
+        </div>
 
           </form>
 

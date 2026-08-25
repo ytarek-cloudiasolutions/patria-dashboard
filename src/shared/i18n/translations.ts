@@ -1174,6 +1174,8 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   "Edit Product": "تعديل المنتج",
   "Update Product": "تحديث المنتج",
   "Add as extra": "إضافة كإضافة",
+  "Extra initial quantity": "الكمية الأولية للإضافة",
+  "Set the amount used each time this extra is added. This will be used as the initial quantity for this item.": "حدد الكمية المستخدمة في كل مرة يتم فيها إضافة هذه الإضافة. سيتم استخدام هذا ككمية أولية لهذا العنصر.",
   "Add category": "إضافة الفئة",
   "All Customers": "كل العملاء",
   "Barcode": "الباركود",

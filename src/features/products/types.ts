@@ -98,7 +98,8 @@ export interface ProductExtra {
   id: string;
   name: string;
   price: number;
-  active: boolean;
+  active?: boolean;
+  isActive?: boolean;
   quantity?: number;
   unit?: string;
   recipe?: OptionRecipeItem[];

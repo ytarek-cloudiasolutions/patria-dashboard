@@ -55,13 +55,16 @@ export const mapProduct = (backendProduct: any): Product => {
     })),
   }));
 
-  const extras: ProductExtra[] = (backendProduct.extras || []).map((e: any) => ({
-    id: String(e._id || e.id || ""),
-    name: e.name || "",
-    price: Number(e.price) || 0,
-    active: e.active ?? e.isActive ?? true,
-    quantity: Number(e.quantity) || 30,
-    unit: e.unit || "ml",
+  const extras: ProductExtra[] = (backendProduct.extras || []).map((e: any) => {
+    const isAct = e.isActive ?? e.active ?? true;
+    return {
+      id: String(e._id || e.id || ""),
+      name: e.name || "",
+      price: Number(e.price) || 0,
+      active: isAct,
+      isActive: isAct,
+      quantity: e.quantity !== undefined && e.quantity !== null ? Number(e.quantity) : 0,
+      unit: e.unit || "ml",
     recipe: (e.recipe || []).map((r: any) => {
       const matId = typeof r.material === "object" && r.material !== null
         ? String(r.material._id || r.material.id || "")
@@ -77,8 +80,9 @@ export const mapProduct = (backendProduct: any): Product => {
         unit: r.unit || "pcs",
         ingredientUnit: r.ingredientUnit || r.unit || "pcs",
       };
-    }),
-  }));
+      }),
+    };
+  });
 
   const recipe = (backendProduct.recipe || backendProduct.ingredients || []).map((r: any) => {
     const matId = typeof r.material === "object" && r.material !== null

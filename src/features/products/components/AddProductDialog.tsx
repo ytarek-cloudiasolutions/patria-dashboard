@@ -57,13 +57,13 @@ const emptyGroup = (): VariantGroup => ({
 });
 
 const DEFAULT_EXTRAS: ProductExtra[] = [
-  { id: "ext-1", name: "Vanilla Syrup", price: 85.2, active: true, quantity: 30, unit: "ml" },
-  { id: "ext-2", name: "Vanilla Syrup", price: 85.2, active: false, quantity: 30, unit: "ml" },
-  { id: "ext-3", name: "Vanilla Syrup", price: 85.2, active: true, quantity: 30, unit: "ml" },
-  { id: "ext-4", name: "Caramel Syrup", price: 95.5, active: true, quantity: 25, unit: "ml" },
-  { id: "ext-5", name: "Hazelnut Syrup", price: 100.0, active: true, quantity: 20, unit: "ml" },
-  { id: "ext-6", name: "Almond Syrup", price: 90.75, active: true, quantity: 15, unit: "ml" },
-  { id: "ext-7", name: "Chocolate Syrup", price: 110.0, active: true, quantity: 10, unit: "ml" },
+  { id: "ext-1", name: "Vanilla Syrup", price: 85.2, active: true, isActive: true, quantity: 0, unit: "ml" },
+  { id: "ext-2", name: "Vanilla Syrup", price: 85.2, active: false, isActive: false, quantity: 0, unit: "ml" },
+  { id: "ext-3", name: "Vanilla Syrup", price: 85.2, active: true, isActive: true, quantity: 0, unit: "ml" },
+  { id: "ext-4", name: "Caramel Syrup", price: 95.5, active: true, isActive: true, quantity: 0, unit: "ml" },
+  { id: "ext-5", name: "Hazelnut Syrup", price: 100.0, active: true, isActive: true, quantity: 0, unit: "ml" },
+  { id: "ext-6", name: "Almond Syrup", price: 90.75, active: true, isActive: true, quantity: 0, unit: "ml" },
+  { id: "ext-7", name: "Chocolate Syrup", price: 110.0, active: true, isActive: true, quantity: 0, unit: "ml" },
 ];
 
 const INITIAL_FORM: ProductFormData = {
@@ -177,12 +177,14 @@ const AddProductDialog = ({
             String(e.id) === String(ing.id) ||
             e.name.toLowerCase().trim() === ing.name.toLowerCase().trim()
         );
+        const isAct = saved ? (saved.isActive ?? saved.active ?? true) : true;
         return {
           id: ing.id,
           name: ing.name,
           price: saved?.price ?? ing.price ?? 0,
-          active: saved ? saved.active !== false : true,
-          quantity: saved?.quantity ?? ing.quantity ?? 30,
+          active: isAct,
+          isActive: isAct,
+          quantity: saved?.quantity ?? 0,
           unit: saved?.unit ?? ing.unit ?? "ml",
         };
       });
@@ -196,7 +198,14 @@ const AddProductDialog = ({
         const normName = (extra.name || "").toLowerCase().trim();
         if (!normName || seenNames.has(normName)) continue;
         seenNames.add(normName);
-        customSaved.push(extra);
+        const isAct = extra.isActive ?? extra.active ?? true;
+        customSaved.push({
+          ...extra,
+          active: isAct,
+          isActive: isAct,
+          quantity: extra.quantity ?? 0,
+          unit: extra.unit || "ml",
+        });
       }
 
       initialExtras = [...mapFromTargeted, ...customSaved];
@@ -840,7 +849,7 @@ const AddProductDialog = ({
                       onClick={() => {
                         set(
                           "extras",
-                          form.extras.map((e) => ({ ...e, active: true }))
+                          form.extras.map((e) => ({ ...e, active: true, isActive: true }))
                         );
                       }}
                       className="text-[12px] font-medium text-black underline cursor-pointer hover:opacity-80"
@@ -853,7 +862,7 @@ const AddProductDialog = ({
                       onClick={() => {
                         set(
                           "extras",
-                          form.extras.map((e) => ({ ...e, active: false }))
+                          form.extras.map((e) => ({ ...e, active: false, isActive: false }))
                         );
                       }}
                       className="text-[12px] font-medium text-[#C90000] underline cursor-pointer hover:opacity-80"
@@ -865,14 +874,14 @@ const AddProductDialog = ({
 
                 <div className="border-dashed-gold rounded-[16px] bg-[#FAFAF7] p-3 flex flex-col gap-2 max-h-[272px] overflow-y-auto">
                   {form.extras.map((extra, idx) => {
-                    const isSelected = extra.active !== false;
+                    const isSelected = (extra.isActive ?? extra.active) !== false;
                     return (
                       <div key={extra.id || idx} className="flex flex-col gap-2">
                         {idx > 0 && <div className="w-full border-t border-[#CACBD4]/40 my-0.5" />}
                         <div className="flex items-center justify-between py-1 px-1">
                           {/* Checkbox + Name */}
                           <div
-                            onClick={() => updateExtra(extra.id, { active: !isSelected })}
+                            onClick={() => updateExtra(extra.id, { active: !isSelected, isActive: !isSelected })}
                             className="flex items-center gap-3 cursor-pointer flex-1"
                           >
                             <div
@@ -914,10 +923,10 @@ const AddProductDialog = ({
                                 type="number"
                                 min="0"
                                 disabled={!isSelected}
-                                value={extra.quantity ?? 30}
+                                value={extra.quantity ?? 0}
                                 onChange={(e) =>
                                   updateExtra(extra.id, {
-                                    quantity: Number(e.target.value) || 0,
+                                    quantity: Math.max(0, Number(e.target.value) || 0),
                                   })
                                 }
                                 className={cn(
@@ -931,7 +940,7 @@ const AddProductDialog = ({
                                   disabled={!isSelected}
                                   onClick={() =>
                                     updateExtra(extra.id, {
-                                      quantity: (extra.quantity ?? 30) + 1,
+                                      quantity: (extra.quantity ?? 0) + 1,
                                     })
                                   }
                                   className="cursor-pointer text-[#333333] hover:text-black disabled:opacity-40"
@@ -943,7 +952,7 @@ const AddProductDialog = ({
                                   disabled={!isSelected}
                                   onClick={() =>
                                     updateExtra(extra.id, {
-                                      quantity: Math.max(0, (extra.quantity ?? 30) - 1),
+                                      quantity: Math.max(0, (extra.quantity ?? 0) - 1),
                                     })
                                   }
                                   className="cursor-pointer text-[#333333] hover:text-black disabled:opacity-40"
