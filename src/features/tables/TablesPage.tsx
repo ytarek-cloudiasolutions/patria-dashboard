@@ -232,11 +232,10 @@ const TablesPage = () => {
           <DefaultButton
             data={{
               buttonText: t("New Reservation"),
-              variant: "outline",
-              icon: <CalendarPlus className="size-4.5" />,
+              icon: <CalendarPlus className="size-4.5 text-primary" />,
               onClick: () => setIsReservationOpen(true),
               className:
-                "border-transparent bg-[#F5F0EA] text-primary hover:bg-[#F5F0EA] hover:text-primary",
+                "border-0 bg-[#F5F0EA] text-primary hover:bg-[#F5F0EA] hover:text-primary shadow-none cursor-pointer",
             }}
           />
           <DefaultButton
@@ -244,6 +243,7 @@ const TablesPage = () => {
               buttonText: t("Add New Table"),
               icon: <Plus className="size-4.5" />,
               onClick: () => setIsAddTableOpen(true),
+              className: "bg-primary text-white hover:bg-primary cursor-pointer",
             }}
           />
         </div>

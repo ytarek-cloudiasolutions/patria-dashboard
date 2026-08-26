@@ -30,6 +30,7 @@ interface NewCallOrderDialogProps {
   deliveryZones: DeliveryZone[];
   onOpenChange: (open: boolean) => void;
   onCreateOrder: (order: Order) => void;
+  onSearchProducts?: (search: string) => void;
 }
 
 const NewCallOrderDialog = ({
@@ -38,6 +39,7 @@ const NewCallOrderDialog = ({
   deliveryZones,
   onOpenChange,
   onCreateOrder,
+  onSearchProducts,
 }: NewCallOrderDialogProps) => {
   const { t, dir } = useTranslation();
   const [step, setStep] = useState(0);
@@ -178,42 +180,64 @@ const NewCallOrderDialog = ({
     onOpenChange(false);
   };
 
-  const isStep0Valid = name.trim() !== "" && phone.trim() !== "" && address.trim() !== "" && zoneId !== "";
-  const isStep1Valid = cart.length > 0;
-  const isStep2Valid = useMemo(() => {
-    if (payment.deliveryFee.trim() === "" || Number(payment.deliveryFee) < 0) {
-      return false;
+  const [customerErrors, setCustomerErrors] = useState<Record<string, string>>({});
+  const [cartError, setCartError] = useState<string>("");
+  const [paymentErrors, setPaymentErrors] = useState<Record<string, string>>({});
+
+  const handleStep0Next = () => {
+    const errs: Record<string, string> = {};
+    if (!name.trim()) errs.name = t("Customer Name is required");
+    if (!phone.trim()) errs.phone = t("Phone Number is required");
+    if (!address.trim()) errs.address = t("Detailed address is required");
+    if (!zoneId.trim()) errs.zone = t("Zone is required");
+
+    setCustomerErrors(errs);
+    if (Object.keys(errs).length > 0) return;
+    setStep(1);
+  };
+
+  const handleStep1Next = () => {
+    if (cart.length === 0) {
+      setCartError(t("Please add at least one product to cart"));
+      return;
     }
+    setCartError("");
+    setStep(2);
+  };
+
+  const handleStep2Submit = () => {
+    const errs: Record<string, string> = {};
     if (payment.paymentMethod === "Mix") {
-      return (
-        payment.cashAmount.trim() !== "" &&
-        payment.visaAmount.trim() !== "" &&
-        Number(payment.cashAmount) >= 0 &&
-        Number(payment.visaAmount) >= 0
-      );
+      if (!payment.cashAmount.trim()) errs.cashAmount = t("Cash Amount is required");
+      if (!payment.visaAmount.trim()) errs.visaAmount = t("Visa Amount is required");
     }
-    return true;
-  }, [payment.deliveryFee, payment.paymentMethod, payment.cashAmount, payment.visaAmount]);
+    setPaymentErrors(errs);
+    if (Object.keys(errs).length > 0) return;
+    handleCreate();
+  };
 
   const primaryButton = () => {
     if (step === 0) {
       return {
         buttonText: t("Next Add Products"),
-        onClick: () => setStep(1),
-        className: !isStep0Valid ? "pointer-events-none opacity-60" : "",
+        onClick: handleStep0Next,
+        disabled: false,
+        className: "bg-primary text-white cursor-pointer h-[56px] px-[30px] rounded-[5px]",
       };
     }
     if (step === 1) {
       return {
         buttonText: `${t("Add products to cart")} ${formatCurrency(subtotal)}`,
-        onClick: () => setStep(2),
-        className: !isStep1Valid ? "pointer-events-none opacity-60" : "",
+        onClick: handleStep1Next,
+        disabled: false,
+        className: "bg-primary text-white cursor-pointer h-[56px] px-[30px] rounded-[5px]",
       };
     }
     return {
       buttonText: t("Create Order"),
-      onClick: handleCreate,
-      className: !isStep2Valid ? "pointer-events-none opacity-60" : "",
+      onClick: handleStep2Submit,
+      disabled: false,
+      className: "bg-primary text-white cursor-pointer h-[56px] px-[30px] rounded-[5px]",
     };
   };
 
@@ -223,7 +247,7 @@ const NewCallOrderDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[12px] bg-white p-0 ring-0 sm:max-w-[991px]"
+        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[12px] border border-[#CACBD4] bg-white p-0 ring-0 shadow-[0px_4px_6px_-4px_rgba(0,0,0,0.10),0px_10px_15px_-3px_rgba(0,0,0,0.10)] sm:max-w-[991px]"
       >
         {isZoneMenuOpen && (
           <div className="pointer-events-none fixed inset-0 z-60 bg-black/40" />
@@ -231,11 +255,11 @@ const NewCallOrderDialog = ({
 
         <div className="flex max-h-[calc(100vh-2rem)] flex-col">
           {/* Header + stepper */}
-          <div className="px-5 pt-5 sm:px-7 sm:pt-6">
-            <DialogTitle className="text-[18px] font-semibold text-[#333333] sm:text-[22px]">
+          <div className="px-6 pt-8">
+            <DialogTitle className="text-[24px] font-semibold tracking-[0.48px] text-black">
               {t("New Call Order")}
             </DialogTitle>
-            <div className="mt-5">
+            <div className="mt-6">
               <OrderWizardStepper
                 steps={[
                   t("Customer Information"),
@@ -244,8 +268,23 @@ const NewCallOrderDialog = ({
                 ]}
                 current={step}
                 onStepClick={(targetStep) => {
-                  if (targetStep > 0 && !isStep0Valid) return;
-                  if (targetStep > 1 && !isStep1Valid) return;
+                  if (targetStep > 0) {
+                    const errs: Record<string, string> = {};
+                    if (!name.trim()) errs.name = t("Customer Name is required");
+                    if (!phone.trim()) errs.phone = t("Phone Number is required");
+                    if (!address.trim()) errs.address = t("Detailed address is required");
+                    if (!zoneId.trim()) errs.zone = t("Zone is required");
+                    if (Object.keys(errs).length > 0) {
+                      setCustomerErrors(errs);
+                      setStep(0);
+                      return;
+                    }
+                  }
+                  if (targetStep > 1 && cart.length === 0) {
+                    setCartError(t("Please add at least one product to cart"));
+                    setStep(1);
+                    return;
+                  }
                   setStep(targetStep);
                 }}
               />
@@ -253,7 +292,7 @@ const NewCallOrderDialog = ({
           </div>
 
           {/* Body */}
-          <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-7 sm:py-6">
+          <div className="flex-1 overflow-y-auto px-6 py-6">
             {step === 0 && (
               <CallCustomerStep
                 phoneQuery={phoneQuery}
@@ -262,73 +301,88 @@ const NewCallOrderDialog = ({
                 searched={searched}
                 existing={existing}
                 name={name}
-                onNameChange={setName}
+                onNameChange={(val) => {
+                  setName(val);
+                  if (val.trim()) setCustomerErrors((prev) => ({ ...prev, name: "" }));
+                }}
                 phone={phone}
-                onPhoneChange={setPhone}
+                onPhoneChange={(val) => {
+                  setPhone(val);
+                  if (val.trim()) setCustomerErrors((prev) => ({ ...prev, phone: "" }));
+                }}
                 address={address}
-                onAddressChange={setAddress}
+                onAddressChange={(val) => {
+                  setAddress(val);
+                  if (val.trim()) setCustomerErrors((prev) => ({ ...prev, address: "" }));
+                }}
                 zoneId={zoneId}
-                onZoneChange={handleZoneChange}
+                onZoneChange={(val) => {
+                  handleZoneChange(val);
+                  if (val.trim()) setCustomerErrors((prev) => ({ ...prev, zone: "" }));
+                }}
                 onZoneMenuOpenChange={setIsZoneMenuOpen}
                 deliveryZones={deliveryZones}
                 isSearching={isSearching}
+                errors={customerErrors}
               />
             )}
             {step === 1 && (
               <OrderProductsStep
                 productOptions={productOptions}
                 cart={cart}
-                onCartChange={setCart}
+                onCartChange={(newCart) => {
+                  setCart(newCart);
+                  if (newCart.length > 0) setCartError("");
+                }}
+                onSearchProducts={onSearchProducts}
+                cartError={cartError}
               />
             )}
             {step === 2 && (
-              <OrderPaymentStep payment={payment} subtotal={subtotal} />
+              <OrderPaymentStep
+                payment={payment}
+                subtotal={subtotal}
+                errors={paymentErrors}
+              />
             )}
           </div>
 
           {/* Footer */}
-          <div className="bg-white px-5 py-4 sm:px-7 sm:py-5">
-            <Separator className="mb-4 bg-[#D9D9D9]" />
-            <div className="flex justify-between items-center gap-3">
+          <div className="bg-white px-6 pb-6 pt-4">
+            <Separator className="mb-6 bg-[#CACBD4]" />
+            <div className="flex justify-between items-center gap-4">
               <div>
                 {step > 0 && (
-                  <DefaultButton
-                    data={{
-                      buttonText: t("Back"),
-                      variant: "ghost",
-                      type: "button",
-                      onClick: () => setStep((prev) => prev - 1),
-                      icon:
-                        dir === "rtl" ? (
-                          <ArrowRight size={18} className="text-primary" />
-                        ) : (
-                          <ArrowLeft size={18} className="text-primary" />
-                        ),
-                      className:
-                        "text-primary hover:bg-transparent hover:text-primary",
-                    }}
-                  />
+                  <button
+                    type="button"
+                    onClick={() => setStep((prev) => prev - 1)}
+                    className="flex h-[56px] items-center gap-2 text-[16px] font-semibold text-primary cursor-pointer"
+                  >
+                    {dir === "rtl" ? (
+                      <ArrowRight size={18} className="text-primary" />
+                    ) : (
+                      <ArrowLeft size={18} className="text-primary" />
+                    )}
+                    {t("Back")}
+                  </button>
                 )}
               </div>
-              <div className="flex items-center gap-3">
-                <DefaultButton
-                  data={{
-                    buttonText: t("Cancel"),
-                    variant: "outline",
-                    type: "button",
-                    onClick: () => onOpenChange(false),
-                    className:
-                      "border-primary text-primary hover:bg-white hover:text-primary",
-                  }}
-                />
-                <DefaultButton
-                  data={{
-                    buttonText: primary.buttonText,
-                    type: "button",
-                    onClick: primary.onClick,
-                    className: primary.className,
-                  }}
-                />
+              <div className="flex items-center gap-4">
+                <button
+                  type="button"
+                  onClick={() => onOpenChange(false)}
+                  className="h-[56px] rounded-[5px] border border-primary px-[30px] py-4 text-[16px] font-semibold text-primary cursor-pointer"
+                >
+                  {t("Cancel")}
+                </button>
+                <button
+                  type="button"
+                  onClick={primary.onClick}
+                  disabled={primary.disabled}
+                  className={primary.className}
+                >
+                  {primary.buttonText}
+                </button>
               </div>
             </div>
           </div>

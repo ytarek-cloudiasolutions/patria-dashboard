@@ -24,6 +24,7 @@ interface CallCustomerStepProps {
   onZoneMenuOpenChange?: (open: boolean) => void;
   deliveryZones: DeliveryZone[];
   isSearching?: boolean;
+  errors?: Record<string, string>;
 }
 
 const CallCustomerStep = ({
@@ -43,6 +44,7 @@ const CallCustomerStep = ({
   onZoneMenuOpenChange,
   deliveryZones,
   isSearching = false,
+  errors = {},
 }: CallCustomerStepProps) => {
   const { t } = useTranslation();
 
@@ -52,61 +54,75 @@ const CallCustomerStep = ({
   }));
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {/* Phone lookup */}
-      <div>
-        <Label className="mb-2.5 block text-[15px] font-medium text-black">
+      <div className="flex flex-col gap-2.5">
+        <label className="text-[16px] font-medium text-black">
           {t("Find the customer by phone number")}
-        </Label>
-        <div className="flex items-center gap-2.5">
-          <InputField
+        </label>
+        <div className="flex items-center gap-6">
+          <input
             id="call-phone-search"
+            type="text"
             placeholder="e.g 012X XXXX XXXX"
-            wrapperClassName="flex-1"
-            inputProps={{
-              value: phoneQuery,
-              dir: "ltr",
-              onChange: (e) => onPhoneQueryChange(e.target.value),
-              disabled: isSearching,
-            }}
+            value={phoneQuery}
+            dir="ltr"
+            disabled={isSearching}
+            onChange={(e) => onPhoneQueryChange(e.target.value)}
+            className="h-[50px] flex-1 rounded-[12px] border border-[#E5E5E5] bg-white px-3.5 text-[16px] text-black placeholder:text-[#8B8B8B] focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
           />
-          <Button
+          <button
             type="button"
             disabled={isSearching}
             onClick={onSearch}
-            className="flex h-12.5 shrink-0 cursor-pointer items-center gap-2 rounded-[8px] px-5 text-[14px] font-semibold text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex h-[56px] shrink-0 cursor-pointer items-center justify-center gap-3 rounded-[5px] bg-primary px-[30px] text-[16px] font-semibold text-white disabled:cursor-not-allowed disabled:bg-primary/50"
           >
-            <Search className="size-4" />
+            <Search className="size-[18px]" />
             {isSearching ? t("Searching...") : t("Search")}
-          </Button>
+          </button>
         </div>
       </div>
 
       {/* Lookup result banner */}
       {searched && existing && (
-        <div className="rounded-[12px] border border-[#059B5A]/30 bg-[#E2F4ED] p-4">
-          <div className="flex items-start justify-between gap-3">
-            <p className="flex items-center gap-2 text-[13px] font-semibold text-[#059B5A]">
-              <UserRound className="size-4" />
-              {t("Existing Customer")}
-            </p>
-            <span className="rounded-full border border-[#3357B5]/30 bg-white px-2.5 py-0.5 text-[10px] font-semibold text-[#3357B5]">
-              {existing.tier}
+        <div className="flex flex-col gap-2 rounded-[10px] bg-[#E2F4ED] p-3.5">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <UserRound className="size-5 text-black" />
+              <span className="text-[16px] font-semibold tracking-[0.32px] text-[#059B5A]">
+                {t("Existing Customer")}
+              </span>
+            </div>
+            <span className="rounded-[30px] border border-[#053CB8] bg-[#EDF4FB] px-3 py-1 text-[11px] font-semibold tracking-[0.22px] text-[#3574FF] uppercase">
+              {existing.tier} (STANDARD)
             </span>
           </div>
-          <div className="mt-3 space-y-1 text-[12px] text-[#333333]">
-            <p>
-              <span className="font-semibold">{t("Name")}:</span> {existing.name}
-            </p>
-            <p>
-              <span className="font-semibold">{t("Phone Number")}:</span>{" "}
-              <span dir="ltr">{existing.phone}</span>
-            </p>
-            <p>
-              <span className="font-semibold">{t("Last Saved Address")}:</span>{" "}
-              {existing.lastAddress}
-            </p>
+          <div className="flex flex-col gap-1 text-[12px]">
+            <div className="flex items-center gap-1.5">
+              <span className="font-semibold text-[#595959]">{t("Name")}:</span>
+              <span className="font-semibold text-[#333333]">{existing.name}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="font-semibold text-[#595959]">{t("Phone Number")}:</span>
+              <span className="font-semibold text-[#333333]" dir="ltr">{existing.phone}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="font-semibold text-[#595959]">{t("Last Saved Address")}:</span>
+              <span className="font-semibold text-[#333333]">{existing.lastAddress}</span>
+            </div>
           </div>
+          <button
+            type="button"
+            onClick={() => {
+              onNameChange("");
+              onPhoneChange("");
+              onAddressChange("");
+            }}
+            className="mt-1 flex w-fit items-center gap-1.5 border-b border-black pb-1 pt-2 text-[12px] font-semibold text-black hover:opacity-80 transition-opacity cursor-pointer"
+          >
+            <UserPlus className="size-[18px] text-black" />
+            {t("Use a different address or number for this order")}
+          </button>
         </div>
       )}
 
@@ -123,46 +139,76 @@ const CallCustomerStep = ({
       )}
 
       {/* Customer form */}
-      <div className="grid gap-5 sm:grid-cols-2">
-        <InputField
-          id="call-customer-name"
-          label={t("Customer Name")}
-          required
-          placeholder={t("Full Name")}
-          inputProps={{
-            value: name,
-            onChange: (e) => onNameChange(e.target.value),
-          }}
-        />
-        <InputField
-          id="call-customer-phone"
-          label={t("Phone Number")}
-          required
-          placeholder="01X XXXX XXXX"
-          inputProps={{
-            value: phone,
-            dir: "ltr",
-            onChange: (e) => onPhoneChange(e.target.value),
-          }}
-        />
+      <div className="grid gap-6 sm:grid-cols-2">
+        <div className="flex flex-col gap-2.5">
+          <label htmlFor="call-customer-name" className="text-[16px] font-medium text-black">
+            {t("Customer Name")} <span className="text-[#C90000]">*</span>
+          </label>
+          <input
+            id="call-customer-name"
+            type="text"
+            placeholder={t("Full Name")}
+            value={name}
+            onChange={(e) => onNameChange(e.target.value)}
+            className={`h-[50px] w-full rounded-[12px] border bg-white px-3.5 text-[16px] text-black placeholder:text-[#8B8B8B] focus:outline-none focus:ring-1 ${
+              errors.name
+                ? "border-[#C90000] focus:border-[#C90000] focus:ring-[#C90000]"
+                : "border-[#E5E5E5] focus:border-primary focus:ring-primary"
+            }`}
+          />
+          {errors.name && (
+            <p className="text-[13px] font-medium text-[#C90000]">{errors.name}</p>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-2.5">
+          <label htmlFor="call-customer-phone" className="text-[16px] font-medium text-black">
+            {t("Phone Number")} <span className="text-[#C90000]">*</span>
+          </label>
+          <input
+            id="call-customer-phone"
+            type="text"
+            placeholder="01X XXXX XXXX"
+            value={phone}
+            dir="ltr"
+            onChange={(e) => onPhoneChange(e.target.value)}
+            className={`h-[50px] w-full rounded-[12px] border bg-white px-3.5 text-[16px] text-black placeholder:text-[#8B8B8B] focus:outline-none focus:ring-1 ${
+              errors.phone
+                ? "border-[#C90000] focus:border-[#C90000] focus:ring-[#C90000]"
+                : "border-[#E5E5E5] focus:border-primary focus:ring-primary"
+            }`}
+          />
+          {errors.phone && (
+            <p className="text-[13px] font-medium text-[#C90000]">{errors.phone}</p>
+          )}
+        </div>
       </div>
 
-      <InputField
-        id="call-customer-address"
-        label={t("Detailed address")}
-        required
-        placeholder={t("e.g Kafr Abdo")}
-        inputProps={{
-          value: address,
-          onChange: (e) => onAddressChange(e.target.value),
-        }}
-      />
+      <div className="flex flex-col gap-2.5">
+        <label htmlFor="call-customer-address" className="text-[16px] font-medium text-black">
+          {t("Detailed address")} <span className="text-[#C90000]">*</span>
+        </label>
+        <input
+          id="call-customer-address"
+          type="text"
+          placeholder={t("e.g Kafr Abdo")}
+          value={address}
+          onChange={(e) => onAddressChange(e.target.value)}
+          className={`h-[50px] w-full rounded-[12px] border bg-white px-3.5 text-[16px] text-black placeholder:text-[#8B8B8B] focus:outline-none focus:ring-1 ${
+            errors.address
+              ? "border-[#C90000] focus:border-[#C90000] focus:ring-[#C90000]"
+              : "border-[#E5E5E5] focus:border-primary focus:ring-primary"
+          }`}
+        />
+        {errors.address && (
+          <p className="text-[13px] font-medium text-[#C90000]">{errors.address}</p>
+        )}
+      </div>
 
-      <div className="flex flex-col">
-        <Label className="mb-2.5 text-[16px] font-medium text-black">
-          {t("Zone")}
-          <span className="text-[#C90000]">*</span>
-        </Label>
+      <div className="flex flex-col gap-2.5">
+        <label className="text-[16px] font-medium text-black">
+          {t("Zone")} <span className="text-[#C90000]">*</span>
+        </label>
         <DropdownSelect
           options={zoneOptions}
           selected={zoneId}
@@ -170,9 +216,14 @@ const CallCustomerStep = ({
           onOpenChange={onZoneMenuOpenChange}
           placeholder={t("Select Zone")}
           align="start"
-          className="md:w-full"
+          className={`md:w-full h-[50px] rounded-[12px] text-[16px] ${
+            errors.zone ? "border-[#C90000]" : "border-[#E5E5E5]"
+          }`}
           contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
         />
+        {errors.zone && (
+          <p className="text-[13px] font-medium text-[#C90000]">{errors.zone}</p>
+        )}
       </div>
     </div>
   );

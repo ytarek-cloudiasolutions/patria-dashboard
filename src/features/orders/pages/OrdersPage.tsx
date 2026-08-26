@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import {
   Smartphone,
@@ -176,7 +176,7 @@ const OrdersPage = () => {
 
   // Fetch products and locations for call orders
   useEffect(() => {
-    getProducts();
+    getProducts({ page: 1, limit: 100 });
     getLocations();
   }, [getProducts, getLocations]);
 
@@ -192,38 +192,56 @@ const OrdersPage = () => {
 
   // Map backend products to product options
   const productOptions: ProductOption[] = useMemo(() => {
-    return products.map((p) => {
-      const rawCat = p.category;
-      const category =
-        rawCat === "Bakery" || rawCat === "Meals" || rawCat === "Sandwiches" || rawCat === "Coffee"
-          ? rawCat
-          : "Coffee";
+    return products
+      .filter((p: any) => {
+        if (p.isActive === false || p.available === false || p.status === "Inactive") {
+          return false;
+        }
+        const pType = (p.productType || p.type || "").toLowerCase();
+        const pCat = (p.category || "").toLowerCase();
+        if (
+          p.isIngredient ||
+          pType === "raw ingredients" ||
+          pType === "raw ingredient" ||
+          pCat === "raw ingredients" ||
+          pCat === "raw ingredient"
+        ) {
+          return false;
+        }
+        return true;
+      })
+      .map((p) => {
+        const rawCat = p.category;
+        const category =
+          rawCat === "Bakery" || rawCat === "Meals" || rawCat === "Sandwiches" || rawCat === "Coffee"
+            ? rawCat
+            : "Coffee";
 
-      return {
-        id: p.id,
-        name: p.name,
-        unitPrice: p.price,
-        category,
-        customizable:
-          (p.variantGroups && p.variantGroups.length > 0) ||
-          (p.extras && p.extras.length > 0),
-        variantGroups: p.variantGroups?.map((vg) => ({
-          id: vg.id,
-          name: vg.name,
-          required: vg.required,
-          options: vg.options.map((opt) => ({
-            id: opt.id,
-            name: opt.name,
-            price: opt.price,
+        return {
+          id: p.id,
+          name: p.name,
+          unitPrice: p.price,
+          category,
+          customizable:
+            (p.variantGroups && p.variantGroups.length > 0) ||
+            (p.extras && p.extras.length > 0),
+          variantGroups: p.variantGroups?.map((vg) => ({
+            id: vg.id,
+            name: vg.name,
+            required: vg.required,
+            options: vg.options.map((opt) => ({
+              id: opt.id,
+              name: opt.name,
+              price: opt.price,
+            })),
           })),
-        })),
-        extras: p.extras?.map((ext) => ({
-          id: ext.id,
-          name: ext.name,
-          price: ext.price,
-        })),
-      };
-    });
+          extras: p.extras?.map((ext) => ({
+            id: ext.id,
+            name: ext.name,
+            price: ext.price,
+          })),
+        };
+      });
   }, [products]);
 
   const filteredOrders = useMemo(() => {
@@ -330,6 +348,13 @@ const OrdersPage = () => {
     createNewOrder(createRequest);
   };
 
+  const handleSearchProducts = useCallback(
+    (query: string) => {
+      getProducts({ page: 1, limit: 100, search: query || undefined });
+    },
+    [getProducts],
+  );
+
   const isLoading = !countsLoaded || !productsLoaded || !locationsLoaded || !ordersLoaded;
 
   if (isLoading) {
@@ -358,7 +383,7 @@ const OrdersPage = () => {
                 buttonText: `${t("Delete")} (${selectedIds.length}) ${t("Order")}`,
                 icon: <Trash2 className="size-4.5" />,
                 onClick: () => setIsBulkDeleteOpen(true),
-                className: "bg-[#C90000] text-white hover:bg-[#C90000]/90",
+                className: "bg-[#C90000] text-white hover:bg-[#C90000]",
               }}
             />
           )}
@@ -507,6 +532,7 @@ const OrdersPage = () => {
         deliveryZones={deliveryZones}
         onOpenChange={setIsCallDialogOpen}
         onCreateOrder={handleCreateOrder}
+        onSearchProducts={handleSearchProducts}
       />
 
       <DeleteDialog

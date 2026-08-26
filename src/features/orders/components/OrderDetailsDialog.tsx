@@ -73,14 +73,14 @@ const OrderDetailsDialog = ({
   const getDiscountDisplayText = () => {
     if (effectiveDiscountType === "percentage") {
       if (effectiveDiscountValue > 0) {
-        return `- ${effectiveDiscountValue}% (${formatCurrency(effectiveDiscount)})`;
+        return `${effectiveDiscountValue}% (${formatCurrency(effectiveDiscount)})`;
       }
-      return `- ${effectiveDiscount.toLocaleString(undefined, {
+      return `${effectiveDiscount.toLocaleString(undefined, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       })} %`;
     }
-    return `-${formatCurrency(effectiveDiscount)}`;
+    return formatCurrency(effectiveDiscount);
   };
 
   const displayId = order.orderId || order.id;

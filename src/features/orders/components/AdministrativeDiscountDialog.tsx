@@ -1,13 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-
 import {
   Dialog,
   DialogContent,
   DialogTitle,
 } from "@/shared/components/ui/dialog";
-import { Separator } from "@/shared/components/ui/separator";
-import InputField from "@/shared/components/InputField";
-import DefaultButton from "@/shared/components/DefaultButton";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 
 type DiscountMode = "fixed" | "percentage";
@@ -70,126 +66,158 @@ const AdministrativeDiscountDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[12px] bg-white p-0 ring-0 sm:max-w-[480px]"
+        className="w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[12px] border border-[#CACBD4] bg-white p-6 ring-0 shadow-[0px_4px_6px_-4px_rgba(0,0,0,0.10),0px_10px_15px_-3px_rgba(0,0,0,0.10)] sm:max-w-[696px]"
       >
-        <div className="flex flex-col px-5 py-5 sm:px-7 sm:py-6">
-          <DialogTitle className="mb-5 text-[18px] font-semibold text-[#28293D] sm:text-[20px]">
+        <div className="flex flex-col gap-6">
+          <DialogTitle className="text-[24px] font-semibold tracking-[0.48px] text-black">
             {t("Administrative discount application")}
           </DialogTitle>
 
-          {/* Password */}
-          <div>
-            <InputField
+          {/* Password (Full width - No Check button) */}
+          <div className="flex flex-col gap-2.5">
+            <label
+              htmlFor="admin-discount-password"
+              className="text-[16px] font-medium text-black"
+            >
+              {t("Password")} <span className="text-[#C90000]">*</span>
+            </label>
+            <input
               id="admin-discount-password"
-              label={t("Password")}
-              required
               type="password"
               placeholder="••••••••"
-              inputProps={{
-                value: password,
-                onChange: (e) => setPassword(e.target.value),
-              }}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="h-[50px] w-full rounded-[12px] border border-[#E5E5E5] bg-white px-3.5 text-[16px] text-black placeholder:text-[#8B8B8B] focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
 
-          {/* Fixed / Percentage tabs */}
-          <div className="mt-5 grid grid-cols-2 border-b border-[#E5E5E5]">
-            {(
-              [
-                { key: "fixed", label: t("Fixed Amount (EGP)") },
-                { key: "percentage", label: t("Percentage (%)") },
-              ] as { key: DiscountMode; label: string }[]
-            ).map((tab) => (
-              <button
-                key={tab.key}
-                type="button"
-                onClick={() => setMode(tab.key)}
-                className={`-mb-px h-10 cursor-pointer border-b-2 text-[14px] font-medium transition-colors ${
-                  mode === tab.key
-                    ? "border-primary text-primary"
-                    : "border-transparent text-[#8B8B8B]"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Amount + Reason */}
-          <div className="mt-5 flex flex-col gap-4">
-            <InputField
-              id="admin-discount-amount"
-              label={
+          {/* Fixed Amount / Percentage Tabs */}
+          <div className="grid grid-cols-2 gap-1.5">
+            <button
+              type="button"
+              onClick={() => setMode("fixed")}
+              className={`h-[48px] cursor-pointer border-b-2 text-center text-[16px] transition-colors ${
                 mode === "fixed"
-                  ? t("Discount Amount (EGP)")
-                  : t("Discount Percentage (%)")
-              }
-              required
-              type="number"
-              placeholder={mode === "fixed" ? t("e.g 50") : t("e.g 10")}
-              inputProps={{
-                value: amount,
-                min: "0",
-                onChange: (e) => setAmount(e.target.value),
-              }}
-            />
-            <InputField
-              id="admin-discount-reason"
-              label={`${t("Reason")} (${t("Optional")})`}
-              placeholder={t("e.g Loyalty Discount, compensation")}
-              inputProps={{
-                value: reason,
-                onChange: (e) => setReason(e.target.value),
-              }}
-            />
+                  ? "border-primary font-medium text-[#333333]"
+                  : "border-[#8B8B8B] font-semibold text-[#8B8B8B]"
+              }`}
+            >
+              {t("Fixed Amount (EGP)")}
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("percentage")}
+              className={`h-[48px] cursor-pointer border-b-2 text-center text-[16px] transition-colors ${
+                mode === "percentage"
+                  ? "border-primary font-medium text-[#333333]"
+                  : "border-[#8B8B8B] font-semibold text-[#8B8B8B]"
+              }`}
+            >
+              {t("Percentage (%)")}
+            </button>
           </div>
 
-          {/* Totals */}
-          <div className="mt-5 rounded-[12px] border border-[#D9D9D9] bg-[#FAFAF7] p-4">
-            <div className="flex items-center justify-between text-[15px] font-semibold text-[#111111]">
-              <span>{t("Total")}:</span>
-              <span>{formatCurrency(total)}</span>
+          {/* Amount & Reason */}
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-2.5">
+              <label
+                htmlFor="admin-discount-amount"
+                className="text-[16px] font-medium text-black"
+              >
+                {mode === "fixed"
+                  ? t("Discount Amount (EGP)")
+                  : t("Discount Percentage (%)")}{" "}
+                <span className="text-[#C90000]">*</span>
+              </label>
+              <input
+                id="admin-discount-amount"
+                type="number"
+                min="0"
+                placeholder={mode === "fixed" ? t("e.g 50") : t("e.g 10")}
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                className="h-[50px] w-full rounded-[12px] border border-[#E5E5E5] bg-white px-3.5 text-[16px] text-black placeholder:text-[#8B8B8B] focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              />
             </div>
-            <Separator className="my-2 bg-[#CACBD4]" />
-            <div className="mt-2 flex items-center text-[13px] gap-1 text-[#8B8B8B]">
-              <span>{t("Discount")}:</span>
-              <span className="text-[#333333] font-semibold">
-                {mode === "percentage"
-                  ? `- ${amount || 0}% (${formatCurrency(discount)})`
-                  : `-${formatCurrency(discount)}`}
+
+            <div className="flex flex-col gap-2.5">
+              <label
+                htmlFor="admin-discount-reason"
+                className="text-[16px] font-medium text-black"
+              >
+                {t("Reason")}{" "}
+                <span className="text-[13px] font-medium text-[#595959]">
+                  ({t("Optional")})
+                </span>
+              </label>
+              <input
+                id="admin-discount-reason"
+                type="text"
+                placeholder={t("e.g Loyalty Discount, compensation")}
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                className="h-[50px] w-full rounded-[12px] border border-[#E5E5E5] bg-white px-3.5 text-[16px] text-black placeholder:text-[#8B8B8B] focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            </div>
+          </div>
+
+          {/* Totals Summary Box */}
+          <div className="flex flex-col gap-4 rounded-[16px] border border-[#E5E5E5] bg-[#FAFAF7] p-4">
+            <div className="flex items-center justify-between">
+              <span className="text-[18px] font-semibold leading-[19.8px] text-black">
+                {t("Total")}:
+              </span>
+              <span className="text-[18px] tracking-[0.36px] text-black">
+                <span className="font-medium">EGP</span>{" "}
+                <span className="font-semibold">
+                  {total.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </span>
               </span>
             </div>
-            <div className="mt-2 flex items-center text-[13px] gap-1 text-[#8B8B8B]">
+
+            <div className="border-b border-[#CACBD4]" />
+
+            <div className="flex items-center gap-1.5 text-[12px] font-semibold tracking-[0.24px] text-[#8B8B8B]">
+              <span>{t("Discount")}:</span>
+              <span className="text-[13px] font-semibold tracking-[0.26px] text-[#333333]">
+                {mode === "percentage"
+                  ? `${amount || 0}% (${formatCurrency(discount)})`
+                  : formatCurrency(discount)}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1.5 text-[12px] font-semibold tracking-[0.24px] text-[#8B8B8B]">
               <span>{t("Total After Discount")}:</span>
-              <span className="text-[#333333] font-semibold">
+              <span className="text-[13px] font-semibold tracking-[0.26px] text-[#333333]">
                 {formatCurrency(totalAfterDiscount)}
               </span>
             </div>
           </div>
 
-          <Separator className="my-5 bg-[#CACBD4]" />
-
-          <div className="flex justify-end gap-3">
-            <DefaultButton
-              data={{
-                buttonText: t("Cancel"),
-                variant: "outline",
-                type: "button",
-                onClick: () => onOpenChange(false),
-                className:
-                  "border-primary text-primary hover:bg-white hover:text-primary",
-              }}
-            />
-            <DefaultButton
-              data={{
-                buttonText: t("Apply Discount"),
-                type: "button",
-                onClick: handleApply,
-                className: canApply
-                  ? ""
-                  : "bg-[#dcdcdc] text-[#8b8b8b] hover:bg-[#dcdcdc] pointer-events-none",
-              }}
-            />
+          {/* Footer Actions */}
+          <div className="flex items-center justify-end gap-4 border-t border-[#CACBD4] pt-6">
+            <button
+              type="button"
+              onClick={() => onOpenChange(false)}
+              className="h-[56px] rounded-[5px] border border-primary px-[30px] py-4 text-[16px] font-semibold text-primary transition-colors hover:bg-primary/5 cursor-pointer"
+            >
+              {t("Cancel")}
+            </button>
+            <button
+              type="button"
+              onClick={handleApply}
+              disabled={!canApply}
+              className={`h-[56px] rounded-[5px] px-[30px] py-4 text-[16px] font-semibold transition-colors ${
+                canApply
+                  ? "bg-primary text-white hover:bg-primary/90 cursor-pointer"
+                  : "bg-primary/50 text-white cursor-not-allowed"
+              }`}
+            >
+              {t("Apply Discount")}
+            </button>
           </div>
         </div>
       </DialogContent>
