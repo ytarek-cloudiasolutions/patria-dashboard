@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { ChevronDown, ChevronUp, Plus, Trash2, PlusCircle, Box, BadgePlus, Layers, ListPlus, Sparkles, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -152,8 +152,13 @@ const AddProductDialog = ({
     return () => clearTimeout(timer);
   }, [recipeSearch, categories]);
 
+  const fetchedProductIdRef = useRef<string | null>(null);
+
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      fetchedProductIdRef.current = null;
+      return;
+    }
     let categoryId = "";
     if (editingProduct) {
       const selectedCat = categories.find(
@@ -221,29 +226,30 @@ const AddProductDialog = ({
     setForm(
       editingProduct
         ? {
-            ...INITIAL_FORM,
-            name: editingProduct.name,
-            category: categoryId,
-            description: editingProduct.description,
-            barcode: editingProduct.barcode || "",
-            price: String(editingProduct.price),
-            imageUrl: editingProduct.imageUrl,
-            extras: initialExtras,
-            variantGroups: editingProduct.variantGroups ?? [],
-            recipe: editingProduct.recipe ?? [],
-            productType: editingProduct.productType ?? "ready",
-          }
+          ...INITIAL_FORM,
+          name: editingProduct.name,
+          category: categoryId,
+          description: editingProduct.description,
+          barcode: editingProduct.barcode || "",
+          price: String(editingProduct.price),
+          imageUrl: editingProduct.imageUrl,
+          extras: initialExtras,
+          variantGroups: editingProduct.variantGroups ?? [],
+          recipe: editingProduct.recipe ?? [],
+          productType: editingProduct.productType ?? "ready",
+        }
         : {
-            ...INITIAL_FORM,
-            extras: initialExtras,
-          },
+          ...INITIAL_FORM,
+          extras: initialExtras,
+        },
     );
     setErrors({});
     setIsCategoryOpen(false);
     setIsRecipeOpen(false);
     setIsItemTypeOpen(false);
 
-    if (editingProduct?.id) {
+    if (editingProduct?.id && fetchedProductIdRef.current !== editingProduct.id) {
+      fetchedProductIdRef.current = editingProduct.id;
       getRecipe(editingProduct.id)
         .then((recipeRes: any) => {
           const recipeObj = recipeRes?.recipe || recipeRes;
@@ -259,10 +265,10 @@ const AddProductDialog = ({
                     : {};
               const matId = String(
                 matObj._id ||
-                  matObj.id ||
-                  (typeof ing.productId === "string" ? ing.productId : "") ||
-                  (typeof ing.material === "string" ? ing.material : "") ||
-                  ""
+                matObj.id ||
+                (typeof ing.productId === "string" ? ing.productId : "") ||
+                (typeof ing.material === "string" ? ing.material : "") ||
+                ""
               );
               const localIng = ingredients.find(
                 (item) => String(item.id) === String(matId)
@@ -336,11 +342,11 @@ const AddProductDialog = ({
       form.variantGroups.map((g) =>
         String(g.id) === String(groupId)
           ? {
-              ...g,
-              options: g.options.map((o) =>
-                String(o.id) === String(optionId) ? { ...o, ...patch } : o,
-              ),
-            }
+            ...g,
+            options: g.options.map((o) =>
+              String(o.id) === String(optionId) ? { ...o, ...patch } : o,
+            ),
+          }
           : g,
       ),
     );
@@ -930,34 +936,47 @@ const AddProductDialog = ({
                             </span>
                           </div>
 
-                          {/* Controls: Quantity Box, Unit Box, Price */}
+                          {/* Controls: Combined Quantity & Unit Field, Price */}
                           <div className="flex items-center gap-3">
-                            {/* Quantity Box */}
+                            {/* Unified Quantity & Unit Field matching Figma */}
                             <div
                               className={cn(
-                                "flex h-[40px] w-[80px] items-center justify-between rounded-[12px] border px-3 transition-colors",
+                                "flex h-[40px] min-w-[96px] items-center justify-between gap-1.5 rounded-[12px] border px-3 transition-colors",
                                 isSelected
                                   ? "border-[#E5E5E5] bg-white"
                                   : "border-[#CACBD4] bg-[#E5E5E5]"
                               )}
                             >
-                              <input
-                                type="number"
-                                min="0"
-                                disabled={!isSelected}
-                                value={extra.quantity ?? 0}
-                                onChange={(e) =>
-                                  updateExtraQuantity(
-                                    extra.id,
-                                    Math.max(0, Number(e.target.value) || 0),
-                                  )
-                                }
-                                className={cn(
-                                  "w-9 bg-transparent text-center text-[16px] font-normal focus:outline-none focus:ring-0 border-0 p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
-                                  isSelected ? "text-black" : "text-[#8B8B8B]"
-                                )}
-                              />
-                              <div className="flex flex-col">
+                              <div className="flex items-center gap-1">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  disabled={!isSelected}
+                                  value={extra.quantity ?? 0}
+                                  onChange={(e) =>
+                                    updateExtraQuantity(
+                                      extra.id,
+                                      Math.max(0, Number(e.target.value) || 0),
+                                    )
+                                  }
+                                  style={{
+                                    width: `${Math.max(1, String(extra.quantity ?? 0).length) * 9 + 4}px`,
+                                  }}
+                                  className={cn(
+                                    "bg-transparent text-[15px] font-normal focus:outline-none focus:ring-0 border-0 p-0 text-start [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
+                                    isSelected ? "text-black" : "text-[#8B8B8B]"
+                                  )}
+                                />
+                                <span
+                                  className={cn(
+                                    "text-[15px] font-normal",
+                                    isSelected ? "text-black" : "text-[#8B8B8B]"
+                                  )}
+                                >
+                                  {extra.unit || "ml"}
+                                </span>
+                              </div>
+                              <div className="flex flex-col items-center justify-center">
                                 <button
                                   type="button"
                                   disabled={!isSelected}
@@ -966,7 +985,7 @@ const AddProductDialog = ({
                                   }
                                   className="cursor-pointer text-[#333333] hover:text-black disabled:opacity-40"
                                 >
-                                  <ChevronUp className="size-3" />
+                                  <ChevronUp className="size-3.5" />
                                 </button>
                                 <button
                                   type="button"
@@ -979,28 +998,9 @@ const AddProductDialog = ({
                                   }
                                   className="cursor-pointer text-[#333333] hover:text-black disabled:opacity-40"
                                 >
-                                  <ChevronDown className="size-3" />
+                                  <ChevronDown className="size-3.5" />
                                 </button>
                               </div>
-                            </div>
-
-                            {/* Unit Box */}
-                            <div
-                              className={cn(
-                                "flex h-[40px] w-[61px] items-center justify-center rounded-[12px] border px-1 transition-colors",
-                                isSelected
-                                  ? "border-[#E5E5E5] bg-white"
-                                  : "border-[#CACBD4] bg-[#E5E5E5]"
-                              )}
-                            >
-                              <span
-                                className={cn(
-                                  "text-[16px] font-normal text-center",
-                                  isSelected ? "text-black" : "text-[#8B8B8B]"
-                                )}
-                              >
-                                {extra.unit || "ml"}
-                              </span>
                             </div>
 
                             {/* Price */}

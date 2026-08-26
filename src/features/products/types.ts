@@ -29,6 +29,7 @@ export interface Product {
   isIngredient?: boolean;
   isExtra?: boolean;
   extraTargetProductIds?: string[];
+  extraQuantity?: number;
   barcode?: string;
 }
 
@@ -47,6 +48,7 @@ export interface Ingredient {
   isActive?: boolean;
   extraCategories?: string[];
   extraTargetProductIds?: string[];
+  extraQuantity?: number;
   barcode?: string;
 }
 
@@ -59,6 +61,7 @@ export interface Category {
   imageUrl: string;
   itemCount: number;
   active: boolean;
+  kitchenType?: KitchenType;
 }
 
 // --- Add Product form -------------------------------------------------------
@@ -98,11 +101,11 @@ export interface ProductExtra {
   id: string;
   name: string;
   price: number;
-  active?: boolean;
-  isActive?: boolean;
   quantity?: number;
   unit?: string;
   recipe?: OptionRecipeItem[];
+  active?: boolean;
+  isActive?: boolean;
 }
 
 export interface ProductFormData {
@@ -130,6 +133,7 @@ export interface IngredientFormData {
   price: string;
   quantity: string;
   unit: string;
+  extraQuantity?: string;
   imageUrl?: string;
   imageFile?: File;
   recipe?: OptionRecipeItem[];

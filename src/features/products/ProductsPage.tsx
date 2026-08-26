@@ -180,10 +180,10 @@ const ProductsPage = () => {
   const prevCreatingRef = useRef(false);
 
   useEffect(() => {
-    if (isAddProductOpen) {
+    if (isAddProductOpen && products.length === 0) {
       getIngredients();
     }
-  }, [isAddProductOpen, getIngredients]);
+  }, [isAddProductOpen, products.length, getIngredients]);
 
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
 
@@ -373,6 +373,7 @@ const ProductsPage = () => {
     formData.append("stockQty", String(Number(data.quantity) || 0));
     formData.append("unit", data.unit || "g");
     formData.append("isExtra", String(Boolean(data.isExtra)));
+    formData.append("extraQuantity", String(Number(data.extraQuantity ?? data.quantity) || 0));
     formData.append(
       "extraTargetProductIds",
       JSON.stringify(data.extraTargetProductIds || [])

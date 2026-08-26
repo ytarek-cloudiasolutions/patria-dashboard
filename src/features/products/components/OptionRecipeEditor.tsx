@@ -48,8 +48,9 @@ const OptionRecipeEditor = ({
   const defaultPlaceholder =
     placeholder || (language === "ar" ? "اختر وصفة / مكون" : "Select a reciepe");
 
-  // Fetch initial raw ingredients from backend so dropdown has full results
+  // Fetch initial raw ingredients from backend so dropdown has full results if not already available
   useEffect(() => {
+    if ((ingredients && ingredients.length > 0) || remoteIngredients.length > 0) return;
     let isMounted = true;
     const fetchInitial = async () => {
       try {
@@ -73,7 +74,7 @@ const OptionRecipeEditor = ({
     return () => {
       isMounted = false;
     };
-  }, [categories]);
+  }, [categories, ingredients, remoteIngredients.length]);
 
   // Combine ingredients prop and remoteIngredients into a unified list
   const combinedIngredients = useMemo(() => {

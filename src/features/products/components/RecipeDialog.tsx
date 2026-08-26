@@ -50,10 +50,36 @@ const RecipeDialog = ({
     getProducts({ limit: 200 });
     setIsLoading(true);
     getRecipe(productId)
-      .then((recipe) => {
-        if (recipe) {
-          setIngredients(recipe.ingredients || []);
-          setNotes(recipe.notes || "");
+      .then((recipeRes: any) => {
+        const recipeObj = recipeRes?.recipe || recipeRes;
+        const rawIngredients = recipeObj?.ingredients || [];
+        if (Array.isArray(rawIngredients)) {
+          const mapped: RecipeIngredient[] = rawIngredients.map((item: any) => {
+            const prodObj =
+              typeof item.productId === "object" && item.productId !== null
+                ? item.productId
+                : typeof item.material === "object" && item.material !== null
+                  ? item.material
+                  : null;
+            const pId = prodObj
+              ? String(prodObj._id || prodObj.id)
+              : String(item.productId || item.material || "");
+            return {
+              productId: pId,
+              quantity: Number(item.quantity) || 1,
+              unit: item.unit || "pcs",
+              product: prodObj
+                ? {
+                    _id: String(prodObj._id || prodObj.id),
+                    name: prodObj.name,
+                    price: Number(prodObj.price) || 0,
+                    stockQty: prodObj.stockQty,
+                  }
+                : undefined,
+            };
+          });
+          setIngredients(mapped);
+          setNotes(recipeObj.notes || "");
         } else {
           setIngredients([]);
           setNotes("");
@@ -133,60 +159,76 @@ const RecipeDialog = ({
                       <span className="w-20 text-center text-[12px] font-semibold text-[#8B8B8B] uppercase">
                         {t("Unit")}
                       </span>
+                      <span className="w-24 text-end text-[12px] font-semibold text-[#8B8B8B] uppercase">
+                        {t("Price")}
+                      </span>
                       <span className="w-12" />
                     </div>
 
-                    {ingredients.map((row, index) => (
-                      <div key={index} className="flex items-center gap-3">
-                        <select
-                          value={row.productId}
-                          onChange={(e) =>
-                            updateRow(index, { productId: e.target.value })
-                          }
-                          className="flex-1 h-12 rounded-xl border border-[#E5E5E5] bg-white px-3 text-[14px] text-[#28293D] focus:outline-none focus:border-primary cursor-pointer"
-                        >
-                          <option value="">{t("Select ingredient")}</option>
-                          {availableProducts.map((p) => (
-                            <option key={p.id} value={p.id}>
-                              {p.name}
-                            </option>
-                          ))}
-                        </select>
-                        <Input
-                          type="number"
-                          min="0"
-                          step="0.1"
-                          value={row.quantity}
-                          onChange={(e) =>
-                            updateRow(index, {
-                              quantity: Number(e.target.value) || 0,
-                            })
-                          }
-                          className="h-12 w-24 rounded-xl border-[#E5E5E5] text-center focus-visible:border-primary focus-visible:ring-0"
-                        />
-                        <select
-                          value={row.unit}
-                          onChange={(e) =>
-                            updateRow(index, { unit: e.target.value })
-                          }
-                          className="h-12 w-20 rounded-xl border border-[#E5E5E5] bg-white px-2 text-[13px] text-[#28293D] focus:outline-none focus:border-primary cursor-pointer"
-                        >
-                          {UNIT_OPTIONS.map((u) => (
-                            <option key={u} value={u}>
-                              {u}
-                            </option>
-                          ))}
-                        </select>
-                        <button
-                          type="button"
-                          onClick={() => removeRow(index)}
-                          aria-label={t("Remove ingredient")}
-                          className="h-12 w-12 rounded-xl bg-[#C90000] text-white flex items-center justify-center hover:bg-[#A80000] transition-colors cursor-pointer shrink-0"
-                        >
-                          <Trash2 className="size-5" />
-                        </button>
-                      </div>
-                    ))}
+                    {ingredients.map((row, index) => {
+                      const prodObj = (row as any).product;
+                      const matchedProd = availableProducts.find(
+                        (p) => String(p.id) === String(row.productId)
+                      );
+                      const unitPrice =
+                        prodObj?.price ?? matchedProd?.price ?? 0;
+                      const rowPrice = unitPrice * (row.quantity || 0);
+
+                      return (
+                        <div key={index} className="flex items-center gap-3">
+                          <select
+                            value={row.productId}
+                            onChange={(e) =>
+                              updateRow(index, { productId: e.target.value })
+                            }
+                            className="flex-1 h-12 rounded-xl border border-[#E5E5E5] bg-white px-3 text-[14px] text-[#28293D] focus:outline-none focus:border-primary cursor-pointer"
+                          >
+                            <option value="">{t("Select ingredient")}</option>
+                            {availableProducts.map((p) => (
+                              <option key={p.id} value={p.id}>
+                                {p.name}
+                              </option>
+                            ))}
+                          </select>
+                          <Input
+                            type="number"
+                            min="0"
+                            step="0.1"
+                            value={row.quantity}
+                            onChange={(e) =>
+                              updateRow(index, {
+                                quantity: Number(e.target.value) || 0,
+                              })
+                            }
+                            className="h-12 w-24 rounded-xl border-[#E5E5E5] text-center focus-visible:border-primary focus-visible:ring-0"
+                          />
+                          <select
+                            value={row.unit}
+                            onChange={(e) =>
+                              updateRow(index, { unit: e.target.value })
+                            }
+                            className="h-12 w-20 rounded-xl border border-[#E5E5E5] bg-white px-2 text-[13px] text-[#28293D] focus:outline-none focus:border-primary cursor-pointer"
+                          >
+                            {UNIT_OPTIONS.map((u) => (
+                              <option key={u} value={u}>
+                                {u}
+                              </option>
+                            ))}
+                          </select>
+                          <div className="w-24 text-end text-[14px] font-semibold text-black">
+                            EGP {rowPrice.toFixed(2)}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeRow(index)}
+                            aria-label={t("Remove ingredient")}
+                            className="h-12 w-12 rounded-xl bg-[#C90000] text-white flex items-center justify-center hover:bg-[#A80000] transition-colors cursor-pointer shrink-0"
+                          >
+                            <Trash2 className="size-5" />
+                          </button>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
 

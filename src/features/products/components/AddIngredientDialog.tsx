@@ -33,6 +33,7 @@ const INITIAL_FORM: IngredientFormData = {
   price: "",
   quantity: "",
   unit: "g",
+  extraQuantity: "0",
   recipe: [],
   imageUrl: undefined,
   imageFile: undefined,
@@ -84,6 +85,7 @@ const AddIngredientDialog = ({
             price: String(editingIngredient.price),
             quantity: String(editingIngredient.quantity),
             unit: editingIngredient.unit || "g",
+            extraQuantity: String(editingIngredient.extraQuantity ?? "0"),
             recipe: editingIngredient.recipe ?? [],
             imageUrl: editingIngredient.imageUrl,
             imageFile: undefined,
@@ -315,6 +317,7 @@ const AddIngredientDialog = ({
     const extraTargetProductIds = computeExtraTargetProductIds();
     onSave({
       ...form,
+      extraQuantity: form.extraQuantity || "0",
       extraTargetProductIds,
     });
     onOpenChange(false);
@@ -377,36 +380,22 @@ const AddIngredientDialog = ({
                 )}
               </div>
 
-              <div className="flex flex-col gap-2.5">
-                <Label className="text-[16px] font-medium text-black">
-                  {t("Category")}
-                </Label>
-                <Input
-                  value={t("Raw Ingredient")}
-                  disabled
-                  readOnly
-                  className="h-[50px] rounded-xl border-[#E5E5E5] bg-[#F4F4F4] px-4.5 py-3 text-[16px] text-[#595959] disabled:opacity-100"
+              <div>
+                <InputField
+                  data={{
+                    id: "ingredient-description",
+                    label: {
+                      htmlFor: "ingredient-description",
+                      labelText: t("Description"),
+                    },
+                    placeholder: t("Description"),
+                    inputProps: {
+                      value: form.description,
+                      onChange: (e) => set("description", e.target.value),
+                    },
+                  }}
                 />
               </div>
-            </div>
-
-            <div className="flex flex-col gap-2.5">
-              <Label
-                htmlFor="ingredient-description"
-                className="text-[16px] font-medium text-black"
-              >
-                {t("Description")}{" "}
-                <span className="text-[13px] font-normal text-[#8B8B8B]">
-                  {t("(Optional)")}
-                </span>
-              </Label>
-              <Textarea
-                id="ingredient-description"
-                value={form.description}
-                onChange={(e) => set("description", e.target.value)}
-                placeholder={t("Describe this product...")}
-                className="min-h-20 rounded-xl border-[#E5E5E5] px-4.5 py-3 text-[16px] text-[#23252A] placeholder:text-[#8B8B8B] placeholder:text-[16px] focus-visible:border-primary focus-visible:ring-0"
-              />
             </div>
 
             <InputField
@@ -414,9 +403,9 @@ const AddIngredientDialog = ({
                 id: "ingredient-barcode",
                 label: {
                   htmlFor: "ingredient-barcode",
-                  labelText: `${t("Barcode")} ${t("(Optional)")}`,
+                  labelText: t("Barcode"),
                 },
-                placeholder: t("Manually enter barcode"),
+                placeholder: t("Barcode"),
                 inputProps: {
                   value: form.barcode,
                   onChange: (e) => set("barcode", e.target.value),
@@ -545,9 +534,9 @@ const AddIngredientDialog = ({
                             <input
                               type="number"
                               min="0"
-                              value={form.quantity}
-                              onChange={(e) => set("quantity", e.target.value)}
-                              style={{ width: `${Math.max(1, (form.quantity || "0").length) * 11 + 6}px` }}
+                              value={form.extraQuantity ?? "0"}
+                              onChange={(e) => set("extraQuantity", e.target.value)}
+                              style={{ width: `${Math.max(1, (form.extraQuantity || "0").length) * 11 + 6}px` }}
                               className="bg-transparent text-[16px] font-normal text-black outline-none focus:ring-0 border-0 p-0 text-start [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                               placeholder="0"
                             />
@@ -559,8 +548,8 @@ const AddIngredientDialog = ({
                             <button
                               type="button"
                               onClick={() => {
-                                const currentVal = Number(form.quantity) || 0;
-                                set("quantity", String(currentVal + 1));
+                                const currentVal = Number(form.extraQuantity || "0") || 0;
+                                set("extraQuantity", String(currentVal + 1));
                               }}
                               className="cursor-pointer text-[#8B8B8B] hover:text-black"
                             >
@@ -569,8 +558,8 @@ const AddIngredientDialog = ({
                             <button
                               type="button"
                               onClick={() => {
-                                const currentVal = Number(form.quantity) || 0;
-                                set("quantity", String(Math.max(0, currentVal - 1)));
+                                const currentVal = Number(form.extraQuantity || "0") || 0;
+                                set("extraQuantity", String(Math.max(0, currentVal - 1)));
                               }}
                               className="cursor-pointer text-[#8B8B8B] hover:text-black"
                             >
