@@ -310,7 +310,7 @@ const ProductsPage = () => {
         id: e.id,
         name: e.name.trim(),
         price: Number(e.price) || 0,
-        active: e.active !== false,
+        isActive: e.active !== false,
         quantity: Number(e.quantity) || 30,
         unit: e.unit || "ml",
         recipe: (e.recipe || []).map((r) => ({
