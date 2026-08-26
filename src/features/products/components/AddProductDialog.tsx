@@ -178,13 +178,20 @@ const AddProductDialog = ({
             e.name.toLowerCase().trim() === ing.name.toLowerCase().trim()
         );
         const isAct = saved ? (saved.isActive ?? saved.active ?? true) : true;
+        // ing.price is the cost of ing.quantity units as stocked (e.g. EGP 70
+        // for 100g) — NOT a per-unit price. Previously this was copied
+        // straight across as the extra's price regardless of how much of it
+        // is actually used, so 23g of a 100g/70EGP ingredient still showed
+        // EGP 70 instead of ~EGP 16.10. Derive the real per-unit rate here.
+        const unitPrice = ing.quantity ? (Number(ing.price) || 0) / ing.quantity : 0;
+        const defaultQty = saved?.quantity ?? 1;
         return {
           id: ing.id,
           name: ing.name,
-          price: saved?.price ?? ing.price ?? 0,
+          price: saved ? saved.price : Math.round(unitPrice * defaultQty * 100) / 100,
           active: isAct,
           isActive: isAct,
-          quantity: saved?.quantity ?? 0,
+          quantity: defaultQty,
           unit: saved?.unit ?? ing.unit ?? "ml",
         };
       });
@@ -420,6 +427,21 @@ const AddProductDialog = ({
       "extras",
       form.extras.map((e) => (e.id === id ? { ...e, ...patch } : e)),
     );
+
+  // ing.price is the cost of ing.quantity units as stocked (e.g. EGP 70 for
+  // 100g), not a per-unit price — quantity changes on an "Extras Included"
+  // row must recompute price from that ratio, not leave the ingredient's
+  // full base price untouched regardless of how much is actually used.
+  const updateExtraQuantity = (id: string, quantity: number) => {
+    const ing = ingredients.find((i) => String((i as any).id) === String(id));
+    const unitPrice = ing && (ing as any).quantity
+      ? (Number((ing as any).price) || 0) / (ing as any).quantity
+      : undefined;
+    updateExtra(id, {
+      quantity,
+      ...(unitPrice !== undefined ? { price: Math.round(unitPrice * quantity * 100) / 100 } : {}),
+    });
+  };
 
   // --- Submit ---------------------------------------------------------------
 
@@ -925,9 +947,10 @@ const AddProductDialog = ({
                                 disabled={!isSelected}
                                 value={extra.quantity ?? 0}
                                 onChange={(e) =>
-                                  updateExtra(extra.id, {
-                                    quantity: Math.max(0, Number(e.target.value) || 0),
-                                  })
+                                  updateExtraQuantity(
+                                    extra.id,
+                                    Math.max(0, Number(e.target.value) || 0),
+                                  )
                                 }
                                 className={cn(
                                   "w-9 bg-transparent text-center text-[16px] font-normal focus:outline-none focus:ring-0 border-0 p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
@@ -939,9 +962,7 @@ const AddProductDialog = ({
                                   type="button"
                                   disabled={!isSelected}
                                   onClick={() =>
-                                    updateExtra(extra.id, {
-                                      quantity: (extra.quantity ?? 0) + 1,
-                                    })
+                                    updateExtraQuantity(extra.id, (extra.quantity ?? 0) + 1)
                                   }
                                   className="cursor-pointer text-[#333333] hover:text-black disabled:opacity-40"
                                 >
@@ -951,9 +972,10 @@ const AddProductDialog = ({
                                   type="button"
                                   disabled={!isSelected}
                                   onClick={() =>
-                                    updateExtra(extra.id, {
-                                      quantity: Math.max(0, (extra.quantity ?? 0) - 1),
-                                    })
+                                    updateExtraQuantity(
+                                      extra.id,
+                                      Math.max(0, (extra.quantity ?? 0) - 1),
+                                    )
                                   }
                                   className="cursor-pointer text-[#333333] hover:text-black disabled:opacity-40"
                                 >
