@@ -11,6 +11,7 @@ import { useTranslation } from "@/shared/i18n/useTranslation";
 import { api } from "@/config/api";
 import { cn } from "@/lib/utils";
 import type { OptionRecipeItem, Ingredient, Product, Category } from "../types";
+import { formatUnit } from "../utils";
 
 interface OptionRecipeEditorProps {
   recipe: OptionRecipeItem[];
@@ -23,9 +24,9 @@ interface OptionRecipeEditorProps {
 }
 
 const UNITS = [
+  { value: "ml", label: "ml" },
   { value: "g", label: "g" },
   { value: "kg", label: "kg" },
-  { value: "ml", label: "ml" },
   { value: "L", label: "L" },
   { value: "pcs", label: "pcs" },
 ];
@@ -199,12 +200,6 @@ const OptionRecipeEditor = ({
                     <span className="font-normal text-black text-[15px]">
                       {item.name}
                     </span>
-                    <div className="shrink-0 text-start text-[13px]">
-                      <span className="font-medium text-black">EGP </span>
-                      <span className="font-semibold text-black">
-                        {Number(item.price || 0).toFixed(2)}
-                      </span>
-                    </div>
                   </button>
                 );
               })
@@ -218,7 +213,6 @@ const OptionRecipeEditor = ({
   const addedIngredientsJSX = recipe.length > 0 && (
     <div className="w-full rounded-[16px] border border-[#CACBD4] bg-[#FAFAF7] p-3 flex flex-col gap-2">
       {recipe.map((item, idx) => {
-        const lineTotal = (Number(item.price) || 0) * (Number(item.quantity) || 0);
         return (
           <div
             key={item.material || idx}
@@ -254,7 +248,7 @@ const OptionRecipeEditor = ({
                   type="button"
                   className="min-w-[67px] h-[50px] px-2.5 rounded-[12px] border border-[#E5E5E5] bg-white text-[16px] font-normal text-black flex items-center justify-between gap-1 hover:bg-[#FAFAF7] data-[state=open]:bg-[#8F6900] data-[state=open]:text-white data-[state=open]:border-[#8F6900] [&_svg]:data-[state=open]:text-white cursor-pointer transition-colors"
                 >
-                  <span>{item.unit || "pcs"}</span>
+                  <span>{formatUnit(item.unit)}</span>
                   <ChevronDown className="size-4 text-black shrink-0 transition-transform duration-200" />
                 </button>
               </DropdownMenuTrigger>
@@ -280,9 +274,11 @@ const OptionRecipeEditor = ({
             </DropdownMenu>
 
             {/* Price Display */}
-            <div className="shrink-0 text-start text-[13px]">
+            <div className="shrink-0 whitespace-nowrap text-start text-[13px]">
               <span className="font-medium text-black">EGP </span>
-              <span className="font-semibold text-black">{lineTotal.toFixed(2)}</span>
+              <span className="font-semibold text-black">
+                {Number(item.price || 0).toFixed(2)}
+              </span>
             </div>
 
             {/* Remove Button */}

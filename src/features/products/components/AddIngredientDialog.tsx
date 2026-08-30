@@ -448,11 +448,11 @@ const AddIngredientDialog = ({
                 </Label>
                 <DropdownSelect
                   options={[
-                    { value: "g", label: t("Gram (g)") },
-                    { value: "kg", label: t("Kilogram (kg)") },
-                    { value: "L", label: t("Liter (L)") },
-                    { value: "ml", label: t("Milliliter (ml)") },
-                    { value: "pcs", label: t("Piece (pcs)") },
+                    { value: "ml", label: "ml" },
+                    { value: "g", label: "g" },
+                    { value: "kg", label: "kg" },
+                    { value: "L", label: "L" },
+                    { value: "pcs", label: "pcs" },
                   ]}
                   selected={form.unit}
                   onSelect={(val) => set("unit", val)}

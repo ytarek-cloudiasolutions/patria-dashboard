@@ -36,6 +36,7 @@ import type {
 import UploadDropzone from "./UploadDropzone";
 import OptionRecipeEditor from "./OptionRecipeEditor";
 import { getRecipe } from "../api/recipeApi";
+import { formatUnit } from "../utils";
 
 const FORM_ID = "add-product-form";
 
@@ -672,7 +673,7 @@ const AddProductDialog = ({
               </div>
 
               {form.variantGroups.length === 0 ? (
-                <div className="rounded-[10px] border border-dashed border-[#B28A15] bg-[#FDFBF7] py-5 text-center text-[13px] font-semibold text-[#B28A15]">
+                <div className="border-dashed-gold bg-[#FAFAF7] py-5 text-center text-[13px] font-semibold text-[#8F6900]">
                   {t("There are no option sets currently available.")}
                 </div>
               ) : (
@@ -680,7 +681,7 @@ const AddProductDialog = ({
                   {form.variantGroups.map((group) => (
                     <div
                       key={group.id}
-                      className="border-dashed-gold bg-white p-3 sm:p-4 space-y-3"
+                      className="border-dashed-gold bg-[#FAFAF7] p-3 sm:p-4 space-y-3"
                     >
                       {/* Group Header Row */}
                       <div className="flex items-center gap-2.5">
@@ -905,7 +906,6 @@ const AddProductDialog = ({
                     const isSelected = (extra.isActive ?? extra.active) !== false;
                     return (
                       <div key={extra.id || idx} className="flex flex-col gap-2">
-                        {idx > 0 && <div className="w-full border-t border-[#CACBD4]/40 my-0.5" />}
                         <div className="flex items-center justify-between py-1 px-1">
                           {/* Checkbox + Name */}
                           <div
@@ -973,7 +973,7 @@ const AddProductDialog = ({
                                     isSelected ? "text-black" : "text-[#8B8B8B]"
                                   )}
                                 >
-                                  {extra.unit || "ml"}
+                                  {formatUnit(extra.unit || "ml")}
                                 </span>
                               </div>
                               <div className="flex flex-col items-center justify-center">
@@ -1004,7 +1004,7 @@ const AddProductDialog = ({
                             </div>
 
                             {/* Price */}
-                            <div className="w-[80px] text-start">
+                            <div className="shrink-0 whitespace-nowrap text-end">
                               <span
                                 className={cn(
                                   "text-[13px] font-medium tracking-[0.26px]",

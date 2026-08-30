@@ -1,5 +1,6 @@
 import type { Product, VariantGroup, ProductExtra } from "../types";
 import { ENV } from "@/config/env";
+import { formatUnit } from "../utils";
 
 export const DEFAULT_PRODUCT_IMAGE =
   "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=600&q=80";
@@ -137,7 +138,7 @@ export const mapProduct = (backendProduct: any): Product => {
     variantGroups,
     recipe,
     quantity: backendProduct.inventory ?? backendProduct.stockQty ?? 0,
-    unit: (backendProduct.unit === "pcs" || backendProduct.unit === "pc" || !backendProduct.unit) ? "Piece(s)" : backendProduct.unit,
+    unit: formatUnit(backendProduct.unit),
     isIngredient,
     isExtra: Boolean(backendProduct.isExtra),
     extraTargetProductIds,

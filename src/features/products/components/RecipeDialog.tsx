@@ -24,7 +24,7 @@ interface RecipeDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const UNIT_OPTIONS = ["g", "ml", "pcs", "kg", "l"];
+const UNIT_OPTIONS = ["ml", "g", "kg", "L", "pcs"];
 
 const emptyRow = (): RecipeIngredient => ({
   productId: "",

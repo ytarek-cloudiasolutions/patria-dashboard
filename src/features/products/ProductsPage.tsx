@@ -24,6 +24,7 @@ import ImportDataDialog from "./components/ImportDataDialog";
 import ScanProductDialog from "./components/ScanProductDialog";
 import WhatsAppOfferDialog from "./components/WhatsAppOfferDialog";
 
+import { formatUnit } from "./utils";
 import {
   INITIAL_CATEGORIES,
   INITIAL_INGREDIENTS,
@@ -219,7 +220,7 @@ const ProductsPage = () => {
         imageUrl: p.imageUrl,
         price: p.price,
         quantity: p.quantity ?? 0,
-        unit: p.unit || "Piece(s)",
+        unit: formatUnit(p.unit),
         recipe: p.recipe || [],
         isExtra: p.isExtra ?? false,
         extraTargetProductIds: p.extraTargetProductIds || [],
@@ -236,7 +237,7 @@ const ProductsPage = () => {
       imageUrl: p.imageUrl,
       price: p.price,
       quantity: p.quantity ?? 0,
-      unit: p.unit || "Piece(s)",
+      unit: formatUnit(p.unit),
       isExtra: p.isExtra ?? false,
       extraTargetProductIds: p.extraTargetProductIds || [],
       barcode: p.barcode || "",
