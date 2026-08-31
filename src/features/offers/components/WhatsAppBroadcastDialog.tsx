@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Loader2, Search, Upload } from "lucide-react";
+import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -57,6 +58,7 @@ const WhatsAppBroadcastDialog = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSending, setIsSending] = useState(false);
+  const [errors, setErrors] = useState<{ phones?: string; body?: string }>({});
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [isLoadingCustomers, setIsLoadingCustomers] = useState(false);
   const [loadCustomersFailed, setLoadCustomersFailed] = useState(false);
@@ -92,20 +94,25 @@ const WhatsAppBroadcastDialog = ({
   }, [isOpen, searchQuery]);
 
   // Reset form when dialog opens
+  useEffect(() => {
+    if (isOpen) {
+      const offerImg = offer?.offerImage || (offer as any)?.image || null;
+      setForm({
+        ...INITIAL_FORM,
+        body: offer?.offerDescription ?? "",
+      });
+      setSearchQuery("");
+      setImagePreview(offerImg || null);
+      setErrors({});
+      setIsSending(false);
+    }
+  }, [isOpen, offer]);
+
   const handleOpenChange = useCallback(
     (open: boolean) => {
-      if (open) {
-        setForm({
-          ...INITIAL_FORM,
-          body: offer?.offerDescription ?? "",
-        });
-        setSearchQuery("");
-        setImagePreview(null);
-        setIsSending(false);
-      }
       onOpenChange(open);
     },
-    [offer, onOpenChange],
+    [onOpenChange],
   );
 
   const setTab = (tab: WhatsAppTargetType) => {
@@ -118,6 +125,7 @@ const WhatsAppBroadcastDialog = ({
       customerCount: prev.customerCount === value ? null : value,
       customNumber: "",
     }));
+    if (errors.phones) setErrors((prev) => ({ ...prev, phones: "" }));
   };
 
   const toggleCustomer = (customerId: string | number) => {
@@ -127,6 +135,7 @@ const WhatsAppBroadcastDialog = ({
         ? prev.selectedCustomerIds.filter((id) => id !== customerId)
         : [...prev.selectedCustomerIds, customerId],
     }));
+    if (errors.phones) setErrors((prev) => ({ ...prev, phones: "" }));
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -169,15 +178,22 @@ const WhatsAppBroadcastDialog = ({
       }
     }
 
+    const newErrors: { phones?: string; body?: string } = {};
+
     if (phones.length === 0) {
-      showErrorToast(t("Please select or enter target phone numbers"));
-      return;
+      newErrors.phones = t("Please select or enter target phone numbers");
     }
 
     if (!form.body.trim()) {
-      showErrorToast(t("Please enter a message body"));
+      newErrors.body = t("Please enter a message body");
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
+
+    setErrors({});
 
     try {
       setIsSending(true);
@@ -187,7 +203,11 @@ const WhatsAppBroadcastDialog = ({
         image: form.image ? imagePreview ?? undefined : undefined,
       });
       showSuccessToast(t("WhatsApp message sent successfully"));
-      onSend?.(form);
+      try {
+        onSend?.(form);
+      } catch (e) {
+        console.error("onSend callback error:", e);
+      }
       handleOpenChange(false);
     } catch (err: any) {
       showErrorToast(
@@ -239,6 +259,8 @@ const WhatsAppBroadcastDialog = ({
                   form={form}
                   setForm={setForm}
                   onSelectCount={setCustomerCount}
+                  errors={errors}
+                  setErrors={setErrors}
                   t={t}
                 />
               ) : (
@@ -250,6 +272,7 @@ const WhatsAppBroadcastDialog = ({
                   isLoadingCustomers={isLoadingCustomers}
                   loadFailed={loadCustomersFailed}
                   onToggleCustomer={toggleCustomer}
+                  errors={errors}
                   t={t}
                 />
               )}
@@ -290,16 +313,25 @@ const WhatsAppBroadcastDialog = ({
                 <Label className="text-[13px] font-medium text-black">
                   {t("Notification Body")}{" "}
                   <span className="text-[#595959]">({t("Editable")})</span>
-                  <span className="text-white"> *</span>
+                  <span className="text-[#C90000]"> *</span>
                 </Label>
                 <Textarea
                   value={form.body}
-                  onChange={(e) =>
-                    setForm((prev) => ({ ...prev, body: e.target.value }))
-                  }
+                  onChange={(e) => {
+                    setForm((prev) => ({ ...prev, body: e.target.value }));
+                    if (errors.body) setErrors({});
+                  }}
                   placeholder={t("e.g. Enjoy 20% off all product today")}
-                  className="min-h-[72px] rounded-[8px] border-[#8E8E8E] border-[0.5px] bg-[#FEFEFE] px-3.5 py-3 text-[13px] leading-[1.4em] tracking-[0.02em] text-[#23252A] placeholder:text-[#595959] focus-visible:border-primary focus-visible:ring-0"
+                  className={cn(
+                    "min-h-[72px] rounded-[8px] border-[#8E8E8E] border-[0.5px] bg-[#FEFEFE] px-3.5 py-3 text-[13px] leading-[1.4em] tracking-[0.02em] text-[#23252A] placeholder:text-[#595959] focus-visible:border-primary focus-visible:ring-0",
+                    errors.body && "border-[#C90000] focus-visible:border-[#C90000]"
+                  )}
                 />
+                {errors.body && (
+                  <p className="mt-1 text-[13px] text-[#C90000]">
+                    {errors.body}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -324,7 +356,6 @@ const WhatsAppBroadcastDialog = ({
                 onClick={handleSubmit}
                 className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] bg-[#8F6900] px-7.5 text-[16px] font-semibold text-white hover:bg-[#7a5b00] disabled:opacity-50 sm:h-14 sm:w-auto"
               >
-                {isSending && <Loader2 className="size-4 animate-spin text-white" />}
                 {t("Send Message")}
               </Button>
             </div>
@@ -341,6 +372,8 @@ interface RandomNumberTabProps {
   form: WhatsAppBroadcastFormData;
   setForm: React.Dispatch<React.SetStateAction<WhatsAppBroadcastFormData>>;
   onSelectCount: (value: number | "all") => void;
+  errors: { phones?: string; body?: string };
+  setErrors: React.Dispatch<React.SetStateAction<{ phones?: string; body?: string }>>;
   t: (key: string) => string;
 }
 
@@ -348,6 +381,8 @@ const RandomNumberTab = ({
   form,
   setForm,
   onSelectCount,
+  errors,
+  setErrors,
   t,
 }: RandomNumberTabProps) => (
   <div className="flex flex-col gap-3">
@@ -382,11 +417,20 @@ const RandomNumberTab = ({
             customNumber: e.target.value,
             customerCount: null,
           }));
+          if (errors.phones) setErrors((prev) => ({ ...prev, phones: "" }));
         }}
         placeholder={t("Enter Number")}
-        className="h-[47px] w-auto min-w-[120px] rounded-[12px] border border-[#E5E5E5] bg-white px-3 text-center text-[16px] text-[#23252A] placeholder:text-[#8B8B8B] focus-visible:border-primary focus-visible:ring-0"
+        className={cn(
+          "h-[47px] w-auto min-w-[120px] rounded-[12px] border border-[#E5E5E5] bg-white px-3 text-center text-[16px] text-[#23252A] placeholder:text-[#8B8B8B] focus-visible:border-primary focus-visible:ring-0",
+          errors.phones && "border-[#C90000] focus-visible:border-[#C90000]"
+        )}
       />
     </div>
+    {errors.phones && (
+      <p className="mt-1 text-[13px] text-[#C90000]">
+        {errors.phones}
+      </p>
+    )}
   </div>
 );
 
@@ -400,6 +444,7 @@ interface SelectCustomerTabProps {
   isLoadingCustomers: boolean;
   loadFailed: boolean;
   onToggleCustomer: (id: string | number) => void;
+  errors: { phones?: string; body?: string };
   t: (key: string) => string;
 }
 
@@ -411,6 +456,7 @@ const SelectCustomerTab = ({
   isLoadingCustomers,
   loadFailed,
   onToggleCustomer,
+  errors,
   t,
 }: SelectCustomerTabProps) => (
   <div className="flex flex-col gap-3">
@@ -431,7 +477,12 @@ const SelectCustomerTab = ({
     </div>
 
     {/* Customer list */}
-    <div className="max-h-[150px] overflow-y-auto rounded-[16px] border border-[#CACBD4] bg-[#FAFAF7] p-3">
+    <div
+      className={cn(
+        "max-h-[150px] overflow-y-auto rounded-[16px] border border-[#CACBD4] bg-[#FAFAF7] p-3",
+        errors.phones && "border-[#C90000]"
+      )}
+    >
       <div className="flex flex-col gap-1.5 px-0.5 py-2">
         {isLoadingCustomers ? (
           <div className="flex items-center justify-center py-4 text-[#8B8B8B]">
@@ -473,6 +524,11 @@ const SelectCustomerTab = ({
         )}
       </div>
     </div>
+    {errors.phones && (
+      <p className="mt-1 text-[13px] text-[#C90000]">
+        {errors.phones}
+      </p>
+    )}
   </div>
 );
 

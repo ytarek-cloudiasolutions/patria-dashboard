@@ -54,6 +54,7 @@ const WhatsAppOfferDialog = ({
   const [loadCustomersFailed, setLoadCustomersFailed] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [errors, setErrors] = useState<{ phones?: string; message?: string }>({});
 
   useEffect(() => {
     if (open) {
@@ -65,6 +66,7 @@ const WhatsAppOfferDialog = ({
       setImageUrl(undefined);
       setImageFile(null);
       setMessage("");
+      setErrors({});
       setIsSending(false);
     }
   }, [open]);
@@ -105,10 +107,12 @@ const WhatsAppOfferDialog = ({
     );
   }, [contacts, search]);
 
-  const toggleContact = (id: string | number) =>
+  const toggleContact = (id: string | number) => {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id],
     );
+    if (errors.phones) setErrors((prev) => ({ ...prev, phones: "" }));
+  };
 
   const recipientCount =
     mode === "select"
@@ -146,21 +150,28 @@ const WhatsAppOfferDialog = ({
         }
       } else if (audience === "all") {
         phones = contacts.map((c) => c.phone);
-      } else {
+      } else if (audience) {
         const count = Number(audience) || 0;
         phones = contacts.slice(0, count).map((c) => c.phone);
       }
     }
 
+    const newErrors: { phones?: string; message?: string } = {};
+
     if (phones.length === 0) {
-      showErrorToast(t("Please select or enter target phone numbers"));
-      return;
+      newErrors.phones = t("Please select or enter target phone numbers");
     }
 
     if (!message.trim()) {
-      showErrorToast(t("Please enter a message body"));
+      newErrors.message = t("Please enter a message body");
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
+
+    setErrors({});
 
     try {
       setIsSending(true);
@@ -171,7 +182,11 @@ const WhatsAppOfferDialog = ({
         image,
       });
       showSuccessToast(t("WhatsApp message sent successfully"));
-      onSend(recipientCount, message.trim());
+      try {
+        onSend?.(recipientCount, message.trim());
+      } catch (e) {
+        console.error("onSend callback error:", e);
+      }
       onOpenChange(false);
     } catch (err: any) {
       showErrorToast(
@@ -226,6 +241,7 @@ const WhatsAppOfferDialog = ({
                       onClick={() => {
                         setAudience(preset);
                         setCustomNumber("");
+                        if (errors.phones) setErrors((prev) => ({ ...prev, phones: "" }));
                       }}
                       className={cn(
                         "h-11 cursor-pointer rounded-[8px] border px-2 text-[13px] font-semibold whitespace-nowrap transition-colors",
@@ -242,6 +258,7 @@ const WhatsAppOfferDialog = ({
                     onClick={() => {
                       setAudience("all");
                       setCustomNumber("");
+                      if (errors.phones) setErrors((prev) => ({ ...prev, phones: "" }));
                     }}
                     className={cn(
                       "h-11 cursor-pointer rounded-[8px] border px-2 text-[13px] font-semibold whitespace-nowrap transition-colors",
@@ -256,11 +273,22 @@ const WhatsAppOfferDialog = ({
                     type="number"
                     min="0"
                     value={customNumber}
-                    onChange={(e) => setCustomNumber(e.target.value)}
+                    onChange={(e) => {
+                      setCustomNumber(e.target.value);
+                      if (errors.phones) setErrors((prev) => ({ ...prev, phones: "" }));
+                    }}
                     placeholder={t("Enter Number")}
-                    className="h-11 rounded-[8px] border-[#E5E5E5] px-3 text-[13px] focus-visible:border-primary focus-visible:ring-0"
+                    className={cn(
+                      "h-11 rounded-[8px] border-[#E5E5E5] px-3 text-[13px] focus-visible:border-primary focus-visible:ring-0",
+                      errors.phones && "border-[#C90000] focus-visible:border-[#C90000]"
+                    )}
                   />
                 </div>
+                {errors.phones && (
+                  <p className="mt-1.5 text-[13px] text-[#C90000]">
+                    {errors.phones}
+                  </p>
+                )}
               </div>
             ) : (
               <div>
@@ -276,7 +304,12 @@ const WhatsAppOfferDialog = ({
                     className="h-11 w-full rounded-[8px] border border-[#E5E5E5] bg-white ps-9 pe-3 text-[13px] text-[#28293D] outline-none placeholder:text-[#8B8B8B] focus:border-primary/50"
                   />
                 </div>
-                <div className="max-h-44 space-y-1 overflow-y-auto rounded-[10px] border border-[#E5E5E5] p-2">
+                <div
+                  className={cn(
+                    "max-h-44 space-y-1 overflow-y-auto rounded-[10px] border border-[#E5E5E5] p-2",
+                    errors.phones && "border-[#C90000]"
+                  )}
+                >
                   {isLoadingCustomers ? (
                     <div className="flex items-center justify-center py-4 text-[#8B8B8B]">
                       <Loader2 className="size-5 animate-spin mr-2" />
@@ -318,6 +351,11 @@ const WhatsAppOfferDialog = ({
                     })
                   )}
                 </div>
+                {errors.phones && (
+                  <p className="mt-1.5 text-[13px] text-[#C90000]">
+                    {errors.phones}
+                  </p>
+                )}
               </div>
             )}
 
@@ -345,10 +383,21 @@ const WhatsAppOfferDialog = ({
               <Textarea
                 id="wa-message"
                 value={message}
-                onChange={(e) => setMessage(e.target.value)}
+                onChange={(e) => {
+                  setMessage(e.target.value);
+                  if (errors.message) setErrors({});
+                }}
                 placeholder={t("e.g. Enjoy 20% off all product today")}
-                className="min-h-20 rounded-xl border-[#E5E5E5] px-4 py-3 text-[14px] text-[#23252A] placeholder:text-[#8B8B8B] focus-visible:border-primary focus-visible:ring-0"
+                className={cn(
+                  "min-h-20 rounded-xl border-[#E5E5E5] px-4 py-3 text-[14px] text-[#23252A] placeholder:text-[#8B8B8B] focus-visible:border-primary focus-visible:ring-0",
+                  errors.message && "border-[#C90000] focus-visible:border-[#C90000]"
+                )}
               />
+              {errors.message && (
+                <p className="mt-1.5 text-[13px] text-[#C90000]">
+                  {errors.message}
+                </p>
+              )}
             </div>
           </div>
 
@@ -371,7 +420,6 @@ const WhatsAppOfferDialog = ({
                 onClick={handleSend}
                 className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white disabled:opacity-50 sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
               >
-                {isSending && <Loader2 className="size-4 animate-spin text-white" />}
                 {mode === "select"
                   ? `${t("Send Offer")} (${recipientCount} ${t("Customers")})`
                   : `${t("Send through WhatsApp")} (${recipientCount} ${t("Customers")})`}
