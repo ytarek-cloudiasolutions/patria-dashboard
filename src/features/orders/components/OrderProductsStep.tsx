@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Minus, Plus, SquarePen, X } from "lucide-react";
+import { Minus, Plus, SquarePen, X, Check } from "lucide-react";
 
 import SearchInputField from "@/shared/components/SearchInputField";
 import { Badge } from "@/shared/components/ui/badge";
@@ -259,15 +259,17 @@ const OrderProductsStep = ({
                       className="flex items-center justify-between text-[13px]"
                     >
                       <div className="flex items-center gap-2">
-                        <span className="flex size-[20px] items-center justify-center rounded-[6px] bg-primary text-white text-[12px] font-bold">
-                          ✓
-                        </span>
+                        <div className="rounded-[10px] p-1 bg-[#624F1C1A]">
+                          <span className="flex size-[20px] items-center justify-center rounded-[5.99px] bg-[#8F6900] text-white">
+                            <Check className="size-3.5 stroke-[3]" />
+                          </span>
+                        </div>
                         <span className="font-medium text-[#333333]">
                           {extra.name}
                         </span>
                       </div>
                       <span className="font-semibold text-black">
-                        +{formatCurrency(extra.price)}
+                        + {formatCurrency(extra.price)}
                       </span>
                     </div>
                   ))}

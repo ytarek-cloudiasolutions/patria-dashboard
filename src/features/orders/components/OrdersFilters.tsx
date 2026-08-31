@@ -27,7 +27,7 @@ const OrdersFilters = ({
         <SearchInputField
           value={searchValue}
           onChange={onSearchChange}
-          placeholder={t("Search orders...")}
+          placeholder={t("Search orders by ID or customer name...")}
         />
       </div>
       <div className="w-full sm:w-64">

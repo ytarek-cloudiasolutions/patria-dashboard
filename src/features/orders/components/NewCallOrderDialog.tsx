@@ -79,6 +79,22 @@ const NewCallOrderDialog = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
+  // Auto-match zone whenever deliveryZones load or existing customer address is set
+  useEffect(() => {
+    if (!zoneId && deliveryZones.length > 0 && (existing?.lastAddress || address)) {
+      const addrStr = (existing?.lastAddress || address).toLowerCase();
+      const matchedZone = deliveryZones.find((z) => {
+        const zName = (z.name || "").toLowerCase().trim();
+        return zName && addrStr.includes(zName);
+      });
+      if (matchedZone) {
+        handleZoneChange(matchedZone.id);
+      } else {
+        handleZoneChange(deliveryZones[0].id);
+      }
+    }
+  }, [deliveryZones, existing, address, zoneId]);
+
   const handleSearch = async () => {
     const normalized = phoneQuery.replace(/\s/g, "");
     if (!normalized) return;
@@ -109,11 +125,33 @@ const NewCallOrderDialog = ({
           foundCustomer.lastAddress = addressStr;
           setAddress(addressStr);
 
-          const matchedZone = deliveryZones.find(
-            (z) => z.name.toLowerCase() === (addr.zone || "").toLowerCase()
-          );
+          const matchedZone = deliveryZones.find((z) => {
+            if (!z) return false;
+            const zId = String(z.id || (z as any)._id || "").trim();
+            const addrZoneId = String(
+              addr.zoneId || (addr as any)._zoneId || (addr as any).locationId || ""
+            ).trim();
+
+            if (zId && addrZoneId && zId === addrZoneId) return true;
+
+            const zName = (z.name || "").toLowerCase().trim();
+            const addrZone = (addr.zone || "").toLowerCase().trim();
+            const addrArea = (addr.area || "").toLowerCase().trim();
+
+            if (!zName) return false;
+            if (addrZone && (zName === addrZone || addrZone.includes(zName) || zName.includes(addrZone))) {
+              return true;
+            }
+            if (addrArea && (zName === addrArea || addrArea.includes(zName) || zName.includes(addrArea))) {
+              return true;
+            }
+            return false;
+          });
+
           if (matchedZone) {
             handleZoneChange(matchedZone.id);
+          } else if (deliveryZones.length > 0) {
+            handleZoneChange(deliveryZones[0].id);
           } else {
             setZoneId("");
           }

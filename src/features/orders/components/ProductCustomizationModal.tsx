@@ -7,6 +7,7 @@ import {
   DialogTitle,
 } from "@/shared/components/ui/dialog";
 import { Checkbox } from "@/shared/components/ui/checkbox";
+import { cn } from "@/lib/utils";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import type { CartLineItem, ProductOption } from "../types";
 import { computeUnitPrice, formatCurrency, nextLineUid } from "../utils";
@@ -208,27 +209,37 @@ const ProductCustomizationModal = ({
                   </span>
                 </p>
                 <div className="flex flex-col gap-2 rounded-[16px] border border-[#CACBD4] bg-[#FAFAF7] p-3">
-                  {product.extras?.map((extra) => (
-                    <label
-                      key={extra.id}
-                      className="flex cursor-pointer items-center justify-between gap-3 px-0.5 py-1"
-                    >
-                      <span className="flex items-center gap-2">
-                        <Checkbox
-                          checked={extraIds.includes(extra.id)}
-                          onCheckedChange={() => toggleExtra(extra.id)}
-                          className="h-5 w-5 rounded-[5.99px] border-[#8F6900] data-[state=checked]:bg-[#8F6900] cursor-pointer"
-                        />
-                        <span className="text-[13px] font-medium tracking-[0.26px] text-[#333333]">
-                          {extra.name}
+                  {product.extras?.map((extra) => {
+                    const isChecked = extraIds.includes(extra.id);
+                    return (
+                      <label
+                        key={extra.id}
+                        className="flex cursor-pointer items-center justify-between gap-3 px-0.5 py-1"
+                      >
+                        <span className="flex items-center gap-2">
+                          <div
+                            className={cn(
+                              "rounded-[10px] p-1 transition-colors",
+                              isChecked ? "bg-[#624F1C1A]" : ""
+                            )}
+                          >
+                            <Checkbox
+                              checked={isChecked}
+                              onCheckedChange={() => toggleExtra(extra.id)}
+                              className="h-5 w-5 rounded-[5.99px] border-[#8F6900] data-[state=checked]:bg-[#8F6900] cursor-pointer"
+                            />
+                          </div>
+                          <span className="text-[13px] font-medium tracking-[0.26px] text-[#333333]">
+                            {extra.name}
+                          </span>
                         </span>
-                      </span>
-                      <span className="text-[13px] tracking-[0.26px] text-black">
-                        <span className="font-medium">EGP </span>
-                        <span className="font-semibold">{extra.price.toFixed(2)}</span>
-                      </span>
-                    </label>
-                  ))}
+                        <span className="text-[13px] tracking-[0.26px] text-black">
+                          <span className="font-medium">EGP </span>
+                          <span className="font-semibold">{extra.price.toFixed(2)}</span>
+                        </span>
+                      </label>
+                    );
+                  })}
                 </div>
               </div>
             )}
