@@ -41,7 +41,7 @@ const RowActions = ({
       type="button"
       onClick={() => onEdit(ingredient)}
       aria-label={`Edit ${ingredient.name}`}
-      className="cursor-pointer text-[#000000] hover:text-primary"
+      className="cursor-pointer text-[#000000]"
     >
       <SquarePen className="size-4.5" />
     </button>

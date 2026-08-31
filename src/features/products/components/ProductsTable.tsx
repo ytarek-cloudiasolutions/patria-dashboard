@@ -97,7 +97,7 @@ const RowActions = ({
         disabled={isMutating || togglingProductId !== null}
         onClick={() => onEdit(product)}
         aria-label={`Edit ${product.name}`}
-        className="cursor-pointer text-[#000000] hover:text-primary disabled:opacity-50"
+        className="cursor-pointer text-[#000000] disabled:opacity-50"
       >
         <SquarePen className="size-4.5" />
       </button>
