@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Plus, ScanBarcode, Upload, Loader2, Coffee } from "lucide-react";
+import { Plus, ScanBarcode, Upload, Loader2, Coffee, LayoutGrid, List } from "lucide-react";
 import { cn } from "@/lib/utils";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
@@ -14,8 +14,11 @@ import { showSuccessToast, showErrorToast } from "@/shared/utils/toast";
 
 import ProductsTabs from "./components/ProductsTabs";
 import ProductsTable from "./components/ProductsTable";
+import ProductsCards from "./components/ProductsCards";
 import IngredientsTable from "./components/IngredientsTable";
+import IngredientsCards from "./components/IngredientsCards";
 import CategoriesTable from "./components/CategoriesTable";
+import CategoriesCards from "./components/CategoriesCards";
 import AddProductDialog from "./components/AddProductDialog";
 import AddIngredientDialog from "./components/AddIngredientDialog";
 import AddCategoryDialog from "./components/AddCategoryDialog";
@@ -59,6 +62,7 @@ const DELETE_TYPE_LABEL: Record<DeleteTarget["kind"], DeleteDialogProps["type"]>
 const ProductsPage = () => {
   const { t } = useTranslation();
   const [tab, setTab] = useState<ProductsTab>("products");
+  const [viewMode, setViewMode] = useState<"table" | "grid">("grid");
 
   const {
     products,
@@ -563,26 +567,87 @@ const ProductsPage = () => {
                 contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
               />
             </div>
+
+            {/* View Mode Toggle Control (Figma specification) */}
+            <div className="flex h-[56px] items-center justify-center gap-4 rounded-[12px] bg-[#F5F0EA] px-3 py-1 shrink-0 overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setViewMode("table")}
+                aria-label={t("Table view")}
+                className={cn(
+                  "flex cursor-pointer items-center justify-center transition-all",
+                  viewMode === "table"
+                    ? "rounded-[6px] bg-white px-3 py-1.5 shadow-xs"
+                    : "p-1.5 text-black hover:opacity-80"
+                )}
+              >
+                <List className="size-6 text-black" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("grid")}
+                aria-label={t("Grid view")}
+                className={cn(
+                  "flex cursor-pointer items-center justify-center transition-all",
+                  viewMode === "grid"
+                    ? "rounded-[6px] bg-white px-3 py-1.5 shadow-xs"
+                    : "p-1.5 text-black hover:opacity-80"
+                )}
+              >
+                <LayoutGrid className="size-6 text-black" />
+              </button>
+            </div>
           </div>
 
-          <ProductsTable
-            products={filteredProducts}
-            togglingProductId={togglingProductId}
-            isLoading={isFetchingProducts}
-            isMutating={isCreatingProduct || isUpdatingProduct || isDeletingProduct || isTogglingProduct}
-            onToggleAvailability={toggleProductAvailability}
-            onEdit={(product) => {
-              setEditingProduct(product);
-              setIsAddProductOpen(true);
-            }}
-            onDelete={(product) =>
-              setDeleteTarget({
-                id: product.id,
-                name: product.name,
-                kind: "product",
-              })
-            }
-          />
+          {viewMode === "grid" ? (
+            <ProductsCards
+              products={filteredProducts}
+              togglingProductId={togglingProductId}
+              isLoading={isFetchingProducts}
+              isMutating={
+                isCreatingProduct ||
+                isUpdatingProduct ||
+                isDeletingProduct ||
+                isTogglingProduct
+              }
+              onToggleAvailability={toggleProductAvailability}
+              onEdit={(product) => {
+                setEditingProduct(product);
+                setIsAddProductOpen(true);
+              }}
+              onDelete={(product) =>
+                setDeleteTarget({
+                  id: product.id,
+                  name: product.name,
+                  kind: "product",
+                })
+              }
+            />
+          ) : (
+            <ProductsTable
+              products={filteredProducts}
+              togglingProductId={togglingProductId}
+              isLoading={isFetchingProducts}
+              isMutating={
+                isCreatingProduct ||
+                isUpdatingProduct ||
+                isDeletingProduct ||
+                isTogglingProduct
+              }
+              onToggleAvailability={toggleProductAvailability}
+              onEdit={(product) => {
+                setEditingProduct(product);
+                setIsAddProductOpen(true);
+              }}
+              onDelete={(product) =>
+                setDeleteTarget({
+                  id: product.id,
+                  name: product.name,
+                  kind: "product",
+                })
+              }
+            />
+          )}
 
           {/* Pagination Controls */}
           {pagination && pagination.pages > 1 && (
@@ -625,15 +690,47 @@ const ProductsPage = () => {
 
       {isRecipes && (
         <>
-          <div className="mb-5">
-            <SearchInputField
-              value={ingredientSearch}
-              onChange={(val) => {
-                setIngredientSearch(val);
-                setPage(1);
-              }}
-              placeholder={t("Search recipes...")}
-            />
+          <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="flex-1">
+              <SearchInputField
+                value={ingredientSearch}
+                onChange={(val) => {
+                  setIngredientSearch(val);
+                  setPage(1);
+                }}
+                placeholder={t("Search recipes...")}
+              />
+            </div>
+
+            {/* View Mode Toggle Control (Figma specification) */}
+            <div className="flex h-[56px] items-center justify-center gap-4 rounded-[12px] bg-[#F5F0EA] px-3 py-1 shrink-0 overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setViewMode("table")}
+                aria-label={t("Table view")}
+                className={cn(
+                  "flex cursor-pointer items-center justify-center transition-all",
+                  viewMode === "table"
+                    ? "rounded-[6px] bg-white px-3 py-1.5 shadow-xs"
+                    : "p-1.5 text-black hover:opacity-80"
+                )}
+              >
+                <List className="size-6 text-black" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("grid")}
+                aria-label={t("Grid view")}
+                className={cn(
+                  "flex cursor-pointer items-center justify-center transition-all",
+                  viewMode === "grid"
+                    ? "rounded-[6px] bg-white px-3 py-1.5 shadow-xs"
+                    : "p-1.5 text-black hover:opacity-80"
+                )}
+              >
+                <LayoutGrid className="size-6 text-black" />
+              </button>
+            </div>
           </div>
 
           {isFetchingProducts ? (
@@ -642,20 +739,38 @@ const ProductsPage = () => {
             </div>
           ) : (
             <>
-              <IngredientsTable
-                ingredients={filteredIngredients}
-                onEdit={(ingredient) => {
-                  setEditingIngredient(ingredient);
-                  setIsAddIngredientOpen(true);
-                }}
-                onDelete={(ingredient) =>
-                  setDeleteTarget({
-                    id: ingredient.id,
-                    name: ingredient.name,
-                    kind: "ingredient",
-                  })
-                }
-              />
+              {viewMode === "grid" ? (
+                <IngredientsCards
+                  ingredients={filteredIngredients}
+                  isLoading={isFetchingProducts}
+                  onEdit={(ingredient) => {
+                    setEditingIngredient(ingredient);
+                    setIsAddIngredientOpen(true);
+                  }}
+                  onDelete={(ingredient) =>
+                    setDeleteTarget({
+                      id: ingredient.id,
+                      name: ingredient.name,
+                      kind: "ingredient",
+                    })
+                  }
+                />
+              ) : (
+                <IngredientsTable
+                  ingredients={filteredIngredients}
+                  onEdit={(ingredient) => {
+                    setEditingIngredient(ingredient);
+                    setIsAddIngredientOpen(true);
+                  }}
+                  onDelete={(ingredient) =>
+                    setDeleteTarget({
+                      id: ingredient.id,
+                      name: ingredient.name,
+                      kind: "ingredient",
+                    })
+                  }
+                />
+              )}
 
               {/* Pagination Controls */}
               {pagination && pagination.pages > 1 && (
@@ -699,23 +814,77 @@ const ProductsPage = () => {
       )}
 
       {isCategories && (
-        <CategoriesTable
-          categories={categories}
-          togglingCategoryId={togglingCategoryId}
-          isLoading={isFetchingCategories}
-          isMutating={isTogglingCategory || isDeletingCategory}
-          onToggleActive={toggleCategoryActive}
-          onDelete={(category) =>
-            setDeleteTarget({
-              id: category.id,
-              name: category.name,
-              kind: "category",
-            })
-          }
-          onRowClick={(category) => {
-            setSelectedCategoryForProducts(category);
-          }}
-        />
+        <>
+          <div className="mb-5 flex justify-end">
+            {/* View Mode Toggle Control (Figma specification) */}
+            <div className="flex h-[56px] items-center justify-center gap-4 rounded-[12px] bg-[#F5F0EA] px-3 py-1 shrink-0 overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setViewMode("table")}
+                aria-label={t("Table view")}
+                className={cn(
+                  "flex cursor-pointer items-center justify-center transition-all",
+                  viewMode === "table"
+                    ? "rounded-[6px] bg-white px-3 py-1.5 shadow-xs"
+                    : "p-1.5 text-black hover:opacity-80"
+                )}
+              >
+                <List className="size-6 text-black" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("grid")}
+                aria-label={t("Grid view")}
+                className={cn(
+                  "flex cursor-pointer items-center justify-center transition-all",
+                  viewMode === "grid"
+                    ? "rounded-[6px] bg-white px-3 py-1.5 shadow-xs"
+                    : "p-1.5 text-black hover:opacity-80"
+                )}
+              >
+                <LayoutGrid className="size-6 text-black" />
+              </button>
+            </div>
+          </div>
+
+          {viewMode === "grid" ? (
+            <CategoriesCards
+              categories={categories}
+              togglingCategoryId={togglingCategoryId}
+              isLoading={isFetchingCategories}
+              isMutating={isTogglingCategory || isDeletingCategory}
+              onToggleActive={toggleCategoryActive}
+              onDelete={(category) =>
+                setDeleteTarget({
+                  id: category.id,
+                  name: category.name,
+                  kind: "category",
+                })
+              }
+              onCardClick={(category) => {
+                setSelectedCategoryForProducts(category);
+              }}
+            />
+          ) : (
+            <CategoriesTable
+              categories={categories}
+              togglingCategoryId={togglingCategoryId}
+              isLoading={isFetchingCategories}
+              isMutating={isTogglingCategory || isDeletingCategory}
+              onToggleActive={toggleCategoryActive}
+              onDelete={(category) =>
+                setDeleteTarget({
+                  id: category.id,
+                  name: category.name,
+                  kind: "category",
+                })
+              }
+              onRowClick={(category) => {
+                setSelectedCategoryForProducts(category);
+              }}
+            />
+          )}
+        </>
       )}
 
       {/* Dialogs */}
