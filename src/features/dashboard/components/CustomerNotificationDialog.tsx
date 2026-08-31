@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Bell } from "lucide-react";
+import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -29,24 +30,46 @@ const CustomerNotificationDialog = ({
   const { t } = useTranslation();
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
+  const [errors, setErrors] = useState<{ title?: string; message?: string }>({});
   const [isLoading, setIsLoading] = useState(false);
 
-  // Reset form when dialog opens
+  // Reset form and errors when dialog opens
   useEffect(() => {
     if (open) {
       setTitle("");
       setMessage("");
+      setErrors({});
       setIsLoading(false);
     }
   }, [open]);
 
+  const handleTitleChange = (val: string) => {
+    setTitle(val);
+    if (errors.title) setErrors((prev) => ({ ...prev, title: "" }));
+  };
+
+  const handleMessageChange = (val: string) => {
+    setMessage(val);
+    if (errors.message) setErrors((prev) => ({ ...prev, message: "" }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !message.trim()) {
-      showErrorToast(t("Please fill all required fields"));
+    const newErrors: { title?: string; message?: string } = {};
+
+    if (!title.trim()) {
+      newErrors.title = t("Please fill in the title");
+    }
+    if (!message.trim()) {
+      newErrors.message = t("Please fill in the message text");
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
 
+    setErrors({});
     setIsLoading(true);
     try {
       await api.post("/notifications/broadcast", {
@@ -98,22 +121,32 @@ const CustomerNotificationDialog = ({
               </div>
 
               {/* Title input */}
-              <InputField
-                data={{
-                  id: "notif-title",
-                  label: {
-                    htmlFor: "notif-title",
-                    labelText: t("Notification Title"),
-                  },
-                  placeholder: t("e.g Special offer to all clients"),
-                  required: true,
-                  inputProps: {
-                    value: title,
-                    onChange: (e) => setTitle(e.target.value),
-                    disabled: isLoading,
-                  },
-                }}
-              />
+              <div>
+                <InputField
+                  data={{
+                    id: "notif-title",
+                    label: {
+                      htmlFor: "notif-title",
+                      labelText: t("Notification Title"),
+                    },
+                    placeholder: t("e.g Special offer to all clients"),
+                    required: true,
+                    className: errors.title
+                      ? "border-[#C90000] focus-visible:border-[#C90000]"
+                      : "",
+                    inputProps: {
+                      value: title,
+                      onChange: (e) => handleTitleChange(e.target.value),
+                      disabled: isLoading,
+                    },
+                  }}
+                />
+                {errors.title && (
+                  <p className="mt-1.5 text-[13px] text-[#C90000]">
+                    {errors.title}
+                  </p>
+                )}
+              </div>
 
               {/* Message text input */}
               <div className="flex flex-col">
@@ -126,11 +159,19 @@ const CustomerNotificationDialog = ({
                 <Textarea
                   id="notif-message"
                   value={message}
-                  onChange={(e) => setMessage(e.target.value)}
+                  onChange={(e) => handleMessageChange(e.target.value)}
                   placeholder={t("Write the message here...")}
                   disabled={isLoading}
-                  className="min-h-[148px] rounded-xl border-[#E5E5E5] bg-white px-4.5 py-3 text-[14px] text-[#23252A] placeholder:text-[#8B8B8B] focus-visible:border-primary focus-visible:ring-0"
+                  className={cn(
+                    "min-h-[148px] rounded-xl border-[#E5E5E5] bg-white px-4.5 py-3 text-[14px] text-[#23252A] placeholder:text-[#8B8B8B] focus-visible:border-primary focus-visible:ring-0",
+                    errors.message && "border-[#C90000] focus-visible:border-[#C90000]"
+                  )}
                 />
+                {errors.message && (
+                  <p className="mt-1.5 text-[13px] text-[#C90000]">
+                    {errors.message}
+                  </p>
+                )}
               </div>
             </div>
           </form>
