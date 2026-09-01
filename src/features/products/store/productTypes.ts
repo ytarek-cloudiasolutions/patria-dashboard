@@ -11,6 +11,7 @@ export interface GetProductsRequest {
   category?: string;
   page?: number;
   limit?: number;
+  includeInactive?: boolean;
 }
 
 export interface GetProductsResponse {
