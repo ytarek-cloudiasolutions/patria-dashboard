@@ -14,11 +14,12 @@ import { cn } from "@/lib/utils";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { POS_TABLE_OPTIONS } from "../data";
 import type { OrderType } from "../types";
+import type { DropdownSelectOption } from "@/shared/types/DropdownSelect.types";
 
 type PosSidebarProps = {
   orderType: OrderType;
   selectedTable: string;
-  tableOptions?: string[];
+  tableOptions?: DropdownSelectOption[] | string[];
   customerCount?: number;
   shiftOpen: boolean;
   onOrderTypeChange: (value: OrderType) => void;

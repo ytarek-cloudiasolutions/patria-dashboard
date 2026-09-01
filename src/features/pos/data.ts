@@ -119,13 +119,15 @@ export const POS_PRODUCTS: PosProduct[] = [
 ];
 
 export const POS_TABLE_OPTIONS = [
-  "Table 1",
-  "Table 2",
-  "Table 3",
-  "Table 4",
-  "Table 5",
-  "Table 6",
-  "Table 12",
+  { label: "Available", value: "hdr-available", isHeader: true },
+  { label: "Table 1", value: "Table 1" },
+  { label: "Table 2", value: "Table 2" },
+  { label: "Table 4", value: "Table 4" },
+  { label: "Table 7", value: "Table 7" },
+  { label: "Busy", value: "hdr-busy", isHeader: true },
+  { label: "Table 3", value: "Table 3" },
+  { label: "Table 5", value: "Table 5" },
+  { label: "Table 6", value: "Table 6" },
 ];
 
 export const STAFF_POSITIONS: StaffPosition[] = [

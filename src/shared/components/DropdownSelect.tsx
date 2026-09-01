@@ -75,7 +75,7 @@ const DropdownSelect = ({
       <DropdownMenuContent
         align={align}
         className={cn(
-          "z-80 w-[var(--radix-dropdown-menu-trigger-width)] min-w-[var(--radix-dropdown-menu-trigger-width)] p-1.5 ring-0 rounded-[16px] space-y-1 bg-white shadow-xl border border-[#E5E5E5]",
+          "z-80 w-[var(--radix-dropdown-menu-trigger-width)] min-w-[var(--radix-dropdown-menu-trigger-width)] p-2 ring-0 rounded-[16px] flex flex-col gap-2 bg-white shadow-xl border border-[#E5E5E5]",
           contentClassName
         )}
       >
@@ -109,7 +109,7 @@ const DropdownSelect = ({
               return (
                 <div
                   key={option.value || option.label}
-                  className="px-3 py-1.5 text-[11px] font-bold tracking-wider text-[#725400] uppercase bg-[#F5F0EA] rounded-[8px] my-1 pointer-events-none select-none"
+                  className="flex h-[34px] w-full items-center rounded-[4px] bg-[#F5F0EA] px-3 py-2 text-[12px] font-semibold text-black tracking-[0.24px] pointer-events-none select-none"
                 >
                   {t(option.label)}
                 </div>
@@ -120,10 +120,10 @@ const DropdownSelect = ({
               <DropdownMenuItem
                 key={option.value}
                 className={cn(
-                  "px-4 py-2.5 text-[14px] font-normal rounded-[12px] cursor-pointer transition-colors outline-none",
+                  "flex h-[34px] w-full items-center rounded-[16px] px-3 py-2 text-[12px] font-medium text-black tracking-[0.24px] cursor-pointer transition-colors outline-none",
                   selected === option.value
-                    ? "bg-[#8F6900] text-white font-medium cursor-default data-highlighted:bg-[#8F6900] data-highlighted:text-white"
-                    : "text-[#28293D] hover:bg-[#FAFAF7] data-highlighted:bg-[#FAFAF7] data-highlighted:text-[#28293D]"
+                    ? "bg-[#F5F0EA] text-black font-semibold cursor-default data-highlighted:bg-[#F5F0EA] data-highlighted:text-black"
+                    : "hover:bg-[#F5F0EA] data-highlighted:bg-[#F5F0EA] data-highlighted:text-black"
                 )}
                 onSelect={() => onSelect(option.value)}
               >

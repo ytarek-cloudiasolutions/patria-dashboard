@@ -159,9 +159,39 @@ const PosPage = () => {
   // (staff-role users got 403 from GET /tables and never noticed, since the
   // dropdown kept showing plausible-looking fake tables instead of erroring).
   const tableOptions = useMemo(() => {
-    return [...(tables || [])]
-      .sort((a, b) => a.number - b.number)
-      .map((t) => `Table ${t.number}`);
+    if (!tables || tables.length === 0) return [];
+
+    const available = tables
+      .filter((t) => t.status === "available")
+      .sort((a, b) => a.number - b.number);
+
+    const busy = tables
+      .filter((t) => t.status !== "available")
+      .sort((a, b) => a.number - b.number);
+
+    const options: any[] = [];
+
+    if (available.length > 0) {
+      options.push({ label: "Available", value: "hdr-available", isHeader: true });
+      available.forEach((t) => {
+        options.push({ value: `Table ${t.number}`, label: `Table ${t.number}` });
+      });
+    }
+
+    if (busy.length > 0) {
+      options.push({ label: "Busy", value: "hdr-busy", isHeader: true });
+      busy.forEach((t) => {
+        options.push({ value: `Table ${t.number}`, label: `Table ${t.number}` });
+      });
+    }
+
+    if (options.length === 0) {
+      return [...tables]
+        .sort((a, b) => a.number - b.number)
+        .map((t) => `Table ${t.number}`);
+    }
+
+    return options;
   }, [tables]);
 
 
