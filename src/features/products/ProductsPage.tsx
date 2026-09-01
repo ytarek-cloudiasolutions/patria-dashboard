@@ -594,91 +594,99 @@ const ProductsPage = () => {
             </div>
           </div>
 
-          {viewMode === "grid" ? (
-            <ProductsCards
-              products={filteredProducts}
-              togglingProductId={togglingProductId}
-              isLoading={isFetchingProducts}
-              isMutating={
-                isCreatingProduct ||
-                isUpdatingProduct ||
-                isDeletingProduct ||
-                isTogglingProduct
-              }
-              onToggleAvailability={toggleProductAvailability}
-              onEdit={(product) => {
-                setEditingProduct(product);
-                setIsAddProductOpen(true);
-              }}
-              onDelete={(product) =>
-                setDeleteTarget({
-                  id: product.id,
-                  name: product.name,
-                  kind: "product",
-                })
-              }
-            />
-          ) : (
-            <ProductsTable
-              products={filteredProducts}
-              togglingProductId={togglingProductId}
-              isLoading={isFetchingProducts}
-              isMutating={
-                isCreatingProduct ||
-                isUpdatingProduct ||
-                isDeletingProduct ||
-                isTogglingProduct
-              }
-              onToggleAvailability={toggleProductAvailability}
-              onEdit={(product) => {
-                setEditingProduct(product);
-                setIsAddProductOpen(true);
-              }}
-              onDelete={(product) =>
-                setDeleteTarget({
-                  id: product.id,
-                  name: product.name,
-                  kind: "product",
-                })
-              }
-            />
-          )}
-
-          {/* Pagination Controls */}
-          {pagination && pagination.pages > 1 && (
-            <div className="mt-6 flex items-center justify-center gap-2">
-              <button
-                type="button"
-                disabled={page === 1}
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="flex size-9 items-center justify-center rounded-[8px] border border-[#E5E5E5] bg-white text-[#28293D] hover:bg-[#F5F0EA] disabled:opacity-50 disabled:hover:bg-white cursor-pointer"
-              >
-                &lt;
-              </button>
-              {Array.from({ length: pagination.pages }, (_, i) => i + 1).map((p) => (
-                <button
-                  key={p}
-                  type="button"
-                  onClick={() => setPage(p)}
-                  className={cn(
-                    "flex size-9 items-center justify-center rounded-[8px] text-[14px] font-semibold transition-colors cursor-pointer",
-                    p === page
-                      ? "bg-primary text-white"
-                      : "border border-[#E5E5E5] bg-white text-[#28293D] hover:bg-[#F5F0EA]"
-                  )}
-                >
-                  {p}
-                </button>
-              ))}
-              <button
-                type="button"
-                disabled={page === pagination.pages}
-                onClick={() => setPage((p) => Math.min(pagination.pages, p + 1))}
-                className="flex size-9 items-center justify-center rounded-[8px] border border-[#E5E5E5] bg-white text-[#28293D] hover:bg-[#F5F0EA] disabled:opacity-50 disabled:hover:bg-white cursor-pointer"
-              >
-                &gt;
-              </button>
+          {isFetchingProducts ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="size-8 animate-spin text-primary" />
             </div>
+          ) : (
+            <>
+              {viewMode === "grid" ? (
+                <ProductsCards
+                  products={filteredProducts}
+                  togglingProductId={togglingProductId}
+                  isLoading={false}
+                  isMutating={
+                    isCreatingProduct ||
+                    isUpdatingProduct ||
+                    isDeletingProduct ||
+                    isTogglingProduct
+                  }
+                  onToggleAvailability={toggleProductAvailability}
+                  onEdit={(product) => {
+                    setEditingProduct(product);
+                    setIsAddProductOpen(true);
+                  }}
+                  onDelete={(product) =>
+                    setDeleteTarget({
+                      id: product.id,
+                      name: product.name,
+                      kind: "product",
+                    })
+                  }
+                />
+              ) : (
+                <ProductsTable
+                  products={filteredProducts}
+                  togglingProductId={togglingProductId}
+                  isLoading={false}
+                  isMutating={
+                    isCreatingProduct ||
+                    isUpdatingProduct ||
+                    isDeletingProduct ||
+                    isTogglingProduct
+                  }
+                  onToggleAvailability={toggleProductAvailability}
+                  onEdit={(product) => {
+                    setEditingProduct(product);
+                    setIsAddProductOpen(true);
+                  }}
+                  onDelete={(product) =>
+                    setDeleteTarget({
+                      id: product.id,
+                      name: product.name,
+                      kind: "product",
+                    })
+                  }
+                />
+              )}
+
+              {/* Pagination Controls */}
+              {pagination && pagination.pages > 1 && (
+                <div className="mt-6 flex items-center justify-center gap-2">
+                  <button
+                    type="button"
+                    disabled={page === 1}
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    className="flex size-9 items-center justify-center rounded-[8px] border border-[#E5E5E5] bg-white text-[#28293D] hover:bg-[#F5F0EA] disabled:opacity-50 disabled:hover:bg-white cursor-pointer"
+                  >
+                    &lt;
+                  </button>
+                  {Array.from({ length: pagination.pages }, (_, i) => i + 1).map((p) => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setPage(p)}
+                      className={cn(
+                        "flex size-9 items-center justify-center rounded-[8px] text-[14px] font-semibold transition-colors cursor-pointer",
+                        p === page
+                          ? "bg-primary text-white"
+                          : "border border-[#E5E5E5] bg-white text-[#28293D] hover:bg-[#F5F0EA]"
+                      )}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    disabled={page === pagination.pages}
+                    onClick={() => setPage((p) => Math.min(pagination.pages, p + 1))}
+                    className="flex size-9 items-center justify-center rounded-[8px] border border-[#E5E5E5] bg-white text-[#28293D] hover:bg-[#F5F0EA] disabled:opacity-50 disabled:hover:bg-white cursor-pointer"
+                  >
+                    &gt;
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </>
       )}
