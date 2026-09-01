@@ -25,11 +25,45 @@ const initials = (name: string) =>
 
 const DriverDutyCard = ({ driver, onHourlyRateChange }: DriverDutyCardProps) => {
   const { t } = useTranslation();
-  const [rate, setRate] = useState(driver.hourlyRate);
+  const [rate, setRate] = useState<number>(driver.hourlyRate);
+  const [inputValue, setInputValue] = useState<string>(String(driver.hourlyRate ?? 0));
 
   useEffect(() => {
     setRate(driver.hourlyRate);
+    setInputValue(String(driver.hourlyRate ?? 0));
   }, [driver.hourlyRate]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setInputValue(val);
+    const parsed = parseFloat(val);
+    if (!isNaN(parsed) && parsed >= 0) {
+      setRate(parsed);
+    } else if (val === "") {
+      setRate(0);
+    }
+  };
+
+  const handleBlur = () => {
+    const parsed = parseFloat(inputValue);
+    if (isNaN(parsed) || parsed < 0) {
+      setInputValue(String(rate));
+    } else {
+      setInputValue(String(parsed));
+    }
+  };
+
+  const handleIncrement = () => {
+    const next = Math.round((rate + 1) * 100) / 100;
+    setRate(next);
+    setInputValue(String(next));
+  };
+
+  const handleDecrement = () => {
+    const next = Math.max(0, Math.round((rate - 1) * 100) / 100);
+    setRate(next);
+    setInputValue(String(next));
+  };
 
   return (
     <div className="rounded-[16px] border border-[#E5E5E5] bg-white p-5 shadow-sm">
@@ -95,15 +129,26 @@ const DriverDutyCard = ({ driver, onHourlyRateChange }: DriverDutyCardProps) => 
         {t("Hourly Rate")}
       </p>
       <div className="flex items-center gap-2">
-        <div className="flex h-12 flex-1 items-center justify-between rounded-[8px] border border-primary px-4">
-          <span className="text-[14px] text-[#28293D]" dir="ltr">
-            {rate.toFixed(2)} EGP
-          </span>
-          <div className="flex flex-col">
+        <div className="flex h-12 flex-1 items-center justify-between rounded-[8px] border border-primary px-3 bg-white">
+          <div className="flex items-center flex-1 gap-1 min-w-0">
+            <input
+              type="number"
+              step="any"
+              min="0"
+              value={inputValue}
+              onChange={handleInputChange}
+              onBlur={handleBlur}
+              aria-label={t("Hourly Rate")}
+              className="w-full bg-transparent text-[14px] font-medium text-[#28293D] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              dir="ltr"
+            />
+            <span className="text-[14px] text-[#8B8B8B] shrink-0 font-medium">EGP</span>
+          </div>
+          <div className="flex flex-col ms-2 shrink-0">
             <button
               type="button"
               aria-label={t("Increase")}
-              onClick={() => setRate((r) => r + 1)}
+              onClick={handleIncrement}
               className="cursor-pointer text-[#8B8B8B] hover:text-[#28293D]"
             >
               <ChevronUp className="size-3.5" />
@@ -111,7 +156,7 @@ const DriverDutyCard = ({ driver, onHourlyRateChange }: DriverDutyCardProps) => 
             <button
               type="button"
               aria-label={t("Decrease")}
-              onClick={() => setRate((r) => Math.max(0, r - 1))}
+              onClick={handleDecrement}
               className="cursor-pointer text-[#8B8B8B] hover:text-[#28293D]"
             >
               <ChevronDown className="size-3.5" />
@@ -122,7 +167,7 @@ const DriverDutyCard = ({ driver, onHourlyRateChange }: DriverDutyCardProps) => 
           type="button"
           aria-label={t("Save hourly rate")}
           onClick={() => onHourlyRateChange(driver.id, rate)}
-          className="flex size-12 shrink-0 cursor-pointer items-center justify-center rounded-[8px] bg-primary text-white hover:opacity-90"
+          className="flex size-12 shrink-0 cursor-pointer items-center justify-center rounded-[8px] bg-primary text-white hover:opacity-90 transition-opacity"
         >
           <Check className="size-5" />
         </button>

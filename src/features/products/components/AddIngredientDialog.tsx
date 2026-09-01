@@ -19,6 +19,8 @@ import OptionRecipeEditor from "./OptionRecipeEditor";
 import DropdownSelect from "@/shared/components/DropdownSelect";
 import { Switch } from "@/shared/components/ui/switch";
 import { getRecipe } from "../api/recipeApi";
+import { getProducts } from "../api/productsApi";
+import { mapProduct } from "../utils/productMappers";
 import type { OptionRecipeItem } from "../types";
 import { cn } from "@/lib/utils";
 
@@ -66,6 +68,25 @@ const AddIngredientDialog = ({
   const [isUnitOpen, setIsUnitOpen] = useState(false);
   const [extraSearchQuery, setExtraSearchQuery] = useState("");
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
+  const [fetchedProducts, setFetchedProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    if (open) {
+      getProducts({ includeInactive: true, limit: 200 })
+        .then((res: any) => {
+          const rawList = res?.data || res?.products || res || [];
+          if (Array.isArray(rawList)) {
+            const mapped = rawList.map(mapProduct);
+            setFetchedProducts(mapped);
+          }
+        })
+        .catch((err) => {
+          console.warn("Failed to fetch products in AddIngredientDialog:", err);
+        });
+    }
+  }, [open]);
+
+  const activeProductsList = fetchedProducts.length > 0 ? fetchedProducts : products;
 
   useEffect(() => {
     if (!open) return;
@@ -73,6 +94,39 @@ const AddIngredientDialog = ({
       editingIngredient?.extraTargetProductIds && editingIngredient.extraTargetProductIds.length > 0
         ? editingIngredient.extraTargetProductIds
         : editingIngredient?.extraCategories || [];
+
+    const rawRecipeList =
+      editingIngredient?.recipe ||
+      (editingIngredient as any)?.ingredients ||
+      [];
+
+    const mappedRecipeItems: OptionRecipeItem[] = Array.isArray(rawRecipeList)
+      ? rawRecipeList.map((item: any) => {
+          const matObj =
+            typeof item.productId === "object" && item.productId !== null
+              ? item.productId
+              : typeof item.material === "object" && item.material !== null
+                ? item.material
+                : null;
+
+          const matId = matObj
+            ? String(matObj._id || matObj.id || "")
+            : String(item.material || item.productId || item.ingredientId || item.id || "");
+
+          const matName = matObj?.name || item.name || item.productName || "";
+          const matPrice = matObj?.price ?? item.price ?? 0;
+
+          return {
+            id: String(item._id || item.id || `r-${Math.random()}`),
+            material: matId,
+            name: matName,
+            price: Number(matPrice) || 0,
+            quantity: Number(item.quantity ?? item.amount ?? 1),
+            unit: item.unit || "pcs",
+            ingredientUnit: item.ingredientUnit || item.unit || "pcs",
+          };
+        })
+      : [];
 
     setForm(
       editingIngredient
@@ -84,7 +138,7 @@ const AddIngredientDialog = ({
             quantity: String(editingIngredient.quantity),
             unit: editingIngredient.unit || "g",
             extraQuantity: String(editingIngredient.extraQuantity ?? "0"),
-            recipe: editingIngredient.recipe ?? [],
+            recipe: mappedRecipeItems,
             imageUrl: editingIngredient.imageUrl,
             imageFile: undefined,
             isExtra: editingIngredient.isExtra ?? false,
@@ -163,7 +217,7 @@ const AddIngredientDialog = ({
         setExpandedCategories((prev) => Array.from(new Set([...prev, ...catsToExpand])));
       }
     }
-  }, [open, editingIngredient, products]);
+  }, [open, editingIngredient, activeProductsList]);
 
   const availableCategoryObjects = (categories || []).filter(
     (c) =>
@@ -174,12 +228,46 @@ const AddIngredientDialog = ({
   const availableCategories = availableCategoryObjects.map((c) => c.name);
 
   const getProductsForCategory = (catName: string, catId?: string) => {
-    return products
+    const catNameLower = catName.trim().toLowerCase();
+    const catIdStr = catId ? String(catId).trim().toLowerCase() : "";
+
+    return (activeProductsList || [])
       .filter((p) => {
-        const pCat = String(p.category || "").trim();
-        if (!pCat) return false;
-        if (catId && pCat === String(catId)) return true;
-        if (pCat.toLowerCase() === catName.toLowerCase()) return true;
+        if (p.isIngredient || (p.category || "").toLowerCase() === "raw ingredients") return false;
+
+        const rawCat = p.category;
+        if (!rawCat) return false;
+
+        let pCatName = "";
+        let pCatId = "";
+
+        if (typeof rawCat === "object" && rawCat !== null) {
+          pCatName = String((rawCat as any).name || "").trim();
+          pCatId = String((rawCat as any)._id || (rawCat as any).id || "").trim();
+        } else if (typeof rawCat === "string") {
+          const trimmed = rawCat.trim();
+          pCatName = trimmed;
+          pCatId = trimmed;
+
+          const matchedCategoryObj = (categories || []).find(
+            (c) =>
+              String(c.id).toLowerCase() === trimmed.toLowerCase() ||
+              c.name.trim().toLowerCase() === trimmed.toLowerCase()
+          );
+          if (matchedCategoryObj) {
+            pCatName = matchedCategoryObj.name;
+            pCatId = String(matchedCategoryObj.id);
+          }
+        }
+
+        const pCatNameLower = pCatName.toLowerCase();
+        const pCatIdLower = pCatId.toLowerCase();
+
+        if (catIdStr && pCatIdLower === catIdStr) return true;
+        if (pCatNameLower && pCatNameLower === catNameLower) return true;
+        if (catIdStr && pCatNameLower === catIdStr) return true;
+        if (pCatIdLower && pCatIdLower === catNameLower) return true;
+
         return false;
       })
       .map((p) => ({
@@ -672,48 +760,56 @@ const AddIngredientDialog = ({
                           </div>
 
                           {/* Sub-products Accordion */}
-                          {isExpanded && filteredProds.length > 0 && (
+                          {isExpanded && (
                             <div className="ps-3 pt-1 pb-2 flex flex-col gap-2">
-                              {filteredProds.map((prod, idx) => {
-                                const isProdSelected =
-                                  form.extraCategories.includes(prod.id) ||
-                                  form.extraCategories.includes(prod.name);
-                                return (
-                                  <div key={prod.id || idx} className="flex flex-col gap-2">
-                                    {idx > 0 && <div className="w-full border-t border-[#E5E5E5]/60" />}
-                                    <div className="flex items-center justify-between w-full">
-                                      <div
-                                        onClick={() => toggleItemSelect(prod, catName, catId)}
-                                        className="flex items-center gap-2 cursor-pointer flex-1"
-                                      >
-                                        <CornerDownRight className="size-3.5 text-[#595959] shrink-0" />
+                              {filteredProds.length === 0 ? (
+                                <p className="ps-4 py-1 text-[12px] font-normal text-[#8B8B8B]">
+                                  {extraSearchQuery.trim()
+                                    ? t("No products match search")
+                                    : t("No products in this category")}
+                                </p>
+                              ) : (
+                                filteredProds.map((prod, idx) => {
+                                  const isProdSelected =
+                                    form.extraCategories.includes(prod.id) ||
+                                    form.extraCategories.includes(prod.name);
+                                  return (
+                                    <div key={prod.id || idx} className="flex flex-col gap-2">
+                                      {idx > 0 && <div className="w-full border-t border-[#E5E5E5]/60" />}
+                                      <div className="flex items-center justify-between w-full">
                                         <div
-                                          className={cn(
-                                            "flex size-4 items-center justify-center rounded-[4.8px] border transition-all cursor-pointer",
-                                            isProdSelected
-                                              ? "border-[#8F6900] bg-[#8F6900] text-white shadow-sm ring-4 ring-[#624F1C]/10"
-                                              : "border-[#8F6900] bg-white shadow-sm"
-                                          )}
+                                          onClick={() => toggleItemSelect(prod, catName, catId)}
+                                          className="flex items-center gap-2 cursor-pointer flex-1"
                                         >
-                                          {isProdSelected && <Check className="size-2.5 stroke-[3]" />}
+                                          <CornerDownRight className="size-3.5 text-[#595959] shrink-0" />
+                                          <div
+                                            className={cn(
+                                              "flex size-4 items-center justify-center rounded-[4.8px] border transition-all cursor-pointer",
+                                              isProdSelected
+                                                ? "border-[#8F6900] bg-[#8F6900] text-white shadow-sm ring-4 ring-[#624F1C]/10"
+                                                : "border-[#8F6900] bg-white shadow-sm"
+                                            )}
+                                          >
+                                            {isProdSelected && <Check className="size-2.5 stroke-[3]" />}
+                                          </div>
+                                          <span
+                                            className={cn(
+                                              "text-[13px] tracking-[0.26px]",
+                                              isProdSelected ? "font-semibold text-[#333333]" : "font-medium text-[#595959]"
+                                            )}
+                                          >
+                                            {prod.name}
+                                          </span>
                                         </div>
-                                        <span
-                                          className={cn(
-                                            "text-[13px] tracking-[0.26px]",
-                                            isProdSelected ? "font-semibold text-[#333333]" : "font-medium text-[#595959]"
-                                          )}
-                                        >
-                                          {prod.name}
-                                        </span>
-                                      </div>
-                                      <div className="text-[13px] text-black" dir="ltr">
-                                        <span className="font-medium text-black">EGP </span>
-                                        <span className="font-bold text-black">{Number(prod.price).toFixed(2)}</span>
+                                        <div className="text-[13px] text-black" dir="ltr">
+                                          <span className="font-medium text-black">EGP </span>
+                                          <span className="font-bold text-black">{Number(prod.price).toFixed(2)}</span>
+                                        </div>
                                       </div>
                                     </div>
-                                  </div>
-                                );
-                              })}
+                                  );
+                                })
+                              )}
                             </div>
                           )}
                         </div>

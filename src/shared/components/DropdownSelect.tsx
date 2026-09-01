@@ -104,20 +104,33 @@ const DropdownSelect = ({
             {t("No results found.")}
           </div>
         ) : (
-          filteredOptions.map((option) => (
-            <DropdownMenuItem
-              key={option.value}
-              className={cn(
-                "px-4 py-2.5 text-[14px] font-normal rounded-[12px] cursor-pointer transition-colors outline-none",
-                selected === option.value
-                  ? "bg-[#8F6900] text-white font-medium cursor-default data-highlighted:bg-[#8F6900] data-highlighted:text-white"
-                  : "text-[#28293D] hover:bg-[#FAFAF7] data-highlighted:bg-[#FAFAF7] data-highlighted:text-[#28293D]"
-              )}
-              onSelect={() => onSelect(option.value)}
-            >
-              {option.label}
-            </DropdownMenuItem>
-          ))
+          filteredOptions.map((option) => {
+            if (option.isHeader) {
+              return (
+                <div
+                  key={option.value || option.label}
+                  className="px-3 py-1.5 text-[11px] font-bold tracking-wider text-[#725400] uppercase bg-[#F5F0EA] rounded-[8px] my-1 pointer-events-none select-none"
+                >
+                  {t(option.label)}
+                </div>
+              );
+            }
+
+            return (
+              <DropdownMenuItem
+                key={option.value}
+                className={cn(
+                  "px-4 py-2.5 text-[14px] font-normal rounded-[12px] cursor-pointer transition-colors outline-none",
+                  selected === option.value
+                    ? "bg-[#8F6900] text-white font-medium cursor-default data-highlighted:bg-[#8F6900] data-highlighted:text-white"
+                    : "text-[#28293D] hover:bg-[#FAFAF7] data-highlighted:bg-[#FAFAF7] data-highlighted:text-[#28293D]"
+                )}
+                onSelect={() => onSelect(option.value)}
+              >
+                {option.label}
+              </DropdownMenuItem>
+            );
+          })
         )}
       </DropdownMenuContent>
     </DropdownMenu>

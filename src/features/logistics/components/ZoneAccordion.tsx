@@ -12,18 +12,20 @@ interface ZoneAccordionProps {
   onToggleZone: (zone: Zone) => void;
 }
 
-const STATUS_STYLES: Record<ZoneOrderStatus, string> = {
-  Waiting: "border-[#B56C00] text-[#B56C00]",
-  Processing: "border-[#B56C00] text-[#B56C00]",
-  Cancelled: "border-[#C90000] text-[#C90000]",
+const getStatusBadgeStyle = (status: string) => {
+  const s = status.toLowerCase();
+  if (s === "cancelled") return "border-[#C90000] text-[#C90000]";
+  if (s === "delivered") return "border-[#059B5A] text-[#059B5A]";
+  if (s === "ready") return "border-[#3357B5] text-[#3357B5]";
+  return "border-[#B58A00] text-[#B58A00]";
 };
 
 const OrderBadge = ({ order }: { order: ZoneOrder }) => {
   const { t } = useTranslation();
   if (order.assignedDriverName) {
     return (
-      <span className="inline-flex h-6 items-center gap-1 rounded-full border border-[#B58A00] bg-white px-2.5 text-[11px] font-semibold text-[#B58A00]">
-        <Truck size={12} />
+      <span className="inline-flex h-6 items-center gap-1.5 rounded-[30px] border border-[#8F6900] bg-[#F5F0EA] px-2.5 text-[11px] font-semibold text-[#8F6900]">
+        <Truck size={12} className="text-[#8F6900]" />
         {order.assignedDriverName}
       </span>
     );
@@ -32,7 +34,7 @@ const OrderBadge = ({ order }: { order: ZoneOrder }) => {
     <span
       className={cn(
         "inline-flex h-6 items-center rounded-full border bg-white px-2.5 text-[11px] font-semibold",
-        STATUS_STYLES[order.status],
+        getStatusBadgeStyle(order.status),
       )}
     >
       {t(order.status)}

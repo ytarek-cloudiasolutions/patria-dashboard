@@ -67,7 +67,7 @@ const LogisticsPage = () => {
 
   const fetchOrders = useCallback(async () => {
     try {
-      const res = await api.get("/orders", { params: { limit: 100 } });
+      const res = await api.get("/orders", { params: { limit: 100, type: "Delivery" } });
       setApiOrders(res.data?.data || res.data?.orders || []);
     } catch {
       // ignore
@@ -95,37 +95,97 @@ const LogisticsPage = () => {
 
   const zones: Zone[] = useMemo(() => {
     const zoneMap = new Map<string, ZoneOrder[]>();
+    const processedOrderIds = new Set<string>();
 
+    // 1. First process assigned driver active orders from driversByZone
     if (driversByZone && Array.isArray(driversByZone)) {
       driversByZone.forEach((dz: any) => {
-        if (dz.zone && !zoneMap.has(dz.zone)) {
-          zoneMap.set(dz.zone, []);
+        const zoneName = dz.zone || "Kafr Abdo";
+        if (!zoneMap.has(zoneName)) {
+          zoneMap.set(zoneName, []);
+        }
+
+        if (Array.isArray(dz.drivers)) {
+          dz.drivers.forEach((driver: any) => {
+            const activeList = driver.activeOrders || (driver.currentOrderId ? [driver.currentOrderId] : []);
+            if (Array.isArray(activeList)) {
+              activeList.forEach((o: any) => {
+                const orderId = String(o._id || o.id || "");
+                if (!orderId || processedOrderIds.has(orderId)) return;
+
+                const rawStatus = (o.status || "").toLowerCase().trim();
+                if (rawStatus === "completed" || rawStatus === "delivered" || rawStatus === "cancelled") return;
+
+                processedOrderIds.add(orderId);
+                const ref = o.orderNumber || o.orderId
+                  ? `#${o.orderNumber || o.orderId}`
+                  : `#ORD-${orderId.slice(-6).toUpperCase()}`;
+                const customer =
+                  typeof o.customer === "string"
+                    ? o.customer
+                    : o.customer?.name || o.customerId?.name || "Customer";
+                const address = o.address || o.customer?.address || "No address provided";
+                const amount = o.amount || o.total || o.totalAmount || 0;
+
+                zoneMap.get(zoneName)!.push({
+                  id: orderId,
+                  reference: ref,
+                  customer,
+                  address,
+                  amount,
+                  status: "On-Route",
+                  assignedDriverName: driver.name,
+                });
+              });
+            }
+          });
         }
       });
     }
 
+    // 2. Process unassigned / pending API orders
     apiOrders.forEach((o: any) => {
+      const orderId = String(o._id || o.id || "");
+      if (processedOrderIds.has(orderId)) return;
+
+      const orderType = String(o.type || "").toLowerCase().trim();
+      if (orderType && orderType !== "delivery") return;
+
+      const rawStatus = (o.status || "").toLowerCase().trim();
+      if (rawStatus === "completed" || rawStatus === "delivered" || rawStatus === "cancelled") return;
+
+      processedOrderIds.add(orderId);
+
       const zoneName = o.zone || "Kafr Abdo";
       if (!zoneMap.has(zoneName)) {
         zoneMap.set(zoneName, []);
       }
 
-      const ref = o.orderId
-        ? `#${o.orderId}`
-        : `#ORD-${(o._id || o.id || "").slice(-6).toUpperCase()}`;
+      const ref = o.orderId || o.orderNumber
+        ? `#${o.orderId || o.orderNumber}`
+        : `#ORD-${orderId.slice(-6).toUpperCase()}`;
       const customer =
         o.customerId?.name || o.customer?.name || o.customerName || "Walk-in Customer";
       const address = o.customer?.address || o.address || "No address provided";
       const amount = o.totalAmount || o.total || 0;
+
       let statusStr: ZoneOrderStatus = "Waiting";
-      if (o.status === "cancelled") statusStr = "Cancelled";
-      else if (
-        o.driver ||
-        o.status === "on-route" ||
-        o.status === "ready" ||
-        o.status === "delivered"
-      )
+      if (rawStatus === "cancelled") {
+        statusStr = "Cancelled";
+      } else if (rawStatus === "processing" || rawStatus === "preparing") {
         statusStr = "Processing";
+      } else if (
+        rawStatus === "on-route" ||
+        rawStatus === "on_the_way" ||
+        rawStatus === "on-the-way" ||
+        rawStatus === "on_route"
+      ) {
+        statusStr = "On-Route";
+      } else if (rawStatus === "ready") {
+        statusStr = "Ready";
+      } else {
+        statusStr = "Waiting";
+      }
 
       const assignedDriverName = o.driver
         ? typeof o.driver === "string"
@@ -134,7 +194,7 @@ const LogisticsPage = () => {
         : undefined;
 
       zoneMap.get(zoneName)!.push({
-        id: o._id || o.id,
+        id: orderId,
         reference: ref,
         customer,
         address,
@@ -205,6 +265,34 @@ const LogisticsPage = () => {
     );
     return refs;
   }, [zones, selectedOrderIds]);
+
+  const selectedZoneNames = useMemo(() => {
+    if (selectedOrderIds.size === 0) return [];
+    const zoneNames = new Set<string>();
+    zones.forEach((zone) => {
+      zone.orders.forEach((order) => {
+        if (selectedOrderIds.has(order.id)) {
+          zoneNames.add(zone.name);
+        }
+      });
+    });
+    return Array.from(zoneNames);
+  }, [zones, selectedOrderIds]);
+
+  useEffect(() => {
+    if (selectedDriverId && selectedZoneNames.length > 0) {
+      const selectedDriver = drivers.find((d) => String(d.id) === String(selectedDriverId));
+      if (selectedDriver && selectedDriver.zones) {
+        const driverZonesLower = selectedDriver.zones.map((z) => z.toLowerCase().trim());
+        const isCompatible = selectedZoneNames.some((sz) =>
+          driverZonesLower.includes(sz.toLowerCase().trim())
+        );
+        if (!isCompatible) {
+          setSelectedDriverId("");
+        }
+      }
+    }
+  }, [selectedZoneNames, selectedDriverId, drivers]);
 
   // --- Dispatch -------------------------------------------------------------
 
@@ -378,6 +466,7 @@ const LogisticsPage = () => {
         )}
         <DispatchPanel
           selectedReferences={selectedReferences}
+          selectedZoneNames={selectedZoneNames}
           drivers={drivers}
           selectedDriverId={selectedDriverId}
           onSelectDriver={setSelectedDriverId}

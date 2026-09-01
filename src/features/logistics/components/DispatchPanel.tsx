@@ -5,8 +5,12 @@ import { Separator } from "@/shared/components/ui/separator";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import type { Driver } from "../types";
 
+import { useMemo } from "react";
+import type { DropdownSelectOption } from "@/shared/types/DropdownSelect.types";
+
 interface DispatchPanelProps {
   selectedReferences: string[];
+  selectedZoneNames?: string[];
   drivers: Driver[];
   selectedDriverId: string;
   onSelectDriver: (id: string) => void;
@@ -18,6 +22,7 @@ interface DispatchPanelProps {
 
 const DispatchPanel = ({
   selectedReferences,
+  selectedZoneNames = [],
   drivers,
   selectedDriverId,
   onSelectDriver,
@@ -28,13 +33,106 @@ const DispatchPanel = ({
 }: DispatchPanelProps) => {
   const { t } = useTranslation();
   const count = selectedReferences.length;
-  const availableDrivers = drivers.filter(
-    (d) => d.status === "Active" || d.status === "On-Route"
+
+  const activeDrivers = useMemo(
+    () => drivers.filter((d) => d.status === "Active" || d.status === "On-Route"),
+    [drivers]
   );
-  const driverOptions = availableDrivers.map((d) => ({
-    value: String(d.id),
-    label: d.name,
-  }));
+
+  const driverOptions: DropdownSelectOption[] = useMemo(() => {
+    if (selectedZoneNames.length === 0) {
+      const zoneDriverMap = new Map<string, Driver[]>();
+      const unzonedDrivers: Driver[] = [];
+
+      activeDrivers.forEach((driver) => {
+        if (!driver.zones || driver.zones.length === 0) {
+          unzonedDrivers.push(driver);
+        } else {
+          driver.zones.forEach((z) => {
+            const normalizedZone = z.trim();
+            if (!normalizedZone) return;
+            if (!zoneDriverMap.has(normalizedZone)) {
+              zoneDriverMap.set(normalizedZone, []);
+            }
+            zoneDriverMap.get(normalizedZone)!.push(driver);
+          });
+        }
+      });
+
+      const options: DropdownSelectOption[] = [];
+
+      zoneDriverMap.forEach((zoneDrivers, zoneName) => {
+        if (zoneDrivers.length > 0) {
+          options.push({
+            label: `${zoneName} Drivers`,
+            value: `hdr-zone-${zoneName}`,
+            isHeader: true,
+          });
+          const addedIds = new Set<string>();
+          zoneDrivers.forEach((d) => {
+            const dId = String(d.id);
+            if (!addedIds.has(dId)) {
+              addedIds.add(dId);
+              options.push({ value: dId, label: d.name });
+            }
+          });
+        }
+      });
+
+      if (unzonedDrivers.length > 0) {
+        options.push({
+          label: "Other Drivers",
+          value: "hdr-other-unzoned",
+          isHeader: true,
+        });
+        unzonedDrivers.forEach((d) => {
+          options.push({ value: String(d.id), label: d.name });
+        });
+      }
+
+      if (options.length === 0) {
+        return activeDrivers.map((d) => ({
+          value: String(d.id),
+          label: d.name,
+        }));
+      }
+
+      return options;
+    }
+
+    const isMatch = (driver: Driver) => {
+      if (!driver.zones || driver.zones.length === 0) return false;
+      const driverZonesLower = driver.zones.map((z) => z.toLowerCase().trim());
+      return selectedZoneNames.some((sz) =>
+        driverZonesLower.includes(sz.toLowerCase().trim())
+      );
+    };
+
+    const zoneDrivers = activeDrivers.filter(isMatch);
+    const otherDrivers = activeDrivers.filter((d) => !isMatch(d));
+
+    const options: DropdownSelectOption[] = [];
+
+    if (zoneDrivers.length > 0) {
+      const zoneTitle =
+        selectedZoneNames.length === 1
+          ? `${selectedZoneNames[0]} Drivers`
+          : "Zone Drivers";
+      options.push({ label: zoneTitle, value: "hdr-zone", isHeader: true });
+      zoneDrivers.forEach((d) => {
+        options.push({ value: String(d.id), label: d.name });
+      });
+    }
+
+    if (otherDrivers.length > 0) {
+      options.push({ label: "Other Drivers", value: "hdr-other", isHeader: true });
+      otherDrivers.forEach((d) => {
+        options.push({ value: String(d.id), label: d.name });
+      });
+    }
+
+    return options;
+  }, [activeDrivers, selectedZoneNames]);
 
   return (
     <div className="rounded-[16px] border border-[#E5E5E5] bg-white p-5 sm:p-6">

@@ -16,7 +16,7 @@ export interface Driver {
   dutyTime: string;
 }
 
-export type ZoneOrderStatus = "Waiting" | "Processing" | "Cancelled";
+export type ZoneOrderStatus = "Waiting" | "Processing" | "Confirmed" | "Ready" | "On-Route" | "Delivered" | "Cancelled" | (string & {});
 
 export interface ZoneOrder {
   id: string;
