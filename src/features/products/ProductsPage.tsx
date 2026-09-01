@@ -814,77 +814,23 @@ const ProductsPage = () => {
       )}
 
       {isCategories && (
-        <>
-          <div className="mb-5 flex justify-end">
-            {/* View Mode Toggle Control (Figma specification) */}
-            <div className="flex h-[56px] items-center justify-center gap-4 rounded-[12px] bg-[#F5F0EA] px-3 py-1 shrink-0 overflow-hidden">
-              <button
-                type="button"
-                onClick={() => setViewMode("table")}
-                aria-label={t("Table view")}
-                className={cn(
-                  "flex cursor-pointer items-center justify-center transition-all",
-                  viewMode === "table"
-                    ? "rounded-[6px] bg-white px-3 py-1.5 shadow-xs"
-                    : "p-1.5 text-black hover:opacity-80"
-                )}
-              >
-                <List className="size-6 text-black" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode("grid")}
-                aria-label={t("Grid view")}
-                className={cn(
-                  "flex cursor-pointer items-center justify-center transition-all",
-                  viewMode === "grid"
-                    ? "rounded-[6px] bg-white px-3 py-1.5 shadow-xs"
-                    : "p-1.5 text-black hover:opacity-80"
-                )}
-              >
-                <LayoutGrid className="size-6 text-black" />
-              </button>
-            </div>
-          </div>
-
-          {viewMode === "grid" ? (
-            <CategoriesCards
-              categories={categories}
-              togglingCategoryId={togglingCategoryId}
-              isLoading={isFetchingCategories}
-              isMutating={isTogglingCategory || isDeletingCategory}
-              onToggleActive={toggleCategoryActive}
-              onDelete={(category) =>
-                setDeleteTarget({
-                  id: category.id,
-                  name: category.name,
-                  kind: "category",
-                })
-              }
-              onCardClick={(category) => {
-                setSelectedCategoryForProducts(category);
-              }}
-            />
-          ) : (
-            <CategoriesTable
-              categories={categories}
-              togglingCategoryId={togglingCategoryId}
-              isLoading={isFetchingCategories}
-              isMutating={isTogglingCategory || isDeletingCategory}
-              onToggleActive={toggleCategoryActive}
-              onDelete={(category) =>
-                setDeleteTarget({
-                  id: category.id,
-                  name: category.name,
-                  kind: "category",
-                })
-              }
-              onRowClick={(category) => {
-                setSelectedCategoryForProducts(category);
-              }}
-            />
-          )}
-        </>
+        <CategoriesTable
+          categories={categories}
+          togglingCategoryId={togglingCategoryId}
+          isLoading={isFetchingCategories}
+          isMutating={isTogglingCategory || isDeletingCategory}
+          onToggleActive={toggleCategoryActive}
+          onDelete={(category) =>
+            setDeleteTarget({
+              id: category.id,
+              name: category.name,
+              kind: "category",
+            })
+          }
+          onRowClick={(category) => {
+            setSelectedCategoryForProducts(category);
+          }}
+        />
       )}
 
       {/* Dialogs */}
