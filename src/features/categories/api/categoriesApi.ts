@@ -12,6 +12,7 @@ import type {
 export const getCategories = async () => {
   const response = await api.get<GetCategoriesResponse>(
     CATEGORY_ENDPOINTS.CATEGORIES,
+    { params: { includeInactive: true } },
   );
   return response.data;
 };

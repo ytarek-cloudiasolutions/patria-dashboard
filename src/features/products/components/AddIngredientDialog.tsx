@@ -13,13 +13,11 @@ import { Textarea } from "@/shared/components/ui/textarea";
 import DefaultButton from "@/shared/components/DefaultButton";
 import InputField from "@/shared/components/InputField";
 import { useTranslation } from "@/shared/i18n/useTranslation";
-import type { IngredientFormData, Ingredient } from "../types";
+import type { IngredientFormData, Ingredient, Category, Product } from "../types";
 import UploadDropzone from "./UploadDropzone";
 import OptionRecipeEditor from "./OptionRecipeEditor";
 import DropdownSelect from "@/shared/components/DropdownSelect";
 import { Switch } from "@/shared/components/ui/switch";
-import { useCategories } from "@/features/categories/hooks/useCategories";
-import { useProducts } from "@/features/products/hooks/useProducts";
 import { getRecipe } from "../api/recipeApi";
 import type { OptionRecipeItem } from "../types";
 import { cn } from "@/lib/utils";
@@ -46,6 +44,8 @@ interface AddIngredientDialogProps {
   onOpenChange: (open: boolean) => void;
   isSaving?: boolean;
   editingIngredient?: Ingredient | null;
+  categories?: Category[];
+  products?: Product[];
   onSave: (data: IngredientFormData) => void;
 }
 
@@ -54,11 +54,11 @@ const AddIngredientDialog = ({
   onOpenChange,
   isSaving = false,
   editingIngredient,
+  categories = [],
+  products = [],
   onSave,
 }: AddIngredientDialogProps) => {
   const { t, language } = useTranslation();
-  const { categories, getCategories } = useCategories();
-  const { products, getProducts } = useProducts();
   const [form, setForm] = useState<IngredientFormData>(INITIAL_FORM);
   const [errors, setErrors] = useState<
     Partial<Record<keyof IngredientFormData, string>>
@@ -69,8 +69,6 @@ const AddIngredientDialog = ({
 
   useEffect(() => {
     if (!open) return;
-    getCategories();
-    getProducts({ limit: 100 });
     const initialExtraTargetIds =
       editingIngredient?.extraTargetProductIds && editingIngredient.extraTargetProductIds.length > 0
         ? editingIngredient.extraTargetProductIds
@@ -97,7 +95,7 @@ const AddIngredientDialog = ({
     setErrors({});
     setIsUnitOpen(false);
     setExtraSearchQuery("");
-  }, [open, editingIngredient, getCategories, getProducts]);
+  }, [open, editingIngredient]);
 
   useEffect(() => {
     if (open && editingIngredient?.id) {

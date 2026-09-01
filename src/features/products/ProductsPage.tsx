@@ -206,31 +206,26 @@ const ProductsPage = () => {
 
   const filteredProducts = useMemo(() => {
     return products.filter(
-      (p) =>
-        (p.category || "").toLowerCase() !== "raw ingredients" &&
-        p.isActive !== false &&
-        p.available !== false
+      (p) => (p.category || "").toLowerCase() !== "raw ingredients"
     );
   }, [products]);
 
   const filteredIngredients = useMemo(() => {
     if (tab !== "recipes") return [];
-    return products
-      .filter((p) => p.isActive !== false && p.available !== false)
-      .map((p) => ({
-        id: p.id,
-        name: p.name,
-        description: p.description || "",
-        imageUrl: p.imageUrl,
-        price: p.price,
-        quantity: p.quantity ?? 0,
-        unit: formatUnit(p.unit),
-        recipe: p.recipe || [],
-        isExtra: p.isExtra ?? false,
-        extraTargetProductIds: p.extraTargetProductIds || [],
-        barcode: p.barcode || "",
-        isActive: p.isActive ?? p.available ?? true,
-      }));
+    return products.map((p) => ({
+      id: p.id,
+      name: p.name,
+      description: p.description || "",
+      imageUrl: p.imageUrl,
+      price: p.price,
+      quantity: p.quantity ?? 0,
+      unit: formatUnit(p.unit),
+      recipe: p.recipe || [],
+      isExtra: p.isExtra ?? false,
+      extraTargetProductIds: p.extraTargetProductIds || [],
+      barcode: p.barcode || "",
+      isActive: p.isActive ?? p.available ?? true,
+    }));
   }, [products, tab]);
 
   const ingredientOptions = useMemo(() => {
@@ -850,6 +845,8 @@ const ProductsPage = () => {
       <AddIngredientDialog
         open={isAddIngredientOpen}
         editingIngredient={editingIngredient}
+        categories={categories}
+        products={products}
         onOpenChange={(open) => {
           setIsAddIngredientOpen(open);
           if (!open) setEditingIngredient(null);

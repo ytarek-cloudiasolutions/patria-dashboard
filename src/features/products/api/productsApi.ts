@@ -12,7 +12,7 @@ import type {
 export const getProducts = async (params?: GetProductsRequest) => {
   const response = await api.get<GetProductsResponse>(
     PRODUCT_ENDPOINTS.PRODUCTS,
-    { params },
+    { params: { includeInactive: true, ...params } },
   );
   return response.data;
 };

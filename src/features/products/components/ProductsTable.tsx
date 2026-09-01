@@ -233,11 +233,6 @@ const ProductsTable = ({
                       <p className="max-w-72 truncate text-[12px] text-[#8B8B8B]">
                         {product.description}
                       </p>
-                      {product.barcode && (
-                        <p className="mt-0.5 text-[11px] font-mono text-[#7A7A7A]">
-                          {t("Barcode")}: {product.barcode}
-                        </p>
-                      )}
                     </TableCell>
                     <TableCell className="px-6 py-4 whitespace-nowrap">
                       <CategoryBadge category={product.category} />
