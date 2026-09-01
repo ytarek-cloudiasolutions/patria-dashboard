@@ -40,13 +40,7 @@ const ProductsCards = ({
   }
 
   if (products.length === 0) {
-    return (
-      <div className="flex min-h-[240px] w-full flex-col items-center justify-center rounded-[16px] border-2 border-dashed border-[#CACBD4] bg-[#FAFAF7] p-8 text-center">
-        <p className="text-[15px] font-semibold text-[#8B8B8B]">
-          {t("No products found")}
-        </p>
-      </div>
-    );
+    return null;
   }
 
   return (

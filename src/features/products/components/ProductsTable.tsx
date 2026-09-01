@@ -173,11 +173,6 @@ const ProductsTable = ({
                 />
               </div>
             ))}
-            {products.length === 0 && (
-              <p className="py-8 text-center text-[14px] text-[#8B8B8B]">
-                {t("No products found.")}
-              </p>
-            )}
           </>
         )}
       </div>
@@ -255,16 +250,6 @@ const ProductsTable = ({
                     </TableCell>
                   </TableRow>
                 ))}
-                {products.length === 0 && (
-                  <TableRow>
-                    <TableCell
-                      colSpan={6}
-                      className="py-10 text-center text-[14px] text-[#8B8B8B]"
-                    >
-                      {t("No products found.")}
-                    </TableCell>
-                  </TableRow>
-                )}
               </>
             )}
           </TableBody>
