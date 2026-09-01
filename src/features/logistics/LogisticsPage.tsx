@@ -360,6 +360,7 @@ const LogisticsPage = () => {
       whatsappPhone: data.whatsappPhone.trim(),
       vehicleType: data.vehicleType.toLowerCase() as any,
       plateNumber: data.plateNumber.trim(),
+      hourlyRate: Number(data.hourlyRate) || 0,
       zones: data.zones,
       status:
         data.status === "On-Route"

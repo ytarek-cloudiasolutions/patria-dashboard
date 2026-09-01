@@ -41,6 +41,7 @@ export interface DriverFormData {
   password: string;
   vehicleType: VehicleType;
   plateNumber: string;
+  hourlyRate?: string | number;
   zones: string[];
   status: DriverStatus;
 }
