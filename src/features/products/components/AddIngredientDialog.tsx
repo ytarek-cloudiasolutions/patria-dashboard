@@ -370,19 +370,28 @@ const AddIngredientDialog = ({
     const targetIds = new Set<string>();
 
     form.extraCategories.forEach((item) => {
-      const matchingProd = products.find(
+      // 1. Check if item matches a product in activeProductsList
+      const matchingProd = activeProductsList.find(
         (p) => p.id === item || p.name.toLowerCase() === item.toLowerCase()
       );
       if (matchingProd) {
         targetIds.add(matchingProd.id);
-      } else {
-        const matchingCatObj = availableCategoryObjects.find(
-          (c) => c.id === item || c.name.toLowerCase() === item.toLowerCase()
-        );
-        if (matchingCatObj) {
-          const catProds = getProductsForCategory(matchingCatObj.name, matchingCatObj.id);
-          catProds.forEach((p) => targetIds.add(p.id));
-        }
+        return;
+      }
+
+      // 2. Check if item matches a category name or category ID
+      const matchingCatObj = availableCategoryObjects.find(
+        (c) => c.id === item || c.name.toLowerCase() === item.toLowerCase()
+      );
+      if (matchingCatObj) {
+        const catProds = getProductsForCategory(matchingCatObj.name, matchingCatObj.id);
+        catProds.forEach((p) => targetIds.add(p.id));
+        return;
+      }
+
+      // 3. Fallback: if item is already a product ID string (e.g., 24-character Mongo ID), preserve it
+      if (typeof item === "string" && item.trim()) {
+        targetIds.add(item.trim());
       }
     });
 

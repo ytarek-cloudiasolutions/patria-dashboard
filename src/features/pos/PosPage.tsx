@@ -265,9 +265,12 @@ const PosPage = () => {
         id: p.id,
         name: p.name,
         price: p.price,
+        originalPrice: (p as any).originalPrice,
         category: (p.category || "").toLowerCase().replace(/\s+/g, "-"),
         imageUrl: p.imageUrl,
         extras: p.extras?.map((e) => ({ id: e.id, name: e.name, price: e.price })) ?? [],
+        variantGroups: p.variantGroups ?? [],
+        recipe: p.recipe ?? [],
         stockBadge: (p.quantity ?? 0) < 10 && (p.quantity ?? 0) > 0
           ? `Low - ${p.quantity}`
           : undefined,

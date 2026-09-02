@@ -30,6 +30,8 @@ export type PosProduct = {
   stockBadge?: string;
   /** Extras the customer can pick when adding this product. */
   extras?: ProductExtra[];
+  variantGroups?: any[];
+  recipe?: any[];
 };
 
 /** A product extra with its selected state inside a cart line. */
