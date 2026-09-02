@@ -2,6 +2,7 @@ export interface DropdownSelectOption {
   label: string;
   value: string;
   isHeader?: boolean;
+  isLightSelected?: boolean;
 }
 
 export interface DropdownSelectProps {

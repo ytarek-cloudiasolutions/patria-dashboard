@@ -116,18 +116,23 @@ const DropdownSelect = ({
               );
             }
 
+            const isOptSelected = selected === option.value;
+            const isLightSelection = option.isLightSelected;
+
             return (
               <DropdownMenuItem
                 key={option.value}
                 className={cn(
-                  "flex h-[34px] w-full items-center rounded-[16px] px-3 py-2 text-[12px] font-medium text-black tracking-[0.24px] cursor-pointer transition-colors outline-none",
-                  selected === option.value
-                    ? "bg-[#F5F0EA] text-black font-semibold cursor-default data-highlighted:bg-[#F5F0EA] data-highlighted:text-black"
-                    : "hover:bg-[#F5F0EA] data-highlighted:bg-[#F5F0EA] data-highlighted:text-black"
+                  "flex h-10 w-full items-center rounded-[12px] px-3.5 py-2 text-[14px] font-medium tracking-[0.24px] cursor-pointer transition-colors outline-none",
+                  isOptSelected
+                    ? isLightSelection
+                      ? "bg-[#F5F0EA] text-black font-semibold cursor-default data-highlighted:bg-[#F5F0EA] data-highlighted:text-black"
+                      : "bg-[#8F6900] text-white font-semibold cursor-default data-highlighted:bg-[#8F6900] data-highlighted:text-white"
+                    : "text-[#28293D] hover:bg-[#FAFAF7] data-highlighted:bg-[#FAFAF7] data-highlighted:text-[#28293D]"
                 )}
                 onSelect={() => onSelect(option.value)}
               >
-                {option.label}
+                {t(option.label)}
               </DropdownMenuItem>
             );
           })
