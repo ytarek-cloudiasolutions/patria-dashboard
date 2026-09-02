@@ -17,15 +17,27 @@ import OrderDetailsDialog from "@/features/orders/components/OrderDetailsDialog"
 import { mapOrder } from "@/features/orders/utils/orderMappers";
 import type { Order } from "@/features/orders/types";
 
-const mapCategory = (type: string): NotificationCategory => {
-  if (type === "order" || type === "orders") return "orders";
-  if (type === "stock" || type === "inventory") return "stock";
+const mapCategory = (type: string, title?: string): NotificationCategory => {
+  const t = (type || "").toLowerCase();
+  const titleLower = (title || "").toLowerCase();
+
+  if (t === "order" || t === "orders" || t.includes("order")) return "orders";
+  if (
+    t === "stock" ||
+    t === "inventory" ||
+    t.includes("stock") ||
+    t.includes("inventory") ||
+    titleLower.includes("stock") ||
+    titleLower.includes("inventory")
+  ) {
+    return "stock";
+  }
   return "system";
 };
 
 const mapNotification = (n: any, idx: number): AppNotification => ({
   id: n._id ?? idx,
-  category: mapCategory(n.type ?? "system"),
+  category: mapCategory(n.type ?? "system", n.title),
   title: n.title ?? n.type ?? "Notification",
   description: n.message ?? "",
   time: n.createdAt
@@ -170,12 +182,11 @@ const NotificationsPanel = ({ open, onOpenChange }: NotificationsPanelProps) => 
           <SheetDescription className="sr-only">
             {t("Notifications")}
           </SheetDescription>
-
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-4 sm:px-5">
-            <div className="flex items-center gap-2">
-              <Bell size={20} className="text-[#28293D]" />
-              <SheetTitle className="text-[18px] font-bold text-[#333333]">
+          <div className="flex items-center justify-between px-5 pt-5 pb-3">
+            <div className="flex items-center gap-2.5">
+              <Bell className="size-6 text-[#333333]" />
+              <SheetTitle className="text-[18px] font-bold text-[#333333] tracking-[0.36px]">
                 {t("Notifications")}
               </SheetTitle>
             </div>
@@ -184,33 +195,35 @@ const NotificationsPanel = ({ open, onOpenChange }: NotificationsPanelProps) => 
                 type="button"
                 onClick={markAllRead}
                 aria-label={t("Mark all as read")}
-                className="cursor-pointer text-[#595959] hover:text-[#28293D]"
+                className="cursor-pointer text-[#595959] hover:text-[#28293D] transition-colors"
+                title={t("Mark all as read")}
               >
-                <CheckCheck size={18} />
+                <CheckCheck className="size-[18px]" />
               </button>
               <button
                 type="button"
                 onClick={clearAll}
                 aria-label={t("Clear all")}
-                className="cursor-pointer text-[#C90000]"
+                className="cursor-pointer text-[#595959] hover:text-[#C90000] transition-colors"
+                title={t("Clear all")}
               >
-                <Trash2 size={18} />
+                <Trash2 className="size-[18px]" />
               </button>
               <SheetClose asChild>
                 <button
                   type="button"
                   aria-label={t("Close")}
-                  className="cursor-pointer text-[#000000]"
+                  className="cursor-pointer text-[#333333] hover:text-black transition-colors"
                 >
-                  <X size={18} />
+                  <X className="size-[18px]" />
                 </button>
               </SheetClose>
             </div>
           </div>
 
-          {/* Tabs */}
-          <div className="px-4 pb-3 sm:px-5">
-            <div className="flex items-center gap-1 rounded-[16px] bg-[#F5F0EA] p-1">
+          {/* Tabs Navigation */}
+          <div className="px-3.5 sm:px-5 pb-3">
+            <div className="flex items-center gap-0.5 sm:gap-1 rounded-[20px] bg-[#F5F0EA] p-1">
               {TABS.map((tab) => {
                 const isActive = activeTab === tab.value;
                 return (
@@ -219,20 +232,15 @@ const NotificationsPanel = ({ open, onOpenChange }: NotificationsPanelProps) => 
                     type="button"
                     onClick={() => setActiveTab(tab.value)}
                     className={cn(
-                      "flex flex-1 items-center justify-center gap-1.5 rounded-[12px] px-2 py-2 text-[12px] font-semibold transition-colors sm:text-[13px]",
+                      "flex flex-1 items-center justify-center gap-1 rounded-[14px] px-1.5 sm:px-2.5 py-1.5 text-[12px] sm:text-[13px] font-medium transition-all cursor-pointer select-none",
                       isActive
-                        ? "bg-white text-[#333333] shadow-sm"
-                        : "text-[#8B8B8B] hover:text-[#28293D]",
+                        ? "bg-white text-[#333333] shadow-sm border border-[#E5E5E5]"
+                        : "text-[#333333] hover:bg-white/40",
                     )}
                   >
-                    {t(tab.label)}
+                    <span className="truncate">{t(tab.label)}</span>
                     <span
-                      className={cn(
-                        "flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold",
-                        isActive
-                          ? "bg-primary text-white"
-                          : "bg-white text-[#8B8B8B]",
-                      )}
+                      className="flex size-[18px] shrink-0 items-center justify-center rounded-full bg-[#DCDCDC] text-[10px] font-bold text-[#595959]"
                     >
                       {counts[tab.value]}
                     </span>
@@ -242,8 +250,11 @@ const NotificationsPanel = ({ open, onOpenChange }: NotificationsPanelProps) => 
             </div>
           </div>
 
+          {/* Horizontal Separator */}
+          <div className="w-full border-t border-[#CACBD4]" />
+
           {/* List */}
-          <div className="flex-1 divide-y divide-[#E5E5E5] overflow-y-auto border-t border-[#CACBD4]">
+          <div className="flex-1 overflow-y-auto">
             {visible.length === 0 ? (
               <p className="px-4 py-12 text-center text-[14px] text-[#8B8B8B]">
                 {t("No notifications")}
@@ -253,6 +264,7 @@ const NotificationsPanel = ({ open, onOpenChange }: NotificationsPanelProps) => 
                 <NotificationItem
                   key={notification.id}
                   notification={notification}
+                  onClosePanel={() => onOpenChange(false)}
                   onAccept={(id) => {
                     const n = notifications.find((item) => item.id === id);
                     if (n) handleOpenOrderDetails(n);
@@ -269,7 +281,7 @@ const NotificationsPanel = ({ open, onOpenChange }: NotificationsPanelProps) => 
           </div>
 
           {/* Footer */}
-          <div className="border-t border-[#CACBD4] px-4 py-3 text-[13px] text-[#595959] sm:px-5">
+          <div className="border-t border-[#E5E5E5] px-5 py-4 text-center text-[12px] font-normal text-[#8B8B8B]">
             {counts.all} {t("total")} · {resolvedCount} {t("resolved")}
           </div>
         </SheetContent>
