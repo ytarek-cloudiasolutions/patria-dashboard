@@ -15,14 +15,14 @@ const STATUS_STYLES: Record<OrderStatus, StatusStyle> = {
     borderColor: "#C7861E",
   },
   Confirmed: {
-    bg: "bg-[#EDF4FB]",
-    text: "text-[#3574FF]",
-    borderColor: "#004EF9",
+    bg: "bg-[#E2F4ED]",
+    text: "text-[#059B5A]",
+    borderColor: "#059B5A",
   },
   Preparing: {
     bg: "bg-[#F5F0EA]",
     text: "text-[#8F6900]",
-    borderColor: "#624F1C",
+    borderColor: "#725400",
   },
   "On The Way": {
     bg: "bg-[#F4E8FF]",
@@ -35,8 +35,8 @@ const STATUS_STYLES: Record<OrderStatus, StatusStyle> = {
     borderColor: "#059B5A",
   },
   Cancelled: {
-    bg: "bg-[#FFF0F0]",
-    text: "text-[#C90000]",
+    bg: "bg-[#C90000]",
+    text: "text-white",
     borderColor: "#C90000",
   },
 };

@@ -1,5 +1,5 @@
 import { Fragment, useState } from "react";
-import { ChevronDown, Info, Loader2 } from "lucide-react";
+import { ChevronDown, Info, Loader2, User } from "lucide-react";
 import Whatsapp from "@/assets/icons/whatsapp.svg";
 import { Button } from "@/shared/components/ui/button";
 import { Checkbox } from "@/shared/components/ui/checkbox";
@@ -35,7 +35,14 @@ interface OrdersTableProps {
   onUpdateStatus: (orderId: string, status: OrderStatus) => void;
   onAssignDriver: (orderId: string, driver: string, updatedOrderData?: any) => void;
   onStatusMenuOpenChange?: (open: boolean) => void;
+  isPos?: boolean;
 }
+
+const POS_ORDER_STATUS_OPTIONS: OrderStatus[] = [
+  "Preparing",
+  "Confirmed",
+  "Cancelled",
+];
 
 const paymentStateStyles: Record<Exclude<PaymentState, "None">, string> = {
   Paid: "border-[#00A86B] bg-[#E2F4ED] text-[#00A86B]",
@@ -51,11 +58,16 @@ const OrdersTable = ({
   onUpdateStatus,
   onAssignDriver,
   onStatusMenuOpenChange,
+  isPos = false,
 }: OrdersTableProps) => {
   const { t } = useTranslation();
 
   const allSelected =
     orders.length > 0 && selectedIds.length === orders.length;
+
+  const availableStatuses = isPos
+    ? POS_ORDER_STATUS_OPTIONS
+    : ORDER_STATUS_OPTIONS;
 
   return (
     <div className="w-full overflow-x-auto rounded-[16px] border border-[#E5E5E5]">
@@ -64,15 +76,15 @@ const OrdersTable = ({
           <col className="w-10" />
           <col className="w-28" />
           <col className="w-36" />
-          <col className="w-52" />
+          <col className="w-44" />
           <col className="w-28" />
+          <col className="w-44" />
           <col className="w-32" />
           <col className="w-28" />
-          <col className="w-24" />
-          <col className="w-28" />
+          {!isPos && <col className="w-28" />}
         </colgroup>
         <TableHeader>
-          <TableRow className="h-10">
+          <TableRow className="h-11 bg-[#F5F0EA] hover:bg-[#F5F0EA] border-b border-[#E5E5E5]">
             <TableHead className="ps-4 text-center">
               <div className="flex justify-center">
                 <div
@@ -89,17 +101,11 @@ const OrdersTable = ({
                 </div>
               </div>
             </TableHead>
-            {[
-              "Order ID",
-              "Customer",
-              "Products",
-              "Total",
-              "Payment",
-              "Status",
-              "Date",
-              "Driver",
-            ].map((header) => (
-              <TableHead key={header} className="text-center">
+            {(isPos
+              ? ["ID", "Customer", "Products", "Total", "Payment", "Status", "Date"]
+              : ["Order ID", "Customer", "Products", "Total", "Payment", "Status", "Date", "Driver"]
+            ).map((header) => (
+              <TableHead key={header} className="text-center text-[13px] font-semibold text-[#28293D] uppercase tracking-[0.26px]">
                 {t(header)}
               </TableHead>
             ))}
@@ -110,7 +116,7 @@ const OrdersTable = ({
           {orders.length === 0 ? (
             <TableRow>
               <TableCell
-                colSpan={9}
+                colSpan={isPos ? 8 : 9}
                 className="px-4 py-12 text-center text-[14px] text-[#5b4f4f]"
               >
                 {t("No orders found.")}
@@ -120,6 +126,22 @@ const OrdersTable = ({
             orders.map((order, index) => {
               const isLast = index === orders.length - 1;
               const isNewOrder = Boolean(order.isNew || order.status === "Pending");
+              const isStaff =
+                (order as any).isStaffOrder ||
+                (order as any).orderType === "staff" ||
+                order.customerName?.toLowerCase().trim() === "staff";
+
+              const rawPayment = translatePaymentMethod(order.paymentMethod, t);
+              let displayPayment = rawPayment;
+              if (isPos) {
+                if (rawPayment.toLowerCase().includes("cash on delivery") || rawPayment.toLowerCase() === "cod") {
+                  displayPayment = t("Cash");
+                }
+              } else {
+                if (rawPayment.toLowerCase() === "cash") {
+                  displayPayment = t("Cash on Delivery");
+                }
+              }
 
               return (
                 <Fragment key={order.id}>
@@ -160,7 +182,7 @@ const OrdersTable = ({
                       <button
                         type="button"
                         onClick={() => onViewOrder(order)}
-                        className="inline-flex items-center gap-1.5 text-[12px] font-bold text-[#333333] cursor-pointer"
+                        className="inline-flex items-center gap-1.5 text-[12px] font-bold text-[#333333] tracking-[0.24px] cursor-pointer"
                       >
                         #{order.orderId || order.id}
                         <Info className="size-4 text-[#23252A]" />
@@ -168,39 +190,52 @@ const OrdersTable = ({
                     </TableCell>
 
                     <TableCell className="text-center">
-                      <div className="flex flex-col items-start">
-                        <p className="text-[13px] font-semibold text-[#333333]">
-                          {order.customerName}
-                        </p>
-                        {Boolean(order.customerPhone && order.customerPhone.trim()) && (
-                          <div className="mt-1 flex items-center gap-1">
-                            <span className="text-[11px] text-[#8B8B8B]" dir="ltr">
-                              {order.customerPhone}
+                      <div className="flex items-center justify-center">
+                        {isStaff ? (
+                          <div className="flex items-center gap-1.5">
+                            <User className="size-4 text-[#333333]" />
+                            <span className="text-[12px] font-semibold text-[#333333] tracking-[0.24px]">
+                              {t("Staff")}
                             </span>
-                            <img
-                              src={Whatsapp}
-                              alt="Whatsapp"
-                              className="size-4"
-                            />
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center">
+                            <span className="text-[12px] font-medium text-[#333333] tracking-[0.24px]">
+                              {order.customerName || t("Walk-in Customer")}
+                            </span>
+                            {Boolean(order.customerPhone && order.customerPhone.trim()) && (
+                              <div className="mt-1 flex items-center gap-1">
+                                <span className="text-[11px] text-[#8B8B8B]" dir="ltr">
+                                  {order.customerPhone}
+                                </span>
+                                <img
+                                  src={Whatsapp}
+                                  alt="Whatsapp"
+                                  className="size-4"
+                                />
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
                     </TableCell>
 
                     <TableCell className="py-4 text-center">
-                      <button
-                        type="button"
-                        onClick={() => onViewOrder(order)}
-                        className="inline-flex h-8 cursor-pointer items-center gap-2 rounded-[8px] border border-[#E5E5E5] bg-[#F5F0EA] px-3 text-[13px] text-[#333333] transition-colors hover:border-[#8F6900]/40 hover:bg-[#FAFAF7]"
-                      >
-                        <span>
-                          <span className="font-semibold">
-                            {order.items.length}
-                          </span>{" "}
-                          {t("Products")}
-                        </span>
-                        <Info className="size-3.5 text-[#23252A]" />
-                      </button>
+                      <div className="flex justify-center">
+                        <button
+                          type="button"
+                          onClick={() => onViewOrder(order)}
+                          className="inline-flex h-8 cursor-pointer items-center gap-2 rounded-[8px] border border-[#E5E5E5] bg-[#F5F0EA] px-3 text-[13px] text-[#333333] transition-colors hover:border-[#8F6900]/40 hover:bg-[#FAFAF7]"
+                        >
+                          <span>
+                            <span className="font-semibold">
+                              {order.items.length}
+                            </span>{" "}
+                            {t("Products")}
+                          </span>
+                          <Info className="size-3.5 text-[#23252A]" />
+                        </button>
+                      </div>
                     </TableCell>
 
                     <TableCell className="text-center text-[13px] text-[#28293D]">
@@ -215,8 +250,8 @@ const OrdersTable = ({
 
                     <TableCell className="text-center">
                       <div className="flex flex-col items-center gap-1.5">
-                        <span className="inline-flex h-6 min-w-20 items-center justify-center rounded-full border border-current bg-[#EDF4FB] px-2.5 py-1 text-[11px] font-semibold text-[#004EF9]">
-                          {translatePaymentMethod(order.paymentMethod, t)}
+                        <span className="inline-flex h-6 min-w-20 items-center justify-center rounded-full border border-[#004EF9] bg-[#EDF4FB] px-3 py-1 text-[13px] font-semibold text-[#3574FF]">
+                          {displayPayment}
                         </span>
                         {order.paymentState !== "None" && (
                           <span
@@ -230,36 +265,38 @@ const OrdersTable = ({
                       </div>
                     </TableCell>
 
-                    <TableCell className="text-start">
-                      <DropdownMenu onOpenChange={onStatusMenuOpenChange}>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            className="h-6 border-transparent px-0 ring-0 hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 focus-visible:border-transparent focus-visible:ring-0 focus-visible:ring-offset-0 aria-expanded:bg-transparent aria-expanded:text-inherit data-[state=open]:bg-transparent cursor-pointer"
-                          >
-                            <OrdersStatusBadge status={order.status} />
-                            <ChevronDown className="ml-2 size-4 text-[#000000]" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent
-                          align="end"
-                          className="z-70 w-px rounded-[16px] p-2 ring-0"
-                        >
-                          {ORDER_STATUS_OPTIONS.map((status) => (
-                            <DropdownMenuItem
-                              key={status}
-                              onSelect={() => onUpdateStatus(order.id, status)}
-                              className={`rounded-[16px] px-3 py-2 text-[12px] font-medium cursor-pointer ${
-                                order.status === status
-                                  ? "bg-primary text-primary-foreground pointer-events-none"
-                                  : "text-[#28293D] data-highlighted:bg-[#F5F0EA]"
-                              }`}
+                    <TableCell className="text-center">
+                      <div className="flex justify-center">
+                        <DropdownMenu onOpenChange={onStatusMenuOpenChange}>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              className="h-6 border-transparent px-0 ring-0 hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 focus-visible:border-transparent focus-visible:ring-0 focus-visible:ring-offset-0 aria-expanded:bg-transparent aria-expanded:text-inherit data-[state=open]:bg-transparent cursor-pointer"
                             >
-                              {t(status)}
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                              <OrdersStatusBadge status={order.status} />
+                              <ChevronDown className="ml-2 size-4 text-[#000000]" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent
+                            align="end"
+                            className="z-70 w-px rounded-[16px] p-2 ring-0"
+                          >
+                            {availableStatuses.map((status) => (
+                              <DropdownMenuItem
+                                key={status}
+                                onSelect={() => onUpdateStatus(order.id, status)}
+                                className={`rounded-[16px] px-3 py-2 text-[12px] font-medium cursor-pointer ${
+                                  order.status === status
+                                    ? "bg-primary text-primary-foreground pointer-events-none"
+                                    : "text-[#28293D] data-highlighted:bg-[#F5F0EA]"
+                                }`}
+                              >
+                                {t(status)}
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </TableCell>
 
                     <TableCell className="text-center text-[11px] font-medium leading-tight text-[#23252A]" dir="ltr">
@@ -268,20 +305,22 @@ const OrdersTable = ({
                       <span>{order.time}</span>
                     </TableCell>
 
-                    <TableCell className="text-center">
-                      <DriverCell
-                        orderId={order.id}
-                        driver={order.driver}
-                        onAssign={(driverName, updatedOrderData) =>
-                          onAssignDriver(order.id, driverName, updatedOrderData)
-                        }
-                        onOpenChange={onStatusMenuOpenChange}
-                      />
-                    </TableCell>
+                    {!isPos && (
+                      <TableCell className="text-center">
+                        <DriverCell
+                          orderId={order.id}
+                          driver={order.driver}
+                          onAssign={(driverName, updatedOrderData) =>
+                            onAssignDriver(order.id, driverName, updatedOrderData)
+                          }
+                          onOpenChange={onStatusMenuOpenChange}
+                        />
+                      </TableCell>
+                    )}
                   </TableRow>
                   {!isLast && (
                     <TableRow className="h-0 hover:bg-transparent data-[state=selected]:bg-transparent">
-                      <TableCell colSpan={9} className="p-0">
+                      <TableCell colSpan={isPos ? 8 : 9} className="p-0">
                         <div className="mx-6 h-px bg-[#CACBD4]" />
                       </TableCell>
                     </TableRow>

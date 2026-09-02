@@ -468,6 +468,7 @@ const OrdersPage = () => {
           onUpdateStatus={updateStatus}
           onAssignDriver={assignDriver}
           onStatusMenuOpenChange={setIsStatusMenuOpen}
+          isPos={activeSource === "pos"}
         />
 
         {/* Pagination Controls */}
