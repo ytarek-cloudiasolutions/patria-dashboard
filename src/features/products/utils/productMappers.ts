@@ -142,6 +142,8 @@ export const mapProduct = (backendProduct: any): Product => {
     isIngredient,
     isExtra: Boolean(backendProduct.isExtra),
     extraTargetProductIds,
+    extraQuantity: backendProduct.extraQuantity,
+    productType: backendProduct.productType || "ready",
     barcode: backendProduct.barcode || "",
   };
 };
