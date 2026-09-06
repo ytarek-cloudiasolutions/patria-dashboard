@@ -306,9 +306,19 @@ const ProductsPage = () => {
       if (!normName || seenExtraNames.has(normName)) continue;
       seenExtraNames.add(normName);
 
+      // AddProductDialog sets extra.id = the source ingredient's id for
+      // anything pulled from "Extras Included" (mapFromTargeted) — a truly
+      // custom extra's id is its own saved subdocument id, which never
+      // matches a real ingredient. Only send ingredientId when it's a real
+      // one, so the backend knows to recompute this extra's price from
+      // that ingredient's price/stockQty ratio instead of trusting
+      // whatever price this client display already shows.
+      const matchedIngredient = ingredients.find((ing: any) => String(ing.id) === String(e.id));
+
       mappedExtras.push({
         id: e.id,
         name: e.name.trim(),
+        ...(matchedIngredient ? { ingredientId: matchedIngredient.id } : {}),
         price: Number(e.price) || 0,
         isActive: e.active !== false,
         quantity: Number(e.quantity) || 30,
