@@ -2,6 +2,7 @@ export interface DeleteDialogProps {
   item: string;
   type:
     | "offer"
+    | "discount"
     | "notification"
     | "product"
     | "ingredient"

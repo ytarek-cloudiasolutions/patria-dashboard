@@ -9,6 +9,7 @@ import WhatsAppBroadcastDialog from "./components/WhatsAppBroadcastDialog";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { useOffers } from "./hooks/useOffers";
 import PromotionsOverview from "./components/PromotionsOverview";
+import CashierDiscountsSection from "./components/CashierDiscountsSection";
 import type { Offer } from "./types";
 
 const OffersPage = () => {
@@ -152,6 +153,8 @@ const OffersPage = () => {
       </div>
 
       <PromotionsOverview offers={offers} />
+
+      <CashierDiscountsSection />
 
       <OffersOverView
         offers={offers}
