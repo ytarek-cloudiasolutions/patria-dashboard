@@ -102,11 +102,19 @@ const OptionRecipeEditor = ({
       return;
     }
 
+    // item.price is the cost of item.quantity units as stocked (e.g. EGP 50
+    // for 1000ml), not a per-unit price — the backend now recomputes this
+    // properly on save regardless, but showing the raw full price here
+    // until then is a confusing live preview. Derive the per-unit rate so
+    // the displayed price already matches the default quantity of 1.
+    const stockQty = Number((item as any).quantity) || 0;
+    const unitPrice = stockQty ? (Number(item.price) || 0) / stockQty : 0;
+    const defaultQty = 1;
     const newItem: OptionRecipeItem = {
       material: ingId,
       name: item.name,
-      price: Number(item.price) || 0,
-      quantity: 1,
+      price: Math.round(unitPrice * defaultQty * 100) / 100,
+      quantity: defaultQty,
       unit: item.unit || "pcs",
       ingredientUnit: item.unit || "pcs",
     };
@@ -121,6 +129,21 @@ const OptionRecipeEditor = ({
       idx === index ? { ...item, ...patch } : item
     );
     onChange(updated);
+  };
+
+  // Quantity/unit changes must recompute price too — the backend recomputes
+  // this correctly on save regardless, but leaving the old price displayed
+  // until then makes the live preview look wrong/stuck.
+  const handleQuantityOrUnitChange = (index: number, patch: { quantity?: number; unit?: string }) => {
+    const item = recipe[index];
+    const ing = combinedIngredients.find((i: any) => String(i._id || i.id) === String(item.material));
+    const stockQty = ing ? Number((ing as any).quantity) || 0 : 0;
+    const unitPrice = ing && stockQty ? (Number((ing as any).price) || 0) / stockQty : undefined;
+    const nextQuantity = patch.quantity ?? item.quantity;
+    handleUpdateItem(index, {
+      ...patch,
+      ...(unitPrice !== undefined ? { price: Math.round(unitPrice * nextQuantity * 100) / 100 } : {}),
+    });
   };
 
   const handleRemoveItem = (index: number) => {
@@ -233,7 +256,7 @@ const OptionRecipeEditor = ({
                 step="any"
                 value={item.quantity}
                 onChange={(e) =>
-                  handleUpdateItem(idx, {
+                  handleQuantityOrUnitChange(idx, {
                     quantity: Math.max(0, parseFloat(e.target.value) || 0),
                   })
                 }
