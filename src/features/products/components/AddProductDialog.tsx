@@ -185,16 +185,23 @@ const AddProductDialog = ({
         );
         const isAct = saved ? (saved.isActive ?? saved.active ?? true) : true;
         // ing.price is the cost of ing.quantity units as stocked (e.g. EGP 70
-        // for 100g) — NOT a per-unit price. Previously this was copied
-        // straight across as the extra's price regardless of how much of it
-        // is actually used, so 23g of a 100g/70EGP ingredient still showed
-        // EGP 70 instead of ~EGP 16.10. Derive the real per-unit rate here.
+        // for 100g) — NOT a per-unit price. The price shown here is always
+        // DERIVED from quantity (there's no manual price input in this UI —
+        // see the Price <span> below, and updateExtraQuantity already
+        // recomputes it whenever quantity changes). This branch used to
+        // trust `saved.price` verbatim for an already-saved extra instead
+        // of re-deriving it, so reopening Edit Product kept showing
+        // whatever price had been stored previously (often the ingredient's
+        // full raw price from before this calculation existed) until the
+        // admin nudged the quantity stepper to force a recompute. Always
+        // deriving here means the price shown on open already matches the
+        // saved quantity, with no manual step required.
         const unitPrice = ing.quantity ? (Number(ing.price) || 0) / ing.quantity : 0;
         const defaultQty = saved?.quantity ?? 1;
         return {
           id: ing.id,
           name: ing.name,
-          price: saved ? saved.price : Math.round(unitPrice * defaultQty * 100) / 100,
+          price: Math.round(unitPrice * defaultQty * 100) / 100,
           active: isAct,
           isActive: isAct,
           quantity: defaultQty,
