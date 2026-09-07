@@ -1,10 +1,14 @@
-import { useState } from "react";
-import { Zap, CheckCircle2, XCircle, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Zap, CheckCircle2, XCircle, Trash2, Loader2 } from "lucide-react";
 import { Switch } from "@/shared/components/ui/switch";
 import { Checkbox } from "@/shared/components/ui/checkbox";
 import { Label } from "@/shared/components/ui/label";
 import DeleteDialog from "@/shared/components/DeleteDialog";
 import { useTranslation } from "@/shared/i18n/useTranslation";
+import { showErrorToast, showSuccessToast } from "@/shared/utils/toast";
+import cashierDiscountsApi, {
+  type CashierDiscountItem,
+} from "../api/cashierDiscountsApi";
 
 export interface CashierDiscount {
   id: string;
@@ -38,46 +42,107 @@ const INITIAL_DISCOUNTS: CashierDiscount[] = [
   },
 ];
 
+const mapApiItemToDiscount = (item: CashierDiscountItem): CashierDiscount => ({
+  id: item._id || item.id || Date.now().toString(),
+  name: item.name,
+  value: item.value,
+  requiresApproval: Boolean(item.requiresApproval),
+  status: Boolean(item.isActive),
+});
+
 const CashierDiscountsSection = () => {
   const { t } = useTranslation();
-  const [discounts, setDiscounts] = useState<CashierDiscount[]>(INITIAL_DISCOUNTS);
+  const [discounts, setDiscounts] = useState<CashierDiscount[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [discountName, setDiscountName] = useState("");
   const [valuePercent, setValuePercent] = useState("");
   const [requiresApproval, setRequiresApproval] = useState(false);
   const [deletingDiscount, setDeletingDiscount] = useState<CashierDiscount | null>(null);
 
-  const handleAddDiscount = () => {
+  const fetchDiscounts = async () => {
+    setIsLoading(true);
+    try {
+      const data = await cashierDiscountsApi.getCashierDiscounts();
+      if (Array.isArray(data)) {
+        setDiscounts(data.map(mapApiItemToDiscount));
+      }
+    } catch (error) {
+      console.warn("Failed to fetch cashier discounts from API:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDiscounts();
+  }, []);
+
+  const handleAddDiscount = async () => {
     if (!discountName.trim() || !valuePercent.trim()) return;
 
     const numericValue = parseFloat(valuePercent.replace(/[^0-9.]/g, ""));
     if (isNaN(numericValue)) return;
 
-    const newDiscount: CashierDiscount = {
-      id: Date.now().toString(),
-      name: discountName.trim(),
-      value: numericValue,
-      requiresApproval,
-      status: true,
-    };
+    setIsSubmitting(true);
+    try {
+      const newItem = await cashierDiscountsApi.createCashierDiscount({
+        name: discountName.trim(),
+        value: numericValue,
+        requiresApproval,
+      });
 
-    setDiscounts((prev) => [...prev, newDiscount]);
-    setDiscountName("");
-    setValuePercent("");
-    setRequiresApproval(false);
+      if (newItem) {
+        const mapped = mapApiItemToDiscount(newItem);
+        setDiscounts((prev) => [mapped, ...prev.filter((d) => d.id !== mapped.id)]);
+      } else {
+        await fetchDiscounts();
+      }
+
+      showSuccessToast(t("Cashier discount created successfully"));
+      setDiscountName("");
+      setValuePercent("");
+      setRequiresApproval(false);
+    } catch (error: any) {
+      showErrorToast(error?.response?.data?.message || t("Failed to create cashier discount"));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleToggleStatus = (id: string) => {
+  const handleToggleStatus = async (id: string) => {
+    const target = discounts.find((item) => item.id === id);
+    if (!target) return;
+
+    const nextStatus = !target.status;
     setDiscounts((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, status: !item.status } : item
-      )
+      prev.map((item) => (item.id === id ? { ...item, status: nextStatus } : item))
     );
+
+    try {
+      await cashierDiscountsApi.updateCashierDiscount(id, { isActive: nextStatus });
+      showSuccessToast(t("Discount status updated"));
+    } catch (error: any) {
+      setDiscounts((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, status: target.status } : item))
+      );
+      showErrorToast(error?.response?.data?.message || t("Failed to update status"));
+    }
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (!deletingDiscount) return;
-    setDiscounts((prev) => prev.filter((item) => item.id !== deletingDiscount.id));
+
+    const idToDelete = deletingDiscount.id;
     setDeletingDiscount(null);
+
+    try {
+      await cashierDiscountsApi.deleteCashierDiscount(idToDelete);
+      setDiscounts((prev) => prev.filter((item) => item.id !== idToDelete));
+      showSuccessToast(t("Cashier discount deleted successfully"));
+    } catch (error: any) {
+      showErrorToast(error?.response?.data?.message || t("Failed to delete cashier discount"));
+    }
   };
 
   return (
@@ -161,9 +226,11 @@ const CashierDiscountsSection = () => {
           {/* Add Discount Button */}
           <button
             type="button"
+            disabled={isSubmitting}
             onClick={handleAddDiscount}
-            className="h-[48px] px-[26px] bg-[#F5F0EA] text-[#8F6900] font-semibold text-[16px] font-montserrat rounded-[5px] cursor-pointer whitespace-nowrap"
+            className="h-[48px] px-[26px] bg-[#F5F0EA] text-[#8F6900] font-semibold text-[16px] font-montserrat rounded-[5px] cursor-pointer whitespace-nowrap disabled:opacity-50 flex items-center justify-center gap-2"
           >
+            {isSubmitting && <Loader2 className="size-4 animate-spin" />}
             {t("Add Discount")}
           </button>
         </div>
@@ -179,8 +246,13 @@ const CashierDiscountsSection = () => {
       </div>
 
       {/* Table Body */}
-      <div className="bg-white divide-y divide-[#E5E5E5]/60">
-        {discounts.length === 0 ? (
+      <div className="bg-white divide-y divide-[#E5E5E5]/60 min-h-[120px] relative">
+        {isLoading ? (
+          <div className="p-8 flex items-center justify-center text-[#8B8B8B] gap-2 font-montserrat text-sm">
+            <Loader2 className="size-5 animate-spin text-[#8F6900]" />
+            <span>{t("Loading cashier discounts...")}</span>
+          </div>
+        ) : discounts.length === 0 ? (
           <div className="p-8 text-center text-[#8B8B8B] font-montserrat text-sm">
             {t("No cashier discounts added yet.")}
           </div>
