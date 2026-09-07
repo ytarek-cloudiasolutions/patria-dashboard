@@ -207,6 +207,8 @@ const PendingApprovalsWidget = ({
 
   const count = requests.length;
 
+  if (count === 0) return null;
+
   return (
     <div className={cn("relative w-full flex flex-col", className)}>
       {/* Dark Backdrop Overlay & Expanded Card (Figma Popover Design) */}
@@ -299,7 +301,7 @@ const PendingApprovalsWidget = ({
                           type="button"
                           disabled={isItemLoading}
                           onClick={() => handleReject(item)}
-                          className="flex-1 h-[40px] px-6 py-3 bg-[#C90000] text-white font-semibold text-[12px] leading-[24px] rounded-[5px] cursor-pointer disabled:opacity-60"
+                          className="flex-1 h-[40px] px-6 py-3 bg-[#C90000] border-0 outline-none text-white font-semibold text-[12px] leading-[24px] rounded-[5px] cursor-pointer disabled:opacity-60 focus:ring-0 focus:outline-none focus-visible:ring-0 focus-visible:border-transparent"
                         >
                           {t("Reject")}
                         </Button>

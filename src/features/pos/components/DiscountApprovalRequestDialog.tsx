@@ -29,7 +29,7 @@ const DiscountApprovalRequestDialog = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        showCloseButton={false}
+        showCloseButton={true}
         className="w-[696px] max-w-[calc(100%-2rem)] gap-4 rounded-[12px] border border-[#CACBD4] bg-white p-6 shadow-xl sm:max-w-[696px]"
       >
         <DialogHeader className="p-0">
@@ -69,7 +69,7 @@ const DiscountApprovalRequestDialog = ({
               type="button"
               disabled={isLoading}
               onClick={onReject}
-              className="flex-1 h-[56px] bg-[#C90000] text-white font-semibold text-[16px] rounded-[5px] cursor-pointer disabled:opacity-60"
+              className="flex-1 h-[56px] bg-[#C90000] border-0 outline-none text-white font-semibold text-[16px] rounded-[5px] cursor-pointer disabled:opacity-60 focus:ring-0 focus:outline-none focus-visible:ring-0 focus-visible:border-transparent"
             >
               {t("Reject")}
             </Button>
