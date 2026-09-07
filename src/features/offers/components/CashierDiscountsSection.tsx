@@ -238,7 +238,7 @@ const CashierDiscountsSection = () => {
 
       {/* Table Header */}
       <div className="h-[44px] bg-[#F5F0EA] px-6 grid grid-cols-12 items-center text-[13px] font-semibold text-[#28293D] font-montserrat uppercase tracking-[0.26px]">
-        <div className="col-span-4 text-left">{t("DISCOUNT NAME")}</div>
+        <div className="col-span-4 text-start">{t("DISCOUNT NAME")}</div>
         <div className="col-span-2 text-center">{t("VALUE")}</div>
         <div className="col-span-3 text-center">{t("REQUIRES APPROVAL")}</div>
         <div className="col-span-2 text-center">{t("STATUS")}</div>
@@ -263,7 +263,7 @@ const CashierDiscountsSection = () => {
               className="px-6 py-3.5 grid grid-cols-12 items-center min-h-[58px] hover:bg-neutral-50/50 transition-colors"
             >
               {/* Discount Name */}
-              <div className="col-span-4 text-left text-[12px] font-bold font-montserrat text-[#333333] tracking-[0.24px]">
+              <div className="col-span-4 text-start text-[12px] font-bold font-montserrat text-[#333333] tracking-[0.24px]">
                 {discount.name}
               </div>
 
