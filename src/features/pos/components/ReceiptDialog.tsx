@@ -17,6 +17,11 @@ type ReceiptDialogProps = {
   table: string;
   items: CartItem[];
   totals: CartTotals;
+  discountInfo?: {
+    name: string;
+    value: number;
+    amount: number;
+  } | null;
   onOpenChange: (open: boolean) => void;
 };
 
@@ -31,9 +36,13 @@ const ReceiptDialog = ({
   table,
   items,
   totals,
+  discountInfo,
   onOpenChange,
 }: ReceiptDialogProps) => {
   const { t } = useTranslation();
+
+  const discountAmt = discountInfo?.amount || totals.discount || 0;
+  const netTotal = Math.max(0, totals.total - discountAmt);
 
   const handlePrint = () => {
     const now = new Date();
@@ -168,6 +177,15 @@ const ReceiptDialog = ({
             : ""
         }
         ${
+          discountAmt > 0
+            ? `
+        <div class="row" style="color: #c90000;">
+          <span>الخصم ${discountInfo?.name ? `(${discountInfo.value}% ${discountInfo.name})` : ""}:</span>
+          <span>-${formatEgp(discountAmt)}</span>
+        </div>`
+            : ""
+        }
+        ${
           totals.tax > 0
             ? `
         <div class="row">
@@ -180,7 +198,7 @@ const ReceiptDialog = ({
         <div class="divider-solid"></div>
         <div class="row total-row">
           <span>الإجمالي:</span>
-          <span>${formatEgp(totals.total)}</span>
+          <span>${formatEgp(netTotal)}</span>
         </div>
 
         <div class="divider"></div>
@@ -258,10 +276,21 @@ const ReceiptDialog = ({
             <span>{t("Subtotal")}</span>
             <span>{formatEgp(totals.subtotal)}</span>
           </div>
-          <div className="flex justify-between">
-            <span>{t("Extras")}</span>
-            <span>{formatEgp(totals.extras)}</span>
-          </div>
+          {totals.extras > 0 && (
+            <div className="flex justify-between">
+              <span>{t("Extras")}</span>
+              <span>{formatEgp(totals.extras)}</span>
+            </div>
+          )}
+          {discountAmt > 0 && (
+            <div className="flex justify-between text-[#C90000] font-semibold">
+              <span>
+                {t("Discount")}{" "}
+                {discountInfo?.name ? `(${discountInfo.value}% ${discountInfo.name})` : ""}
+              </span>
+              <span>-{formatEgp(discountAmt)}</span>
+            </div>
+          )}
           <div className="flex justify-between">
             <span>{t("Tax (14%)")}</span>
             <span>{formatEgp(totals.tax)}</span>
@@ -271,7 +300,7 @@ const ReceiptDialog = ({
 
           <div className="flex justify-between text-[13px] font-bold">
             <span>{t("Total")}</span>
-            <span>{formatEgp(totals.total)}</span>
+            <span>{formatEgp(netTotal)}</span>
           </div>
 
           <Divider />

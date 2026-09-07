@@ -1485,4 +1485,26 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   "Cashier discount deleted successfully": "تم حذف خصم الكاشير بنجاح",
   "Failed to delete cashier discount": "فشل حذف خصم الكاشير",
   discount: "خصم",
+
+  // POS Discount Approval Dialogs
+  "Approval Request": "طلب موافقة",
+  "Approval Request from Super Admin": "طلب موافقة من المشرف العام",
+  "Discount Request": "طلب خصم",
+  "Cashier Super Admin": "الكاشير المشرف العام",
+  Reject: "رفض",
+  Approve: "موافقة",
+  "Awaiting Manager Approval": "بانتظار موافقة المدير",
+  "Cancel Request": "إلغاء الطلب",
+  "It will be applied automatically as soon as it's approved; feel free to wait here.":
+    "سيتم تطبيقه تلقائياً بمجرد الموافقة عليه؛ يمكنك الانتظار هنا.",
+  "Discount request sent to manager": "تم إرسال طلب الخصم إلى المدير",
+  "Discount request cancelled": "تم إلغاء طلب الخصم",
+  "Approval request rejected": "تم رفض طلب الموافقة",
+  "Discount request approved and applied": "تمت الموافقة على طلب الخصم وتطبيقه",
+
+  // Pending Approvals Widget
+  "Pending Approvals": "الطلبات قيد الموافقة",
+  "No pending discount requests.": "لا توجد طلبات خصم قيد الموافقة.",
+  "Request from": "طلب من",
+  requested: "طلب",
 };

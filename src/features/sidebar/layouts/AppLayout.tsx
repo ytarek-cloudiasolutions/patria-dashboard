@@ -6,6 +6,7 @@ import { useDispatch } from "react-redux";
 import type { AppDispatch } from "@/app/store";
 import { authActions } from "@/features/auth/store/authSlice";
 import IncomingOrderWatcher from "@/features/orders/components/IncomingOrderWatcher";
+import IncomingDiscountWatcher from "@/features/offers/components/IncomingDiscountWatcher";
 
 interface AppLayoutProps {
   children?: React.ReactNode;
@@ -35,6 +36,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
       </div>
 
       <IncomingOrderWatcher />
+      <IncomingDiscountWatcher />
     </SidebarProvider>
   );
 };

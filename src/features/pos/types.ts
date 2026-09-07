@@ -1,6 +1,6 @@
 export type OrderType = "dine-in" | "takeaway";
 
-export type PaymentMethod = "cash" | "card" | "mix";
+export type PaymentMethod = "cash" | "card" | "instapay" | "mix";
 
 /** Horizontal category tab shown above the product grid. */
 export type PosCategory = {
@@ -98,6 +98,7 @@ export type CartTotals = {
   subtotal: number;
   extras: number;
   tax: number;
+  discount?: number;
   total: number;
   itemCount: number;
 };

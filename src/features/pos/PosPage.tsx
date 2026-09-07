@@ -145,6 +145,12 @@ const PosPage = () => {
   // added items on a loaded pending order that still need to be sent to the kitchen.
   const [sentLineIds, setSentLineIds] = useState<Set<string>>(new Set());
   const [shiftOrders, setShiftOrders] = useState<Array<{ method: PaymentMethod; total: number }>>([]);
+  const [appliedDiscountInfo, setAppliedDiscountInfo] = useState<{
+    id?: string;
+    name: string;
+    value: number;
+    amount: number;
+  } | null>(null);
   const wasCreatingRef = useRef(false);
   const pendingPaymentRef = useRef<{ method: PaymentMethod; total: number } | null>(null);
 
@@ -440,22 +446,7 @@ const PosPage = () => {
     setSentToKitchen(false);
     setLoadedOrderId(null);
     setSentLineIds(new Set());
-  };
-
-  const finishWithReceipt = (method: string = "cash") => {
-    const generatedNum = `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
-    setOrderNumber(generatedNum);
-    setOrderConfirmedData({
-      orderNumber: generatedNum,
-      totalAmount: totals.total,
-      customerName: customer || "Walk-in Customer",
-      orderType,
-      selectedTable: resolvedTable,
-      cartItems: [...cartItems],
-      paymentMethod: method,
-      guestCount: customerCount,
-    });
-    setOrderConfirmedOpen(true);
+    setAppliedDiscountInfo(null);
   };
 
   const handleSendToKitchen = async () => {
@@ -536,7 +527,93 @@ const PosPage = () => {
     setPaymentOpen(true);
   };
 
-  const confirmPayment = async (method: PaymentMethod) => {
+  const handleEnsureOrderId = async (): Promise<string | null> => {
+    if (loadedOrderId) return loadedOrderId;
+    if (cartItems.length === 0) return null;
+
+    if (orderType === "dine-in" && !selectedTable) {
+      showErrorToast(t("Please select a table before proceeding"));
+      return null;
+    }
+
+    const { createOrder } = await import("@/features/orders/api/ordersApi");
+    const orderItems = cartItems.map((item) => ({
+      productId: item.productId,
+      quantity: item.qty,
+      price: item.unitPrice,
+      notes: item.instructions || undefined,
+    }));
+
+    try {
+      const created: any = await createOrder({
+        type: orderType === "dine-in" ? "dine_in" : "takeaway",
+        source: "pos",
+        customerName: customer || "Walk-in Customer",
+        customerPhone: customerPhone || undefined,
+        address: orderType === "dine-in" ? resolvedTable : undefined,
+        paymentMethod: "cash",
+        items: orderItems,
+        notes: notes || undefined,
+        guestCount: orderType === "dine-in" && customerCount > 0 ? customerCount : undefined,
+      });
+
+      const createdId =
+        created?.data?._id ||
+        created?.data?.id ||
+        created?.order?._id ||
+        created?.order?.id ||
+        created?._id ||
+        created?.id;
+
+      if (createdId) {
+        setLoadedOrderId(createdId);
+        return createdId;
+      }
+    } catch (err: any) {
+      console.error("Failed to create order for discount:", err);
+      showErrorToast(
+        err?.response?.data?.message || t("Failed to create order for discount")
+      );
+    }
+    return null;
+  };
+
+  const finishWithReceipt = (
+    method: string = "cash",
+    finalTotal: number = totals.total,
+    discountInfo?: { name: string; value: number; discountAmount: number } | null
+  ) => {
+    const generatedNum = `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
+    setOrderNumber(generatedNum);
+    setOrderConfirmedData({
+      orderNumber: generatedNum,
+      totalAmount: finalTotal,
+      customerName: customer || "Walk-in Customer",
+      orderType,
+      selectedTable: resolvedTable,
+      cartItems: [...cartItems],
+      paymentMethod: method,
+      guestCount: customerCount,
+    });
+    if (discountInfo) {
+      setAppliedDiscountInfo({
+        name: discountInfo.name,
+        value: discountInfo.value,
+        amount: discountInfo.discountAmount,
+      });
+    }
+    setOrderConfirmedOpen(true);
+  };
+
+  const confirmPayment = async (
+    method: PaymentMethod,
+    discountInfo?: {
+      id: string;
+      name: string;
+      value: number;
+      discountAmount: number;
+    }
+  ) => {
     if (cartItems.length === 0) return;
 
     if (orderType === "dine-in" && !selectedTable) {
@@ -544,7 +621,9 @@ const PosPage = () => {
       return;
     }
 
-    const currentTotal = totals.total;
+    const appliedDiscountAmt = discountInfo ? discountInfo.discountAmount : 0;
+    const currentTotal = Math.max(0, totals.total - appliedDiscountAmt);
+
     const { payOrder, createOrder } = await import("@/features/orders/api/ordersApi");
 
     // If this is a loaded pending order → pay it via PATCH /orders/{id}/pay
@@ -557,7 +636,7 @@ const PosPage = () => {
         setPaymentOpen(false);
         setShiftOrders((prev) => [...prev, { method, total: currentTotal }]);
         showSuccessToast("Payment confirmed");
-        finishWithReceipt(method);
+        finishWithReceipt(method, currentTotal, discountInfo);
       } catch (err: any) {
         setPendingCreatePayload(null);
         const errMsg =
@@ -607,7 +686,7 @@ const PosPage = () => {
       setPaymentOpen(false);
       setShiftOrders((prev) => [...prev, { method, total: currentTotal }]);
       showSuccessToast("Payment confirmed");
-      finishWithReceipt(method);
+      finishWithReceipt(method, currentTotal, discountInfo);
     } catch (err: any) {
       setPendingCreatePayload(null);
       const errMsg =
@@ -798,6 +877,8 @@ const PosPage = () => {
         open={isPaymentOpen}
         total={totals.total}
         isLoading={isCreatingOrder}
+        orderId={loadedOrderId || undefined}
+        onEnsureOrderId={handleEnsureOrderId}
         onOpenChange={setPaymentOpen}
         onConfirm={confirmPayment}
       />
@@ -809,6 +890,7 @@ const PosPage = () => {
         table={resolvedTable}
         items={cartItems}
         totals={totals}
+        discountInfo={appliedDiscountInfo}
         onOpenChange={handleReceiptClose}
       />
 

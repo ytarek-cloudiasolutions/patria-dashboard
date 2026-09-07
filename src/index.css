@@ -400,6 +400,12 @@
     background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect x='0.75' y='0.75' width='calc(100%25 - 1.5px)' height='calc(100%25 - 1.5px)' fill='none' rx='15' ry='15' stroke='%238F6900' stroke-width='1.5' stroke-dasharray='7%2c 7' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e");
     border-radius: 16px;
   }
+
+  /* Custom dashed separator border matching Figma specs (#CACBD4, 6px dash, 6px gap) */
+  .border-dashed-separator {
+    background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect x='0.5' y='0.5' width='calc(100%25 - 1px)' height='calc(100%25 - 1px)' fill='none' rx='15.5' ry='15.5' stroke='%23CACBD4' stroke-width='1' stroke-dasharray='6%2c 6' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e");
+    border-radius: 16px;
+  }
 }
 
 /* POS & Dialog Buttons: Pointer cursor & zero hover effects */

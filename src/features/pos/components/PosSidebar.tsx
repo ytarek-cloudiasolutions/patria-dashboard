@@ -15,6 +15,7 @@ import { useTranslation } from "@/shared/i18n/useTranslation";
 import { POS_TABLE_OPTIONS } from "../data";
 import type { OrderType } from "../types";
 import type { DropdownSelectOption } from "@/shared/types/DropdownSelect.types";
+import PendingApprovalsWidget from "./PendingApprovalsWidget";
 
 type PosSidebarProps = {
   orderType: OrderType;
@@ -180,6 +181,9 @@ const PosSidebar = ({
           <Users className="size-[18px] text-[#9524E4] shrink-0" />
           <span className="whitespace-nowrap">{t("Employees accounts")}</span>
         </button>
+
+        {/* Pending Approvals Widget (Figma Code 1 & 2) */}
+        <PendingApprovalsWidget className="w-full" />
 
         {/* Close Register */}
         <button
