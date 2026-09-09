@@ -217,6 +217,13 @@ const PaymentDialog = ({
     : 0;
   const finalTotal = Math.max(0, total - discountAmount);
 
+  // A pending discount request blocks payment for every order type — the
+  // backend's PATCH /orders/:id/pay rejects it too (409), but disabling the
+  // button here gives the cashier an immediate, clear reason instead of a
+  // failed request after they've already picked a payment method.
+  const hasUnresolvedDiscountRequest =
+    !appliedDiscount && existingRequest?.status === "pending";
+
   const getOrFetchOrderId = async (): Promise<string | null> => {
     if (orderId) return orderId;
     if (onEnsureOrderId) {
@@ -452,7 +459,7 @@ const PaymentDialog = ({
                   <span className="font-medium">{existingRequest.discountName || existingRequest.discount?.name || "Discount"}</span>
                 </div>
                 <p className="text-[12px] text-[#666666] leading-relaxed">
-                  {t("This order has a discount request awaiting manager approval. You can wait for approval or proceed with the order now.")}
+                  {t("This order has a discount request awaiting manager approval. Payment is disabled until the manager approves, rejects, or you cancel the request.")}
                 </p>
                 <div className="flex items-center justify-between pt-1 border-t border-[#8F6900]/20">
                   <Button
@@ -464,9 +471,6 @@ const PaymentDialog = ({
                     <Clock className="size-3.5" />
                     <span>{t("Wait / View Request")}</span>
                   </Button>
-                  <span className="text-[11px] text-[#8B8B8B] font-medium">
-                    {t("Or proceed with payment below")}
-                  </span>
                 </div>
               </div>
             )}
@@ -592,7 +596,7 @@ const PaymentDialog = ({
               <Button
                 type="button"
                 className="h-[56px] flex-1 px-[30px] py-4 rounded-[5px] bg-[#8F6900] text-[16px] font-semibold text-white transition-colors hover:bg-[#8F6900]/90 cursor-pointer disabled:opacity-60"
-                disabled={isLoading}
+                disabled={isLoading || hasUnresolvedDiscountRequest}
                 onClick={handleConfirmPayment}
               >
                 <span>
