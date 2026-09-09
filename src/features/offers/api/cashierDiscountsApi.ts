@@ -180,6 +180,27 @@ export const cashierDiscountsApi = {
     const response = await api.post(`/cashier-discounts/requests/${requestId}/cancel`);
     return response.data;
   },
+
+  /**
+   * GET /cashier-discounts/requests/mine
+   * List the current cashier's own discount requests still needing attention (pending, or resolved-but-unseen).
+   */
+  getMyDiscountRequests: async (): Promise<DiscountApprovalRequestItem[]> => {
+    const response = await api.get<GetDiscountRequestsResponse | DiscountApprovalRequestItem[]>(
+      "/cashier-discounts/requests/mine"
+    );
+    const data: any = response.data;
+    return data?.requests || (Array.isArray(data) ? data : []);
+  },
+
+  /**
+   * POST /cashier-discounts/requests/{id}/acknowledge
+   * Acknowledges a resolved discount request so it no longer appears in the cashier's pending panel.
+   */
+  acknowledgeDiscountRequest: async (requestId: string): Promise<any> => {
+    const response = await api.post(`/cashier-discounts/requests/${requestId}/acknowledge`);
+    return response.data;
+  },
 };
 
 export default cashierDiscountsApi;

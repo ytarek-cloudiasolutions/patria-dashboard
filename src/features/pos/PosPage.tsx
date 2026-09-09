@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import CategoryTabs from "./components/CategoryTabs";
@@ -16,6 +16,17 @@ import ReceiptDialog from "./components/ReceiptDialog";
 import SelectStaffDialog from "./components/SelectStaffDialog";
 import ShiftSummaryDialog from "./components/ShiftSummaryDialog";
 import OrderConfirmedDialog from "./components/OrderConfirmedDialog";
+import AwaitingManagerApprovalDialog from "./components/AwaitingManagerApprovalDialog";
+import type { DiscountOfferItem } from "./components/SelectDiscountOfferDialog";
+import cashierDiscountsApi, {
+  type DiscountApprovalRequestItem,
+} from "@/features/offers/api/cashierDiscountsApi";
+import {
+  subscribeDiscountEvents,
+  broadcastDiscountEvent,
+} from "@/features/offers/utils/discountSocketBus";
+import { playNotificationSound } from "@/shared/lib/notificationSound";
+import { getSocket } from "@/shared/lib/socket";
 
 import {
   EMPLOYEE_ACCOUNTS,
@@ -41,6 +52,7 @@ import { useTables } from "@/features/tables/hooks/useTables";
 import { useShifts } from "@/features/shifts/hooks/useShifts";
 import { showSuccessToast, showErrorToast } from "@/shared/utils/toast";
 import { useTranslation } from "@/shared/i18n/useTranslation";
+import { api } from "@/config/api";
 
 const PosPage = () => {
   const { t } = useTranslation();
@@ -154,11 +166,141 @@ const PosPage = () => {
   const wasCreatingRef = useRef(false);
   const pendingPaymentRef = useRef<{ method: PaymentMethod; total: number } | null>(null);
 
+  // Pending discount request awaiting approval for currently loaded order
+  const [isAwaitingApprovalOpen, setIsAwaitingApprovalOpen] = useState(false);
+  const [pendingDiscountRequest, setPendingDiscountRequest] =
+    useState<DiscountApprovalRequestItem | null>(null);
+  const [isCancellingDiscount, setIsCancellingDiscount] = useState(false);
+
+  const pendingDiscountOffer: DiscountOfferItem | null = useMemo(() => {
+    if (!pendingDiscountRequest) return null;
+    return {
+      id:
+        pendingDiscountRequest.discountId ||
+        pendingDiscountRequest.discount?._id ||
+        pendingDiscountRequest.discount?.id ||
+        "",
+      name:
+        pendingDiscountRequest.discountName ||
+        pendingDiscountRequest.discount?.name ||
+        "Discount",
+      value:
+        pendingDiscountRequest.discountValue ??
+        pendingDiscountRequest.discount?.value ??
+        0,
+      requiresApproval: true,
+    };
+  }, [pendingDiscountRequest]);
+
   useEffect(() => {
     getProducts({ limit: 100 });
     getCategories();
     getTables();
   }, [getProducts, getCategories, getTables]);
+
+  // Check cashier's discount requests (GET /cashier-discounts/requests/mine) for real-time status updates
+  const syncDiscountStatus = useCallback(async () => {
+    try {
+      const requests = await cashierDiscountsApi.getMyDiscountRequests();
+      if (!Array.isArray(requests)) return;
+
+      const targetReqId =
+        pendingDiscountRequest?._id || pendingDiscountRequest?.id;
+
+      const match = requests.find((r) => {
+        const reqId = r._id || r.id;
+        if (targetReqId && reqId === targetReqId) return true;
+
+        if (loadedOrderId) {
+          const raw = r.orderId;
+          if (typeof raw === "string") {
+            return String(raw).toLowerCase() === String(loadedOrderId).toLowerCase();
+          }
+          if (typeof raw === "object" && raw) {
+            const candidateIds = [raw._id, raw.id, raw.orderId]
+              .filter(Boolean)
+              .map((x) => String(x).toLowerCase());
+            return candidateIds.includes(String(loadedOrderId).toLowerCase());
+          }
+        }
+
+        if (isAwaitingApprovalOpen && (r.status === "approved" || r.status === "rejected")) {
+          return true;
+        }
+
+        return false;
+      });
+
+      if (!match) return;
+
+      if (match.status === "approved") {
+        playNotificationSound();
+        showSuccessToast(t("Discount approved by manager!"));
+        setIsAwaitingApprovalOpen(false);
+        setPendingDiscountRequest(null);
+      } else if (match.status === "rejected") {
+        showErrorToast(t("Discount request was rejected"));
+        setIsAwaitingApprovalOpen(false);
+        setPendingDiscountRequest(null);
+      } else if (match.status === "pending") {
+        setPendingDiscountRequest(match);
+      }
+    } catch (err) {
+      console.error("Failed to sync discount status:", err);
+    }
+  }, [
+    pendingDiscountRequest,
+    loadedOrderId,
+    isAwaitingApprovalOpen,
+    t,
+  ]);
+
+  // Listen for real-time discount events via Socket.IO & BroadcastChannel
+  useEffect(() => {
+    // 1. Bus subscription (all socket events + broadcast events)
+    const unsubscribe = subscribeDiscountEvents(() => {
+      syncDiscountStatus();
+    });
+
+    // 2. Direct socket events from backend
+    const socket = getSocket();
+    const handleSocketUpdate = () => {
+      syncDiscountStatus();
+    };
+
+    socket.on("connect", handleSocketUpdate);
+    socket.on("discount_request_updated", handleSocketUpdate);
+    socket.on("discount_request_approved", handleSocketUpdate);
+    socket.on("discount_request_rejected", handleSocketUpdate);
+    socket.on("discount_request_created", handleSocketUpdate);
+    socket.on("discount_request_cancelled", handleSocketUpdate);
+    socket.on("orderDiscountUpdated", handleSocketUpdate);
+    socket.on("orderUpdated", handleSocketUpdate);
+
+    return () => {
+      unsubscribe();
+      socket.off("connect", handleSocketUpdate);
+      socket.off("discount_request_updated", handleSocketUpdate);
+      socket.off("discount_request_approved", handleSocketUpdate);
+      socket.off("discount_request_rejected", handleSocketUpdate);
+      socket.off("discount_request_created", handleSocketUpdate);
+      socket.off("discount_request_cancelled", handleSocketUpdate);
+      socket.off("orderDiscountUpdated", handleSocketUpdate);
+      socket.off("orderUpdated", handleSocketUpdate);
+    };
+  }, [syncDiscountStatus]);
+
+  // While awaiting approval dialog is open, heartbeat sync every 2.5s for instant resolution
+  useEffect(() => {
+    if (!isAwaitingApprovalOpen) return;
+
+    syncDiscountStatus();
+    const interval = setInterval(syncDiscountStatus, 2500);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [isAwaitingApprovalOpen, syncDiscountStatus]);
 
   // Dynamically map backend tables to POS dropdown options. No mock fallback —
   // a silent fallback to fake table numbers here previously masked a real bug
@@ -447,6 +589,8 @@ const PosPage = () => {
     setLoadedOrderId(null);
     setSentLineIds(new Set());
     setAppliedDiscountInfo(null);
+    setPendingDiscountRequest(null);
+    setIsAwaitingApprovalOpen(false);
   };
 
   const handleSendToKitchen = async () => {
@@ -518,13 +662,80 @@ const PosPage = () => {
     finishWithReceipt();
   };
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (!isShiftActive) {
       showErrorToast(t("Please open a shift before proceeding to checkout"));
       setIsOpenShiftDialogOpen(true);
       return;
     }
+
+    if (cartItems.length === 0) {
+      showErrorToast(t("Cart is empty"));
+      return;
+    }
+
+    // 1. If we already know the current order has a pending discount request, open awaiting dialog immediately
+    if (pendingDiscountRequest && pendingDiscountRequest.status === "pending") {
+      setIsAwaitingApprovalOpen(true);
+      return;
+    }
+
+    // 2. Query backend to verify if this loaded order or active cart has a pending request
+    try {
+      const myRequests = await cashierDiscountsApi.getMyDiscountRequests();
+      const activeReq = myRequests.find((r) => {
+        if (r.status !== "pending") return false;
+        if (!loadedOrderId) return true;
+        const raw = r.orderId;
+        if (typeof raw === "string") {
+          return String(raw).toLowerCase() === String(loadedOrderId).toLowerCase();
+        }
+        if (typeof raw === "object" && raw) {
+          const ids = [raw._id, raw.id, raw.orderId]
+            .filter(Boolean)
+            .map((x) => String(x).toLowerCase());
+          return ids.includes(String(loadedOrderId).toLowerCase());
+        }
+        return true;
+      });
+
+      if (activeReq) {
+        setPendingDiscountRequest(activeReq);
+        setIsAwaitingApprovalOpen(true);
+        return;
+      }
+    } catch (err) {
+      console.error("Error checking pending discount for order:", err);
+    }
+
     setPaymentOpen(true);
+  };
+
+  const handleCancelPendingDiscount = async () => {
+    const reqId = pendingDiscountRequest?._id || pendingDiscountRequest?.id;
+    if (!reqId) {
+      setIsAwaitingApprovalOpen(false);
+      return;
+    }
+
+    try {
+      setIsCancellingDiscount(true);
+      await cashierDiscountsApi.cancelDiscountRequest(reqId);
+      broadcastDiscountEvent("discount_request_cancelled", {
+        id: reqId,
+        orderId: loadedOrderId,
+      });
+      showSuccessToast(t("Discount request cancelled"));
+      setPendingDiscountRequest(null);
+      setIsAwaitingApprovalOpen(false);
+    } catch (err: any) {
+      console.error("Failed to cancel discount request:", err);
+      showErrorToast(
+        err?.response?.data?.message || t("Failed to cancel discount request")
+      );
+    } finally {
+      setIsCancellingDiscount(false);
+    }
   };
 
   const handleEnsureOrderId = async (): Promise<string | null> => {
@@ -795,6 +1006,113 @@ const PosPage = () => {
     setPendingOpen(false);
   };
 
+  const handleSelectPendingRequestOrder = async (
+    orderId: string,
+    item?: DiscountApprovalRequestItem
+  ) => {
+    try {
+      if (item) {
+        setPendingDiscountRequest(item);
+      } else {
+        cashierDiscountsApi
+          .getMyDiscountRequests()
+          .then((reqs) => {
+            const matched = reqs.find((r) => {
+              const reqOrderId =
+                typeof r.orderId === "object"
+                  ? r.orderId?._id || r.orderId?.id || r.orderId?.orderId
+                  : r.orderId;
+              return String(reqOrderId) === String(orderId);
+            });
+            if (matched) {
+              setPendingDiscountRequest(matched);
+            }
+          })
+          .catch((e) =>
+            console.error("Failed to fetch matching discount request:", e)
+          );
+      }
+
+      const res = await api.get(`/orders/${orderId}`);
+      const o = res.data?.data || res.data?.order || res.data;
+      if (!o) return;
+
+      const orderTypeVal: OrderType =
+        (o.type || "").toLowerCase() === "takeaway" ? "takeaway" : "dine-in";
+      setOrderType(orderTypeVal);
+
+      const tableVal =
+        o.address ||
+        o.customer?.address ||
+        (o.tableNumber ? `Table ${o.tableNumber}` : "") ||
+        "";
+      if (tableVal) setSelectedTable(tableVal);
+
+      if (o.customerCount || o.guestCount) {
+        setCustomerCount(o.customerCount || o.guestCount);
+      }
+
+      setSentToKitchen(true);
+      const finalOrderId = o._id || o.id || orderId;
+      setLoadedOrderId(finalOrderId);
+
+      if (!item) {
+        cashierDiscountsApi
+          .getMyDiscountRequests()
+          .then((reqs) => {
+            const matched = reqs.find((r) => {
+              const reqOrderId =
+                typeof r.orderId === "object"
+                  ? r.orderId?._id || r.orderId?.id || r.orderId?.orderId
+                  : r.orderId;
+              return (
+                String(reqOrderId) === String(finalOrderId) ||
+                String(reqOrderId) === String(orderId)
+              );
+            });
+            if (matched) {
+              setPendingDiscountRequest(matched);
+            }
+          })
+          .catch(() => {});
+      }
+
+      const rawItems = o.items || [];
+      if (rawItems.length > 0) {
+        const loadedItems = rawItems.map((item: any) => ({
+          lineId: nextLineId(),
+          productId:
+            item.productId?._id ||
+            item.product?._id ||
+            String(item.productId || item.product || ""),
+          name:
+            item.productId?.name ||
+            item.product?.name ||
+            item.name ||
+            "Item",
+          unitPrice:
+            item.price ||
+            item.unitPrice ||
+            item.productId?.price ||
+            item.product?.price ||
+            0,
+          qty: item.quantity || item.qty || 1,
+          extras: item.selectedExtras || [],
+          instructions: item.notes || "",
+        }));
+        setCartItems(loadedItems);
+        setSentLineIds(new Set(loadedItems.map((item: any) => item.lineId)));
+      } else {
+        setCartItems([]);
+        setSentLineIds(new Set());
+      }
+      showSuccessToast(t("Order loaded into cart"));
+    } catch (err) {
+      console.error("Failed to load order from pending request:", err);
+      showErrorToast(t("Failed to load order"));
+    }
+  };
+
   return (
     <>
       {isTableMenuOpen && (
@@ -818,6 +1136,7 @@ const PosPage = () => {
             onOpenEmployeeAccounts={() => setEmployeeAccountsOpen(true)}
             onCloseRegister={() => setIsCloseShiftDialogOpen(true)}
             onBackToDashboard={() => navigate("/")}
+            onSelectPendingOrder={handleSelectPendingRequestOrder}
           />
         }
         topbar={
@@ -881,6 +1200,14 @@ const PosPage = () => {
         onEnsureOrderId={handleEnsureOrderId}
         onOpenChange={setPaymentOpen}
         onConfirm={confirmPayment}
+      />
+
+      <AwaitingManagerApprovalDialog
+        open={isAwaitingApprovalOpen}
+        offer={pendingDiscountOffer}
+        isLoading={isCancellingDiscount}
+        onOpenChange={setIsAwaitingApprovalOpen}
+        onCancelRequest={handleCancelPendingDiscount}
       />
 
       <ReceiptDialog

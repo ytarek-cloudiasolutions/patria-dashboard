@@ -27,12 +27,13 @@ const AwaitingManagerApprovalDialog = ({
 }: AwaitingManagerApprovalDialogProps) => {
   const { t } = useTranslation();
 
-  if (!offer) return null;
+  const discountValue = offer?.value ?? 20;
+  const discountName = offer?.name || "Discount";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        showCloseButton={false}
+        showCloseButton={true}
         className="w-[696px] max-w-[calc(100%-2rem)] gap-6 rounded-[12px] border border-[#CACBD4] bg-white p-6 shadow-[0px_4px_6px_-4px_rgba(0,0,0,0.10),0px_10px_15px_-3px_rgba(0,0,0,0.10)] sm:max-w-[696px]"
       >
         <DialogHeader className="p-0">
@@ -55,7 +56,7 @@ const AwaitingManagerApprovalDialog = ({
           {/* Description text */}
           <div className="flex flex-col items-center gap-4 text-center px-4">
             <p className="text-[14px] font-semibold text-black tracking-[0.28px] leading-relaxed">
-              {t("We have sent the")} {offer.value}% {t("discount request")} ({offer.name}){" "}
+              {t("We have sent the")} {discountValue}% {t("discount request")} ({discountName}){" "}
               {t("to the manager/super admin—notifications have been sent via the system and WhatsApp.")}
             </p>
             <p className="text-[14px] font-medium text-[#595959] tracking-[0.28px] leading-relaxed">

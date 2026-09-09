@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Banknote, CreditCard, Smartphone, Tag } from "lucide-react";
+import { Banknote, CreditCard, Smartphone, Tag, Clock, AlertCircle, CheckCircle2 } from "lucide-react";
 
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -15,7 +15,9 @@ import { showErrorToast, showSuccessToast } from "@/shared/utils/toast";
 import type { PaymentMethod } from "../types";
 import { useSelector } from "react-redux";
 import { selectUserRole } from "@/features/auth/store/authSelectors";
-import cashierDiscountsApi from "@/features/offers/api/cashierDiscountsApi";
+import cashierDiscountsApi, {
+  type DiscountApprovalRequestItem,
+} from "@/features/offers/api/cashierDiscountsApi";
 import { getSocket } from "@/shared/lib/socket";
 import {
   subscribeDiscountEvents,
@@ -92,6 +94,8 @@ const PaymentDialog = ({
   const [appliedDiscount, setAppliedDiscount] =
     useState<DiscountOfferItem | null>(null);
   const [requestId, setRequestId] = useState<string | null>(null);
+  const [existingRequest, setExistingRequest] =
+    useState<DiscountApprovalRequestItem | null>(null);
   const [isDiscountApiLoading, setIsDiscountApiLoading] = useState(false);
 
   useEffect(() => {
@@ -102,77 +106,103 @@ const PaymentDialog = ({
     setCardAmount("");
     setAppliedDiscount(null);
     setPendingApprovalOffer(null);
+    setExistingRequest(null);
     setRequestId(null);
     setIsSelectOfferOpen(false);
     setIsApprovalRequestOpen(false);
     setIsAwaitingApprovalOpen(false);
   }, [open]);
 
-  // Socket listener & conditional polling: while status is pending, poll for status updates. Only managers/admins call endpoints!
+  // Check if loaded order has an active or resolved discount request
   useEffect(() => {
-    if (!isAwaitingApprovalOpen || !requestId) return;
+    if (!open || !orderId) return;
 
-    const checkStatus = async () => {
-      if (!canApproveOrReject) return;
+    let isMounted = true;
+
+    const checkOrderDiscount = async () => {
       try {
-        const pending = await cashierDiscountsApi.getDiscountRequests("pending");
-        const isStillPending = pending.some(
-          (r) => r._id === requestId || r.id === requestId
-        );
+        const requests = canApproveOrReject
+          ? await cashierDiscountsApi.getDiscountRequests("pending")
+          : await cashierDiscountsApi.getMyDiscountRequests();
 
-        if (!isStillPending) {
-          // Status is no longer pending -> fetch final result and STOP polling
-          const approved = await cashierDiscountsApi.getDiscountRequests("approved");
-          const isApproved = approved.some(
-            (r) => r._id === requestId || r.id === requestId
-          );
+        if (!isMounted) return;
 
-          setIsAwaitingApprovalOpen(false);
-          if (isApproved) {
-            playNotificationSound();
-            if (pendingApprovalOffer) {
-              setAppliedDiscount(pendingApprovalOffer);
-            }
-            showSuccessToast(t("Discount request approved and applied"));
-          } else {
-            setPendingApprovalOffer(null);
-            showErrorToast(t("Discount request was rejected or cancelled"));
+        const match = requests.find((r) => {
+          const reqOrderId =
+            typeof r.orderId === "object"
+              ? r.orderId?._id || r.orderId?.id || r.orderId?.orderId
+              : r.orderId;
+          return String(reqOrderId) === String(orderId);
+        });
+
+        if (match) {
+          setExistingRequest(match);
+          const matchedId = match._id || match.id || null;
+          setRequestId(matchedId);
+
+          const offerObj: DiscountOfferItem = {
+            id: match.discountId || match.discount?._id || match.discount?.id || "",
+            name: match.discountName || match.discount?.name || "Discount",
+            value: match.discountValue ?? match.discount?.value ?? 0,
+            requiresApproval: true,
+          };
+          setPendingApprovalOffer(offerObj);
+
+          if (match.status === "approved") {
+            setAppliedDiscount(offerObj);
+          } else if (match.status === "pending") {
+            // Show Awaiting Manager Approval dialog until approved, rejected, or cancelled
+            setIsAwaitingApprovalOpen(true);
           }
-          setRequestId(null);
         }
-      } catch (err: any) {
-        console.error("Error checking discount request status:", err);
+      } catch (err) {
+        console.error("Error checking order discount request:", err);
       }
     };
 
-    // Initial check (only for manager/admin roles)
-    if (canApproveOrReject) {
-      checkStatus();
-    }
+    checkOrderDiscount();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [open, orderId, canApproveOrReject]);
+
+  // Real-time socket listener for instant approval/rejection updates
+  useEffect(() => {
+    if (!open) return;
 
     const unsubscribe = subscribeDiscountEvents((eventName, payload) => {
-      if (payload) {
-        const item = payload.request || payload.data || payload;
-        const targetId = item?._id || item?.id;
-        const status = item?.status;
+      if (!payload) return;
+      const item = payload.request || payload.data || payload;
+      const targetId = item?._id || item?.id;
+      const targetOrderId =
+        typeof item?.orderId === "object"
+          ? item.orderId?._id || item.orderId?.id || item.orderId?.orderId
+          : item?.orderId;
+      const status = item?.status;
 
-        if (targetId && targetId === requestId) {
-          if (status === "approved") {
-            playNotificationSound();
-            setIsAwaitingApprovalOpen(false);
-            if (pendingApprovalOffer) {
-              setAppliedDiscount(pendingApprovalOffer);
-            }
-            showSuccessToast(t("Discount request approved and applied"));
-            setRequestId(null);
-            return;
-          } else if (status === "rejected" || status === "cancelled") {
-            setIsAwaitingApprovalOpen(false);
-            setPendingApprovalOffer(null);
-            showErrorToast(t("Discount request was rejected or cancelled"));
-            setRequestId(null);
-            return;
-          }
+      const isMatch =
+        (targetId && (targetId === requestId || targetId === existingRequest?._id || targetId === existingRequest?.id)) ||
+        (orderId && targetOrderId && String(targetOrderId) === String(orderId));
+
+      if (isMatch) {
+        if (status === "approved") {
+          playNotificationSound();
+          setIsAwaitingApprovalOpen(false);
+          const offerToApply = pendingApprovalOffer || {
+            id: item?.discountId || item?.discount?._id || item?.discount?.id || "",
+            name: item?.discountName || item?.discount?.name || "Discount",
+            value: item?.discountValue ?? item?.discount?.value ?? 0,
+            requiresApproval: true,
+          };
+          setAppliedDiscount(offerToApply);
+          setExistingRequest((prev) => (prev ? { ...prev, status: "approved" } : item));
+          showSuccessToast(t("Discount request approved and applied"));
+        } else if (status === "rejected" || status === "cancelled") {
+          setIsAwaitingApprovalOpen(false);
+          setAppliedDiscount(null);
+          setExistingRequest((prev) => (prev ? { ...prev, status: "rejected" } : item));
+          showErrorToast(t("Discount request was rejected or cancelled"));
         }
       }
     });
@@ -180,7 +210,7 @@ const PaymentDialog = ({
     return () => {
       unsubscribe();
     };
-  }, [isAwaitingApprovalOpen, requestId, pendingApprovalOffer, canApproveOrReject, t]);
+  }, [open, requestId, existingRequest, orderId, pendingApprovalOffer, t]);
 
   const discountAmount = appliedDiscount
     ? (total * appliedDiscount.value) / 100
@@ -320,6 +350,7 @@ const PaymentDialog = ({
     }
     setIsAwaitingApprovalOpen(false);
     setPendingApprovalOffer(null);
+    setExistingRequest(null);
     setRequestId(null);
     showErrorToast(t("Discount request cancelled"));
   };
@@ -352,9 +383,15 @@ const PaymentDialog = ({
           </DialogHeader>
 
           <div className="flex flex-col gap-6">
-            {/* Applied Discount Summary Banner (Code 5) */}
+            {/* 1. Applied Discount Summary Banner (Approved) */}
             {appliedDiscount && (
               <div className="w-full rounded-[16px] border-dashed-separator bg-[#FAFAF7] px-3 py-4 flex flex-col gap-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-[12px] font-bold text-[#059B5A] bg-[#E2F4ED] border border-[#059B5A] px-2.5 py-1 rounded-full">
+                    <CheckCircle2 className="size-3.5" />
+                    <span>{t("Discount Approved & Applied")}</span>
+                  </div>
+                </div>
                 <div className="flex flex-col gap-[18px] w-full">
                   <div className="flex items-center justify-between text-[16px] text-[#23252A]">
                     <span className="font-normal">{t("Subtotal:")}</span>
@@ -383,12 +420,69 @@ const PaymentDialog = ({
                   </div>
                   <button
                     type="button"
-                    onClick={() => setAppliedDiscount(null)}
+                    onClick={() => {
+                      setAppliedDiscount(null);
+                      setExistingRequest(null);
+                    }}
                     className="text-[16px] font-semibold text-[#C90000] hover:underline cursor-pointer"
                   >
                     {t("Remove Offer")}
                   </button>
                 </div>
+              </div>
+            )}
+
+            {/* 2. Still Pending (Awaiting Approval) Banner */}
+            {!appliedDiscount && existingRequest && existingRequest.status === "pending" && (
+              <div className="w-full rounded-[14px] bg-[#FFF9E6] border border-[#8F6900] p-4 flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Clock className="size-4.5 text-[#8F6900] shrink-0" />
+                    <span className="text-[14px] font-bold text-[#8F6900]">
+                      {t("Discount Request Awaiting Approval")}
+                    </span>
+                  </div>
+                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#8F6900] text-white">
+                    {t("Pending")}
+                  </span>
+                </div>
+                <div className="text-[13px] text-[#333333]">
+                  <span className="font-bold">{existingRequest.discountValue ?? existingRequest.discount?.value ?? 0}% {t("Discount")}</span>
+                  {" — "}
+                  <span className="font-medium">{existingRequest.discountName || existingRequest.discount?.name || "Discount"}</span>
+                </div>
+                <p className="text-[12px] text-[#666666] leading-relaxed">
+                  {t("This order has a discount request awaiting manager approval. You can wait for approval or proceed with the order now.")}
+                </p>
+                <div className="flex items-center justify-between pt-1 border-t border-[#8F6900]/20">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsAwaitingApprovalOpen(true)}
+                    className="h-[36px] px-3 rounded-[6px] border border-[#8F6900] bg-white text-[12px] font-semibold text-[#8F6900] hover:bg-[#F5F0EA] flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Clock className="size-3.5" />
+                    <span>{t("Wait / View Request")}</span>
+                  </Button>
+                  <span className="text-[11px] text-[#8B8B8B] font-medium">
+                    {t("Or proceed with payment below")}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* 3. Rejected Banner */}
+            {!appliedDiscount && existingRequest && existingRequest.status === "rejected" && (
+              <div className="w-full rounded-[14px] bg-[#FDE8E8] border border-[#C90000] p-4 flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="size-4.5 text-[#C90000] shrink-0" />
+                  <span className="text-[14px] font-bold text-[#C90000]">
+                    {t("Discount Request Rejected")}
+                  </span>
+                </div>
+                <p className="text-[12px] text-[#595959] leading-relaxed">
+                  {t("The manager rejected the discount request for this order. You can proceed with the order at regular price.")}
+                </p>
               </div>
             )}
 
@@ -533,7 +627,13 @@ const PaymentDialog = ({
         open={isAwaitingApprovalOpen}
         offer={pendingApprovalOffer}
         isLoading={isDiscountApiLoading}
-        onOpenChange={setIsAwaitingApprovalOpen}
+        onOpenChange={(open) => {
+          setIsAwaitingApprovalOpen(open);
+          if (!open) {
+            // Cashier closed the dialog to see another order
+            onOpenChange(false);
+          }
+        }}
         onCancelRequest={handleCancelAwaitingRequest}
       />
     </>

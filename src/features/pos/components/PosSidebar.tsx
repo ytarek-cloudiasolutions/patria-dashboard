@@ -16,6 +16,8 @@ import { POS_TABLE_OPTIONS } from "../data";
 import type { OrderType } from "../types";
 import type { DropdownSelectOption } from "@/shared/types/DropdownSelect.types";
 import PendingApprovalsWidget from "./PendingApprovalsWidget";
+import PendingRequestsWidget from "./PendingRequestsWidget";
+import type { DiscountApprovalRequestItem } from "@/features/offers/api/cashierDiscountsApi";
 
 type PosSidebarProps = {
   orderType: OrderType;
@@ -32,6 +34,7 @@ type PosSidebarProps = {
   onOpenEmployeeAccounts: () => void;
   onCloseRegister: () => void;
   onBackToDashboard: () => void;
+  onSelectPendingOrder?: (orderId: string, item?: DiscountApprovalRequestItem) => void;
 };
 
 const PosSidebar = ({
@@ -49,6 +52,7 @@ const PosSidebar = ({
   onOpenEmployeeAccounts,
   onCloseRegister,
   onBackToDashboard,
+  onSelectPendingOrder,
 }: PosSidebarProps) => {
   const { t, language, toggleLanguage } = useTranslation();
 
@@ -155,6 +159,12 @@ const PosSidebar = ({
 
       {/* Bottom actions - Matching Figma specs exactly */}
       <div className="shrink-0 space-y-[18px] px-3.5 pb-6 pt-4">
+        {/* Pending Requests Widget (for Cashiers) */}
+        <PendingRequestsWidget onSelectOrder={onSelectPendingOrder} className="w-full" />
+
+        {/* Pending Approvals Widget (for Managers / Admins) */}
+        <PendingApprovalsWidget className="w-full" />
+
         {/* Open/Close Shift */}
         <button
           className="flex h-[40px] w-full items-center justify-center gap-2.5 rounded-[5px] border border-[#8F6900] bg-white px-3 text-[12px] font-semibold leading-6 text-[#8F6900] cursor-pointer whitespace-nowrap"
@@ -181,9 +191,6 @@ const PosSidebar = ({
           <Users className="size-[18px] text-[#9524E4] shrink-0" />
           <span className="whitespace-nowrap">{t("Employees accounts")}</span>
         </button>
-
-        {/* Pending Approvals Widget (Figma Code 1 & 2) */}
-        <PendingApprovalsWidget className="w-full" />
 
         {/* Close Register */}
         <button

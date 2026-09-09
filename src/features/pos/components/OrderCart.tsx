@@ -77,7 +77,7 @@ const OrderCart = ({
   const isCartEmpty = items.length === 0;
   const showSendToKitchen = orderType === "dine-in" && !sentToKitchen;
   const isActionDisabled =
-    isCartEmpty || (orderType === "dine-in" && !selectedTable) || !isShiftActive;
+    isCartEmpty || !isShiftActive || (showSendToKitchen && !selectedTable);
 
   const handleCustomerSearch = async () => {
     const normalized = phoneQuery.replace(/\s+/g, "").trim();

@@ -1498,9 +1498,22 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   "Approval request rejected": "تم رفض طلب الموافقة",
   "Discount request approved and applied": "تمت الموافقة على طلب الخصم وتطبيقه",
 
-  // Pending Approvals Widget
+  // Pending Approvals & Requests Widgets
   "Pending Approvals": "الطلبات قيد الموافقة",
+  "Pending Requests": "الطلبات المعلقة",
   "No pending discount requests.": "لا توجد طلبات خصم قيد الموافقة.",
   "Request from": "طلب من",
   requested: "طلب",
+  "You requested": "لقد طلبت",
+  Acknowledge: "تأكيد",
+  "Discount Approved & Applied": "تمت الموافقة على الخصم وتطبيقه",
+  "Discount Request Awaiting Approval": "طلب الخصم بانتظار موافقة المدير",
+  "This order has a discount request awaiting manager approval. You can wait for approval or proceed with the order now.":
+    "يحتوي هذا الطلب على طلب خصم بانتظار موافقة المدير. يمكنك الانتظار للموافقة أو متابعة الطلب الآن.",
+  "Wait / View Request": "انتظار / عرض الطلب",
+  "Or proceed with payment below": "أو تابع الدفع أدناه",
+  "Discount Request Rejected": "تم رفض طلب الخصم",
+  "The manager rejected the discount request for this order. You can proceed with the order at regular price.":
+    "رفض المدير طلب الخصم لهذا الطلب. يمكنك المتابعة بالسعر العادي.",
+  "Order loaded into cart": "تم تحميل الطلب إلى سلة التسوق",
 };
