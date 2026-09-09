@@ -64,6 +64,22 @@ api.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as RetryableRequestConfig | undefined;
 
+    // ── 429 Too Many Requests: Respect Retry-After header ──────────────
+    if (error.response?.status === 429 && originalRequest && !originalRequest._retry) {
+      originalRequest._retry = true;
+      const retryAfterHeader = error.response.headers?.["retry-after"];
+      let delayMs = 2000;
+      if (retryAfterHeader) {
+        const parsed = parseInt(retryAfterHeader, 10);
+        if (!isNaN(parsed) && parsed > 0) {
+          delayMs = parsed * 1000;
+        }
+      }
+      delayMs = Math.min(delayMs, 10000);
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+      return api(originalRequest);
+    }
+
     // If there's no config (e.g. network error) or it's not a 401, reject immediately
     if (!originalRequest || error.response?.status !== 401) {
       return Promise.reject(error);

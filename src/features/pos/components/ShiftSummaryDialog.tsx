@@ -27,12 +27,14 @@ type ShiftSummaryDialogProps = {
 const methodIcons: Record<PaymentMethod, typeof Banknote> = {
   cash: Banknote,
   card: CreditCard,
+  instapay: CreditCard,
   mix: Banknote,
 };
 
 const METHOD_LABELS: Record<PaymentMethod, string> = {
   cash: "Cash",
   card: "Visa/Card",
+  instapay: "InstaPay",
   mix: "Mix",
 };
 
@@ -85,12 +87,13 @@ const ShiftSummaryDialog = ({
       const totals: Record<PaymentMethod, number> = {
         cash: reportData.cashTotal ?? reportData.cash ?? 0,
         card: reportData.cardTotal ?? reportData.card ?? 0,
+        instapay: reportData.instapayTotal ?? reportData.instapay ?? 0,
         mix: reportData.mixTotal ?? reportData.mix ?? 0,
       };
       return { totals, grandTotal, orderCount };
     }
 
-    const totals: Record<PaymentMethod, number> = { cash: 0, card: 0, mix: 0 };
+    const totals: Record<PaymentMethod, number> = { cash: 0, card: 0, instapay: 0, mix: 0 };
     let grandTotal = 0;
     for (const o of shiftOrders) {
       totals[o.method] = (totals[o.method] || 0) + o.total;

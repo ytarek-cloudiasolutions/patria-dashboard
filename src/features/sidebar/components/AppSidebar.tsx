@@ -20,6 +20,7 @@ import { useTranslation } from "@/shared/i18n/useTranslation";
 import { selectUserRole } from "@/features/auth/store/authSelectors";
 import { isRouteAllowed } from "@/features/auth/routeAccess";
 import { NAV_SECTIONS } from "../data";
+import PendingApprovalsWidget from "@/features/pos/components/PendingApprovalsWidget";
 
 interface AppSidebarProps {
   activePath?: string;
@@ -144,8 +145,9 @@ const AppSidebar = ({
         </ScrollArea>
       </SidebarContent>
 
-      {/* Footer — Logout */}
-      <SidebarFooter className="px-3 py-4 border-t border-[#F3F3F3] bg-white">
+      {/* Footer — Pending Approvals & Logout */}
+      <SidebarFooter className="px-3 py-4 border-t border-[#F3F3F3] bg-white flex flex-col gap-3">
+        <PendingApprovalsWidget className="w-full" />
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton

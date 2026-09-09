@@ -17,6 +17,10 @@ import { useSelector } from "react-redux";
 import { selectUserRole } from "@/features/auth/store/authSelectors";
 import cashierDiscountsApi from "@/features/offers/api/cashierDiscountsApi";
 import { getSocket } from "@/shared/lib/socket";
+import {
+  subscribeDiscountEvents,
+  broadcastDiscountEvent,
+} from "@/features/offers/utils/discountSocketBus";
 import { playNotificationSound } from "@/shared/lib/notificationSound";
 import SelectDiscountOfferDialog, {
   type DiscountOfferItem,
@@ -47,11 +51,11 @@ const paymentOptions: Array<{
   label: string;
   icon: typeof Banknote;
 }> = [
-  { method: "cash", label: "Cash", icon: Banknote },
-  { method: "card", label: "Visa/Card", icon: CreditCard },
-  { method: "instapay", label: "Instapay", icon: Smartphone },
-  { method: "mix", label: "Mix", icon: Banknote },
-];
+    { method: "cash", label: "Cash", icon: Banknote },
+    { method: "card", label: "Visa/Card", icon: CreditCard },
+    { method: "instapay", label: "Instapay", icon: Smartphone },
+    { method: "mix", label: "Mix", icon: Banknote },
+  ];
 
 const fieldLabel = "text-[16px] font-medium text-black";
 const fieldInput =
@@ -104,23 +108,12 @@ const PaymentDialog = ({
     setIsAwaitingApprovalOpen(false);
   }, [open]);
 
-  // Real-time listener: detect manager approval/rejection instantly via WebSockets or fast 1s polling
+  // Socket listener & conditional polling: while status is pending, poll for status updates. Only managers/admins call endpoints!
   useEffect(() => {
     if (!isAwaitingApprovalOpen || !requestId) return;
 
-    const socket = getSocket();
-    const socketEvents = [
-      "discount_request_updated",
-      "discount_request_approved",
-      "discount_request_rejected",
-      "discount_request_cancelled",
-      "discountRequestUpdated",
-      "discountRequestApproved",
-      "discountRequestRejected",
-      "discountRequestCancelled",
-    ];
-
     const checkStatus = async () => {
+      if (!canApproveOrReject) return;
       try {
         const pending = await cashierDiscountsApi.getDiscountRequests("pending");
         const isStillPending = pending.some(
@@ -128,7 +121,7 @@ const PaymentDialog = ({
         );
 
         if (!isStillPending) {
-          // If not pending anymore, check if it was approved
+          // Status is no longer pending -> fetch final result and STOP polling
           const approved = await cashierDiscountsApi.getDiscountRequests("approved");
           const isApproved = approved.some(
             (r) => r._id === requestId || r.id === requestId
@@ -152,7 +145,12 @@ const PaymentDialog = ({
       }
     };
 
-    const handleSocketEvent = (payload?: any) => {
+    // Initial check (only for manager/admin roles)
+    if (canApproveOrReject) {
+      checkStatus();
+    }
+
+    const unsubscribe = subscribeDiscountEvents((eventName, payload) => {
       if (payload) {
         const item = payload.request || payload.data || payload;
         const targetId = item?._id || item?.id;
@@ -177,22 +175,12 @@ const PaymentDialog = ({
           }
         }
       }
-      checkStatus();
-    };
-
-    socketEvents.forEach((evt) => {
-      socket.on(evt, handleSocketEvent);
     });
 
-    const interval = setInterval(checkStatus, 1000);
-
     return () => {
-      socketEvents.forEach((evt) => {
-        socket.off(evt, handleSocketEvent);
-      });
-      clearInterval(interval);
+      unsubscribe();
     };
-  }, [isAwaitingApprovalOpen, requestId, pendingApprovalOffer, t]);
+  }, [isAwaitingApprovalOpen, requestId, pendingApprovalOffer, canApproveOrReject, t]);
 
   const discountAmount = appliedDiscount
     ? (total * appliedDiscount.value) / 100
@@ -227,6 +215,14 @@ const PaymentDialog = ({
             const res = await cashierDiscountsApi.applyCashierDiscount(offer.id, targetOrderId);
             const reqId = res?.request?._id || res?.request?.id || null;
             setRequestId(reqId);
+
+            // Broadcast socket & cross-tab event so manager dashboard receives instant real-time notification
+            const reqItem = res?.request || res;
+            if (reqItem) {
+              const payload = { request: reqItem, data: reqItem, status: "pending", _id: reqId, id: reqId };
+              broadcastDiscountEvent("discount_request_created", payload);
+              broadcastDiscountEvent("cashier_discount_request", payload);
+            }
           }
         } catch (err: any) {
           console.error("Error creating discount request:", err);
@@ -264,6 +260,11 @@ const PaymentDialog = ({
       if (targetOrderId) {
         if (requestId) {
           await cashierDiscountsApi.approveDiscountRequest(requestId);
+          broadcastDiscountEvent("discount_request_approved", {
+            request: { _id: requestId, id: requestId, status: "approved" },
+            status: "approved",
+            id: requestId,
+          });
         } else {
           await cashierDiscountsApi.applyCashierDiscount(offer.id, targetOrderId);
         }
@@ -286,6 +287,11 @@ const PaymentDialog = ({
     if (requestId) {
       try {
         await cashierDiscountsApi.rejectDiscountRequest(requestId);
+        broadcastDiscountEvent("discount_request_rejected", {
+          request: { _id: requestId, id: requestId, status: "rejected" },
+          status: "rejected",
+          id: requestId,
+        });
       } catch (err: any) {
         console.error("Error rejecting discount request:", err);
       }
@@ -301,6 +307,11 @@ const PaymentDialog = ({
       try {
         setIsDiscountApiLoading(true);
         await cashierDiscountsApi.cancelDiscountRequest(requestId);
+        broadcastDiscountEvent("discount_request_cancelled", {
+          request: { _id: requestId, id: requestId, status: "cancelled" },
+          status: "cancelled",
+          id: requestId,
+        });
       } catch (err: any) {
         console.error("Error cancelling discount request:", err);
       } finally {
@@ -318,11 +329,11 @@ const PaymentDialog = ({
       method,
       appliedDiscount
         ? {
-            id: appliedDiscount.id,
-            name: appliedDiscount.name,
-            value: appliedDiscount.value,
-            discountAmount,
-          }
+          id: appliedDiscount.id,
+          name: appliedDiscount.name,
+          value: appliedDiscount.value,
+          discountAmount,
+        }
         : undefined
     );
   };
@@ -530,3 +541,4 @@ const PaymentDialog = ({
 };
 
 export default PaymentDialog;
+

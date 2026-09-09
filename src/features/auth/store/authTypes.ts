@@ -7,13 +7,14 @@ export interface ApiResponse<TData> {
 
 export interface AuthUser {
   _id: string;
+  id?: string;
   name: string;
   email: string;
   role: string;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
-  __v: number;
+  __v?: number;
   lastLogin?: string;
 }
 

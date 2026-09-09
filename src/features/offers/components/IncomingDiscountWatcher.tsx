@@ -5,6 +5,10 @@ import cashierDiscountsApi, {
   type DiscountApprovalRequestItem,
 } from "../api/cashierDiscountsApi";
 import { getSocket } from "@/shared/lib/socket";
+import {
+  subscribeDiscountEvents,
+  broadcastDiscountEvent,
+} from "@/features/offers/utils/discountSocketBus";
 import { playNotificationSound, unlockAudio } from "@/shared/lib/notificationSound";
 import { showErrorToast, showSuccessToast } from "@/shared/utils/toast";
 import { useTranslation } from "@/shared/i18n/useTranslation";
@@ -87,24 +91,13 @@ const IncomingDiscountWatcher = () => {
     }
   }, [pendingQueue, canApproveOrReject, currentRequest, isLoading]);
 
-  // Main Socket & Polling Listener Effect
+  // Main Real-Time Listener Effect (Sockets + BroadcastChannel)
   useEffect(() => {
     if (!canApproveOrReject) return;
 
     fetchPendingRequests();
 
-    const socket = getSocket();
-    const events = [
-      "discount_request_created",
-      "discount_request_updated",
-      "discountRequestCreated",
-      "discountRequestUpdated",
-      "cashier_discount_request",
-      "cashierDiscountRequest",
-      "new_discount_request",
-    ];
-
-    const handleSocketEvent = (payload?: any) => {
+    const unsubscribe = subscribeDiscountEvents((eventName, payload) => {
       if (payload) {
         const item = payload.request || payload.data || payload;
         const targetId = item?._id || item?.id;
@@ -120,22 +113,20 @@ const IncomingDiscountWatcher = () => {
           });
           playNotificationSound();
           return;
+        } else if (targetId && status !== "pending") {
+          setPendingQueue((prev) => prev.filter((r) => (r._id || r.id) !== targetId));
+          return;
         }
       }
       fetchPendingRequests();
-    };
-
-    events.forEach((evt) => {
-      socket.on(evt, handleSocketEvent);
     });
 
-    const interval = setInterval(fetchPendingRequests, 3000);
+    const socket = getSocket();
+    socket.on("connect", fetchPendingRequests);
 
     return () => {
-      events.forEach((evt) => {
-        socket.off(evt, handleSocketEvent);
-      });
-      clearInterval(interval);
+      unsubscribe();
+      socket.off("connect", fetchPendingRequests);
     };
   }, [canApproveOrReject, fetchPendingRequests]);
 
@@ -174,6 +165,12 @@ const IncomingDiscountWatcher = () => {
       showSuccessToast(t("Discount request approved and applied"));
       if (reqId) processedIdsRef.current.add(reqId);
 
+      broadcastDiscountEvent("discount_request_approved", {
+        request: { _id: reqId, id: reqId, status: "approved" },
+        status: "approved",
+        id: reqId,
+      });
+
       // Advance to next request in queue
       setPendingQueue((prev) => prev.filter((r) => (r._id || r.id) !== reqId));
     } catch (err: any) {
@@ -192,6 +189,12 @@ const IncomingDiscountWatcher = () => {
       await cashierDiscountsApi.rejectDiscountRequest(reqId);
       showErrorToast(t("Approval request rejected"));
       if (reqId) processedIdsRef.current.add(reqId);
+
+      broadcastDiscountEvent("discount_request_rejected", {
+        request: { _id: reqId, id: reqId, status: "rejected" },
+        status: "rejected",
+        id: reqId,
+      });
 
       // Advance to next request in queue
       setPendingQueue((prev) => prev.filter((r) => (r._id || r.id) !== reqId));

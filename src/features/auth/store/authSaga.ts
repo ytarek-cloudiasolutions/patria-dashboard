@@ -10,6 +10,7 @@ import {
 } from "../api/authApi";
 import { getAuthErrorMessage } from "../utils/authHelpers";
 import { clearAuthStorage, setAuthTokens, setStoredUser } from "../utils/token";
+import { disconnectSocket } from "@/shared/lib/socket";
 import { showErrorToast, showSuccessToast } from "@/shared/utils/toast";
 import { selectRefreshToken } from "./authSelectors";
 import { authActions } from "./authSlice";
@@ -104,11 +105,13 @@ function* handleLogout() {
   try {
     const response: LogoutResponse = yield call(logout);
 
+    yield call(disconnectSocket);
     yield call(clearAuthStorage);
     yield call(showSuccessToast, response.message);
     yield put(authActions.logoutSuccess({ message: response.message }));
   } catch (error) {
     const errorMessage = getAuthErrorMessage(error);
+    yield call(disconnectSocket);
     yield call(clearAuthStorage);
     yield call(showErrorToast, errorMessage);
     yield put(authActions.logoutFailure(errorMessage));
