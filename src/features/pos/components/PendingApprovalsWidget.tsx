@@ -296,15 +296,16 @@ const PendingApprovalsWidget = ({
     setIsOpen((prev) => !prev);
   };
 
-  // Close popover if all requests are resolved / cleared
+  // Auto-open when new requests arrive
   useEffect(() => {
-    if (requests.length === 0) {
-      setIsOpen(false);
-    } else if (isOpen) {
+    if (requests.length > 0) {
+      setIsOpen(true);
       const timer = setTimeout(updatePopoverPos, 50);
       return () => clearTimeout(timer);
+    } else {
+      setIsOpen(false);
     }
-  }, [requests.length, isOpen]);
+  }, [requests.length]);
 
   // Recalculate popover position on window resize
   useEffect(() => {

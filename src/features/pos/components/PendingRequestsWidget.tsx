@@ -221,7 +221,7 @@ const PendingRequestsWidget = ({ className, onSelectOrder }: PendingRequestsWidg
                         className={cn(
                           "flex flex-col gap-[2px] text-start w-full select-none",
                           onSelectOrder &&
-                            "cursor-pointer hover:bg-[#FDFBF7] p-2 -mx-2 rounded-[8px] transition-colors"
+                          "cursor-pointer hover:bg-[#FDFBF7] p-2 -mx-2 rounded-[8px] transition-colors"
                         )}
                       >
                         {/* Order ID with Shopping Bag Icon */}
@@ -235,12 +235,26 @@ const PendingRequestsWidget = ({ className, onSelectOrder }: PendingRequestsWidg
 
                           {/* Status Badge (if resolved by manager) */}
                           {item.status === "approved" && (
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#E2F4ED] text-[#059B5A] border border-[#059B5A]">
+                            <span
+                              style={{
+                                borderRadius: "30px",
+                                border: "1px solid var(--Border-success, #059B5A)",
+                                background: "var(--Surface-success, #E2F4ED)",
+                              }}
+                              className="h-[22px] px-3 text-[11px] font-semibold text-[#059B5A] inline-flex items-center justify-center leading-none shrink-0"
+                            >
                               {t("Approved")}
                             </span>
                           )}
                           {item.status === "rejected" && (
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#FDE8E8] text-[#C90000] border border-[#C90000]">
+                            <span
+                              style={{
+                                borderRadius: "30px",
+                                border: "1px solid var(--Border-error, #C90000)",
+                                background: "var(--Surface-error, #C90000)",
+                              }}
+                              className="h-[22px] px-3 text-[11px] font-semibold text-white inline-flex items-center justify-center leading-none shrink-0"
+                            >
                               {t("Rejected")}
                             </span>
                           )}
