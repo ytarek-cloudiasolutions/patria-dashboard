@@ -53,7 +53,7 @@ export interface ApplyCashierDiscountResponse {
 export interface DiscountApprovalRequestItem {
   _id?: string;
   id?: string;
-  status: "pending" | "approved" | "rejected";
+  status: "pending" | "approved" | "rejected" | "cancelled" | "canceled";
   discountId?: string;
   discountName?: string;
   discountValue?: number;

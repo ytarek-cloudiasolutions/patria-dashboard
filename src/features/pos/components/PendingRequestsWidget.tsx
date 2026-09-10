@@ -69,7 +69,7 @@ const PendingRequestsWidget = ({ className, onSelectOrder }: PendingRequestsWidg
     prevCountRef.current = requests.length;
   }, [requests.length]);
 
-  // Subscribe to discount socket & cross-tab events
+  // Subscribe to discount socket, in-tab, and cross-tab events
   useEffect(() => {
     if (isManagerOrAdmin) return;
 
@@ -77,14 +77,25 @@ const PendingRequestsWidget = ({ className, onSelectOrder }: PendingRequestsWidg
 
     const unsubscribe = subscribeDiscountEvents(() => {
       fetchRequests();
+      // Retry shortly after to ensure backend persistence is complete
+      const t1 = setTimeout(fetchRequests, 300);
+      const t2 = setTimeout(fetchRequests, 1000);
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+      };
     });
 
     const socket = getSocket();
     socket.on("connect", fetchRequests);
 
+    // Heartbeat polling every 4 seconds as a fallback
+    const interval = setInterval(fetchRequests, 4000);
+
     return () => {
       unsubscribe();
       socket.off("connect", fetchRequests);
+      clearInterval(interval);
     };
   }, [isManagerOrAdmin, fetchRequests]);
 
@@ -176,7 +187,7 @@ const PendingRequestsWidget = ({ className, onSelectOrder }: PendingRequestsWidg
                 ...(popoverPos.left !== undefined ? { left: `${popoverPos.left}px` } : {}),
                 ...(popoverPos.right !== undefined ? { right: `${popoverPos.right}px` } : {}),
               }}
-              className="z-[99999] w-[368px] max-w-[calc(100vw-2rem)] bg-white border-2 border-[#8F6900] rounded-[16px] shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.35)] overflow-hidden flex flex-col max-h-[520px] animate-in fade-in-0 zoom-in-95 duration-150"
+              className="z-[99999] w-[368px] max-w-[calc(100vw-2rem)] bg-white border-2 border-[#8F6900] rounded-[16px] shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)] overflow-hidden flex flex-col max-h-[520px] animate-in fade-in-0 zoom-in-95 duration-150"
             >
               {/* Header (.frame-2147224159) */}
               <div
@@ -198,7 +209,7 @@ const PendingRequestsWidget = ({ className, onSelectOrder }: PendingRequestsWidg
               </div>
 
               {/* Content List (.frame-2147224160_01) */}
-              <div className="px-3 py-4 bg-white flex flex-col gap-4 overflow-y-auto max-h-[440px]">
+              <div className="px-3 py-4 bg-white flex flex-col gap-4 overflow-y-auto max-h-[440px] rounded-b-[14px]">
                 {requests.map((item, index) => {
                   const reqId = item._id || item.id || String(index);
                   const orderIdDisplay =
@@ -213,59 +224,118 @@ const PendingRequestsWidget = ({ className, onSelectOrder }: PendingRequestsWidg
                     item.discountName || item.discount?.name || "Discount";
 
                   return (
-                    <div key={reqId} className="flex flex-col gap-3 w-full">
-                      {index > 0 && <div className="w-full border-t border-[#CACBD4]" />}
+                    <div key={reqId} className="w-full flex flex-col gap-4">
+                      {index > 0 && (
+                        <div
+                          className="w-full h-0 border-t border-[#CACBD4]"
+                          style={{
+                            outline: "1px solid var(--Border-seperator, #CACBD4)",
+                            outlineOffset: "-0.50px",
+                          }}
+                        />
+                      )}
 
                       <div
                         onClick={() => handleItemClick(item)}
                         className={cn(
                           "flex flex-col gap-[2px] text-start w-full select-none",
                           onSelectOrder &&
-                          "cursor-pointer hover:bg-[#FDFBF7] p-2 -mx-2 rounded-[8px] transition-colors"
+                            "cursor-pointer hover:opacity-80 transition-opacity"
                         )}
                       >
-                        {/* Order ID with Shopping Bag Icon */}
-                        <div className="flex items-center justify-between gap-1 text-[13px] leading-[24px]">
+                        {/* Order ID with Shopping Bag Icon (.frame-2147224163_01) */}
+                        <div className="flex items-center justify-between gap-1">
                           <div className="flex items-center gap-1">
                             <ShoppingBag className="size-4 text-[#8F6900] shrink-0" />
-                            <span className="font-semibold text-[#8F6900]">
+                            <span className="text-[13px] font-semibold text-[#8F6900] leading-[24px]">
                               {formattedOrderId}
                             </span>
                           </div>
 
-                          {/* Status Badge (if resolved by manager) */}
+                          {/* Status Badge (if resolved by manager or cancelled) */}
                           {item.status === "approved" && (
-                            <span
+                            <div
+                              className="flex items-center justify-center gap-1 overflow-hidden shrink-0"
                               style={{
+                                padding: "2px 14px",
+                                minWidth: "70px",
                                 borderRadius: "30px",
-                                border: "1px solid var(--Border-success, #059B5A)",
+                                outline: "1px solid var(--Border-success, #059B5A)",
+                                outlineOffset: "-1px",
                                 background: "var(--Surface-success, #E2F4ED)",
                               }}
-                              className="h-[22px] px-3 text-[11px] font-semibold text-[#059B5A] inline-flex items-center justify-center leading-none shrink-0"
                             >
-                              {t("Approved")}
-                            </span>
+                              <span
+                                className="font-semibold text-[#059B5A]"
+                                style={{
+                                  fontSize: "10px",
+                                  letterSpacing: "0.20px",
+                                  lineHeight: "24px",
+                                  color: "var(--Text-success, #059B5A)",
+                                }}
+                              >
+                                {t("Approved")}
+                              </span>
+                            </div>
                           )}
                           {item.status === "rejected" && (
-                            <span
+                            <div
+                              className="flex items-center justify-center gap-1 overflow-hidden shrink-0"
                               style={{
+                                padding: "2px 14px",
+                                minWidth: "70px",
                                 borderRadius: "30px",
-                                border: "1px solid var(--Border-error, #C90000)",
+                                outline: "1px solid var(--Border-error, #C90000)",
+                                outlineOffset: "-1px",
                                 background: "var(--Surface-error, #C90000)",
                               }}
-                              className="h-[22px] px-3 text-[11px] font-semibold text-white inline-flex items-center justify-center leading-none shrink-0"
                             >
-                              {t("Rejected")}
-                            </span>
+                              <span
+                                className="font-semibold text-white"
+                                style={{
+                                  fontSize: "10px",
+                                  letterSpacing: "0.20px",
+                                  lineHeight: "24px",
+                                  color: "var(--Text-white, white)",
+                                }}
+                              >
+                                {t("Rejected")}
+                              </span>
+                            </div>
+                          )}
+                          {(item.status === "cancelled" || item.status === "canceled") && (
+                            <div
+                              className="flex items-center justify-center gap-1 overflow-hidden shrink-0"
+                              style={{
+                                padding: "2px 14px",
+                                minWidth: "70px",
+                                borderRadius: "30px",
+                                outline: "1px solid var(--Border-seperator, #CACBD4)",
+                                outlineOffset: "-1px",
+                                background: "#F5F5F7",
+                              }}
+                            >
+                              <span
+                                className="font-semibold"
+                                style={{
+                                  fontSize: "10px",
+                                  letterSpacing: "0.20px",
+                                  lineHeight: "24px",
+                                  color: "#6B7280",
+                                }}
+                              >
+                                {t("Cancelled")}
+                              </span>
+                            </div>
                           )}
                         </div>
 
-                        {/* Offer Title */}
+                        {/* Offer Title (.text_08) */}
                         <h5 className="text-[14px] font-bold text-black leading-[24px]">
                           {discountVal}% {t("Discount")} — {discountName}
                         </h5>
 
-                        {/* Subtitle description */}
+                        {/* Subtitle description (.text_10) */}
                         <p className="text-[10px] font-medium text-[#8B8B8B] leading-[24px]">
                           {t("You requested")} {discountVal}% {t("discount")} ({discountName}) — {t("Cashier")}
                         </p>

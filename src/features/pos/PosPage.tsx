@@ -674,38 +674,47 @@ const PosPage = () => {
       return;
     }
 
-    // 1. If we already know the current order has a pending discount request, open awaiting dialog immediately
-    if (pendingDiscountRequest && pendingDiscountRequest.status === "pending") {
-      setIsAwaitingApprovalOpen(true);
-      return;
-    }
-
-    // 2. Query backend to verify if this loaded order or active cart has a pending request
-    try {
-      const myRequests = await cashierDiscountsApi.getMyDiscountRequests();
-      const activeReq = myRequests.find((r) => {
-        if (r.status !== "pending") return false;
-        if (!loadedOrderId) return true;
-        const raw = r.orderId;
-        if (typeof raw === "string") {
-          return String(raw).toLowerCase() === String(loadedOrderId).toLowerCase();
+    // 1. Only check pending discount requests if an existing order is loaded (not a brand-new order)
+    if (loadedOrderId) {
+      if (pendingDiscountRequest && pendingDiscountRequest.status === "pending") {
+        const raw = pendingDiscountRequest.orderId;
+        const targetReqOrderId =
+          typeof raw === "object" ? raw?._id || raw?.id || raw?.orderId : raw;
+        if (
+          targetReqOrderId &&
+          String(targetReqOrderId).toLowerCase() === String(loadedOrderId).toLowerCase()
+        ) {
+          setIsAwaitingApprovalOpen(true);
+          return;
         }
-        if (typeof raw === "object" && raw) {
-          const ids = [raw._id, raw.id, raw.orderId]
-            .filter(Boolean)
-            .map((x) => String(x).toLowerCase());
-          return ids.includes(String(loadedOrderId).toLowerCase());
-        }
-        return true;
-      });
-
-      if (activeReq) {
-        setPendingDiscountRequest(activeReq);
-        setIsAwaitingApprovalOpen(true);
-        return;
       }
-    } catch (err) {
-      console.error("Error checking pending discount for order:", err);
+
+      // 2. Query backend to verify if this specific loaded order has a pending request
+      try {
+        const myRequests = await cashierDiscountsApi.getMyDiscountRequests();
+        const activeReq = myRequests.find((r) => {
+          if (r.status !== "pending") return false;
+          const raw = r.orderId;
+          if (typeof raw === "string") {
+            return String(raw).toLowerCase() === String(loadedOrderId).toLowerCase();
+          }
+          if (typeof raw === "object" && raw) {
+            const ids = [raw._id, raw.id, raw.orderId]
+              .filter(Boolean)
+              .map((x) => String(x).toLowerCase());
+            return ids.includes(String(loadedOrderId).toLowerCase());
+          }
+          return false;
+        });
+
+        if (activeReq) {
+          setPendingDiscountRequest(activeReq);
+          setIsAwaitingApprovalOpen(true);
+          return;
+        }
+      } catch (err) {
+        console.error("Error checking pending discount for order:", err);
+      }
     }
 
     setPaymentOpen(true);

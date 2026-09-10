@@ -253,13 +253,28 @@ const PaymentDialog = ({
             const reqId = res?.request?._id || res?.request?.id || null;
             setRequestId(reqId);
 
-            // Broadcast socket & cross-tab event so manager dashboard receives instant real-time notification
-            const reqItem = res?.request || res;
-            if (reqItem) {
-              const payload = { request: reqItem, data: reqItem, status: "pending", _id: reqId, id: reqId };
-              broadcastDiscountEvent("discount_request_created", payload);
-              broadcastDiscountEvent("cashier_discount_request", payload);
-            }
+            // Broadcast socket, in-tab, and cross-tab event so pending requests panel & manager dashboard update immediately
+            const reqItem =
+              res?.request ||
+              res || {
+                _id: reqId,
+                id: reqId,
+                status: "pending",
+                discountId: offer.id,
+                discountName: offer.name,
+                discountValue: offer.value,
+              };
+            const payload = {
+              request: reqItem,
+              data: reqItem,
+              status: "pending",
+              _id: reqId,
+              id: reqId,
+              orderId: targetOrderId,
+            };
+            broadcastDiscountEvent("discount_request_created", payload);
+            broadcastDiscountEvent("cashier_discount_request", payload);
+            broadcastDiscountEvent("discount_request_updated", payload);
           }
         } catch (err: any) {
           console.error("Error creating discount request:", err);

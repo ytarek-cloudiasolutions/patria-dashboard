@@ -11,6 +11,9 @@ export interface DiscountEventPayload {
   [key: string]: any;
 }
 
+type DiscountEventHandler = (eventName: string, payload: any) => void;
+const localSubscribers = new Set<DiscountEventHandler>();
+
 let broadcastChannel: BroadcastChannel | null = null;
 if (typeof window !== "undefined" && "BroadcastChannel" in window) {
   try {
@@ -20,11 +23,32 @@ if (typeof window !== "undefined" && "BroadcastChannel" in window) {
   }
 }
 
-/** Broadcast discount event to WebSockets AND local BroadcastChannel across tabs */
+/** Broadcast discount event to in-tab listeners, WebSockets, AND BroadcastChannel across tabs */
 export function broadcastDiscountEvent(
   eventName: string,
   payload: DiscountEventPayload
 ) {
+  // 1. Immediately invoke local in-memory subscribers in the active window
+  localSubscribers.forEach((handler) => {
+    try {
+      handler(eventName, payload);
+    } catch (err) {
+      console.error("Error in local discount event handler:", err);
+    }
+  });
+
+  // 2. Dispatch window CustomEvent for cross-component isolation safety
+  if (typeof window !== "undefined") {
+    try {
+      window.dispatchEvent(
+        new CustomEvent("patria_discount_event", {
+          detail: { eventName, payload },
+        })
+      );
+    } catch (err) {}
+  }
+
+  // 3. Emit to WebSockets
   try {
     const socket = getSocket();
     socket.emit(eventName, payload);
@@ -33,6 +57,7 @@ export function broadcastDiscountEvent(
     // Ignore socket emit errors
   }
 
+  // 4. Post to BroadcastChannel (other browser tabs)
   try {
     if (broadcastChannel) {
       broadcastChannel.postMessage({ eventName, payload });
@@ -42,10 +67,24 @@ export function broadcastDiscountEvent(
   }
 }
 
-/** Subscribe to discount real-time events (Socket.IO + BroadcastChannel) */
+/** Subscribe to discount real-time events (in-tab, Socket.IO, and BroadcastChannel) */
 export function subscribeDiscountEvents(
   handler: (eventName: string, payload: any) => void
 ): () => void {
+  // Register in-memory subscriber for events dispatched within the current tab
+  localSubscribers.add(handler);
+
+  // Window event listener fallback
+  const onWindowEvent = (e: Event) => {
+    const customEvent = e as CustomEvent;
+    if (customEvent.detail?.eventName) {
+      handler(customEvent.detail.eventName, customEvent.detail.payload);
+    }
+  };
+  if (typeof window !== "undefined") {
+    window.addEventListener("patria_discount_event", onWindowEvent);
+  }
+
   const socket = getSocket();
 
   // Listen to ALL socket events arriving from server
@@ -68,6 +107,10 @@ export function subscribeDiscountEvents(
   }
 
   return () => {
+    localSubscribers.delete(handler);
+    if (typeof window !== "undefined") {
+      window.removeEventListener("patria_discount_event", onWindowEvent);
+    }
     try {
       socket.offAny(onAnyHandler);
     } catch (e) {}
