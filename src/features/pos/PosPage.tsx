@@ -833,21 +833,54 @@ const PosPage = () => {
     }
 
     const appliedDiscountAmt = discountInfo ? discountInfo.discountAmount : 0;
-    const currentTotal = Math.max(0, totals.total - appliedDiscountAmt);
+    const clientTotal = Math.max(0, totals.total - appliedDiscountAmt);
 
     const { payOrder, createOrder } = await import("@/features/orders/api/ordersApi");
+
+    // The backend is the source of truth for the discounted total — a
+    // manager-approved discount is already applied to order.total /
+    // order.discountAmount server-side. Prefer those over the client-side
+    // estimate so the receipt and the shift tape always match what was
+    // actually charged.
+    const resolveFromServerOrder = (
+      resp: any
+    ): {
+      total: number;
+      discountInfo?: { name: string; value: number; discountAmount: number };
+    } => {
+      const o = resp?.order || resp?.data?.order || resp?.data || resp;
+      const serverTotal = Number(o?.total);
+      const serverDiscountAmt = Number(o?.discountAmount);
+      const hasServerTotal = Number.isFinite(serverTotal) && serverTotal >= 0;
+      const hasServerDiscount = Number.isFinite(serverDiscountAmt) && serverDiscountAmt > 0;
+      return {
+        total: hasServerTotal ? serverTotal : clientTotal,
+        discountInfo: hasServerDiscount
+          ? {
+              name:
+                discountInfo?.name ||
+                o?.discountReason ||
+                t("Discount"),
+              value: Number(o?.discountValue) || discountInfo?.value || 0,
+              discountAmount: serverDiscountAmt,
+            }
+          : discountInfo,
+      };
+    };
 
     // If this is a loaded pending order → pay it via PATCH /orders/{id}/pay
     if (loadedOrderId) {
       setPendingCreatePayload({ method });
       try {
-        await payOrder(loadedOrderId, method);
+        const payResp = await payOrder(loadedOrderId, method);
+        const { total: finalTotal, discountInfo: receiptDiscount } =
+          resolveFromServerOrder(payResp);
         setLoadedOrderId(null);
         setPendingCreatePayload(null);
         setPaymentOpen(false);
-        setShiftOrders((prev) => [...prev, { method, total: currentTotal }]);
+        setShiftOrders((prev) => [...prev, { method, total: finalTotal }]);
         showSuccessToast("Payment confirmed");
-        finishWithReceipt(method, currentTotal, discountInfo);
+        finishWithReceipt(method, finalTotal, receiptDiscount);
       } catch (err: any) {
         setPendingCreatePayload(null);
         const errMsg =
@@ -889,15 +922,18 @@ const PosPage = () => {
         created?._id ||
         created?.id;
 
+      let payResp: any = null;
       if (createdId) {
-        await payOrder(createdId, method);
+        payResp = await payOrder(createdId, method);
       }
+      const { total: finalTotal, discountInfo: receiptDiscount } =
+        resolveFromServerOrder(payResp);
 
       setPendingCreatePayload(null);
       setPaymentOpen(false);
-      setShiftOrders((prev) => [...prev, { method, total: currentTotal }]);
+      setShiftOrders((prev) => [...prev, { method, total: finalTotal }]);
       showSuccessToast("Payment confirmed");
-      finishWithReceipt(method, currentTotal, discountInfo);
+      finishWithReceipt(method, finalTotal, receiptDiscount);
     } catch (err: any) {
       setPendingCreatePayload(null);
       const errMsg =
