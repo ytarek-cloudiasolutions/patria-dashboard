@@ -28,8 +28,6 @@ interface StockStatusTableProps {
   isAllSelected?: boolean;
   isIndeterminate?: boolean;
   infiniteItemIds?: Set<string | number>;
-  stockingAdjustments?: Record<string | number, number>;
-  onStockingAdjust?: (id: string | number, value: number) => void;
 }
 
 const StockStatusTable = ({
@@ -42,16 +40,11 @@ const StockStatusTable = ({
   isAllSelected = false,
   isIndeterminate = false,
   infiniteItemIds = new Set(),
-  stockingAdjustments = {},
-  onStockingAdjust,
 }: StockStatusTableProps) => {
   const { t } = useTranslation();
 
   const getQty = (item: InventoryItem) =>
     adjustments[item.id] ?? item.currentQuantity;
-
-  const getStockingQty = (item: InventoryItem) =>
-    stockingAdjustments[item.id] ?? (item.stockingQuantity ?? 0);
 
   const checkIsInfinite = (item: InventoryItem) =>
     infiniteItemIds.has(item.id) || !!item.isInfinite;
@@ -97,11 +90,8 @@ const StockStatusTable = ({
             <TableHead className="py-3.5 text-center text-[13px] font-semibold uppercase tracking-[0.26px] text-[#28293D]">
               {t("STATUS")}
             </TableHead>
-            <TableHead className="py-3.5 text-center text-[13px] font-semibold uppercase tracking-[0.26px] text-[#28293D]">
-              {t("ADJUST QTY")}
-            </TableHead>
             <TableHead className="pe-5 py-3.5 text-center text-[13px] font-semibold uppercase tracking-[0.26px] text-[#28293D]">
-              {t("STOCKING QTY")}
+              {t("ADJUST QTY")}
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -109,7 +99,7 @@ const StockStatusTable = ({
           {items.length === 0 ? (
             <TableRow>
               <TableCell
-                colSpan={8}
+                colSpan={7}
                 className="py-12 text-center text-[14px] text-[#8B8B8B]"
               >
                 {t("No items found.")}
@@ -120,7 +110,6 @@ const StockStatusTable = ({
               const isSelected = selectedItemIds.has(item.id);
               const isInfinite = checkIsInfinite(item);
               const qty = getQty(item);
-              const stockingQty = getStockingQty(item);
 
               return (
                 <TableRow
@@ -208,7 +197,7 @@ const StockStatusTable = ({
                   </TableCell>
 
                   {/* Adjust Qty with Stepper */}
-                  <TableCell className="text-center">
+                  <TableCell className="pe-5 text-center">
                     <div className="relative mx-auto w-24 sm:w-28 flex items-center">
                       <input
                         type="number"
@@ -242,59 +231,6 @@ const StockStatusTable = ({
                             onClick={() => onAdjust(item.id, Math.max(0, qty - 1))}
                             className="text-[#8B8B8B] hover:text-[#28293D] p-0.5 flex items-center justify-center transition-colors"
                             aria-label="Decrease quantity"
-                          >
-                            <ChevronDown className="size-3" />
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </TableCell>
-
-                  {/* Stocking Qty with Stepper */}
-                  <TableCell className="pe-5 text-center">
-                    <div className="relative mx-auto w-24 sm:w-28 flex items-center">
-                      <input
-                        type="number"
-                        min="0"
-                        value={isInfinite ? "" : stockingQty}
-                        placeholder={isInfinite ? "—" : "0"}
-                        disabled={isInfinite}
-                        onChange={(e) =>
-                          onStockingAdjust?.(
-                            item.id,
-                            Math.max(0, Number(e.target.value))
-                          )
-                        }
-                        className={cn(
-                          "w-full h-11 rounded-[12px] border border-[#E5E5E5] bg-white text-center text-[16px] outline-none transition-colors",
-                          "[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
-                          !isInfinite && "focus:border-[#8F6900] pe-7 ps-2",
-                          stockingQty === 0 ? "text-[#8B8B8B]" : "text-black",
-                          isInfinite && "opacity-50 cursor-not-allowed bg-[#F9F9F9] text-[#8B8B8B]"
-                        )}
-                      />
-                      {!isInfinite && (
-                        <div className="absolute end-1.5 flex flex-col justify-center">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              onStockingAdjust?.(item.id, stockingQty + 1)
-                            }
-                            className="text-[#8B8B8B] hover:text-[#28293D] p-0.5 flex items-center justify-center transition-colors"
-                            aria-label="Increase stocking quantity"
-                          >
-                            <ChevronUp className="size-3" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              onStockingAdjust?.(
-                                item.id,
-                                Math.max(0, stockingQty - 1)
-                              )
-                            }
-                            className="text-[#8B8B8B] hover:text-[#28293D] p-0.5 flex items-center justify-center transition-colors"
-                            aria-label="Decrease stocking quantity"
                           >
                             <ChevronDown className="size-3" />
                           </button>

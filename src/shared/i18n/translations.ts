@@ -371,8 +371,6 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   "ADJUST QUANTITY": "تعديل الكمية",
   "adjust QTY": "تعديل الكمية",
   "ADJUST QTY": "تعديل الكمية",
-  "Stocking QTY": "كمية التخزين",
-  "STOCKING QTY": "كمية التخزين",
   "Item selected": "عنصر محدد",
   "Items selected": "عناصر محددة",
   "Select Warehouse": "اختر المستودع",

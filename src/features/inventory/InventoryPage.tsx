@@ -46,14 +46,11 @@ const InventoryPage = () => {
   const [warehouseId, setWarehouseId] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [adjustments, setAdjustments] = useState<Record<string | number, number>>({});
-  const [stockingAdjustments, setStockingAdjustments] = useState<Record<string | number, number>>({});
   const [selectedItemIds, setSelectedItemIds] = useState<Set<string | number>>(new Set());
   const [infiniteItemIds, setInfiniteItemIds] = useState<Set<string | number>>(new Set());
 
   const hasAdjustments =
-    Object.keys(adjustments).length > 0 ||
-    Object.keys(stockingAdjustments).length > 0 ||
-    infiniteItemIds.size > 0;
+    Object.keys(adjustments).length > 0 || infiniteItemIds.size > 0;
 
   const [inventoryLoaded, setInventoryLoaded] = useState(false);
   const [shortagesLoaded, setShortagesLoaded] = useState(false);
@@ -205,10 +202,6 @@ const InventoryPage = () => {
     setAdjustments((prev) => ({ ...prev, [id]: value }));
   };
 
-  const handleStockingAdjust = (id: string | number, value: number) => {
-    setStockingAdjustments((prev) => ({ ...prev, [id]: value }));
-  };
-
   const handleApplyBulkQuantity = ({
     mode,
     quantity,
@@ -248,7 +241,6 @@ const InventoryPage = () => {
       bulkUpdateItemsStock({ updates: updatesToUpdate });
     }
     setAdjustments({});
-    setStockingAdjustments({});
     setSelectedItemIds(new Set());
   };
 
@@ -420,8 +412,6 @@ const InventoryPage = () => {
           isAllSelected={isAllSelected}
           isIndeterminate={isIndeterminate}
           infiniteItemIds={infiniteItemIds}
-          stockingAdjustments={stockingAdjustments}
-          onStockingAdjust={handleStockingAdjust}
         />
       ) : (
         <ExpectedShortagesTable items={filteredItems} />

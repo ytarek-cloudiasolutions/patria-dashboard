@@ -14,5 +14,4 @@ export interface InventoryItem {
   daysRemaining: number | null;
   urgencyLevel: UrgencyLevel;
   isInfinite?: boolean;
-  stockingQuantity?: number;
 }
