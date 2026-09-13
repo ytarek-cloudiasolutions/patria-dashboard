@@ -17,6 +17,10 @@ import StockStatusTable from "./components/StockStatusTable";
 import ExpectedShortagesTable from "./components/ExpectedShortagesTable";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { useWarehouses } from "@/features/warehouses/hooks/useWarehouses";
+import InventoryBulkActionBar, {
+  type BulkQuantityMode,
+  type WarehouseOption,
+} from "./components/InventoryBulkActionBar";
 
 type InventoryTab = "stock" | "shortages";
 
@@ -38,8 +42,14 @@ const InventoryPage = () => {
   const [search, setSearch] = useState("");
   const [warehouseId, setWarehouseId] = useState("");
   const [adjustments, setAdjustments] = useState<Record<string | number, number>>({});
+  const [stockingAdjustments, setStockingAdjustments] = useState<Record<string | number, number>>({});
+  const [selectedItemIds, setSelectedItemIds] = useState<Set<string | number>>(new Set());
+  const [infiniteItemIds, setInfiniteItemIds] = useState<Set<string | number>>(new Set());
 
-  const hasAdjustments = Object.keys(adjustments).length > 0;
+  const hasAdjustments =
+    Object.keys(adjustments).length > 0 ||
+    Object.keys(stockingAdjustments).length > 0 ||
+    infiniteItemIds.size > 0;
 
   const [inventoryLoaded, setInventoryLoaded] = useState(false);
   const [shortagesLoaded, setShortagesLoaded] = useState(false);
@@ -99,8 +109,91 @@ const InventoryPage = () => {
     );
   }, [activeItems, search]);
 
+  const warehouseOptions: WarehouseOption[] = useMemo(
+    () => [
+      { value: "", label: t("All warehouses (global stock)") },
+      ...warehouses.map((w: any) => ({ value: w._id || w.id, label: w.name })),
+    ],
+    [warehouses, t]
+  );
+
+  const isAllSelected =
+    filteredItems.length > 0 &&
+    filteredItems.every((item) => selectedItemIds.has(item.id));
+  const isIndeterminate =
+    !isAllSelected &&
+    filteredItems.some((item) => selectedItemIds.has(item.id));
+
+  const handleToggleSelect = (id: string | number) => {
+    setSelectedItemIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const handleToggleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedItemIds(new Set());
+    } else {
+      setSelectedItemIds(new Set(filteredItems.map((item) => item.id)));
+    }
+  };
+
   const handleAdjust = (id: string | number, value: number) => {
     setAdjustments((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const handleStockingAdjust = (id: string | number, value: number) => {
+    setStockingAdjustments((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const handleApplyBulkQuantity = ({
+    mode,
+    quantity,
+    isInfinite,
+    warehouseId: newWarehouseId,
+  }: {
+    mode: BulkQuantityMode;
+    quantity: number | null;
+    isInfinite: boolean;
+    warehouseId: string;
+  }) => {
+    if (newWarehouseId !== warehouseId) {
+      setWarehouseId(newWarehouseId);
+    }
+
+    if (isInfinite) {
+      setInfiniteItemIds((prev) => {
+        const next = new Set(prev);
+        selectedItemIds.forEach((id) => next.add(id));
+        return next;
+      });
+    } else if (quantity !== null) {
+      setInfiniteItemIds((prev) => {
+        const next = new Set(prev);
+        selectedItemIds.forEach((id) => next.delete(id));
+        return next;
+      });
+
+      setAdjustments((prev) => {
+        const next = { ...prev };
+        selectedItemIds.forEach((id) => {
+          const item = items.find((i) => i.id === id);
+          const current = next[id] ?? item?.currentQuantity ?? 0;
+          if (mode === "set") {
+            next[id] = quantity;
+          } else {
+            next[id] = current + quantity;
+          }
+        });
+        return next;
+      });
+    }
   };
 
   const handleSaveEdits = () => {
@@ -109,8 +202,12 @@ const InventoryPage = () => {
       id,
       quantity,
     }));
-    bulkUpdateItemsStock({ updates: updatesToUpdate });
+    if (updatesToUpdate.length > 0) {
+      bulkUpdateItemsStock({ updates: updatesToUpdate });
+    }
     setAdjustments({});
+    setStockingAdjustments({});
+    setSelectedItemIds(new Set());
   };
 
   const isLoading = !inventoryLoaded || !shortagesLoaded;
@@ -233,10 +330,7 @@ const InventoryPage = () => {
         </div>
         {activeTab === "stock" && (
           <DropdownSelect
-            options={[
-              { value: "", label: t("All warehouses (global stock)") },
-              ...warehouses.map((w: any) => ({ value: w._id || w.id, label: w.name })),
-            ]}
+            options={warehouseOptions}
             selected={warehouseId}
             onSelect={setWarehouseId}
             placeholder={t("All warehouses (global stock)")}
@@ -246,12 +340,33 @@ const InventoryPage = () => {
         )}
       </div>
 
+      {/* Bulk Action Bar (Figma .frame-2147224183) */}
+      {activeTab === "stock" && selectedItemIds.size > 0 && (
+        <div className="mb-4">
+          <InventoryBulkActionBar
+            selectedCount={selectedItemIds.size}
+            warehouses={warehouseOptions}
+            selectedWarehouse={warehouseId}
+            onSelectWarehouse={setWarehouseId}
+            onApply={handleApplyBulkQuantity}
+          />
+        </div>
+      )}
+
       {/* Table */}
       {activeTab === "stock" ? (
         <StockStatusTable
           items={filteredItems}
           adjustments={adjustments}
           onAdjust={handleAdjust}
+          selectedItemIds={selectedItemIds}
+          onToggleSelect={handleToggleSelect}
+          onToggleSelectAll={handleToggleSelectAll}
+          isAllSelected={isAllSelected}
+          isIndeterminate={isIndeterminate}
+          infiniteItemIds={infiniteItemIds}
+          stockingAdjustments={stockingAdjustments}
+          onStockingAdjust={handleStockingAdjust}
         />
       ) : (
         <ExpectedShortagesTable items={filteredItems} />

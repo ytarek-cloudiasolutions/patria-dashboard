@@ -13,4 +13,6 @@ export interface InventoryItem {
   expectedExpiryDate: string | null;
   daysRemaining: number | null;
   urgencyLevel: UrgencyLevel;
+  isInfinite?: boolean;
+  stockingQuantity?: number;
 }
