@@ -1,16 +1,29 @@
 import { api } from "@/config/api";
 import { INVENTORY_ENDPOINTS } from "../constants/inventoryConstants";
 import type {
+  GetInventoryParams,
   GetInventoryResponse,
   GetShortagesResponse,
   UpdateStockRequest,
   BulkUpdateStockRequest,
 } from "../store/inventoryTypes";
 
-export const getInventory = async (warehouseId?: string) => {
+export const getInventory = async (
+  paramsOrWarehouseId?: GetInventoryParams | string,
+) => {
+  const params =
+    typeof paramsOrWarehouseId === "string"
+      ? { warehouseId: paramsOrWarehouseId }
+      : paramsOrWarehouseId;
+
+  const queryParams: Record<string, string> = {};
+  if (params?.warehouseId) queryParams.warehouseId = params.warehouseId;
+  if (params?.categoryId) queryParams.categoryId = params.categoryId;
+  if (params?.search) queryParams.search = params.search;
+
   const response = await api.get<GetInventoryResponse>(
     INVENTORY_ENDPOINTS.INVENTORY,
-    { params: warehouseId ? { warehouseId } : undefined },
+    { params: Object.keys(queryParams).length > 0 ? queryParams : undefined },
   );
   return response.data;
 };

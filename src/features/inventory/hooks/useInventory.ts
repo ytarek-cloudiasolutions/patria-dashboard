@@ -2,7 +2,11 @@ import { useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "@/app/store";
 import { inventoryActions } from "../store/inventorySlice";
-import type { UpdateStockRequest, BulkUpdateStockRequest } from "../store/inventoryTypes";
+import type {
+  UpdateStockRequest,
+  BulkUpdateStockRequest,
+  GetInventoryParams,
+} from "../store/inventoryTypes";
 
 export const useInventory = () => {
   const dispatch = useDispatch();
@@ -14,8 +18,9 @@ export const useInventory = () => {
   const errors = useSelector((state: RootState) => state.inventory.errors);
   const successMessage = useSelector((state: RootState) => state.inventory.successMessage);
 
-  const getInventoryList = useCallback((warehouseId?: string) => {
-    dispatch(inventoryActions.getInventoryRequest(warehouseId ? { warehouseId } : undefined));
+  const getInventoryList = useCallback((params?: GetInventoryParams | string) => {
+    const payload = typeof params === "string" ? { warehouseId: params } : params;
+    dispatch(inventoryActions.getInventoryRequest(payload));
   }, [dispatch]);
 
   const getShortagesList = useCallback(() => {

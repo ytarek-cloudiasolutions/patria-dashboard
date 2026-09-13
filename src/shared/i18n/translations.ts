@@ -347,6 +347,7 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   "Optional — 0 means unlimited": "اختياري — 0 يعني غير محدود",
 
   // Inventory module
+  "All Warehouses": "كل المستودعات",
   "Manage stock levels across all kitchen stations and the main warehouse.":
     "إدارة مستويات المخزون في جميع محطات المطبخ والمستودع الرئيسي.",
   synchronization: "مزامنة",

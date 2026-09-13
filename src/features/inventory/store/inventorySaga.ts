@@ -5,6 +5,7 @@ import { inventoryApi } from "../api/inventoryApi";
 import { inventoryActions } from "./inventorySlice";
 import { showErrorToast, showSuccessToast } from "@/shared/utils/toast";
 import type {
+  GetInventoryParams,
   GetInventoryResponse,
   GetShortagesResponse,
   UpdateStockRequest,
@@ -27,12 +28,12 @@ const getInventoryErrorMessage = (error: unknown): string => {
 };
 
 function* handleGetInventory(
-  action: PayloadAction<{ warehouseId?: string } | undefined>,
+  action: PayloadAction<GetInventoryParams | string | undefined>,
 ) {
   try {
     const response: GetInventoryResponse = yield call(
       inventoryApi.getInventory,
-      action.payload?.warehouseId,
+      action.payload,
     );
     yield put(
       inventoryActions.getInventorySuccess({

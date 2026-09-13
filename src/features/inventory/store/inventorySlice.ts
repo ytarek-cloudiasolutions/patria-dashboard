@@ -7,6 +7,7 @@ import type {
   BulkUpdateStockRequest,
   UpdateStockRequest,
   InventoryStats,
+  GetInventoryParams,
 } from "./inventoryTypes";
 import { mapInventoryItems, mapShortageItems } from "../utils/inventoryMappers";
 
@@ -62,7 +63,7 @@ const inventorySlice = createSlice({
   reducers: {
     getInventoryRequest: (
       state,
-      _action: PayloadAction<{ warehouseId?: string } | undefined>,
+      _action: PayloadAction<GetInventoryParams | string | undefined>,
     ) => {
       setOperationLoading(state, "fetch");
     },

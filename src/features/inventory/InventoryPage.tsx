@@ -17,6 +17,7 @@ import StockStatusTable from "./components/StockStatusTable";
 import ExpectedShortagesTable from "./components/ExpectedShortagesTable";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { useWarehouses } from "@/features/warehouses/hooks/useWarehouses";
+import { useCategories } from "@/features/categories";
 import InventoryBulkActionBar, {
   type BulkQuantityMode,
   type WarehouseOption,
@@ -38,9 +39,11 @@ const InventoryPage = () => {
   } = useInventory();
 
   const { warehouses, getWarehouses } = useWarehouses();
+  const { categories, getCategories } = useCategories();
   const [activeTab, setActiveTab] = useState<InventoryTab>("stock");
   const [search, setSearch] = useState("");
   const [warehouseId, setWarehouseId] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [adjustments, setAdjustments] = useState<Record<string | number, number>>({});
   const [stockingAdjustments, setStockingAdjustments] = useState<Record<string | number, number>>({});
   const [selectedItemIds, setSelectedItemIds] = useState<Set<string | number>>(new Set());
@@ -77,14 +80,17 @@ const InventoryPage = () => {
   useEffect(() => {
     getShortagesList();
     getWarehouses();
-  }, [getShortagesList, getWarehouses]);
+    getCategories();
+  }, [getShortagesList, getWarehouses, getCategories]);
 
-  // Re-fetch stock whenever the selected warehouse changes — this was
-  // previously never sent at all, so GET /inventory always returned the
-  // global (unfiltered) figures no matter what a caller expected.
+  // Re-fetch stock whenever the selected warehouse or category changes — sends
+  // warehouseId and categoryId as query parameters to GET /inventory
   useEffect(() => {
-    getInventoryList(warehouseId || undefined);
-  }, [getInventoryList, warehouseId]);
+    getInventoryList({
+      warehouseId: warehouseId || undefined,
+      categoryId: selectedCategory || undefined,
+    });
+  }, [getInventoryList, warehouseId, selectedCategory]);
 
   // Determine current active source items
   const activeItems = activeTab === "stock" ? items : shortages;
@@ -102,16 +108,66 @@ const InventoryPage = () => {
     };
   }, [backendStats, items]);
 
+  const categoryOptions = useMemo(() => {
+    const options: { value: string; label: string }[] = [
+      { value: "", label: t("All Categories") },
+    ];
+    const seen = new Set<string>();
+
+    if (categories && categories.length > 0) {
+      categories.forEach((c) => {
+        const id = c.id || (c as any)._id;
+        if (c.name && id && !seen.has(id)) {
+          seen.add(id);
+          options.push({ value: id, label: c.name });
+        }
+      });
+    }
+
+    activeItems.forEach((i) => {
+      if (i.category) {
+        const matchingCat = categories.find(
+          (c) => c.name?.toLowerCase() === i.category?.toLowerCase()
+        );
+        const val = matchingCat?.id || (matchingCat as any)?._id || i.category;
+        if (!seen.has(val)) {
+          seen.add(val);
+          options.push({ value: val, label: i.category });
+        }
+      }
+    });
+
+    return options;
+  }, [categories, activeItems, t]);
+
   const filteredItems = useMemo(() => {
-    if (!search.trim()) return activeItems;
-    return activeItems.filter((i) =>
-      i.name.toLowerCase().includes(search.toLowerCase()),
-    );
-  }, [activeItems, search]);
+    let result = activeItems;
+
+    if (selectedCategory) {
+      const catObj = categories.find(
+        (c) => c.id === selectedCategory || c.name === selectedCategory
+      );
+      const catName = (catObj?.name || selectedCategory).toLowerCase();
+      const catId = (catObj?.id || selectedCategory).toLowerCase();
+
+      result = result.filter((i) => {
+        const itemCat = (i.category || "").toLowerCase();
+        return itemCat === catName || itemCat === catId;
+      });
+    }
+
+    if (search.trim()) {
+      result = result.filter((i) =>
+        i.name.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+
+    return result;
+  }, [activeItems, search, selectedCategory, categories]);
 
   const warehouseOptions: WarehouseOption[] = useMemo(
     () => [
-      { value: "", label: t("All warehouses (global stock)") },
+      { value: "", label: t("All Warehouses") },
       ...warehouses.map((w: any) => ({ value: w._id || w.id, label: w.name })),
     ],
     [warehouses, t]
@@ -319,24 +375,36 @@ const InventoryPage = () => {
         />
       </div>
 
-      {/* Search + Warehouse filter */}
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row">
-        <div className="flex-1">
+      {/* Search + Category + Warehouse filter */}
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="flex-1 sm:flex-[1.4] min-w-0">
           <SearchInputField
             value={search}
             onChange={setSearch}
             placeholder={t("Search products...")}
           />
         </div>
-        {activeTab === "stock" && (
+        <div className="w-full sm:w-auto sm:flex-1 sm:min-w-[220px] sm:max-w-[300px]">
           <DropdownSelect
-            options={warehouseOptions}
-            selected={warehouseId}
-            onSelect={setWarehouseId}
-            placeholder={t("All warehouses (global stock)")}
+            options={categoryOptions}
+            selected={selectedCategory}
+            onSelect={setSelectedCategory}
+            placeholder={t("All Categories")}
             align="start"
-            className="h-11 sm:w-[240px]"
+            className="h-12 w-full"
           />
+        </div>
+        {activeTab === "stock" && (
+          <div className="w-full sm:w-auto sm:flex-1 sm:min-w-[220px] sm:max-w-[300px]">
+            <DropdownSelect
+              options={warehouseOptions}
+              selected={warehouseId}
+              onSelect={setWarehouseId}
+              placeholder={t("All Warehouses")}
+              align="start"
+              className="h-12 w-full"
+            />
+          </div>
         )}
       </div>
 

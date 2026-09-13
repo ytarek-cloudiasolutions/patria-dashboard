@@ -7,6 +7,12 @@ export interface InventoryStats {
   inventoryValue: number;
 }
 
+export interface GetInventoryParams {
+  warehouseId?: string;
+  categoryId?: string;
+  search?: string;
+}
+
 export interface GetInventoryResponse {
   products: any[];
   stats: InventoryStats;
