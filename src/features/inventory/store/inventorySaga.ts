@@ -10,6 +10,7 @@ import type {
   GetShortagesResponse,
   UpdateStockRequest,
   BulkUpdateStockRequest,
+  BulkStockActionRequest,
 } from "./inventoryTypes";
 
 const getInventoryErrorMessage = (error: unknown): string => {
@@ -112,6 +113,28 @@ function* handleBulkUpdateStock(action: PayloadAction<BulkUpdateStockRequest>) {
   }
 }
 
+function* handleBulkStockAction(action: PayloadAction<BulkStockActionRequest>) {
+  try {
+    const response: { message: string } = yield call(
+      inventoryApi.bulkStockAction,
+      action.payload,
+    );
+    yield call(showSuccessToast, response.message || "Bulk stock action applied successfully");
+    yield put(inventoryActions.bulkStockActionSuccess(response.message));
+    // Reload lists for this warehouse to show updated stock values and stats
+    yield put(
+      inventoryActions.getInventoryRequest({
+        warehouseId: action.payload.warehouseId,
+      }),
+    );
+    yield put(inventoryActions.getShortagesRequest());
+  } catch (error) {
+    const errorMsg = getInventoryErrorMessage(error);
+    yield call(showErrorToast, errorMsg);
+    yield put(inventoryActions.bulkStockActionFailure(errorMsg));
+  }
+}
+
 export function* inventorySaga() {
   yield all([
     takeLatest(inventoryActions.getInventoryRequest.type, handleGetInventory),
@@ -119,5 +142,6 @@ export function* inventorySaga() {
     takeLatest(inventoryActions.syncInventoryRequest.type, handleSyncInventory),
     takeLatest(inventoryActions.updateStockRequest.type, handleUpdateStock),
     takeLatest(inventoryActions.bulkUpdateStockRequest.type, handleBulkUpdateStock),
+    takeLatest(inventoryActions.bulkStockActionRequest.type, handleBulkStockAction),
   ]);
 }

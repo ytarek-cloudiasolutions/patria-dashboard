@@ -6,6 +6,7 @@ import type {
   GetShortagesResponse,
   UpdateStockRequest,
   BulkUpdateStockRequest,
+  BulkStockActionRequest,
 } from "../store/inventoryTypes";
 
 export const getInventory = async (
@@ -58,10 +59,34 @@ export const bulkUpdateStock = async (data: BulkUpdateStockRequest) => {
   return response.data;
 };
 
+export const bulkStockAction = async (data: BulkStockActionRequest) => {
+  const payload: Record<string, any> = {
+    warehouseId: data.warehouseId,
+    productIds: data.productIds,
+    mode: data.mode,
+  };
+  if (data.mode !== "infinite" && data.quantity !== undefined) {
+    payload.quantity = data.quantity;
+  }
+  if (data.items && data.items.length > 0) {
+    payload.items = data.items;
+  }
+  if (data.postOpeningBalance !== undefined) {
+    payload.postOpeningBalance = data.postOpeningBalance;
+  }
+
+  const response = await api.post<{ message: string }>(
+    INVENTORY_ENDPOINTS.BULK_STOCK_ACTION,
+    payload,
+  );
+  return response.data;
+};
+
 export const inventoryApi = {
   getInventory,
   getShortages,
   synchronizeInventory,
   updateStock,
   bulkUpdateStock,
+  bulkStockAction,
 };

@@ -6,6 +6,7 @@ import type {
   UpdateStockRequest,
   BulkUpdateStockRequest,
   GetInventoryParams,
+  BulkStockActionRequest,
 } from "../store/inventoryTypes";
 
 export const useInventory = () => {
@@ -45,6 +46,13 @@ export const useInventory = () => {
     [dispatch],
   );
 
+  const executeBulkStockAction = useCallback(
+    (data: BulkStockActionRequest) => {
+      dispatch(inventoryActions.bulkStockActionRequest(data));
+    },
+    [dispatch],
+  );
+
   const clearMessages = useCallback(() => {
     dispatch(inventoryActions.clearInventoryMessages());
   }, [dispatch]);
@@ -61,6 +69,7 @@ export const useInventory = () => {
     syncInventory,
     updateItemStock,
     bulkUpdateItemsStock,
+    executeBulkStockAction,
     clearMessages,
   };
 };

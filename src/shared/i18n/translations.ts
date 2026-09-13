@@ -348,6 +348,7 @@ export const AR_TRANSLATIONS: Record<string, string> = {
 
   // Inventory module
   "All Warehouses": "كل المستودعات",
+  "Please select a warehouse first": "يرجى اختيار المستودع أولاً",
   "Manage stock levels across all kitchen stations and the main warehouse.":
     "إدارة مستويات المخزون في جميع محطات المطبخ والمستودع الرئيسي.",
   synchronization: "مزامنة",

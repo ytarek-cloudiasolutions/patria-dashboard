@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Check, Save } from "lucide-react";
+import { Check, Loader2, Save } from "lucide-react";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { cn } from "@/lib/utils";
 import DropdownSelect from "@/shared/components/DropdownSelect";
+import { showErrorToast } from "@/shared/utils/toast";
 
 export type BulkQuantityMode = "set" | "add";
 
@@ -22,6 +23,7 @@ interface InventoryBulkActionBarProps {
     isInfinite: boolean;
     warehouseId: string;
   }) => void;
+  isLoading?: boolean;
   className?: string;
 }
 
@@ -31,6 +33,7 @@ const InventoryBulkActionBar = ({
   selectedWarehouse,
   onSelectWarehouse,
   onApply,
+  isLoading = false,
   className,
 }: InventoryBulkActionBarProps) => {
   const { t } = useTranslation();
@@ -56,7 +59,11 @@ const InventoryBulkActionBar = ({
   };
 
   const handleActionClick = () => {
-    if (!isButtonActive) return;
+    if (!isButtonActive || isLoading) return;
+    if (!selectedWarehouse) {
+      showErrorToast(t("Please select a warehouse first"));
+      return;
+    }
     onApply({
       mode,
       quantity: isInfinite ? null : (numericQty ?? 0),
@@ -172,21 +179,25 @@ const InventoryBulkActionBar = ({
       {/* 6. Action button */}
       <button
         type="button"
-        disabled={!isButtonActive}
+        disabled={!isButtonActive || isLoading}
         onClick={handleActionClick}
         className={cn(
           "h-12 px-4 py-3 rounded-[5px] flex items-center justify-center gap-2.5 transition-all shrink-0 font-semibold text-[14px] sm:text-[15px]",
-          isButtonActive
+          isButtonActive && !isLoading
             ? "bg-[#8F6900] text-white hover:bg-[#725400] cursor-pointer shadow-sm active:scale-[0.98]"
             : "bg-[#DCDCDC] text-[#8B8B8B] cursor-not-allowed pointer-events-none"
         )}
       >
-        <Save
-          className={cn(
-            "size-4.5 shrink-0",
-            isButtonActive ? "text-white" : "text-[#8B8B8B]"
-          )}
-        />
+        {isLoading ? (
+          <Loader2 className="size-4.5 animate-spin text-[#8B8B8B]" />
+        ) : (
+          <Save
+            className={cn(
+              "size-4.5 shrink-0",
+              isButtonActive ? "text-white" : "text-[#8B8B8B]"
+            )}
+          />
+        )}
         <span>{buttonText}</span>
       </button>
     </div>

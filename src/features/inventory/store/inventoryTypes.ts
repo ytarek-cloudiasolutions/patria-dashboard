@@ -33,6 +33,20 @@ export interface BulkUpdateStockRequest {
   }>;
 }
 
+export interface BulkStockActionItem {
+  productId: string;
+  quantity: number;
+}
+
+export interface BulkStockActionRequest {
+  warehouseId: string;
+  productIds: string[];
+  mode: "set" | "add" | "infinite";
+  quantity?: number;
+  postOpeningBalance?: boolean;
+  items?: BulkStockActionItem[];
+}
+
 export type InventoryOperation = "fetch" | "fetchShortages" | "update" | "sync";
 
 export interface InventoryLoadingState {

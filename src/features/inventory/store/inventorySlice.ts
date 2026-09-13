@@ -8,6 +8,7 @@ import type {
   UpdateStockRequest,
   InventoryStats,
   GetInventoryParams,
+  BulkStockActionRequest,
 } from "./inventoryTypes";
 import { mapInventoryItems, mapShortageItems } from "../utils/inventoryMappers";
 
@@ -129,6 +130,20 @@ const inventorySlice = createSlice({
       state.successMessage = action.payload || "Stock updated successfully";
     },
     bulkUpdateStockFailure: (state, action: PayloadAction<string>) => {
+      setOperationFailure(state, "update", action.payload);
+    },
+
+    bulkStockActionRequest: (
+      state,
+      _action: PayloadAction<BulkStockActionRequest>,
+    ) => {
+      setOperationLoading(state, "update");
+    },
+    bulkStockActionSuccess: (state, action: PayloadAction<string>) => {
+      state.loading.update = false;
+      state.successMessage = action.payload || "Bulk stock action applied successfully";
+    },
+    bulkStockActionFailure: (state, action: PayloadAction<string>) => {
       setOperationFailure(state, "update", action.payload);
     },
 

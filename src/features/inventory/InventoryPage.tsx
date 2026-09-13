@@ -36,6 +36,7 @@ const InventoryPage = () => {
     getShortagesList,
     syncInventory,
     bulkUpdateItemsStock,
+    executeBulkStockAction,
   } = useInventory();
 
   const { warehouses, getWarehouses } = useWarehouses();
@@ -223,33 +224,18 @@ const InventoryPage = () => {
       setWarehouseId(newWarehouseId);
     }
 
-    if (isInfinite) {
-      setInfiniteItemIds((prev) => {
-        const next = new Set(prev);
-        selectedItemIds.forEach((id) => next.add(id));
-        return next;
-      });
-    } else if (quantity !== null) {
-      setInfiniteItemIds((prev) => {
-        const next = new Set(prev);
-        selectedItemIds.forEach((id) => next.delete(id));
-        return next;
-      });
+    const productIds = Array.from(selectedItemIds).map(String);
+    if (productIds.length === 0) return;
 
-      setAdjustments((prev) => {
-        const next = { ...prev };
-        selectedItemIds.forEach((id) => {
-          const item = items.find((i) => i.id === id);
-          const current = next[id] ?? item?.currentQuantity ?? 0;
-          if (mode === "set") {
-            next[id] = quantity;
-          } else {
-            next[id] = current + quantity;
-          }
-        });
-        return next;
-      });
-    }
+    executeBulkStockAction({
+      warehouseId: newWarehouseId,
+      productIds,
+      mode: isInfinite ? "infinite" : mode,
+      quantity: isInfinite ? undefined : (quantity ?? 0),
+      postOpeningBalance: !isInfinite,
+    });
+
+    setSelectedItemIds(new Set());
   };
 
   const handleSaveEdits = () => {
@@ -417,6 +403,7 @@ const InventoryPage = () => {
             selectedWarehouse={warehouseId}
             onSelectWarehouse={setWarehouseId}
             onApply={handleApplyBulkQuantity}
+            isLoading={loading.update}
           />
         </div>
       )}
