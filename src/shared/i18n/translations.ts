@@ -1185,10 +1185,12 @@ export const AR_TRANSLATIONS: Record<string, string> = {
 
   // Products module
   "Item Type": "طبيعة الصنف",
+  "Item type is required": "طبيعة الصنف مطلوبة",
   "Ready-made (sold directly)": "جاهز (يُباع مباشرةً)",
   "Manufactured (from components – automatically deducted)": "مصنّع (من مكونات – يُخصم تلقائياً)",
   "Manufactured via work order": "مصنّع بأمر تشغيل",
   "Raw materials": "مواد خام",
+  "Raw material": "مادة خام",
   "Service": "خدمة",
   "(Editable)": "(قابل للتعديل)",
   "Add Group": "إضافة مجموعة",

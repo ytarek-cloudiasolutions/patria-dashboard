@@ -39,6 +39,7 @@ const INITIAL_FORM: IngredientFormData = {
   imageFile: undefined,
   isExtra: false,
   extraCategories: [],
+  productType: "",
 };
 
 interface AddIngredientDialogProps {
@@ -66,6 +67,7 @@ const AddIngredientDialog = ({
     Partial<Record<keyof IngredientFormData, string>>
   >({});
   const [isUnitOpen, setIsUnitOpen] = useState(false);
+  const [isItemTypeOpen, setIsItemTypeOpen] = useState(false);
   const [extraSearchQuery, setExtraSearchQuery] = useState("");
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
   const [fetchedProducts, setFetchedProducts] = useState<Product[]>([]);
@@ -143,11 +145,13 @@ const AddIngredientDialog = ({
             imageFile: undefined,
             isExtra: editingIngredient.isExtra ?? false,
             extraCategories: initialExtraTargetIds,
+            productType: editingIngredient.productType || "",
           }
         : INITIAL_FORM,
     );
     setErrors({});
     setIsUnitOpen(false);
+    setIsItemTypeOpen(false);
     setExtraSearchQuery("");
   }, [open, editingIngredient]);
 
@@ -402,6 +406,9 @@ const AddIngredientDialog = ({
     e.preventDefault();
     const next: Partial<Record<keyof IngredientFormData, string>> = {};
     if (!form.name.trim()) next.name = t("Product name is required");
+    if (!form.productType || !form.productType.trim()) {
+      next.productType = t("Item type is required");
+    }
     if (!form.price.trim() || Number(form.price) <= 0)
       next.price = t("Enter a valid price");
     if (!form.quantity.trim() || Number(form.quantity) < 0)
@@ -424,7 +431,7 @@ const AddIngredientDialog = ({
         showCloseButton={false}
         className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-150"
       >
-        {isUnitOpen && (
+        {(isUnitOpen || isItemTypeOpen) && (
           <div className="pointer-events-none fixed inset-0 z-60 bg-black/40" />
         )}
 
@@ -475,32 +482,62 @@ const AddIngredientDialog = ({
                 )}
               </div>
 
-              <div>
-                <InputField
-                  data={{
-                    id: "ingredient-description",
-                    label: {
-                      htmlFor: "ingredient-description",
-                      labelText: t("Description"),
-                    },
-                    placeholder: t("Description"),
-                    inputProps: {
-                      value: form.description,
-                      onChange: (e) => set("description", e.target.value),
-                    },
+              <div className="flex flex-col gap-2.5">
+                <Label className="text-[16px] font-medium text-black">
+                  {t("Item Type")}<span className="text-[#C90000]">*</span>
+                </Label>
+                <DropdownSelect
+                  options={[
+                    { value: "raw_material", label: t("Raw material") },
+                    { value: "service", label: t("Service") },
+                  ]}
+                  selected={form.productType || ""}
+                  onSelect={(val) => {
+                    set("productType", val);
+                    if (errors.productType) {
+                      setErrors((prev) => ({ ...prev, productType: undefined }));
+                    }
                   }}
+                  onOpenChange={setIsItemTypeOpen}
+                  placeholder={t("Select item type")}
+                  align="start"
+                  className={cn(
+                    "w-full md:w-full sm:w-full h-12.5 rounded-xl font-normal text-[#23252A]",
+                    errors.productType && "border-[#C90000]"
+                  )}
+                  contentClassName="w-[var(--radix-dropdown-menu-trigger-width)] md:w-[var(--radix-dropdown-menu-trigger-width)]"
                 />
+                {errors.productType && (
+                  <p className="mt-1 text-[13px] text-[#C90000]">
+                    {errors.productType}
+                  </p>
+                )}
               </div>
             </div>
+
+            <InputField
+              data={{
+                id: "ingredient-description",
+                label: {
+                  htmlFor: "ingredient-description",
+                  labelText: `${t("Description")} ${t("(Optional)")}`,
+                },
+                placeholder: t("Describe this product..."),
+                inputProps: {
+                  value: form.description,
+                  onChange: (e) => set("description", e.target.value),
+                },
+              }}
+            />
 
             <InputField
               data={{
                 id: "ingredient-barcode",
                 label: {
                   htmlFor: "ingredient-barcode",
-                  labelText: t("Barcode"),
+                  labelText: `${t("Barcode")} ${t("(Optional)")}`,
                 },
-                placeholder: t("Barcode"),
+                placeholder: t("Manually enter barcode"),
                 inputProps: {
                   value: form.barcode,
                   onChange: (e) => set("barcode", e.target.value),
@@ -539,7 +576,7 @@ const AddIngredientDialog = ({
                 <Label
                   className="mb-2.5 text-[16px] font-medium text-black"
                 >
-                  {t("Price Unit")}
+                  {t("Unit")}
                 </Label>
                 <DropdownSelect
                   options={[

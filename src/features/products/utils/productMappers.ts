@@ -102,9 +102,12 @@ export const mapProduct = (backendProduct: any): Product => {
     };
   });
 
+  const pType = (backendProduct.productType || "").toLowerCase();
   const isIngredient = Boolean(
     backendProduct.isIngredient ||
     backendProduct.category?.isIngredient ||
+    pType === "raw_material" ||
+    pType === "service" ||
     categoryName.toLowerCase().trim() === "raw ingredients" ||
     categoryName.toLowerCase().trim() === "raw ingredient" ||
     categoryName.toLowerCase().trim() === "ingredients" ||

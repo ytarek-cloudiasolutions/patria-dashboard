@@ -50,6 +50,9 @@ export interface Ingredient {
   extraTargetProductIds?: string[];
   extraQuantity?: number;
   barcode?: string;
+  productType?: string;
+  category?: string;
+  categoryId?: string;
 }
 
 
@@ -110,12 +113,16 @@ export interface ProductExtra {
 
 export interface ProductFormData {
   name: string;
-  category: string;
   description: string;
   barcode: string;
   price: string;
-  quantity: string;
+  discountPrice: string;
+  discountType: ProductDiscountType;
+  discountValue: string;
+  category: string;
   productType: string;
+  quantity: string;
+  unit: string;
   imageUrl?: string;
   imageFile?: File;
   variantGroups: VariantGroup[];
@@ -133,6 +140,7 @@ export interface IngredientFormData {
   price: string;
   quantity: string;
   unit: string;
+  productType: string;
   extraQuantity?: string;
   imageUrl?: string;
   imageFile?: File;

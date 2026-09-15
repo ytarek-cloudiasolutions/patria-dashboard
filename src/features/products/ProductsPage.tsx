@@ -161,7 +161,6 @@ const ProductsPage = () => {
       } else if (tab === "recipes") {
         getProducts({
           search: ingredientSearch.trim() || undefined,
-          category: "6a3927888bbe5f4d11bde590",
           page,
           limit: 100,
         });
@@ -205,28 +204,55 @@ const ProductsPage = () => {
   );
 
   const filteredProducts = useMemo(() => {
-    return products.filter(
-      (p) => (p.category || "").toLowerCase() !== "raw ingredients"
-    );
+    return products.filter((p) => {
+      const pType = (p.productType || "").toLowerCase();
+      const cat = (p.category || "").toLowerCase().trim();
+      return (
+        !p.isIngredient &&
+        pType !== "raw_material" &&
+        pType !== "service" &&
+        cat !== "raw ingredients" &&
+        cat !== "raw ingredient" &&
+        cat !== "ingredients" &&
+        cat !== "المكونات الخام"
+      );
+    });
   }, [products]);
 
   const filteredIngredients = useMemo(() => {
     if (tab !== "recipes") return [];
-    return products.map((p) => ({
-      id: p.id,
-      name: p.name,
-      description: p.description || "",
-      imageUrl: p.imageUrl,
-      price: p.price,
-      quantity: p.quantity ?? 0,
-      unit: formatUnit(p.unit),
-      recipe: p.recipe || [],
-      isExtra: p.isExtra ?? false,
-      extraTargetProductIds: p.extraTargetProductIds || [],
-      barcode: p.barcode || "",
-      isActive: p.isActive ?? p.available ?? true,
-    }));
-  }, [products, tab]);
+    return products
+      .filter((p) => {
+        const pType = (p.productType || "").toLowerCase();
+        const cat = (p.category || "").toLowerCase().trim();
+        return (
+          p.isIngredient ||
+          pType === "raw_material" ||
+          pType === "service" ||
+          cat === "raw ingredients" ||
+          cat === "raw ingredient" ||
+          cat === "ingredients" ||
+          cat === "المكونات الخام"
+        );
+      })
+      .map((p) => ({
+        id: p.id,
+        name: p.name,
+        description: p.description || "",
+        imageUrl: p.imageUrl,
+        price: p.price,
+        quantity: p.quantity ?? 0,
+        unit: formatUnit(p.unit),
+        recipe: p.recipe || [],
+        isExtra: p.isExtra ?? false,
+        extraTargetProductIds: p.extraTargetProductIds || [],
+        barcode: p.barcode || "",
+        isActive: p.isActive ?? p.available ?? true,
+        productType: p.productType,
+        category: p.category,
+        categoryId: (p as any).categoryId || (categories.find((c) => c.name === p.category)?.id),
+      }));
+  }, [products, tab, categories]);
 
   const ingredientOptions = useMemo(() => {
     return products.map((p) => ({
@@ -367,10 +393,23 @@ const ProductsPage = () => {
   };
 
   const handleAddIngredient = (data: IngredientFormData) => {
-    const rawIngredientsCat = categories.find(
-      (c) => c.name.toLowerCase() === "raw ingredients"
-    );
-    const categoryId = rawIngredientsCat ? rawIngredientsCat.id : "";
+    const rawIngredientsCat = categories.find((c) => {
+      const name = (c.name || "").trim().toLowerCase();
+      return (
+        name === "raw ingredients" ||
+        name === "raw ingredient" ||
+        name === "ingredients" ||
+        name === "المكونات الخام" ||
+        name === "مواد خام" ||
+        name === "مكونات خام" ||
+        c.id === "6a3927888bbe5f4d11bde590"
+      );
+    });
+    const categoryId =
+      rawIngredientsCat?.id ||
+      (editingIngredient as any)?.categoryId ||
+      (editingIngredient as any)?.category?.id ||
+      "6a3927888bbe5f4d11bde590";
 
     const formData = new FormData();
     formData.append("name", data.name.trim());
@@ -382,6 +421,8 @@ const ProductsPage = () => {
     formData.append("categoryId", categoryId);
     formData.append("stockQty", String(Number(data.quantity) || 0));
     formData.append("unit", data.unit || "g");
+    formData.append("productType", data.productType || "raw_material");
+    formData.append("isIngredient", "true");
     formData.append("isExtra", String(Boolean(data.isExtra)));
     formData.append("extraQuantity", String(Number(data.extraQuantity ?? data.quantity) || 0));
     formData.append(
