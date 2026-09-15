@@ -18,11 +18,14 @@ interface IngredientsTableProps {
   onDelete: (ingredient: Ingredient) => void;
 }
 
-const RawIngredientBadge = () => {
-  const { t } = useTranslation();
+const ProductTypeBadge = ({ productType }: { productType?: string }) => {
+  const { language } = useTranslation();
+  const isService = productType === "service";
   return (
     <Badge className="h-6 rounded-full border border-[#725400] bg-primary px-3 py-0 text-[11px] font-semibold text-white">
-      {t("Raw Ingredient")}
+      {isService
+        ? (language === "ar" ? "خدمة" : "Service")
+        : (language === "ar" ? "مكون خام" : "Raw Ingredient")}
     </Badge>
   );
 };
@@ -153,7 +156,7 @@ const IngredientsTable = ({
                   </p>
                 </TableCell>
                 <TableCell className="px-6 py-4 whitespace-nowrap">
-                  <RawIngredientBadge />
+                  <ProductTypeBadge productType={ingredient.productType} />
                 </TableCell>
                 <TableCell className="px-6 py-4 whitespace-nowrap text-[14px] font-semibold text-[#28293D]">
                   {formatEgp(ingredient.price)}

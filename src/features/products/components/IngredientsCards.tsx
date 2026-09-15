@@ -69,10 +69,12 @@ const IngredientsCards = ({
                 <Box className="size-12 text-[#A1A1AA]" />
               )}
 
-              {/* Raw Ingredient Badge (Top-Left) */}
+              {/* Product Type Badge (Top-Left) */}
               <div className="absolute top-3.5 start-2.5 z-10">
                 <span className="inline-flex items-center rounded-full border border-[#725400] bg-[#8F6900] px-2 py-0.5 text-[10px] font-semibold text-white tracking-[0.20px]">
-                  {language === "ar" ? "مكون خام" : "Raw Ingredient"}
+                  {ingredient.productType === "service"
+                    ? (language === "ar" ? "خدمة" : "Service")
+                    : (language === "ar" ? "مكون خام" : "Raw Ingredient")}
                 </span>
               </div>
             </div>
