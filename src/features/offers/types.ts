@@ -1,6 +1,8 @@
 export type OfferStatus = "Active" | "Inactive";
 export type DiscountType = "percentage" | "fixed";
 
+export type OfferDialogTab = "offer" | "banner";
+
 export interface Offer {
   id: string | number;
   offerStatus: boolean;
@@ -19,6 +21,9 @@ export interface Offer {
   minOrderAmount?: number | null;
   claimsCount?: number;
   productIds?: string[];
+  isBanner?: boolean;
+  releaseDate?: string;
+  productId?: string;
 }
 
 export interface OfferProduct {
@@ -39,6 +44,9 @@ export interface OfferFormData {
   code?: string;
   usageLimit?: string;
   minOrderAmount?: string;
+  isBanner?: boolean;
+  releaseDate?: string;
+  productId?: string;
 }
 
 export interface BroadcastFormData {

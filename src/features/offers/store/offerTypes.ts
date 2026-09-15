@@ -27,6 +27,12 @@ export interface CreateOfferRequest {
   status?: string;
   productIds?: string[];
   image?: string;
+  code?: string;
+  usageLimit?: number;
+  minOrderAmount?: number;
+  isBanner?: boolean;
+  releaseDate?: string;
+  productId?: string;
 }
 
 export type OffersOperation = "fetch" | "create" | "update" | "delete" | "toggle";

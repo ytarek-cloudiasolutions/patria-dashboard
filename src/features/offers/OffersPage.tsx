@@ -86,6 +86,9 @@ const OffersPage = () => {
       code: newOffer.code || "",
       usageLimit: newOffer.usageLimit ?? 0,
       minOrderAmount: newOffer.minOrderAmount ?? 0,
+      ...(newOffer.isBanner !== undefined ? { isBanner: newOffer.isBanner } : {}),
+      ...(newOffer.releaseDate ? { releaseDate: newOffer.releaseDate } : {}),
+      ...(newOffer.productId ? { productId: newOffer.productId } : {}),
     });
 
     if (imageFile) {
