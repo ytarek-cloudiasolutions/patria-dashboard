@@ -22,6 +22,7 @@ import {
   Clock,
   BarChart3,
   Landmark,
+  HelpCircle,
 } from "lucide-react";
 import type { NavSection } from "./types";
 
@@ -92,6 +93,7 @@ export const NAV_SECTIONS: NavSection[] = [
       },
       { label: "Settings", href: "/settings", icon: Settings },
       { label: "MY Account", href: "/account", icon: UserCircle },
+      { label: "Help Center", href: "/help-center", icon: HelpCircle },
     ],
   },
 ];

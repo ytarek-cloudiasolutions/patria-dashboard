@@ -45,6 +45,7 @@ export const ROUTE_ACCESS: Record<string, UserRole[]> = {
   "/financial-hub": ["admin", "manager", "superadmin"],
   "/settings": ["admin", "superadmin"],
   "/whatsapp-gateway": ["admin", "superadmin"],
+  "/help-center": ALL_ROLES,
 };
 
 export const isRouteAllowed = (path: string, role?: string | null): boolean => {

@@ -41,6 +41,7 @@ import ShiftReportsPage from "@/features/shift-reports/ShiftReportsPage";
 import DeliveryTrackingPage from "@/features/delivery-tracking/DeliveryTrackingPage";
 import ReportsPage from "@/features/reports/ReportsPage";
 import FinancialHubPage from "@/features/financial/FinancialHubPage";
+import HelpCenterPage from "@/features/help-center/HelpCenterPage";
 
 
 export const router = createBrowserRouter([
@@ -273,6 +274,14 @@ export const router = createBrowserRouter([
         element: (
           <RoleRoute path="/whatsapp-gateway">
             <WhatsAppGatewayPage />
+          </RoleRoute>
+        ),
+      },
+      {
+        path: "/help-center",
+        element: (
+          <RoleRoute path="/help-center">
+            <HelpCenterPage />
           </RoleRoute>
         ),
       },

@@ -48,7 +48,13 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   "WhatsApp Gateway": "بوابة واتساب",
   Settings: "الإعدادات",
   "MY Account": "حسابي",
+  "Help Center": "مركز المساعدة",
   Logout: "تسجيل الخروج",
+
+  // Help Center
+  "System Overview": "شرح النظام",
+  "Search for topic": "ابحث عن موضوع",
+  "No topics found.": "لا توجد مواضيع.",
 
   // Common actions (available for reuse across modules)
   "Save changes": "حفظ التغييرات",
