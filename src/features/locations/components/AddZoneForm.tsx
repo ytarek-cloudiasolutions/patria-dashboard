@@ -4,11 +4,13 @@ import DropdownSelect from "@/shared/components/DropdownSelect";
 import { Label } from "@/shared/components/ui/label";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import ZoneNameAutocomplete from "./ZoneNameAutocomplete";
+import ZoneLocationMap from "./ZoneLocationMap";
 import type { DeliveryZone, ZoneFormData, ZoneStatus } from "../types";
 
 interface AddZoneFormProps {
   id: string;
   editingZone?: DeliveryZone;
+  existingZones?: DeliveryZone[];
   onSubmit: (data: ZoneFormData, id?: string) => void;
   onDropdownOpenChange?: (open: boolean) => void;
 }
@@ -18,12 +20,13 @@ const INITIAL_FORM: ZoneFormData = {
   deliveryFee: "",
   minOrderAmount: "",
   status: "Active",
-  radiusKm: "5",
+  polygon: [],
 };
 
 const AddZoneForm = ({
   id,
   editingZone,
+  existingZones = [],
   onSubmit,
   onDropdownOpenChange,
 }: AddZoneFormProps) => {
@@ -46,7 +49,7 @@ const AddZoneForm = ({
         status: editingZone.status,
         centerLat: editingZone.centerLat,
         centerLng: editingZone.centerLng,
-        radiusKm: String(editingZone.radiusKm ?? 5),
+        polygon: editingZone.polygon || [],
       });
     } else {
       setForm(INITIAL_FORM);
@@ -75,11 +78,6 @@ const AddZoneForm = ({
     ) {
       next.minOrderAmount = t("Enter a valid amount");
     }
-    if (!form.radiusKm.trim()) {
-      next.radiusKm = t("Delivery radius is required");
-    } else if (isNaN(Number(form.radiusKm)) || Number(form.radiusKm) <= 0) {
-      next.radiusKm = t("Enter a valid radius");
-    }
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -95,7 +93,7 @@ const AddZoneForm = ({
       <div>
         <ZoneNameAutocomplete
           id="zone-name"
-          label={t("Zone Name / Area")}
+          label={t("ZONE NAME")}
           placeholder={t("e.g. Kafr Abdo, Semouha")}
           required
           value={form.name}
@@ -110,12 +108,39 @@ const AddZoneForm = ({
         )}
       </div>
 
+      {/* Zone Boundary Map */}
+      <ZoneLocationMap
+        centerLat={form.centerLat}
+        centerLng={form.centerLng}
+        polygon={form.polygon}
+        zoneName={form.name}
+        existingZones={existingZones}
+        onPolygonChange={(newPoints, center) => {
+          setForm((prev) => ({
+            ...prev,
+            polygon: newPoints,
+            ...(center ? { centerLat: center.lat, centerLng: center.lng } : {}),
+          }));
+        }}
+        onLocationChange={(lat, lng, identifiedName) => {
+          setForm((prev) => ({
+            ...prev,
+            centerLat: lat,
+            centerLng: lng,
+            ...(identifiedName ? { name: identifiedName } : {}),
+          }));
+          if (identifiedName && errors.name) {
+            setErrors((prev) => ({ ...prev, name: "" }));
+          }
+        }}
+      />
+
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <div>
           <InputField
             data={{
               id: "delivery-fee",
-              label: { htmlFor: "delivery-fee", labelText: t("Delivery Fee (EGP)") },
+              label: { htmlFor: "delivery-fee", labelText: t("DELIVERY FEE (EGP)") },
               placeholder: "0",
               required: true,
               inputProps: {
@@ -135,7 +160,7 @@ const AddZoneForm = ({
           <InputField
             data={{
               id: "min-order",
-              label: { htmlFor: "min-order", labelText: t("Min. Order (EGP)") },
+              label: { htmlFor: "min-order", labelText: t("MIN. ORDER AMOUNT (EGP)") },
               placeholder: "0",
               required: true,
               inputProps: {
@@ -154,36 +179,12 @@ const AddZoneForm = ({
         </div>
       </div>
 
-      <div>
-        <InputField
-          data={{
-            id: "radius-km",
-            label: { htmlFor: "radius-km", labelText: t("Delivery Radius (km)") },
-            placeholder: "5",
-            required: true,
-            inputProps: {
-              type: "number",
-              min: "0.1",
-              step: "0.1",
-              value: form.radiusKm,
-              onChange: (e) => set("radiusKm", e.target.value),
-            },
-          }}
-        />
-        <p className="mt-1 text-[12px] text-[#8B8B8B]">
-          {t("Customers outside this radius from the zone center will see \"out of delivery range\" in the app")}
-        </p>
-        {errors.radiusKm && (
-          <p className="mt-1 text-[13px] text-[#C90000]">{errors.radiusKm}</p>
-        )}
-      </div>
-
       <div className="flex flex-col">
         <Label
           htmlFor="zone-status"
-          className="mb-2.5 text-[16px] font-medium text-black"
+          className="mb-2 text-[12px] font-bold tracking-wider text-[#28293D] uppercase"
         >
-          {t("Status")}<span className="text-[#C90000]">*</span>
+          {t("STATUS")}<span className="text-[#C90000]">*</span>
         </Label>
         <DropdownSelect
           options={statusOptions}

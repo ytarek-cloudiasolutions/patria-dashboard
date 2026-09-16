@@ -1,11 +1,20 @@
 export type ZoneStatus = "Active" | "Inactive";
 
+export interface ZonePoint {
+  lat: number;
+  lng: number;
+}
+
 export interface DeliveryZone {
   _id: string;
   id: string;
   name: string;
+  nameAr?: string;
   deliveryFee: number;
+  minOrder?: number;
   minOrderAmount: number;
+  estimatedMinutes?: number;
+  polygon?: ZonePoint[];
   isActive: boolean;
   status: ZoneStatus;
   centerLat?: number;
@@ -23,7 +32,8 @@ export interface ZoneFormData {
   status: ZoneStatus;
   centerLat?: number;
   centerLng?: number;
-  radiusKm: string;
+  polygon: ZonePoint[];
+  radiusKm?: string;
 }
 
 export interface LocationStats {

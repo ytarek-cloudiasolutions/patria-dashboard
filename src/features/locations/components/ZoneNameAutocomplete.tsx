@@ -57,7 +57,7 @@ const ZoneNameAutocomplete = ({
       autocomplete.addListener("place_changed", () => {
         const place = autocomplete.getPlace();
         if (!place) return;
-        const name = place.name || place.formatted_address || "";
+        const name = place.name?.trim() || place.formatted_address?.trim() || "";
         const lat = place.geometry?.location?.lat?.();
         const lng = place.geometry?.location?.lng?.();
         // Keep the input's own DOM value as the source of truth instead of
@@ -74,6 +74,35 @@ const ZoneNameAutocomplete = ({
       if (autocompleteRef.current && window.google?.maps?.event) {
         window.google.maps.event.clearInstanceListeners(autocompleteRef.current);
       }
+    };
+  }, []);
+
+  // Google Places Autocomplete dropdown (.pac-container) is appended to document.body.
+  // When inside a modal/dialog, we stop mousedown/pointerdown propagation from .pac-container
+  // so document-level focus-trap / outside-click listeners don't blur the input or block selection.
+  useEffect(() => {
+    const attachPacListeners = () => {
+      const containers = document.querySelectorAll<HTMLElement>(".pac-container");
+      containers.forEach((container) => {
+        if ((container as any)._hasPacFix) return;
+        (container as any)._hasPacFix = true;
+
+        const stopProp = (e: Event) => {
+          e.stopPropagation();
+        };
+
+        container.addEventListener("pointerdown", stopProp);
+        container.addEventListener("mousedown", stopProp);
+        container.addEventListener("touchstart", stopProp);
+      });
+    };
+
+    attachPacListeners();
+    const observer = new MutationObserver(attachPacListeners);
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    return () => {
+      observer.disconnect();
     };
   }, []);
 
@@ -94,11 +123,27 @@ const ZoneNameAutocomplete = ({
     lastSyncedValue.current = value;
   }, [value]);
 
+  const geocodeAddress = (query: string) => {
+    if (!query || !window.google?.maps?.Geocoder) return;
+    const geocoder = new window.google.maps.Geocoder();
+    geocoder.geocode(
+      { address: query.includes("Egypt") ? query : `${query}, Alexandria, Egypt` },
+      (results: any[], status: string) => {
+        if (status === "OK" && results?.[0]?.geometry?.location) {
+          const loc = results[0].geometry.location;
+          const lat = Number(loc.lat().toFixed(6));
+          const lng = Number(loc.lng().toFixed(6));
+          onPlaceSelectRef.current({ name: query, lat, lng });
+        }
+      }
+    );
+  };
+
   return (
     <div className="flex flex-col">
-      <Label htmlFor={id} className="mb-2.5 text-[16px] font-medium text-black">
+      <Label htmlFor={id} className="mb-2 text-[12px] font-bold tracking-wider text-[#28293D] uppercase">
         {label}
-        {required && <span className="text-[#C90000]">*</span>}
+        {required && <span className="text-[#C90000] ml-0.5">*</span>}
       </Label>
       <Input
         ref={inputRef}
@@ -108,6 +153,17 @@ const ZoneNameAutocomplete = ({
         required={required}
         defaultValue={value}
         onChange={(e) => onChange(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            const text = inputRef.current?.value?.trim();
+            if (text) geocodeAddress(text);
+          }
+        }}
+        onBlur={(e) => {
+          const text = e.target.value?.trim();
+          if (text) geocodeAddress(text);
+        }}
         autoComplete="off"
         className={cn(
           "h-12.5 px-4.5 py-3 rounded-xl border border-[#E5E5E5] bg-white text-[14px] text-[#23252A] placeholder:text-[#8B8B8B] focus-visible:border-primary focus-visible:ring-0",

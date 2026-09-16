@@ -20,9 +20,14 @@ export interface LocationData {
 
 export interface CreateLocationRequest {
   name: string;
+  nameAr?: string;
   deliveryFee: number;
+  minOrder?: number;
   minOrderAmount: number;
+  estimatedMinutes?: number;
+  polygon?: import("../types").ZonePoint[];
   isActive: boolean;
+  status?: string;
   centerLat?: number;
   centerLng?: number;
   radiusKm?: number;

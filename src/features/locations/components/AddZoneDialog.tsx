@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -17,6 +18,7 @@ interface AddZoneDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   editingZone?: DeliveryZone;
+  existingZones?: DeliveryZone[];
   isSaving?: boolean;
   onSave: (data: ZoneFormData, id?: string) => void;
 }
@@ -25,6 +27,7 @@ const AddZoneDialog = ({
   open,
   onOpenChange,
   editingZone,
+  existingZones = [],
   isSaving = false,
   onSave,
 }: AddZoneDialogProps) => {
@@ -45,10 +48,17 @@ const AddZoneDialog = ({
 
         <div className="flex max-h-[calc(100vh-2rem)] flex-col">
           {/* Header */}
-          <div className="px-5 pt-5 sm:px-7 sm:pt-7">
-            <DialogTitle className="text-[20px] font-semibold text-[#28293D] sm:text-[22px]">
-              {editingZone ? t("Edit Zone") : t("Add New Zone")}
+          <div className="flex items-center justify-between px-5 pt-5 sm:px-7 sm:pt-7">
+            <DialogTitle className="text-[20px] font-bold text-[#28293D] sm:text-[22px]">
+              {editingZone ? t("Edit Delivery Zone") : t("New Delivery Zone")}
             </DialogTitle>
+            <button
+              type="button"
+              onClick={() => onOpenChange(false)}
+              className="rounded-full p-1.5 text-[#8B8B8B] hover:bg-[#F5F0EA] hover:text-[#28293D] transition cursor-pointer"
+            >
+              <X className="size-5" />
+            </button>
           </div>
 
           {/* Scrollable body */}
@@ -56,6 +66,7 @@ const AddZoneDialog = ({
             <AddZoneForm
               id={FORM_ID}
               editingZone={editingZone}
+              existingZones={existingZones}
               onSubmit={handleSubmit}
               onDropdownOpenChange={setIsStatusOpen}
             />

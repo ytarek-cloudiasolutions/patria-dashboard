@@ -65,8 +65,10 @@ const LocationsPage = () => {
       name: data.name.trim(),
       deliveryFee: Number(data.deliveryFee),
       minOrderAmount: Number(data.minOrderAmount),
+      minOrder: Number(data.minOrderAmount),
       isActive: data.status === "Active",
-      radiusKm: Number(data.radiusKm),
+      status: data.status,
+      polygon: data.polygon,
       ...(data.centerLat !== undefined ? { centerLat: data.centerLat } : {}),
       ...(data.centerLng !== undefined ? { centerLng: data.centerLng } : {}),
     };

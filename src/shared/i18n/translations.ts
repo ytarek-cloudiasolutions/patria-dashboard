@@ -312,7 +312,6 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   "Usage Limits": "حدود الاستخدام",
   "Total Uses": "إجمالي الاستخدامات",
   "Infinite": "غير محدود",
-  "Product": "المنتج",
   "Product Name": "اسم المنتج",
   "Offer Name": "اسم العرض",
   "e.g. Artisanal Sourdough": "مثال: خبز العجين المخمّر",
@@ -511,11 +510,26 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   "No delivery zones found.": "لا توجد مناطق توصيل.",
   // Mobile card labels
   "Min. Order Amount": "الحد الأدنى للطلب",
-  // Zone form
   "Zone Name / Area": "اسم المنطقة / المنطقة",
   "e.g. Kafr Abdo, Semouha": "مثال: كفر عبدو، سموحة",
+  "Zone Location & Delivery Radius": "موقع المنطقة ونطاق التوصيل",
+  "Select a zone above or click the map to set location":
+    "اختر منطقة بالأعلى أو اضغط على الخريطة لتحديد الموقع",
   "Delivery Fee (EGP)": "رسوم التوصيل (ج.م)",
-  "Select status": "اختر الحالة",
+  "New Delivery Zone": "منطقة توصيل جديدة",
+  "Edit Delivery Zone": "تعديل منطقة التوصيل",
+  "ZONE NAME": "اسم المنطقة",
+  "ZONE BOUNDARY": "حدود المنطقة",
+  "DELIVERY FEE (EGP)": "رسوم التوصيل (ج.م)",
+  "MIN. ORDER AMOUNT (EGP)": "الحد الأدنى للطلب (ج.م)",
+  "Undo last point": "تراجع عن آخر نقطة",
+  "Clear boundary": "مسح الحدود",
+  "Boundary set — {{count}} points. Drag a point to adjust, or click the map to add more.":
+    "تم تحديد الحدود — {{count}} نقاط. اسحب نقطة للتعديل، أو اضغط على الخريطة لإضافة المزيد.",
+  "Boundary drawing — {{count}} points. Click the map to add at least 3 points to complete the polygon.":
+    "جاري رسم الحدود — {{count}} نقاط. اضغط على الخريطة لإضافة 3 نقاط على الأقل لإكمال المضلع.",
+  "Click the map to place boundary points to define the zone.":
+    "اضغط على الخريطة لوضع نقاط الحدود لتحديد المنطقة.",
   // Zone form validation errors
   "Zone name is required": "اسم المنطقة مطلوب",
   "Delivery fee is required": "رسوم التوصيل مطلوبة",

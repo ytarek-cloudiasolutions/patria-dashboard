@@ -26,11 +26,18 @@ function* handleGetLocations() {
   try {
     const response: GetLocationsResponse = yield call(getLocations);
     const data = (response as any).data || response;
+    const locationsList = Array.isArray(data)
+      ? data
+      : Array.isArray(data?.locations)
+      ? data.locations
+      : Array.isArray(response)
+      ? response
+      : [];
 
     yield put(
       locationsActions.getLocationsSuccess({
-        locations: data.locations || [],
-        stats: data.stats || { total: 0, active: 0, inactive: 0 },
+        locations: locationsList,
+        stats: data?.stats || { total: 0, active: 0, inactive: 0 },
         message: response.message || "Locations fetched successfully",
       }),
     );
