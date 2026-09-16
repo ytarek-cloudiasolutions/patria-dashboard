@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Undo2, RotateCcw, Hexagon, Loader2 } from "lucide-react";
+import { Undo2, RotateCcw, Hexagon, Plus, Minus } from "lucide-react";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { loadGoogleMaps } from "@/shared/utils/googleMaps";
 import type { DeliveryZone, ZonePoint } from "../types";
@@ -39,17 +39,18 @@ function makePrimaryPinIcon() {
 }
 
 /**
- * Generates an initial 6-point regular polygon boundary around a center location (~650m radius)
+ * Generates an initial regular polygon boundary around a center location
  */
 export function generateDefaultBoundary(
   center: { lat: number; lng: number },
-  radiusMeters = 650
+  radiusMeters = 650,
+  numPoints = 6
 ): ZonePoint[] {
   const points: ZonePoint[] = [];
-  const numPoints = 6;
+  const safeCount = Math.max(3, numPoints);
   const earthRadius = 6378137; // meters
-  for (let i = 0; i < numPoints; i++) {
-    const angle = (i * 2 * Math.PI) / numPoints - Math.PI / 2;
+  for (let i = 0; i < safeCount; i++) {
+    const angle = (i * 2 * Math.PI) / safeCount - Math.PI / 2;
     const dLat = (radiusMeters * Math.cos(angle)) / earthRadius;
     const dLng =
       (radiusMeters * Math.sin(angle)) /
@@ -60,6 +61,81 @@ export function generateDefaultBoundary(
     });
   }
   return points;
+}
+
+/**
+ * Calculates average radius from center to all vertices
+ */
+function calculateAverageRadius(
+  points: ZonePoint[],
+  center: { lat: number; lng: number }
+): number {
+  if (points.length === 0) return 650;
+  const earthRadius = 6378137;
+  const sumDist = points.reduce((acc, p) => {
+    const dLat = ((p.lat - center.lat) * Math.PI) / 180;
+    const dLng = ((p.lng - center.lng) * Math.PI) / 180;
+    const lat1 = (center.lat * Math.PI) / 180;
+    const lat2 = (p.lat * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return acc + earthRadius * c;
+  }, 0);
+  return Math.round(sumDist / points.length) || 650;
+}
+
+/**
+ * Checks if a polygon is approximately a regular polygon around the center
+ */
+function checkIsRegularPolygon(
+  points: ZonePoint[],
+  center: { lat: number; lng: number }
+): boolean {
+  if (points.length < 3) return false;
+  const earthRadius = 6378137;
+  const dists = points.map((p) => {
+    const dLat = ((p.lat - center.lat) * Math.PI) / 180;
+    const dLng = ((p.lng - center.lng) * Math.PI) / 180;
+    const lat1 = (center.lat * Math.PI) / 180;
+    const lat2 = (p.lat * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    return 2 * earthRadius * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  });
+  const avg = dists.reduce((a, b) => a + b, 0) / dists.length;
+  if (avg === 0) return false;
+  const maxDiff = Math.max(...dists.map((d) => Math.abs(d - avg)));
+  return maxDiff / avg < 0.2;
+}
+
+/**
+ * Inserts a new point at the midpoint of the longest edge of a custom polygon
+ */
+function insertMidpointOnLongestEdge(points: ZonePoint[]): ZonePoint[] {
+  if (points.length < 3) return points;
+  let maxDist = -1;
+  let maxIdx = 0;
+  for (let i = 0; i < points.length; i++) {
+    const p1 = points[i];
+    const p2 = points[(i + 1) % points.length];
+    const dist = Math.hypot(p2.lat - p1.lat, p2.lng - p1.lng);
+    if (dist > maxDist) {
+      maxDist = dist;
+      maxIdx = i;
+    }
+  }
+  const p1 = points[maxIdx];
+  const p2 = points[(maxIdx + 1) % points.length];
+  const mid: ZonePoint = {
+    lat: Number(((p1.lat + p2.lat) / 2).toFixed(6)),
+    lng: Number(((p1.lng + p2.lng) / 2).toFixed(6)),
+  };
+  const result = [...points];
+  result.splice(maxIdx + 1, 0, mid);
+  return result;
 }
 
 /**
@@ -155,12 +231,10 @@ const ZoneLocationMap = ({
   const polygonRef = useRef<any>(null);
   const pathRef = useRef<any>(null);
   const existingOverlaysRef = useRef<any[]>([]);
-  const geocoderRef = useRef<any>(null);
   const pathListenersRef = useRef<any[]>([]);
 
   const [points, setPoints] = useState<ZonePoint[]>(externalPolygon);
   const [history, setHistory] = useState<ZonePoint[][]>([]);
-  const [isIdentifying, setIsIdentifying] = useState(false);
 
   // Keep a reference to the initial baseline points for the current location
   const initialPointsRef = useRef<ZonePoint[]>(externalPolygon || []);
@@ -269,13 +343,44 @@ const ZoneLocationMap = ({
     }
   };
 
-  // Add a point to boundary
-  const handleAddPoint = (latLng: any) => {
+  // Increase polygon points
+  const handleIncreasePoints = () => {
+    if (points.length >= 16 || points.length === 0) return;
     pushHistory(points);
-    const lat = Number(latLng.lat().toFixed(6));
-    const lng = Number(latLng.lng().toFixed(6));
-    const newPts = [...points, { lat, lng }];
-    setBoundaryPoints(newPts);
+
+    const center = hasCoords
+      ? { lat: centerLat!, lng: centerLng! }
+      : calculateCentroid(points);
+
+    const isRegular = checkIsRegularPolygon(points, center);
+    if (isRegular) {
+      const radius = calculateAverageRadius(points, center);
+      const newPts = generateDefaultBoundary(center, radius, points.length + 1);
+      setBoundaryPoints(newPts);
+    } else {
+      const newPts = insertMidpointOnLongestEdge(points);
+      setBoundaryPoints(newPts);
+    }
+  };
+
+  // Decrease polygon points
+  const handleDecreasePoints = () => {
+    if (points.length <= 3) return;
+    pushHistory(points);
+
+    const center = hasCoords
+      ? { lat: centerLat!, lng: centerLng! }
+      : calculateCentroid(points);
+
+    const isRegular = checkIsRegularPolygon(points, center);
+    if (isRegular) {
+      const radius = calculateAverageRadius(points, center);
+      const newPts = generateDefaultBoundary(center, radius, points.length - 1);
+      setBoundaryPoints(newPts);
+    } else {
+      const newPts = points.slice(0, -1);
+      setBoundaryPoints(newPts);
+    }
   };
 
   // Sync external polygon into state if changed outside
@@ -364,21 +469,6 @@ const ZoneLocationMap = ({
           lastKnownPointsRef.current = points;
         }
 
-        // Click on polygon surface appends points
-        polygon.addListener("click", (e: any) => {
-          if (!e.latLng) return;
-          handleAddPoint(e.latLng);
-        });
-
-        // Right-click a vertex to remove it
-        polygon.addListener("rightclick", (e: any) => {
-          if (e.vertex !== undefined && pathRef.current) {
-            pushHistory(points);
-            pathRef.current.removeAt(e.vertex);
-            syncFromPath();
-          }
-        });
-
         // Initialize PRIMARY PIN MARKER - ALWAYS visible on the map at the zone location!
         const pinPosition = hasCoords
           ? { lat: centerLat!, lng: centerLng! }
@@ -389,85 +479,11 @@ const ZoneLocationMap = ({
           position: pinPosition,
           map: map,
           icon: makePrimaryPinIcon(),
-          draggable: true,
-          cursor: "grab",
+          draggable: false,
           zIndex: 999,
         });
 
-        marker.addListener("dragend", (e: any) => {
-          if (!e.latLng) return;
-          isInternalChangeRef.current = true;
-          const lat = Number(e.latLng.lat().toFixed(6));
-          const lng = Number(e.latLng.lng().toFixed(6));
-          const newPos = { lat, lng };
-
-          if (points.length === 0) {
-            const defaultPts = generateDefaultBoundary(newPos, 650);
-            setBoundaryPoints(defaultPts);
-          }
-
-          if (window.google?.maps) {
-            if (!geocoderRef.current) geocoderRef.current = new window.google.maps.Geocoder();
-            setIsIdentifying(true);
-            geocoderRef.current.geocode(
-              { location: newPos, language: language || "en" },
-              (results: any[], status: string) => {
-                setIsIdentifying(false);
-                if (status === "OK" && results?.length) {
-                  const area = extractZoneAreaFromGeocode(results);
-                  onLocationChangeRef.current?.(lat, lng, area || undefined);
-                } else {
-                  onLocationChangeRef.current?.(lat, lng);
-                }
-              }
-            );
-          } else {
-            onLocationChangeRef.current?.(lat, lng);
-          }
-        });
-
         markerRef.current = marker;
-
-        // Click anywhere on map to add point or seed boundary
-        map.addListener("click", (e: any) => {
-          if (!e.latLng) return;
-          const lat = Number(e.latLng.lat().toFixed(6));
-          const lng = Number(e.latLng.lng().toFixed(6));
-          const clickedPos = { lat, lng };
-
-          // If no boundary points exist yet, center red pin and generate 6-point boundary
-          if (!pathRef.current || pathRef.current.getLength() === 0) {
-            marker.setPosition(clickedPos);
-            marker.setMap(map);
-            map.panTo(clickedPos);
-            const defaultPts = generateDefaultBoundary(clickedPos, 650);
-            initialPointsRef.current = defaultPts;
-            lastKnownPointsRef.current = defaultPts;
-            setBoundaryPoints(defaultPts);
-
-            // Reverse geocode to identify area name
-            if (window.google?.maps) {
-              if (!geocoderRef.current) geocoderRef.current = new window.google.maps.Geocoder();
-              setIsIdentifying(true);
-              geocoderRef.current.geocode(
-                { location: clickedPos, language: language || "en" },
-                (results: any[], status: string) => {
-                  setIsIdentifying(false);
-                  if (status === "OK" && results?.length) {
-                    const area = extractZoneAreaFromGeocode(results);
-                    onLocationChangeRef.current?.(lat, lng, area || undefined);
-                  } else {
-                    onLocationChangeRef.current?.(lat, lng);
-                  }
-                }
-              );
-            }
-          } else {
-            // Boundary already exists: clicking map appends another point
-            handleAddPoint(e.latLng);
-          }
-        });
-
         mapRef.current = map;
       }
     });
@@ -557,7 +573,7 @@ const ZoneLocationMap = ({
 
   return (
     <div className="flex flex-col gap-1.5">
-      {/* Header Row: ZONE BOUNDARY & Undo/Clear Actions */}
+      {/* Header Row: ZONE BOUNDARY & Controls */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           <Hexagon className="size-3.5 text-[#8F6900]" />
@@ -566,57 +582,74 @@ const ZoneLocationMap = ({
           </span>
         </div>
 
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={handleUndo}
-            disabled={
-              history.length === 0 &&
-              JSON.stringify(points) === JSON.stringify(initialPointsRef.current)
-            }
-            title={t("Undo last point")}
-            className="rounded-md p-1 text-[#595959] hover:bg-[#F0F0EE] hover:text-[#28293D] disabled:opacity-40 disabled:hover:bg-transparent transition cursor-pointer"
-          >
-            <Undo2 className="size-4" />
-          </button>
-          <button
-            type="button"
-            onClick={handleRevert}
-            disabled={JSON.stringify(points) === JSON.stringify(initialPointsRef.current)}
-            title={t("Revert points")}
-            className="rounded-md p-1 text-[#595959] hover:bg-[#F0F0EE] hover:text-[#28293D] disabled:opacity-40 disabled:hover:bg-transparent transition cursor-pointer"
-          >
-            <RotateCcw className="size-4" />
-          </button>
+        {/* Controls: Increase / Decrease Points & Undo / Revert */}
+        <div className="flex items-center gap-2">
+          {/* Stepper: [-] {count} Points [+] */}
+          <div className="flex items-center rounded-lg border border-[#E5E5E5] bg-[#F9F9F8] p-0.5 shadow-xs">
+            <button
+              type="button"
+              onClick={handleDecreasePoints}
+              disabled={points.length <= 3}
+              title={t("Decrease points")}
+              className="flex size-6 items-center justify-center rounded-md text-[#595959] hover:bg-white hover:text-[#28293D] hover:shadow-xs disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:shadow-none transition cursor-pointer"
+            >
+              <Minus className="size-3.5" />
+            </button>
+            <span className="px-2 text-[11px] font-semibold text-[#28293D] select-none min-w-[58px] text-center">
+              {points.length} {t("Points")}
+            </span>
+            <button
+              type="button"
+              onClick={handleIncreasePoints}
+              disabled={points.length >= 16 || points.length === 0}
+              title={t("Increase points")}
+              className="flex size-6 items-center justify-center rounded-md text-[#595959] hover:bg-white hover:text-[#28293D] hover:shadow-xs disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:shadow-none transition cursor-pointer"
+            >
+              <Plus className="size-3.5" />
+            </button>
+          </div>
+
+          <div className="h-4 w-px bg-[#E5E5E5]" />
+
+          {/* Action buttons: Undo & Revert */}
+          <div className="flex items-center gap-0.5">
+            <button
+              type="button"
+              onClick={handleUndo}
+              disabled={
+                history.length === 0 &&
+                JSON.stringify(points) === JSON.stringify(initialPointsRef.current)
+              }
+              title={t("Undo last point")}
+              className="rounded-md p-1 text-[#595959] hover:bg-[#F0F0EE] hover:text-[#28293D] disabled:opacity-40 disabled:hover:bg-transparent transition cursor-pointer"
+            >
+              <Undo2 className="size-4" />
+            </button>
+            <button
+              type="button"
+              onClick={handleRevert}
+              disabled={JSON.stringify(points) === JSON.stringify(initialPointsRef.current)}
+              title={t("Revert points")}
+              className="rounded-md p-1 text-[#595959] hover:bg-[#F0F0EE] hover:text-[#28293D] disabled:opacity-40 disabled:hover:bg-transparent transition cursor-pointer"
+            >
+              <RotateCcw className="size-4" />
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Subtitle guidance matching the screenshot */}
+      {/* Subtitle guidance */}
       <p className="text-[12px] text-[#8B8B8B]">
         {points.length >= 3
           ? t(
-              "Boundary set — {{count}} points. Drag a point to adjust, or click the map to add more."
+              "Boundary set — {{count}} points. Use the controls above to adjust points or drag handles on the map."
             ).replace("{{count}}", String(points.length))
-          : points.length > 0
-          ? t(
-              "Boundary drawing — {{count}} points. Click the map to add at least 3 points to complete the polygon."
-            ).replace("{{count}}", String(points.length))
-          : t("Click the map to place boundary points to define the zone.")}
+          : t("Select a zone above to set the delivery location and boundary.")}
       </p>
 
       {/* Map Container */}
       <div className="relative mt-1 h-64 w-full overflow-hidden rounded-[14px] border border-[#E5E5E5] bg-[#F5F0EA]/30 sm:h-72">
         <div ref={containerRef} className="h-full w-full" />
-
-        {/* Live Identification Badge */}
-        {isIdentifying && (
-          <div className="pointer-events-none absolute top-3 inset-x-0 z-10 flex justify-center">
-            <div className="flex items-center gap-2 rounded-full bg-black/80 px-3.5 py-1.5 text-[12px] font-medium text-white shadow-lg backdrop-blur-sm">
-              <Loader2 className="size-3.5 animate-spin text-primary" />
-              <span>{t("Identifying zone name...")}</span>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

@@ -525,6 +525,13 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   "Undo last point": "تراجع عن آخر نقطة",
   "Revert points": "استعادة النقاط",
   "Clear boundary": "مسح الحدود",
+  "Points": "نقاط",
+  "Increase points": "زيادة النقاط",
+  "Decrease points": "تقليل النقاط",
+  "Boundary set — {{count}} points. Use the controls above to adjust points or drag handles on the map.":
+    "تم تحديد الحدود — {{count}} نقاط. استخدم عناصر التحكم بالأعلى لتعديل النقاط أو اسحب المقابض على الخريطة.",
+  "Select a zone above to set the delivery location and boundary.":
+    "اختر منطقة بالأعلى لتحديد موقع ونطاق التوصيل.",
   "Boundary set — {{count}} points. Drag a point to adjust, or click the map to add more.":
     "تم تحديد الحدود — {{count}} نقاط. اسحب نقطة للتعديل، أو اضغط على الخريطة لإضافة المزيد.",
   "Boundary drawing — {{count}} points. Click the map to add at least 3 points to complete the polygon.":
