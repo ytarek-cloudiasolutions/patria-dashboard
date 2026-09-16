@@ -92,7 +92,7 @@ const IngredientsTable = ({
                   {ingredient.description}
                 </p>
               </div>
-              <RawIngredientBadge />
+              <ProductTypeBadge productType={ingredient.productType} />
             </div>
             <div className="mb-3 flex items-center justify-between text-[13px]">
               <span className="font-semibold text-[#28293D]" dir="ltr">
