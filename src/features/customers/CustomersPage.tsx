@@ -71,8 +71,16 @@ const CustomersPage = () => {
 
   // Fetch list when search query changes
   useEffect(() => {
+    // This page has no pagination UI (no "load more" / page controls), but
+    // the backend defaults to only 10 per page — so anything past the
+    // 10th customer was invisible here and only ever showed up if you
+    // searched for it by name/phone (which narrows the match set small
+    // enough to fit on that same first page). Request a high limit
+    // instead so every customer actually shows without needing pagination
+    // controls, until the customer base outgrows this.
     getCustomersList({
       search: search.trim() || undefined,
+      limit: 500,
     });
   }, [getCustomersList, search]);
 
