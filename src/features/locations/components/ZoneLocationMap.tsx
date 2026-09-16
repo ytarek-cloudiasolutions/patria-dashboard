@@ -10,7 +10,7 @@ interface ZoneLocationMapProps {
   polygon?: ZonePoint[];
   zoneName?: string;
   existingZones?: DeliveryZone[];
-  onPolygonChange?: (points: ZonePoint[], center?: { lat: number; lng: number }) => void;
+  onPolygonChange?: (points: ZonePoint[]) => void;
   onLocationChange?: (lat: number, lng: number, identifiedName?: string) => void;
 }
 
@@ -162,7 +162,11 @@ const ZoneLocationMap = ({
   const [history, setHistory] = useState<ZonePoint[][]>([]);
   const [isIdentifying, setIsIdentifying] = useState(false);
 
+  // Keep a reference to the initial baseline points for the current location
+  const initialPointsRef = useRef<ZonePoint[]>(externalPolygon || []);
+  const lastKnownPointsRef = useRef<ZonePoint[]>(externalPolygon || []);
   const isInternalChangeRef = useRef(false);
+
   const onPolygonChangeRef = useRef(onPolygonChange);
   onPolygonChangeRef.current = onPolygonChange;
 
@@ -189,7 +193,7 @@ const ZoneLocationMap = ({
     pathListenersRef.current.push(path.addListener("remove_at", onEdit));
   };
 
-  // Read current points from the google maps polygon path
+  // Read current points from the google maps polygon path without touching the pin
   const syncFromPath = () => {
     if (!pathRef.current) return;
     const path = pathRef.current;
@@ -202,26 +206,20 @@ const ZoneLocationMap = ({
       });
     }
 
+    if (JSON.stringify(newPoints) !== JSON.stringify(lastKnownPointsRef.current)) {
+      pushHistory(lastKnownPointsRef.current);
+      lastKnownPointsRef.current = newPoints;
+    }
+
     isInternalChangeRef.current = true;
     setPoints(newPoints);
-    if (newPoints.length > 0) {
-      const centroid = calculateCentroid(newPoints);
-      if (markerRef.current && mapRef.current) {
-        markerRef.current.setPosition(centroid);
-        markerRef.current.setMap(mapRef.current);
-      }
-      onPolygonChangeRef.current?.(newPoints, centroid);
-    } else {
-      onPolygonChangeRef.current?.(
-        [],
-        hasCoords ? { lat: centerLat!, lng: centerLng! } : undefined
-      );
-    }
+    onPolygonChangeRef.current?.(newPoints);
   };
 
-  // Safely updates polygon path and markers without Google Maps type confusion
+  // Safely updates polygon path without moving or reverting the pin marker
   const setBoundaryPoints = (newPts: ZonePoint[], notify = true) => {
     isInternalChangeRef.current = true;
+    lastKnownPointsRef.current = newPts;
     setPoints(newPts);
 
     if (polygonRef.current && window.google?.maps) {
@@ -239,22 +237,8 @@ const ZoneLocationMap = ({
       }
     }
 
-    if (newPts.length > 0) {
-      const centroid = calculateCentroid(newPts);
-      if (markerRef.current && mapRef.current) {
-        markerRef.current.setPosition(centroid);
-        markerRef.current.setMap(mapRef.current);
-      }
-      if (notify) {
-        onPolygonChangeRef.current?.(newPts, centroid);
-      }
-    } else {
-      if (notify) {
-        onPolygonChangeRef.current?.(
-          [],
-          hasCoords ? { lat: centerLat!, lng: centerLng! } : undefined
-        );
-      }
+    if (notify) {
+      onPolygonChangeRef.current?.(newPts);
     }
   };
 
@@ -263,22 +247,26 @@ const ZoneLocationMap = ({
     setHistory((prev) => [...prev.slice(-15), currentPoints]);
   };
 
-  // Undo last point or modification
+  // Undo last point modification without touching the pin
   const handleUndo = () => {
     if (history.length > 0) {
       const prevPoints = history[history.length - 1];
       setHistory((prev) => prev.slice(0, -1));
       setBoundaryPoints(prevPoints);
-    } else if (points.length > 0) {
-      const prevPoints = points.slice(0, -1);
-      setBoundaryPoints(prevPoints);
+    } else if (
+      initialPointsRef.current.length > 0 &&
+      JSON.stringify(points) !== JSON.stringify(initialPointsRef.current)
+    ) {
+      setBoundaryPoints(initialPointsRef.current);
     }
   };
 
-  // Clear all points
-  const handleClear = () => {
-    pushHistory(points);
-    setBoundaryPoints([]);
+  // Revert user's point edits back to the initial boundary for this zone/location
+  const handleRevert = () => {
+    if (initialPointsRef.current.length > 0) {
+      pushHistory(points);
+      setBoundaryPoints(initialPointsRef.current);
+    }
   };
 
   // Add a point to boundary
@@ -294,6 +282,8 @@ const ZoneLocationMap = ({
   useEffect(() => {
     if (externalPolygon && externalPolygon.length > 0) {
       if (JSON.stringify(externalPolygon) !== JSON.stringify(points)) {
+        initialPointsRef.current = externalPolygon;
+        lastKnownPointsRef.current = externalPolygon;
         setBoundaryPoints(externalPolygon, false);
       }
     }
@@ -319,6 +309,7 @@ const ZoneLocationMap = ({
           center: initialCenter,
           zoom: hasCoords || points.length > 0 ? 15 : 13,
           disableDefaultUI: false,
+          gestureHandling: "greedy",
           zoomControl: true,
           mapTypeControl: false,
           streetViewControl: false,
@@ -364,8 +355,13 @@ const ZoneLocationMap = ({
         bindPathEvents(path);
 
         if (initialPts.length > 0 && points.length === 0) {
+          initialPointsRef.current = initialPts;
+          lastKnownPointsRef.current = initialPts;
           setPoints(initialPts);
-          onPolygonChangeRef.current?.(initialPts, initialCenter);
+          onPolygonChangeRef.current?.(initialPts);
+        } else if (points.length > 0) {
+          initialPointsRef.current = points;
+          lastKnownPointsRef.current = points;
         }
 
         // Click on polygon surface appends points
@@ -383,10 +379,14 @@ const ZoneLocationMap = ({
           }
         });
 
-        // Initialize PRIMARY PIN MARKER - ALWAYS visible on the map!
-        const centroid = initialPts.length > 0 ? calculateCentroid(initialPts) : initialCenter;
+        // Initialize PRIMARY PIN MARKER - ALWAYS visible on the map at the zone location!
+        const pinPosition = hasCoords
+          ? { lat: centerLat!, lng: centerLng! }
+          : initialPts.length > 0
+          ? calculateCentroid(initialPts)
+          : initialCenter;
         const marker = new window.google.maps.Marker({
-          position: centroid,
+          position: pinPosition,
           map: map,
           icon: makePrimaryPinIcon(),
           draggable: true,
@@ -441,6 +441,8 @@ const ZoneLocationMap = ({
             marker.setMap(map);
             map.panTo(clickedPos);
             const defaultPts = generateDefaultBoundary(clickedPos, 650);
+            initialPointsRef.current = defaultPts;
+            lastKnownPointsRef.current = defaultPts;
             setBoundaryPoints(defaultPts);
 
             // Reverse geocode to identify area name
@@ -495,6 +497,8 @@ const ZoneLocationMap = ({
 
     // Generate initial 6-point boundary around the new area
     const defaultPts = generateDefaultBoundary(newCenter, 650);
+    initialPointsRef.current = defaultPts;
+    lastKnownPointsRef.current = defaultPts;
     setBoundaryPoints(defaultPts, false);
   }, [centerLat, centerLng, hasCoords]);
 
@@ -566,7 +570,10 @@ const ZoneLocationMap = ({
           <button
             type="button"
             onClick={handleUndo}
-            disabled={points.length === 0}
+            disabled={
+              history.length === 0 &&
+              JSON.stringify(points) === JSON.stringify(initialPointsRef.current)
+            }
             title={t("Undo last point")}
             className="rounded-md p-1 text-[#595959] hover:bg-[#F0F0EE] hover:text-[#28293D] disabled:opacity-40 disabled:hover:bg-transparent transition cursor-pointer"
           >
@@ -574,9 +581,9 @@ const ZoneLocationMap = ({
           </button>
           <button
             type="button"
-            onClick={handleClear}
-            disabled={points.length === 0}
-            title={t("Clear boundary")}
+            onClick={handleRevert}
+            disabled={JSON.stringify(points) === JSON.stringify(initialPointsRef.current)}
+            title={t("Revert points")}
             className="rounded-md p-1 text-[#595959] hover:bg-[#F0F0EE] hover:text-[#28293D] disabled:opacity-40 disabled:hover:bg-transparent transition cursor-pointer"
           >
             <RotateCcw className="size-4" />

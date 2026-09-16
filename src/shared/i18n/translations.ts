@@ -523,6 +523,7 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   "DELIVERY FEE (EGP)": "رسوم التوصيل (ج.م)",
   "MIN. ORDER AMOUNT (EGP)": "الحد الأدنى للطلب (ج.م)",
   "Undo last point": "تراجع عن آخر نقطة",
+  "Revert points": "استعادة النقاط",
   "Clear boundary": "مسح الحدود",
   "Boundary set — {{count}} points. Drag a point to adjust, or click the map to add more.":
     "تم تحديد الحدود — {{count}} نقاط. اسحب نقطة للتعديل، أو اضغط على الخريطة لإضافة المزيد.",

@@ -115,11 +115,10 @@ const AddZoneForm = ({
         polygon={form.polygon}
         zoneName={form.name}
         existingZones={existingZones}
-        onPolygonChange={(newPoints, center) => {
+        onPolygonChange={(newPoints) => {
           setForm((prev) => ({
             ...prev,
             polygon: newPoints,
-            ...(center ? { centerLat: center.lat, centerLng: center.lng } : {}),
           }));
         }}
         onLocationChange={(lat, lng, identifiedName) => {
