@@ -299,12 +299,9 @@ export const AR_TRANSLATIONS: Record<string, string> = {
     "مثال: استمتع بخصم 20% على كل المنتجات اليوم",
   "Send Notification": "إرسال الإشعار",
   // Create / edit offer dialog
-  "All": "الكل",
-  "Offers": "العروض",
   "Banners": "البانرات",
   "banner": "بانر",
   "Banner": "بانر",
-  "offer": "عرض",
   "Offer": "عرض",
   "Delete Banner": "حذف البانر",
   "Delete Offer": "حذف العرض",
