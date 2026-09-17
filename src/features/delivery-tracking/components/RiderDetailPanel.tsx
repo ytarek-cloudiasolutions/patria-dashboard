@@ -110,7 +110,7 @@ const RiderDetailPanel = ({ rider, onBack }: RiderDetailPanelProps) => {
       </div>
 
       {/* Scrollable order cards */}
-      <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-3 pb-5">
+      <div className="custom-scrollbar flex flex-1 flex-col gap-4 overflow-y-auto px-3 pb-5">
         {rider.activeOrders.length === 0 ? (
           <div className="py-8 text-center text-[13px] text-[#8B8B8B]">
             {t("No active orders")}

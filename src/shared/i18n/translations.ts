@@ -1524,9 +1524,17 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   "delivered": "تم توصيلها",
   "No active orders": "لا توجد طلبات نشطة",
   "Show on map": "عرض على الخريطة",
-  "Live map coming soon": "الخريطة الحية قريبًا",
   "Assigned": "تم التعيين",
   "Order Placed": "تم الطلب",
+  "Fit All Fleet": "عرض الأسطول بالكامل",
+  "Search by name, phone, plate...": "ابحث بالاسم، الهاتف، اللوحة...",
+  "No riders match your search": "لا يوجد سائقين يطابقون بحثك",
+  "No riders found": "لا يوجد سائقين",
+  "Reset filters": "إعادة ضبط الفلاتر",
+  "Live GPS active": "نظام GPS نشط",
+  "No GPS signal": "لا توجد إشارة GPS",
+  "No GPS": "بدون GPS",
+  "GPS signal is currently offline": "إشارة GPS غير متاحة حالياً",
 
   // Cashier Discounts section
   "Cashier Discounts (Ready Discounts)": "خصومات الكاشير (الخصومات الجاهزة)",

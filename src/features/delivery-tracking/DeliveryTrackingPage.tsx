@@ -13,6 +13,35 @@ import GoogleMap from "./components/GoogleMap";
 
 import type { Rider } from "./types";
 
+const parseLocation = (d: any): { lat: number; lng: number } | undefined => {
+  const loc = d.location ?? d.currentLocation ?? d.coords ?? d.lastLocation;
+  if (loc) {
+    if (typeof loc.lat === "number" && typeof loc.lng === "number") {
+      return { lat: loc.lat, lng: loc.lng };
+    }
+    if (typeof loc.latitude === "number" && typeof loc.longitude === "number") {
+      return { lat: loc.latitude, lng: loc.longitude };
+    }
+    if (loc.lat != null && loc.lng != null && !isNaN(Number(loc.lat)) && !isNaN(Number(loc.lng))) {
+      return { lat: Number(loc.lat), lng: Number(loc.lng) };
+    }
+    if (Array.isArray(loc.coordinates) && loc.coordinates.length >= 2) {
+      const p0 = Number(loc.coordinates[0]);
+      const p1 = Number(loc.coordinates[1]);
+      if (!isNaN(p0) && !isNaN(p1)) {
+        if (p0 >= 30 && p0 <= 32 && p1 >= 29 && p1 <= 31) {
+          return { lat: p0, lng: p1 };
+        }
+        return { lat: p1, lng: p0 };
+      }
+    }
+  }
+  if (d.lat != null && d.lng != null && !isNaN(Number(d.lat)) && !isNaN(Number(d.lng))) {
+    return { lat: Number(d.lat), lng: Number(d.lng) };
+  }
+  return undefined;
+};
+
 const mapRider = (d: any, idx: number): Rider => ({
   id: d._id ?? idx,
   name: d.name ?? "—",
@@ -30,7 +59,7 @@ const mapRider = (d: any, idx: number): Rider => ({
   activeOrders: d.activeOrders ?? [],
   totalDelivered: d.totalDelivered ?? d.shiftDeliveriesCount ?? 0,
   dutyTime: d.dutyTime ?? "—",
-  location: d.location?.lat && d.location?.lng ? { lat: d.location.lat, lng: d.location.lng } : undefined,
+  location: parseLocation(d),
 });
 
 const DeliveryTrackingPage = () => {

@@ -39,12 +39,36 @@ const RiderCard = ({ rider, onClick }: RiderCardProps) => {
 
       {/* Content */}
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-        {/* Name + phone */}
-        <div className="flex flex-col items-start">
-          <span className="text-[14px] font-semibold text-[#28293D]">
-            {rider.name}
-          </span>
-          <span className="text-[12px] text-[#8B8B8B]">{rider.phone}</span>
+        {/* Name + phone + GPS indicator */}
+        <div className="flex items-center justify-between">
+          <div className="flex flex-col items-start">
+            <span className="text-[14px] font-semibold text-[#28293D]">
+              {rider.name}
+            </span>
+            <span className="text-[12px] text-[#8B8B8B]">{rider.phone}</span>
+          </div>
+
+          {/* GPS status badge */}
+          {rider.location ? (
+            <span
+              className="inline-flex items-center gap-1.5 rounded-full border border-[#059B5A]/30 bg-[#E2F4ED] px-2 py-0.5 text-[10px] font-semibold text-[#059B5A]"
+              title={t("Live GPS active")}
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#059B5A] opacity-75"></span>
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-[#059B5A]"></span>
+              </span>
+              GPS
+            </span>
+          ) : (
+            <span
+              className="inline-flex items-center gap-1 rounded-full border border-[#CACBD4]/60 bg-[#F5F5F5] px-2 py-0.5 text-[10px] font-medium text-[#8B8B8B]"
+              title={t("No GPS signal")}
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-[#B0B0B0]"></span>
+              {t("No GPS")}
+            </span>
+          )}
         </div>
 
         {/* Status · Orders · Time */}

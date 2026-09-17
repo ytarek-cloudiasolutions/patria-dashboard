@@ -28,7 +28,7 @@ export interface DeliveryOrder {
 }
 
 export interface Rider {
-  id: number;
+  id: string | number;
   name: string;
   phone: string;
   vehicleType: VehicleType;
