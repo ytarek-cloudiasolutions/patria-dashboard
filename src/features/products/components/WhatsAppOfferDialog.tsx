@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Search } from "lucide-react";
+import { Loader2, Search, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -22,13 +22,51 @@ import { WHATSAPP_AUDIENCE_PRESETS } from "../data";
 import type { WhatsAppMode } from "../types";
 import UploadDropzone from "./UploadDropzone";
 
-const fileToBase64 = (file: File): Promise<string> =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
+const ensureBase64DataUrl = async (
+  fileOrUrl: File | string | null | undefined,
+): Promise<string | undefined> => {
+  if (!fileOrUrl) return undefined;
+
+  if (fileOrUrl instanceof File) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(fileOrUrl);
+    });
+  }
+
+  if (typeof fileOrUrl === "string") {
+    if (fileOrUrl.startsWith("data:image/")) {
+      return fileOrUrl;
+    }
+
+    let fullUrl = fileOrUrl;
+    if (fileOrUrl.startsWith("/")) {
+      const apiHost = (import.meta.env.VITE_API_URL || "").replace(
+        /\/api\/?$/,
+        "",
+      );
+      fullUrl = `${apiHost}${fileOrUrl}`;
+    }
+
+    try {
+      const response = await fetch(fullUrl);
+      const blob = await response.blob();
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    } catch (err) {
+      console.warn("Failed to convert image URL to base64 data URL:", err);
+      return fileOrUrl;
+    }
+  }
+
+  return undefined;
+};
 
 interface WhatsAppOfferDialogProps {
   open: boolean;
@@ -175,11 +213,11 @@ const WhatsAppOfferDialog = ({
 
     try {
       setIsSending(true);
-      const image = imageFile ? await fileToBase64(imageFile) : undefined;
+      const base64Image = await ensureBase64DataUrl(imageFile || imageUrl);
       await sendWhatsAppBroadcast({
         phones,
         message: message.trim(),
-        image,
+        ...(base64Image ? { image: base64Image } : {}),
       });
       showSuccessToast(t("WhatsApp message sent successfully"));
       try {
@@ -359,15 +397,31 @@ const WhatsAppOfferDialog = ({
               </div>
             )}
 
-            <UploadDropzone
-              value={imageUrl}
-              onSelect={(file, url) => {
-                setImageFile(file);
-                setImageUrl(url);
-              }}
-              title="Click to upload image"
-              hint="PNG, JPG up to 5MB"
-            />
+            <div className="relative">
+              <UploadDropzone
+                value={imageUrl}
+                onSelect={(file, url) => {
+                  setImageFile(file);
+                  setImageUrl(url);
+                }}
+                title="Click to upload image"
+                hint="PNG, JPG up to 5MB"
+              />
+              {imageUrl && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setImageFile(null);
+                    setImageUrl(undefined);
+                  }}
+                  className="absolute top-2 end-2 flex size-6 items-center justify-center rounded-full bg-[#C90000] text-white shadow hover:bg-red-700 transition"
+                  title={t("Remove image")}
+                >
+                  <X className="size-3.5" />
+                </button>
+              )}
+            </div>
 
             <div className="flex flex-col">
               <Label

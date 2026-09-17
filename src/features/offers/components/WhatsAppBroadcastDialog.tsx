@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Loader2, Search, Upload } from "lucide-react";
+import { Loader2, Search, Upload, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Dialog,
@@ -46,6 +46,52 @@ interface WhatsAppBroadcastDialogProps {
   offer?: Offer;
   onSend?: (data: WhatsAppBroadcastFormData) => void;
 }
+
+const ensureBase64DataUrl = async (
+  fileOrUrl: File | string | null | undefined,
+): Promise<string | undefined> => {
+  if (!fileOrUrl) return undefined;
+
+  if (fileOrUrl instanceof File) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(fileOrUrl);
+    });
+  }
+
+  if (typeof fileOrUrl === "string") {
+    if (fileOrUrl.startsWith("data:image/")) {
+      return fileOrUrl;
+    }
+
+    let fullUrl = fileOrUrl;
+    if (fileOrUrl.startsWith("/")) {
+      const apiHost = (import.meta.env.VITE_API_URL || "").replace(
+        /\/api\/?$/,
+        "",
+      );
+      fullUrl = `${apiHost}${fileOrUrl}`;
+    }
+
+    try {
+      const response = await fetch(fullUrl);
+      const blob = await response.blob();
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    } catch (err) {
+      console.warn("Failed to convert image URL to base64 data URL:", err);
+      return fileOrUrl;
+    }
+  }
+
+  return undefined;
+};
 
 const WhatsAppBroadcastDialog = ({
   isOpen,
@@ -197,10 +243,11 @@ const WhatsAppBroadcastDialog = ({
 
     try {
       setIsSending(true);
+      const base64Image = await ensureBase64DataUrl(form.image || imagePreview);
       await sendWhatsAppBroadcast({
         phones,
         message: form.body.trim(),
-        image: form.image ? imagePreview ?? undefined : undefined,
+        ...(base64Image ? { image: base64Image } : {}),
       });
       showSuccessToast(t("WhatsApp message sent successfully"));
       try {
@@ -280,7 +327,7 @@ const WhatsAppBroadcastDialog = ({
               {/* Upload field */}
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="flex cursor-pointer flex-col items-center justify-center gap-6 rounded-[16px] border-2 border-dashed border-[#624F1C] bg-[rgba(245,240,234,0.3)] px-6 py-6"
+                className="relative flex cursor-pointer flex-col items-center justify-center gap-4 rounded-[16px] border-2 border-dashed border-[#624F1C] bg-[rgba(245,240,234,0.3)] px-6 py-6 transition hover:bg-[rgba(245,240,234,0.5)]"
               >
                 <input
                   ref={fileInputRef}
@@ -290,17 +337,34 @@ const WhatsAppBroadcastDialog = ({
                   onChange={handleImageUpload}
                 />
                 {imagePreview ? (
-                  <img
-                    src={imagePreview}
-                    alt="Preview"
-                    className="h-20 w-20 rounded-lg object-cover"
-                  />
+                  <div className="relative group">
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="h-24 w-24 rounded-lg object-cover shadow-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setImagePreview(null);
+                        setForm((prev) => ({ ...prev, image: null }));
+                        if (fileInputRef.current) fileInputRef.current.value = "";
+                      }}
+                      className="absolute -top-2 -end-2 flex size-6 items-center justify-center rounded-full bg-[#C90000] text-white shadow hover:bg-red-700 transition"
+                      title={t("Remove image")}
+                    >
+                      <X className="size-3.5" />
+                    </button>
+                  </div>
                 ) : (
                   <Upload className="size-6 text-[#624F1C]" />
                 )}
                 <div className="flex flex-col items-center gap-1">
                   <span className="text-[14px] font-semibold tracking-[0.02em] text-[#333333]">
-                    {t("Click to upload image")}
+                    {imagePreview
+                      ? t("Click to change image")
+                      : t("Click to upload image")}
                   </span>
                   <span className="text-[12px] font-normal tracking-[0.02em] text-[#8B8B8B]">
                     {t("PNG, JPG up to 5MB")}
