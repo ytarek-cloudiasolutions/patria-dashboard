@@ -6,11 +6,14 @@ import CreateOfferDialog from "./components/CreateOfferDialog";
 import DefaultButton from "@/shared/components/DefaultButton";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import WhatsAppBroadcastDialog from "./components/WhatsAppBroadcastDialog";
+import TabItem from "@/shared/components/TabItem";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { useOffers } from "./hooks/useOffers";
 import PromotionsOverview from "./components/PromotionsOverview";
 import CashierDiscountsSection from "./components/CashierDiscountsSection";
 import type { Offer } from "./types";
+
+type OfferFilterTab = "all" | "offers" | "banners";
 
 const OffersPage = () => {
   const { t } = useTranslation();
@@ -18,6 +21,7 @@ const OffersPage = () => {
   const [isBroadcastDialogOpen, setIsBroadcastDialogOpen] = useState(false);
   const [editingOffer, setEditingOffer] = useState<Offer | undefined>();
   const [broadcastOffer, setBroadcastOffer] = useState<Offer | undefined>();
+  const [filterTab, setFilterTab] = useState<OfferFilterTab>("all");
 
   const {
     offers,
@@ -73,22 +77,47 @@ const OffersPage = () => {
   };
 
   const handleSaveOffer = (newOffer: Offer, imageFile?: File) => {
+    const isBanner = Boolean(newOffer.isBanner);
+    const now = new Date();
+    const oneYearLater = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
+
+    const startDate = isBanner
+      ? now.toISOString()
+      : newOffer.startDate
+        ? new Date(newOffer.startDate).toISOString()
+        : now.toISOString();
+    const endDate = isBanner
+      ? oneYearLater.toISOString()
+      : newOffer.endDate
+        ? new Date(newOffer.endDate).toISOString()
+        : oneYearLater.toISOString();
+
     const buildPayload = (withImage: boolean) => ({
       name: newOffer.offerTitle,
       description: newOffer.offerDescription,
-      discountType: newOffer.discountType,
-      discountValue: newOffer.offerPercentage,
-      startDate: newOffer.startDate ? new Date(newOffer.startDate).toISOString() : new Date().toISOString(),
-      endDate: newOffer.endDate ? new Date(newOffer.endDate).toISOString() : new Date().toISOString(),
+      discountType: isBanner ? "percentage" : newOffer.discountType,
+      discountValue: isBanner ? 0 : newOffer.offerPercentage,
+      startDate,
+      endDate,
       status: newOffer.offerStatus ? "active" : "inactive",
       productIds: newOffer.productIds ?? [],
-      ...(withImage ? {} : { image: newOffer.offerImage?.startsWith("blob:") ? undefined : newOffer.offerImage }),
-      code: newOffer.code || "",
-      usageLimit: newOffer.usageLimit ?? 0,
-      minOrderAmount: newOffer.minOrderAmount ?? 0,
-      ...(newOffer.isBanner !== undefined ? { isBanner: newOffer.isBanner } : {}),
-      ...(newOffer.releaseDate ? { releaseDate: newOffer.releaseDate } : {}),
-      ...(newOffer.productId ? { productId: newOffer.productId } : {}),
+      ...(withImage
+        ? {}
+        : {
+            image: newOffer.offerImage?.startsWith("blob:")
+              ? undefined
+              : newOffer.offerImage,
+          }),
+      code: isBanner ? "" : newOffer.code || "",
+      usageLimit: isBanner ? 0 : newOffer.usageLimit ?? 0,
+      minOrderAmount: isBanner ? 0 : newOffer.minOrderAmount ?? 0,
+      isBanner,
+      ...(isBanner && newOffer.releaseDate
+        ? { releaseDate: new Date(newOffer.releaseDate).toISOString() }
+        : {}),
+      ...(isBanner && newOffer.productId
+        ? { productId: newOffer.productId }
+        : {}),
     });
 
     if (imageFile) {
@@ -98,8 +127,7 @@ const OffersPage = () => {
         if (v === undefined) return;
         // FormData can't carry a real array — JSON-stringify it, matching
         // offerController.parseFormJsonFields on the backend, which parses
-        // it back. Was previously skipped entirely, so productIds always
-        // saved empty whenever a banner image was attached.
+        // it back.
         if (Array.isArray(v)) {
           fd.append(k, JSON.stringify(v));
           return;
@@ -107,16 +135,30 @@ const OffersPage = () => {
         fd.append(k, String(v));
       });
       fd.append("bannerImage", imageFile);
-      if (editingOffer) { updateOfferInfo(String(editingOffer.id), fd as any); }
-      else { createNewOffer(fd as any); }
+      if (editingOffer) {
+        updateOfferInfo(String(editingOffer.id), fd as any);
+      } else {
+        createNewOffer(fd as any);
+      }
     } else {
       const payload = buildPayload(false);
-      if (editingOffer) { updateOfferInfo(String(editingOffer.id), payload); }
-      else { createNewOffer(payload); }
+      if (editingOffer) {
+        updateOfferInfo(String(editingOffer.id), payload);
+      } else {
+        createNewOffer(payload);
+      }
     }
     setIsDialogOpen(false);
     setEditingOffer(undefined);
   };
+
+  const offersCount = offers.filter((o) => !o.isBanner).length;
+  const bannersCount = offers.filter((o) => o.isBanner).length;
+  const filteredOffers = offers.filter((o) => {
+    if (filterTab === "offers") return !o.isBanner;
+    if (filterTab === "banners") return o.isBanner;
+    return true;
+  });
 
   const isLoading = !offersLoaded;
 
@@ -159,8 +201,32 @@ const OffersPage = () => {
 
       <CashierDiscountsSection />
 
+      <div className="mb-6 grid grid-cols-3 gap-1.5 border-b border-[#E5E5E5]">
+        <TabItem
+          value="all"
+          label={t("All")}
+          count={offers.length}
+          isActive={filterTab === "all"}
+          onClick={(v) => setFilterTab(v as OfferFilterTab)}
+        />
+        <TabItem
+          value="offers"
+          label={t("Offers")}
+          count={offersCount}
+          isActive={filterTab === "offers"}
+          onClick={(v) => setFilterTab(v as OfferFilterTab)}
+        />
+        <TabItem
+          value="banners"
+          label={t("Banners")}
+          count={bannersCount}
+          isActive={filterTab === "banners"}
+          onClick={(v) => setFilterTab(v as OfferFilterTab)}
+        />
+      </div>
+
       <OffersOverView
-        offers={offers}
+        offers={filteredOffers}
         onStatusChange={handleStatusChange}
         onEdit={handleEditOffer}
         onDelete={handleDeleteOffer}
@@ -172,6 +238,7 @@ const OffersPage = () => {
         onOpenChange={setIsDialogOpen}
         onSaveOffer={handleSaveOffer}
         editingOffer={editingOffer}
+        initialTab={filterTab === "banners" ? "banner" : "offer"}
       />
 
       <WhatsAppBroadcastDialog

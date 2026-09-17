@@ -62,6 +62,7 @@ interface CreateOfferDialogProps {
   onOpenChange: (open: boolean) => void;
   onSaveOffer: (offer: Offer, imageFile?: File) => void;
   editingOffer?: Offer;
+  initialTab?: OfferDialogTab;
 }
 
 const EXCLUDED_CATEGORIES = ["raw ingredients", "ingredients"];
@@ -71,6 +72,7 @@ const CreateOfferDialog = ({
   onOpenChange,
   onSaveOffer,
   editingOffer,
+  initialTab,
 }: CreateOfferDialogProps) => {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<OfferDialogTab>("offer");
@@ -138,7 +140,13 @@ const CreateOfferDialog = ({
   useEffect(() => {
     if (isOpen) {
       const isBannerOffer = Boolean(editingOffer?.isBanner);
-      setActiveTab(isBannerOffer ? "banner" : "offer");
+      setActiveTab(
+        editingOffer
+          ? isBannerOffer
+            ? "banner"
+            : "offer"
+          : initialTab || "offer",
+      );
       const initialProductId =
         editingOffer?.productId ||
         (editingOffer?.productIds?.[0] ? String(editingOffer.productIds[0]) : "");
@@ -185,7 +193,9 @@ const CreateOfferDialog = ({
           : INITIAL_FORM,
       );
       setBannerProductSearch(
-        isBannerOffer ? editingOffer?.offerTitle || "" : "",
+        isBannerOffer
+          ? editingOffer?.productName || editingOffer?.offerTitle || ""
+          : "",
       );
       setErrors({});
       setIsDiscountOpen(false);
@@ -338,6 +348,9 @@ const CreateOfferDialog = ({
       if (Object.keys(next).length > 0) return;
 
       const title = (form.productName || form.description || "Banner").trim();
+      const now = new Date();
+      const oneYearLater = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
+
       const offer: Offer = {
         id: editingOffer?.id ?? Date.now(),
         offerStatus: editingOffer?.offerStatus ?? true,
@@ -348,12 +361,8 @@ const CreateOfferDialog = ({
         offerValidPeriod: form.releaseDate ? formatDate(form.releaseDate) : "—",
         numberOfProducts: form.productId ? 1 : 0,
         offerImage: form.bannerImage,
-        startDate: form.releaseDate || new Date().toISOString().split("T")[0],
-        endDate:
-          form.releaseDate ||
-          new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
-            .toISOString()
-            .split("T")[0],
+        startDate: now.toISOString(),
+        endDate: oneYearLater.toISOString(),
         code: undefined,
         usageLimit: 0,
         minOrderAmount: 0,
@@ -361,6 +370,7 @@ const CreateOfferDialog = ({
         isBanner: true,
         releaseDate: form.releaseDate || undefined,
         productId: form.productId || undefined,
+        productName: form.productName || undefined,
       };
       onSaveOffer(offer, imageFile);
       onOpenChange(false);
@@ -421,7 +431,9 @@ const CreateOfferDialog = ({
                 ? editingOffer.isBanner
                   ? t("Edit Banner")
                   : t("Edit Offer")
-                : t("Create a New Banner")}
+                : activeTab === "banner"
+                  ? t("Create a New Banner")
+                  : t("Create a New Offer")}
             </DialogTitle>
 
             {/* ── Tab Navigation (Styled like Products module tabs) ── */}

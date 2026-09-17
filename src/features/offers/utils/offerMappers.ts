@@ -31,9 +31,19 @@ export const formatPeriodFromDates = (start: string, end: string): string => {
 export const mapOffer = (o: any): Offer => {
   // productIds may come back as plain strings OR full product objects
   const rawIds: any[] = o.productIds || o.includedProducts || [];
-  const productIds: string[] = rawIds.map((p: any) =>
-    typeof p === "string" ? p : (p._id ?? p.id ?? ""),
-  ).filter(Boolean);
+  let productName: string | undefined = o.productName;
+  const productIds: string[] = rawIds
+    .map((p: any) => {
+      if (typeof p === "string") return p;
+      if (p && typeof p === "object") {
+        if (!productName && p.name) productName = p.name;
+        return p._id ?? p.id ?? "";
+      }
+      return "";
+    })
+    .filter(Boolean);
+
+  const isBanner = o.isBanner === true || o.isBanner === "true";
 
   return {
     id: o._id || o.id,
@@ -42,7 +52,10 @@ export const mapOffer = (o: any): Offer => {
     offerDescription: o.description || "",
     offerPercentage: o.discountValue ?? 0,
     discountType: (o.discountType === "fixed" ? "fixed" : "percentage") as DiscountType,
-    offerValidPeriod: formatPeriodFromDates(o.startDate || "", o.endDate || ""),
+    offerValidPeriod:
+      isBanner && o.releaseDate
+        ? formatDateString(o.releaseDate)
+        : formatPeriodFromDates(o.startDate || "", o.endDate || ""),
     numberOfProducts: productIds.length,
     offerImage: o.image || o.offerImage || o.bannerImage,
     startDate: o.startDate,
@@ -53,6 +66,10 @@ export const mapOffer = (o: any): Offer => {
     minOrderAmount: o.minOrderAmount !== undefined ? o.minOrderAmount : null,
     claimsCount: o.claimsCount ?? o.usageCount ?? 0,
     productIds,
+    isBanner,
+    releaseDate: o.releaseDate,
+    productId: o.productId || (productIds.length === 1 ? productIds[0] : undefined),
+    productName,
   };
 };
 

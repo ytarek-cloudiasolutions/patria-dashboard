@@ -24,6 +24,7 @@ export interface Offer {
   isBanner?: boolean;
   releaseDate?: string;
   productId?: string;
+  productName?: string;
 }
 
 export interface OfferProduct {

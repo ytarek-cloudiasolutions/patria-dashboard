@@ -75,6 +75,17 @@ const OfferCard = ({
           >
             {isActive ? t("Active") : t("Inactive")}
           </div>
+
+          {/* Offer / Banner Type Badge */}
+          <div
+            className={`absolute right-[20px] top-[18px] inline-flex items-center justify-center gap-1 rounded-[30px] px-3 py-1 text-[13px] font-semibold tracking-[0.26px] shadow-sm ${
+              offer.isBanner
+                ? "bg-[#8F6900] text-white"
+                : "bg-white text-[#333333] border border-[#E5E5E5]"
+            }`}
+          >
+            {offer.isBanner ? t("Banner") : t("Offer")}
+          </div>
         </div>
 
         {/* Content Container */}
@@ -91,10 +102,12 @@ const OfferCard = ({
             </div>
 
             <div className="flex shrink-0 items-center justify-center rounded-[5px] bg-[#F5F0EA] p-2">
-              <span className="text-[12px] font-bold tracking-[0.24px] text-[#333333] whitespace-nowrap">
-                {offer.discountType === "percentage"
-                  ? `${offer.offerPercentage}% OFF`
-                  : `${offer.offerPercentage} EGP OFF`}
+              <span className="text-[12px] font-bold tracking-[0.24px] text-[#8F6900] whitespace-nowrap">
+                {offer.isBanner
+                  ? t("Banner")
+                  : offer.discountType === "percentage"
+                    ? `${offer.offerPercentage}% OFF`
+                    : `${offer.offerPercentage} EGP OFF`}
               </span>
             </div>
           </div>
@@ -106,7 +119,7 @@ const OfferCard = ({
             </div>
             <div className="flex flex-col justify-center gap-1 min-w-0 flex-1">
               <span className="text-[13px] font-normal tracking-[0.26px] text-[#333333]">
-                {t("Valid Period")}
+                {offer.isBanner && offer.releaseDate ? t("Release date") : t("Valid Period")}
               </span>
               <span className="text-[16px] font-semibold tracking-[0.32px] text-[#28293D] truncate">
                 {offer.offerValidPeriod}
@@ -179,7 +192,7 @@ const OfferCard = ({
               <button
                 type="button"
                 onClick={() => onEdit?.(offer)}
-                title={t("Edit Offer")}
+                title={offer.isBanner ? t("Edit Banner") : t("Edit Offer")}
                 className="cursor-pointer text-black hover:text-[#8F6900] transition-colors"
               >
                 <SquarePen className="size-[18px]" />
@@ -188,7 +201,7 @@ const OfferCard = ({
               <button
                 type="button"
                 onClick={() => setIsDeleteOpen(true)}
-                title={t("Delete Offer")}
+                title={offer.isBanner ? t("Delete Banner") : t("Delete Offer")}
                 className="cursor-pointer text-[#C90000] hover:text-[#A00000] transition-colors"
               >
                 <Trash2 className="size-[18px]" />
@@ -201,7 +214,10 @@ const OfferCard = ({
       <DeleteDialog
         open={isDeleteOpen}
         onOpenChange={setIsDeleteOpen}
-        data={{ item: offer.offerTitle, type: "offer" }}
+        data={{
+          item: offer.offerTitle,
+          type: offer.isBanner ? "banner" : "offer",
+        }}
         onConfirm={handleDelete}
       />
     </>
