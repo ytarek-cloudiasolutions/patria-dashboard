@@ -13,7 +13,7 @@ import PromotionsOverview from "./components/PromotionsOverview";
 import CashierDiscountsSection from "./components/CashierDiscountsSection";
 import type { Offer } from "./types";
 
-type OfferFilterTab = "all" | "offers" | "banners";
+type OfferFilterTab = "offers" | "banners";
 
 const OffersPage = () => {
   const { t } = useTranslation();
@@ -21,7 +21,7 @@ const OffersPage = () => {
   const [isBroadcastDialogOpen, setIsBroadcastDialogOpen] = useState(false);
   const [editingOffer, setEditingOffer] = useState<Offer | undefined>();
   const [broadcastOffer, setBroadcastOffer] = useState<Offer | undefined>();
-  const [filterTab, setFilterTab] = useState<OfferFilterTab>("all");
+  const [filterTab, setFilterTab] = useState<OfferFilterTab>("offers");
 
   const {
     offers,
@@ -155,9 +155,8 @@ const OffersPage = () => {
   const offersCount = offers.filter((o) => !o.isBanner).length;
   const bannersCount = offers.filter((o) => o.isBanner).length;
   const filteredOffers = offers.filter((o) => {
-    if (filterTab === "offers") return !o.isBanner;
-    if (filterTab === "banners") return o.isBanner;
-    return true;
+    if (filterTab === "banners") return Boolean(o.isBanner);
+    return !o.isBanner;
   });
 
   const isLoading = !offersLoaded;
@@ -201,14 +200,7 @@ const OffersPage = () => {
 
       <CashierDiscountsSection />
 
-      <div className="mb-6 grid grid-cols-3 gap-1.5 border-b border-[#E5E5E5]">
-        <TabItem
-          value="all"
-          label={t("All")}
-          count={offers.length}
-          isActive={filterTab === "all"}
-          onClick={(v) => setFilterTab(v as OfferFilterTab)}
-        />
+      <div className="mb-6 grid grid-cols-2 gap-1.5 border-b border-[#E5E5E5]">
         <TabItem
           value="offers"
           label={t("Offers")}

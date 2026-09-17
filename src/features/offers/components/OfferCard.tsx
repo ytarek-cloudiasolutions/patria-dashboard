@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import DeleteDialog from "@/shared/components/DeleteDialog";
 import { useTranslation } from "@/shared/i18n/useTranslation";
+import { formatDateString } from "../utils/offerMappers";
 
 interface OfferCardProps {
   offer: Offer;
@@ -46,6 +47,116 @@ const OfferCard = ({
     setIsDeleteOpen(false);
   };
 
+  // ──────────────────────────────────────────
+  // BANNER CARD VARIANT
+  // ──────────────────────────────────────────
+  if (offer.isBanner) {
+    const releaseDateDisplay =
+      (offer.releaseDate ? formatDateString(offer.releaseDate) : "") ||
+      (offer.offerValidPeriod && offer.offerValidPeriod !== "—"
+        ? offer.offerValidPeriod
+        : t("Coming soon"));
+
+    return (
+      <>
+        <div className="relative flex flex-col w-full h-[450px] overflow-hidden rounded-[20px] border border-[#E5E5E5] bg-white shadow-xs">
+          {/* Top Banner Image */}
+          <div className="relative w-full h-[180px] shrink-0 overflow-hidden rounded-t-[19px] bg-[#F5F0EA]">
+            {offer.offerImage ? (
+              <img
+                src={offer.offerImage}
+                alt={offer.offerTitle}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex flex-col items-center justify-center gap-1">
+                <ImageIcon className="w-10 h-10 text-[#8B8B8B] opacity-40" />
+                <span className="text-[12px] text-[#8B8B8B]">
+                  {t("No banner image")}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Content Container */}
+          <div className="flex flex-1 flex-col justify-between p-5 bg-white overflow-hidden rounded-b-[20px]">
+            <div className="flex flex-col min-w-0">
+              <h3 className="text-[22px] font-bold text-[#1E1E1E] leading-snug truncate">
+                {offer.offerTitle}
+              </h3>
+              <p className="mt-1.5 text-[14px] font-normal text-[#71717A] leading-[21px] line-clamp-2 min-h-[42px]">
+                {offer.offerDescription}
+              </p>
+            </div>
+
+            <div>
+              {/* Release Date Box */}
+              <div className="flex items-center gap-3.5 rounded-[14px] border border-[#E5E5E5] bg-white p-3">
+                <CalendarDays className="size-6 text-[#1E1E1E] shrink-0" />
+                <div className="flex flex-col min-w-0">
+                  <span className="text-[13px] font-normal text-[#666666]">
+                    {t("Release Date")}
+                  </span>
+                  <span className="text-[17px] font-bold text-[#1E1E1E] leading-tight truncate">
+                    {releaseDateDisplay}
+                  </span>
+                </div>
+              </div>
+
+              {/* Divider */}
+              <div className="my-3.5 h-px w-full bg-[#E5E5E5]" />
+
+              {/* Bottom Action Row */}
+              <div className="flex items-center justify-between gap-3">
+                <button
+                  type="button"
+                  onClick={() => onBroadcast?.(offer)}
+                  className="flex flex-1 items-center justify-center gap-[4px] rounded-[5px] bg-[#EDEDFF] p-2 text-[10px] font-semibold text-[#6A68FF] cursor-pointer"
+                >
+                  <Megaphone className="size-[18px] text-[#6A68FF]" />
+                  <span>{t("Mass Broadcast")}</span>
+                </button>
+
+                <div className="flex items-center gap-[12px]">
+                  <button
+                    type="button"
+                    onClick={() => onEdit?.(offer)}
+                    title={t("Edit Banner")}
+                    className="cursor-pointer text-black"
+                  >
+                    <SquarePen className="size-[18px]" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsDeleteOpen(true)}
+                    title={t("Delete Banner")}
+                    className="cursor-pointer text-[#C90000]"
+                  >
+                    <Trash2 className="size-[18px]" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <DeleteDialog
+          open={isDeleteOpen}
+          onOpenChange={setIsDeleteOpen}
+          data={{
+            item: offer.offerTitle,
+            type: "banner",
+          }}
+          onConfirm={handleDelete}
+        />
+      </>
+    );
+  }
+
+  // ──────────────────────────────────────────
+  // STANDARD OFFER CARD VARIANT
+  // ──────────────────────────────────────────
   return (
     <>
       <div className="relative flex flex-col w-full h-[450px] overflow-hidden rounded-[16px] border border-[#8B8B8B] bg-white [box-shadow:0px_1px_2px_-1px_rgba(0,0,0,0.10),0px_1px_3px_0px_rgba(0,0,0,0.10)]">
@@ -75,17 +186,6 @@ const OfferCard = ({
           >
             {isActive ? t("Active") : t("Inactive")}
           </div>
-
-          {/* Offer / Banner Type Badge */}
-          <div
-            className={`absolute right-[20px] top-[18px] inline-flex items-center justify-center gap-1 rounded-[30px] px-3 py-1 text-[13px] font-semibold tracking-[0.26px] shadow-sm ${
-              offer.isBanner
-                ? "bg-[#8F6900] text-white"
-                : "bg-white text-[#333333] border border-[#E5E5E5]"
-            }`}
-          >
-            {offer.isBanner ? t("Banner") : t("Offer")}
-          </div>
         </div>
 
         {/* Content Container */}
@@ -103,11 +203,9 @@ const OfferCard = ({
 
             <div className="flex shrink-0 items-center justify-center rounded-[5px] bg-[#F5F0EA] p-2">
               <span className="text-[12px] font-bold tracking-[0.24px] text-[#8F6900] whitespace-nowrap">
-                {offer.isBanner
-                  ? t("Banner")
-                  : offer.discountType === "percentage"
-                    ? `${offer.offerPercentage}% OFF`
-                    : `${offer.offerPercentage} EGP OFF`}
+                {offer.discountType === "percentage"
+                  ? `${offer.offerPercentage}% OFF`
+                  : `${offer.offerPercentage} EGP OFF`}
               </span>
             </div>
           </div>
@@ -119,7 +217,7 @@ const OfferCard = ({
             </div>
             <div className="flex flex-col justify-center gap-1 min-w-0 flex-1">
               <span className="text-[13px] font-normal tracking-[0.26px] text-[#333333]">
-                {offer.isBanner && offer.releaseDate ? t("Release date") : t("Valid Period")}
+                {t("Valid Period")}
               </span>
               <span className="text-[16px] font-semibold tracking-[0.32px] text-[#28293D] truncate">
                 {offer.offerValidPeriod}
@@ -182,7 +280,7 @@ const OfferCard = ({
                 <button
                   type="button"
                   onClick={() => onBroadcast?.(offer)}
-                  className="flex items-center gap-[4px] rounded-[5px] bg-[#EDEDFF] p-2 text-[10px] font-semibold text-[#6A68FF] hover:bg-[#E0E0FF] transition-colors cursor-pointer"
+                  className="flex items-center gap-[4px] rounded-[5px] bg-[#EDEDFF] p-2 text-[10px] font-semibold text-[#6A68FF] cursor-pointer"
                 >
                   <Megaphone className="size-[18px] text-[#6A68FF]" />
                   <span>{t("Mass Broadcast")}</span>
@@ -192,8 +290,8 @@ const OfferCard = ({
               <button
                 type="button"
                 onClick={() => onEdit?.(offer)}
-                title={offer.isBanner ? t("Edit Banner") : t("Edit Offer")}
-                className="cursor-pointer text-black hover:text-[#8F6900] transition-colors"
+                title={t("Edit Offer")}
+                className="cursor-pointer text-black"
               >
                 <SquarePen className="size-[18px]" />
               </button>
@@ -201,8 +299,8 @@ const OfferCard = ({
               <button
                 type="button"
                 onClick={() => setIsDeleteOpen(true)}
-                title={offer.isBanner ? t("Delete Banner") : t("Delete Offer")}
-                className="cursor-pointer text-[#C90000] hover:text-[#A00000] transition-colors"
+                title={t("Delete Offer")}
+                className="cursor-pointer text-[#C90000]"
               >
                 <Trash2 className="size-[18px]" />
               </button>
@@ -216,7 +314,7 @@ const OfferCard = ({
         onOpenChange={setIsDeleteOpen}
         data={{
           item: offer.offerTitle,
-          type: offer.isBanner ? "banner" : "offer",
+          type: "offer",
         }}
         onConfirm={handleDelete}
       />
