@@ -72,6 +72,7 @@ const makeDriver = (
   hourlyRate,
   salaryNow: Number((hourlyRate * (ordersToday / 3 + 4)).toFixed(2)),
   dutyTime,
+  shiftStartedAt: null,
 });
 
 export const INITIAL_DRIVERS: Driver[] = [

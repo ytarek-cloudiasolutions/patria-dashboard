@@ -14,6 +14,8 @@ export interface Driver {
   salaryNow: number;
   hourlyRate: number;
   dutyTime: string;
+  /** ISO timestamp the current shift started, or null if off-duty — drives the live ticking clock on the duty card. */
+  shiftStartedAt: string | null;
 }
 
 export type ZoneOrderStatus = "Waiting" | "Processing" | "Confirmed" | "Ready" | "On-Route" | "Delivered" | "Cancelled" | (string & {});

@@ -42,6 +42,7 @@ const mapApiDriver = (d: any): Driver => {
     salaryNow,
     hourlyRate,
     dutyTime: d.dutyTime && d.dutyTime !== "—" ? d.dutyTime : "00:00:00",
+    shiftStartedAt: d.shiftStartedAt || null,
   };
 };
 
@@ -85,6 +86,17 @@ const LogisticsPage = () => {
   useEffect(() => {
     getDrivers();
     fetchOrders();
+    // Drivers were only ever fetched once on mount, with no polling — a
+    // driver who started/ended their shift, or whose duty time simply kept
+    // ticking, after this page loaded stayed frozen at whatever the
+    // snapshot showed until something else (e.g. an unrelated edit)
+    // happened to trigger a refetch. Poll periodically so status/duty time
+    // actually reflect what's happening on the rider app in real time.
+    const interval = setInterval(() => {
+      getDrivers();
+      fetchOrders();
+    }, 20000);
+    return () => clearInterval(interval);
   }, [getDrivers, fetchOrders]);
 
   useEffect(() => {

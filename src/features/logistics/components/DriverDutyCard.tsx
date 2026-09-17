@@ -23,15 +23,42 @@ const initials = (name: string) =>
     .join("")
     .toUpperCase();
 
+const formatHms = (totalSeconds: number) => {
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = Math.floor(totalSeconds % 60);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${pad(h)}:${pad(m)}:${pad(s)}`;
+};
+
 const DriverDutyCard = ({ driver, onHourlyRateChange }: DriverDutyCardProps) => {
   const { t } = useTranslation();
   const [rate, setRate] = useState<number>(driver.hourlyRate);
   const [inputValue, setInputValue] = useState<string>(String(driver.hourlyRate ?? 0));
+  // The card only ever showed a static snapshot of dutyTime from the last
+  // driver-list fetch (a coarse "8m" string, and only as fresh as the last
+  // poll) — tick a real HH:MM:SS clock from shiftStartedAt every second
+  // instead, matching the live timer the rider app itself shows.
+  const [liveSeconds, setLiveSeconds] = useState(0);
 
   useEffect(() => {
     setRate(driver.hourlyRate);
     setInputValue(String(driver.hourlyRate ?? 0));
   }, [driver.hourlyRate]);
+
+  useEffect(() => {
+    if (!driver.shiftStartedAt) {
+      setLiveSeconds(0);
+      return;
+    }
+    const startedAt = new Date(driver.shiftStartedAt).getTime();
+    const tick = () => setLiveSeconds(Math.max(0, Math.floor((Date.now() - startedAt) / 1000)));
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [driver.shiftStartedAt]);
+
+  const displayDutyTime = driver.shiftStartedAt ? formatHms(liveSeconds) : "00:00:00";
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
@@ -93,7 +120,7 @@ const DriverDutyCard = ({ driver, onHourlyRateChange }: DriverDutyCardProps) => 
       {/* Timer */}
       <div className="mt-4 flex h-20 items-center justify-center rounded-[12px] border-2 border-dashed border-[#624F1C] bg-[#F5F0EA4D]">
         <span className="text-[32px] font-bold tracking-wide text-primary" dir="ltr">
-          {driver.dutyTime}
+          {displayDutyTime}
         </span>
       </div>
 
