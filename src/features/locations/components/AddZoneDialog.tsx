@@ -64,6 +64,7 @@ const AddZoneDialog = ({
           {/* Scrollable body */}
           <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-7 sm:py-6">
             <AddZoneForm
+              key={editingZone?.id ?? "new"}
               id={FORM_ID}
               editingZone={editingZone}
               existingZones={existingZones}

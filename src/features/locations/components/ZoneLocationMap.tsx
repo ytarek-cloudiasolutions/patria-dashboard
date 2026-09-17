@@ -233,7 +233,7 @@ const ZoneLocationMap = ({
   const existingOverlaysRef = useRef<any[]>([]);
   const pathListenersRef = useRef<any[]>([]);
 
-  const [points, setPoints] = useState<ZonePoint[]>(externalPolygon);
+  const [points, setPoints] = useState<ZonePoint[]>(() => externalPolygon || []);
   const [history, setHistory] = useState<ZonePoint[][]>([]);
 
   // Keep a reference to the initial baseline points for the current location
@@ -386,13 +386,32 @@ const ZoneLocationMap = ({
   // Sync external polygon into state if changed outside
   useEffect(() => {
     if (externalPolygon && externalPolygon.length > 0) {
-      if (JSON.stringify(externalPolygon) !== JSON.stringify(points)) {
+      if (
+        JSON.stringify(externalPolygon) !==
+        JSON.stringify(lastKnownPointsRef.current)
+      ) {
         initialPointsRef.current = externalPolygon;
         lastKnownPointsRef.current = externalPolygon;
         setBoundaryPoints(externalPolygon, false);
+
+        if (mapRef.current && window.google?.maps) {
+          const bounds = new window.google.maps.LatLngBounds();
+          externalPolygon.forEach((p) => {
+            bounds.extend(new window.google.maps.LatLng(p.lat, p.lng));
+          });
+          if (hasCoords) {
+            bounds.extend(new window.google.maps.LatLng(centerLat!, centerLng!));
+          }
+          mapRef.current.fitBounds(bounds, {
+            top: 35,
+            right: 35,
+            bottom: 35,
+            left: 35,
+          });
+        }
       }
     }
-  }, [externalPolygon]);
+  }, [externalPolygon, hasCoords, centerLat, centerLng]);
 
   // Initialize Map
   useEffect(() => {
@@ -407,12 +426,17 @@ const ZoneLocationMap = ({
         ? { lat: centerLat!, lng: centerLng! }
         : points.length > 0
         ? calculateCentroid(points)
+        : externalPolygon.length > 0
+        ? calculateCentroid(externalPolygon)
         : DEFAULT_CENTER;
 
       if (!mapRef.current) {
         const map = new window.google.maps.Map(containerRef.current, {
           center: initialCenter,
-          zoom: hasCoords || points.length > 0 ? 15 : 13,
+          zoom:
+            hasCoords || points.length > 0 || externalPolygon.length > 0
+              ? 15
+              : 13,
           disableDefaultUI: false,
           gestureHandling: "greedy",
           zoomControl: true,
@@ -432,6 +456,8 @@ const ZoneLocationMap = ({
         const initialPts =
           points.length > 0
             ? points
+            : externalPolygon.length > 0
+            ? externalPolygon
             : hasCoords
             ? generateDefaultBoundary(initialCenter, 650)
             : [];
@@ -485,6 +511,49 @@ const ZoneLocationMap = ({
 
         markerRef.current = marker;
         mapRef.current = map;
+
+        // Fit bounds to polygon and marker
+        if (initialPts.length >= 3) {
+          const bounds = new window.google.maps.LatLngBounds();
+          initialPts.forEach((p) => {
+            bounds.extend(new window.google.maps.LatLng(p.lat, p.lng));
+          });
+          bounds.extend(
+            new window.google.maps.LatLng(pinPosition.lat, pinPosition.lng),
+          );
+          map.fitBounds(bounds, { top: 35, right: 35, bottom: 35, left: 35 });
+        } else {
+          map.setCenter(pinPosition);
+          map.setZoom(15);
+        }
+
+        // Trigger resize and re-fit bounds after modal transition
+        setTimeout(() => {
+          if (mapRef.current && window.google?.maps) {
+            window.google.maps.event.trigger(mapRef.current, "resize");
+            const currentPts =
+              lastKnownPointsRef.current.length > 0
+                ? lastKnownPointsRef.current
+                : initialPts;
+            if (currentPts.length >= 3) {
+              const bounds = new window.google.maps.LatLngBounds();
+              currentPts.forEach((p) => {
+                bounds.extend(new window.google.maps.LatLng(p.lat, p.lng));
+              });
+              bounds.extend(
+                new window.google.maps.LatLng(pinPosition.lat, pinPosition.lng),
+              );
+              mapRef.current.fitBounds(bounds, {
+                top: 35,
+                right: 35,
+                bottom: 35,
+                left: 35,
+              });
+            } else {
+              mapRef.current.setCenter(pinPosition);
+            }
+          }
+        }, 150);
       }
     });
 
@@ -497,25 +566,44 @@ const ZoneLocationMap = ({
   useEffect(() => {
     if (!mapRef.current || !hasCoords) return;
 
-    if (isInternalChangeRef.current) {
-      isInternalChangeRef.current = false;
-      return;
-    }
-
     const newCenter = { lat: centerLat!, lng: centerLng! };
-    mapRef.current.panTo(newCenter);
-    mapRef.current.setZoom(15);
 
     if (markerRef.current) {
       markerRef.current.setPosition(newCenter);
       markerRef.current.setMap(mapRef.current);
     }
 
-    // Generate initial 6-point boundary around the new area
-    const defaultPts = generateDefaultBoundary(newCenter, 650);
-    initialPointsRef.current = defaultPts;
-    lastKnownPointsRef.current = defaultPts;
-    setBoundaryPoints(defaultPts, false);
+    // Only generate a default boundary if there is NO polygon at all!
+    if (
+      points.length === 0 &&
+      (!externalPolygon || externalPolygon.length === 0)
+    ) {
+      mapRef.current.panTo(newCenter);
+      mapRef.current.setZoom(15);
+      const defaultPts = generateDefaultBoundary(newCenter, 650);
+      initialPointsRef.current = defaultPts;
+      lastKnownPointsRef.current = defaultPts;
+      setBoundaryPoints(defaultPts, true);
+    } else {
+      const pts = points.length > 0 ? points : externalPolygon;
+      if (pts.length >= 3 && window.google?.maps) {
+        const bounds = new window.google.maps.LatLngBounds();
+        pts.forEach((p) =>
+          bounds.extend(new window.google.maps.LatLng(p.lat, p.lng)),
+        );
+        bounds.extend(
+          new window.google.maps.LatLng(newCenter.lat, newCenter.lng),
+        );
+        mapRef.current.fitBounds(bounds, {
+          top: 35,
+          right: 35,
+          bottom: 35,
+          left: 35,
+        });
+      } else {
+        mapRef.current.panTo(newCenter);
+      }
+    }
   }, [centerLat, centerLng, hasCoords]);
 
   // Render existing zones on map for reference

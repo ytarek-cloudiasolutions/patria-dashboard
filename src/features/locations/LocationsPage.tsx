@@ -6,7 +6,8 @@ import DeleteDialog from "@/shared/components/DeleteDialog";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import LocationsTable from "./components/LocationsTable";
 import AddZoneDialog from "./components/AddZoneDialog";
-import type { DeliveryZone, ZoneFormData } from "./types";
+import type { DeliveryZone, ZoneFormData, ZonePoint } from "./types";
+import type { CreateLocationRequest } from "./store/locationTypes";
 import { useLocations } from "./hooks/useLocations";
 
 const LocationsPage = () => {
@@ -61,16 +62,56 @@ const LocationsPage = () => {
   };
 
   const handleSave = (data: ZoneFormData, id?: string) => {
-    const payload = {
+    // 1. Prepare clean polygon coordinates as { lat, lng } objects
+    const rawPolygon = Array.isArray(data.polygon) ? data.polygon : [];
+    const polygon: ZonePoint[] = rawPolygon
+      .map((p) => ({
+        lat: Number(Number(p.lat).toFixed(6)),
+        lng: Number(Number(p.lng).toFixed(6)),
+      }))
+      .filter((p) => !isNaN(p.lat) && !isNaN(p.lng));
+
+    const hasPolygon = polygon.length >= 3;
+
+    // 2. Ensure centerLat and centerLng are numbers
+    let centerLat =
+      typeof data.centerLat === "number" && !isNaN(data.centerLat)
+        ? Number(data.centerLat.toFixed(6))
+        : undefined;
+    let centerLng =
+      typeof data.centerLng === "number" && !isNaN(data.centerLng)
+        ? Number(data.centerLng.toFixed(6))
+        : undefined;
+
+    if (centerLat === undefined || centerLng === undefined) {
+      if (polygon.length > 0) {
+        const sum = polygon.reduce(
+          (acc, p) => ({ lat: acc.lat + p.lat, lng: acc.lng + p.lng }),
+          { lat: 0, lng: 0 },
+        );
+        centerLat = Number((sum.lat / polygon.length).toFixed(6));
+        centerLng = Number((sum.lng / polygon.length).toFixed(6));
+      } else {
+        centerLat = 31.2001;
+        centerLng = 29.9187;
+      }
+    }
+
+    // 3. Build payload strictly according to Swagger schema
+    const payload: CreateLocationRequest = {
       name: data.name.trim(),
-      deliveryFee: Number(data.deliveryFee),
-      minOrderAmount: Number(data.minOrderAmount),
-      minOrder: Number(data.minOrderAmount),
+      deliveryFee: Number(data.deliveryFee) || 0,
+      minOrderAmount: Number(data.minOrderAmount) || 0,
       isActive: data.status === "Active",
-      status: data.status,
-      polygon: data.polygon,
-      ...(data.centerLat !== undefined ? { centerLat: data.centerLat } : {}),
-      ...(data.centerLng !== undefined ? { centerLng: data.centerLng } : {}),
+      centerLat,
+      centerLng,
+      polygon,
+      // There is no need to send radiusKm when a polygon is provided
+      ...(hasPolygon
+        ? {}
+        : data.radiusKm
+        ? { radiusKm: Number(data.radiusKm) || 5 }
+        : {}),
     };
 
     if (id) {

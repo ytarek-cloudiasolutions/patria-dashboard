@@ -37,7 +37,19 @@ const AddZoneForm = ({
     { label: t("Inactive"), value: "Inactive" },
   ];
 
-  const [form, setForm] = useState<ZoneFormData>(INITIAL_FORM);
+  const [form, setForm] = useState<ZoneFormData>(() =>
+    editingZone
+      ? {
+          name: editingZone.name,
+          deliveryFee: String(editingZone.deliveryFee),
+          minOrderAmount: String(editingZone.minOrderAmount),
+          status: editingZone.status,
+          centerLat: editingZone.centerLat,
+          centerLng: editingZone.centerLng,
+          polygon: editingZone.polygon || [],
+        }
+      : INITIAL_FORM,
+  );
   const [errors, setErrors] = useState<Partial<Record<keyof ZoneFormData, string>>>({});
 
   useEffect(() => {
