@@ -76,6 +76,17 @@ const OfferCard = ({
                 </span>
               </div>
             )}
+
+            {/* Active Status Badge */}
+            <div
+              className={`absolute left-[20px] top-[18px] inline-flex items-center justify-center gap-1 rounded-[30px] px-3 py-1 text-[13px] font-semibold tracking-[0.26px] outline-1 outline-offset-[-1px] ${
+                isActive
+                  ? "bg-[#E2F4ED] text-[#059B5A] outline-[#059B5A]"
+                  : "bg-[#DCDCDC] text-[#23252A] outline-[#8B8B8B]"
+              }`}
+            >
+              {isActive ? t("Active") : t("Inactive")}
+            </div>
           </div>
 
           {/* Content Container */}
@@ -107,17 +118,32 @@ const OfferCard = ({
               <div className="my-3.5 h-px w-full bg-[#E5E5E5]" />
 
               {/* Bottom Action Row */}
-              <div className="flex items-center justify-between gap-3">
-                <button
-                  type="button"
-                  onClick={() => onBroadcast?.(offer)}
-                  className="flex flex-1 items-center justify-center gap-[4px] rounded-[5px] bg-[#EDEDFF] p-2 text-[10px] font-semibold text-[#6A68FF] cursor-pointer"
-                >
-                  <Megaphone className="size-[18px] text-[#6A68FF]" />
-                  <span>{t("Mass Broadcast")}</span>
-                </button>
-
+              <div className="flex w-full items-center justify-between">
+                {/* Left: Active Label & Switch */}
                 <div className="flex items-center gap-[12px]">
+                  <span className="text-[13px] font-medium tracking-[0.26px] text-[#333333]">
+                    {t("Active")}
+                  </span>
+                  <Switch
+                    checked={isActive}
+                    onCheckedChange={handleStatusChange}
+                    className="data-[state=checked]:bg-[#8F6900] ring-[#624F1C1A]"
+                  />
+                </div>
+
+                {/* Right: Action Buttons */}
+                <div className="flex items-center gap-[12px]">
+                  {isActive && (
+                    <button
+                      type="button"
+                      onClick={() => onBroadcast?.(offer)}
+                      className="flex items-center gap-[4px] rounded-[5px] bg-[#EDEDFF] p-2 text-[10px] font-semibold text-[#6A68FF] cursor-pointer"
+                    >
+                      <Megaphone className="size-[18px] text-[#6A68FF]" />
+                      <span>{t("Mass Broadcast")}</span>
+                    </button>
+                  )}
+
                   <button
                     type="button"
                     onClick={() => onEdit?.(offer)}

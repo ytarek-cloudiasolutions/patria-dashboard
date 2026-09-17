@@ -25,7 +25,7 @@ const FinancialTabs = ({ active, onChange }: FinancialTabsProps) => {
 
   return (
     <div className="mb-6 border-b border-[#E5E5E5] overflow-x-auto no-scrollbar">
-      <nav className="flex gap-6 min-w-max">
+      <nav className="flex w-full min-w-max items-center justify-between gap-2 sm:gap-4 lg:gap-6">
         {TABS.map((tab) => {
           const isActive = active === tab.key;
           return (
@@ -34,9 +34,9 @@ const FinancialTabs = ({ active, onChange }: FinancialTabsProps) => {
               type="button"
               onClick={() => onChange(tab.key)}
               className={cn(
-                "pb-3 text-[14px] font-medium transition-colors relative whitespace-nowrap cursor-pointer",
+                "flex-1 pb-3 text-center text-[13px] sm:text-[14px] font-medium transition-colors relative whitespace-nowrap cursor-pointer px-1.5 sm:px-2",
                 isActive
-                  ? "text-[#333333] font-semibold border-b-2 border-[#8F6900]"
+                  ? "text-[#333333] font-semibold border-b-2 border-[#8F6900] -mb-[1px]"
                   : "text-[#8B8B8B] hover:text-[#333333]"
               )}
             >
