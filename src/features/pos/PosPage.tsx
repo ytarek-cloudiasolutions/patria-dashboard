@@ -465,6 +465,21 @@ const PosPage = () => {
     [cartItems],
   );
   const resolvedTable = selectedTable;
+  const resolvedTableId = useMemo(() => {
+    if (orderType !== "dine-in" || !selectedTable) return undefined;
+    const match = tables?.find(
+      (t) =>
+        `Table ${t.number}` === selectedTable ||
+        `${t.number}` === selectedTable ||
+        t._id === selectedTable
+    );
+    return match?._id || undefined;
+  }, [orderType, selectedTable, tables]);
+
+  const newItemsCount = useMemo(() => {
+    if (!loadedOrderId) return 0;
+    return cartItems.filter((item) => !sentLineIds.has(item.lineId)).length;
+  }, [cartItems, loadedOrderId, sentLineIds]);
 
   // --- Cart mutations -------------------------------------------------------
 
@@ -525,10 +540,12 @@ const PosPage = () => {
     extras,
     instructions,
     qty,
+    excludedIngredients,
   }: {
     extras: CartExtra[];
     instructions: string;
     qty: number;
+    excludedIngredients?: Array<{ productId: string; name: string }>;
   }) => {
     if (!customizeProduct) return;
 
@@ -536,7 +553,9 @@ const PosPage = () => {
       const lineId = editingLine.lineId;
       setCartItems((prev) =>
         prev.map((item) =>
-          item.lineId === lineId ? { ...item, extras, instructions, qty } : item,
+          item.lineId === lineId
+            ? { ...item, extras, instructions, qty, excludedIngredients }
+            : item,
         ),
       );
     } else {
@@ -550,6 +569,7 @@ const PosPage = () => {
           qty,
           extras,
           instructions,
+          excludedIngredients,
         },
       ]);
       // Adding a new product to an already-loaded pending order means there's
@@ -560,10 +580,12 @@ const PosPage = () => {
     setCustomizeOpen(false);
   };
 
-  const handleTableChange = (newTable: string) => {
+  const handleTableChange = async (newTable: string) => {
     setSelectedTable(newTable);
     if (!newTable) {
       setCustomerCount(0);
+      setLoadedOrderId(null);
+      setSentLineIds(new Set());
       return;
     }
     const match = tables?.find(
@@ -573,6 +595,54 @@ const PosPage = () => {
       setCustomerCount(match.capacity);
     } else {
       setCustomerCount(1);
+    }
+
+    if (match && match.status !== "available" && (cartItems.length === 0 || loadedOrderId)) {
+      try {
+        const { api } = await import("@/config/api");
+        const res = await api.get("/orders", {
+          params: { source: "pos", status: "pending", type: "dine_in", limit: 50 },
+        });
+        const raw: any[] = res.data?.data ?? res.data?.orders ?? [];
+        const tableNum = match.number;
+        const targetOrder = raw.find((o) => {
+          const oTable = o.address || o.customer?.address || "";
+          return (
+            o.tableId === match._id ||
+            o.tableNumber === tableNum ||
+            oTable === `Table ${tableNum}` ||
+            oTable === `${tableNum}` ||
+            oTable === newTable
+          );
+        });
+
+        if (targetOrder) {
+          setLoadedOrderId(targetOrder._id);
+          setOrderType("dine-in");
+          if (targetOrder.items && targetOrder.items.length > 0) {
+            const loadedItems: CartItem[] = targetOrder.items.map((item: any): CartItem => ({
+              lineId: nextLineId(),
+              productId: item.productId?._id || item.product?._id || String(item.productId || ""),
+              name: item.productId?.name || item.product?.name || item.name || "Unknown",
+              qty: item.quantity || 1,
+              unitPrice: item.price || item.productId?.price || 0,
+              extras: [],
+              instructions: item.notes || "",
+            }));
+            setCartItems(loadedItems);
+            setSentLineIds(new Set(loadedItems.map((item: CartItem) => item.lineId)));
+          } else {
+            setSentLineIds(new Set());
+          }
+          setSentToKitchen(true);
+        }
+      } catch (err) {
+        console.error("Failed to auto-load pending order for table:", err);
+      }
+    } else if (match && match.status === "available" && loadedOrderId) {
+      setLoadedOrderId(null);
+      setSentLineIds(new Set());
+      setSentToKitchen(false);
     }
   };
 
@@ -619,6 +689,9 @@ const PosPage = () => {
               quantity: item.qty,
               price: item.unitPrice,
               notes: item.instructions || undefined,
+              ...(item.excludedIngredients && item.excludedIngredients.length > 0
+                ? { excludedIngredients: item.excludedIngredients }
+                : {}),
             })),
           });
           showSuccessToast("Sent to kitchen");
@@ -635,6 +708,7 @@ const PosPage = () => {
         await createOrder({
           type: orderType === "dine-in" ? "dine_in" : "takeaway",
           source: "pos",
+          tableId: resolvedTableId,
           customerName: customer || "Walk-in Customer",
           customerPhone: customerPhone || undefined,
           address: orderType === "dine-in" ? resolvedTable : undefined,
@@ -643,6 +717,9 @@ const PosPage = () => {
             quantity: item.qty,
             price: item.unitPrice,
             notes: item.instructions || undefined,
+            ...(item.excludedIngredients && item.excludedIngredients.length > 0
+              ? { excludedIngredients: item.excludedIngredients }
+              : {}),
           })),
           notes: notes || undefined,
           guestCount: orderType === "dine-in" && customerCount > 0 ? customerCount : undefined,
@@ -762,12 +839,16 @@ const PosPage = () => {
       quantity: item.qty,
       price: item.unitPrice,
       notes: item.instructions || undefined,
+      ...(item.excludedIngredients && item.excludedIngredients.length > 0
+        ? { excludedIngredients: item.excludedIngredients }
+        : {}),
     }));
 
     try {
       const created: any = await createOrder({
         type: orderType === "dine-in" ? "dine_in" : "takeaway",
         source: "pos",
+        tableId: resolvedTableId,
         customerName: customer || "Walk-in Customer",
         customerPhone: customerPhone || undefined,
         address: orderType === "dine-in" ? resolvedTable : undefined,
@@ -906,6 +987,9 @@ const PosPage = () => {
       quantity: item.qty,
       price: item.unitPrice,
       notes: item.instructions || undefined,
+      ...(item.excludedIngredients && item.excludedIngredients.length > 0
+        ? { excludedIngredients: item.excludedIngredients }
+        : {}),
     }));
 
     // Brand new POS order: create it and pay via PATCH /orders/{id}/pay
@@ -914,6 +998,7 @@ const PosPage = () => {
       const created: any = await createOrder({
         type: orderType === "dine-in" ? "dine_in" : "takeaway",
         source: "pos",
+        tableId: resolvedTableId,
         customerName: customer || "Walk-in Customer",
         customerPhone: customerPhone || undefined,
         address: orderType === "dine-in" ? resolvedTable : undefined,
@@ -1202,6 +1287,7 @@ const PosPage = () => {
             sentToKitchen={sentToKitchen}
             customerCount={customerCount}
             isShiftActive={isShiftActive}
+            newItemsCount={newItemsCount}
             onCustomerChange={setCustomer}
             onCustomerPhoneChange={setCustomerPhone}
             onNotesChange={setNotes}

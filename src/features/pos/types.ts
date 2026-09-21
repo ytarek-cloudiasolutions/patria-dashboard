@@ -46,6 +46,7 @@ export type CartItem = {
   qty: number;
   extras: CartExtra[];
   instructions?: string;
+  excludedIngredients?: Array<{ productId: string; name: string }>;
 };
 
 export type StaffPosition = "Admin" | "Manager" | "Barista" | "Staff";

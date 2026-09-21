@@ -27,6 +27,7 @@ type ProductCustomizeDialogProps = {
     extras: CartExtra[];
     instructions: string;
     qty: number;
+    excludedIngredients?: Array<{ productId: string; name: string }>;
   }) => void;
 };
 
@@ -420,7 +421,28 @@ const ProductCustomizeDialog = ({
             <Button
               type="button"
               className="h-[56px] px-[30px] py-4 rounded-[5px] bg-[#8F6900] text-[16px] font-semibold text-white transition-colors hover:bg-[#8F6900]/90 cursor-pointer"
-              onClick={() => onConfirm({ extras, instructions, qty })}
+              onClick={() => {
+                const excludedIngredients: Array<{ productId: string; name: string }> = [];
+                recipeItems.forEach((item: any, index: number) => {
+                  const itemKey = String(item.id || item.material || index);
+                  if (recipeSelection[itemKey] === false) {
+                    const pId = String(item.material || item.productId || item.id || "");
+                    if (pId) {
+                      excludedIngredients.push({
+                        productId: pId,
+                        name: item.name || "",
+                      });
+                    }
+                  }
+                });
+
+                onConfirm({
+                  extras,
+                  instructions,
+                  qty,
+                  excludedIngredients: excludedIngredients.length > 0 ? excludedIngredients : undefined,
+                });
+              }}
             >
               <span>
                 {editLine ? t("Update cart") : t("Add product to cart")}{" "}

@@ -49,6 +49,10 @@ export interface CreateOrderRequest {
       name: string;
       price: number;
     }[];
+    excludedIngredients?: {
+      productId: string;
+      name: string;
+    }[];
   }[];
   couponCode?: string;
   notes?: string;

@@ -14,6 +14,7 @@ import {
   Trophy,
   User,
   UserRound,
+  Utensils,
   X,
 } from "lucide-react";
 
@@ -35,6 +36,7 @@ type OrderCartProps = {
   sentToKitchen: boolean;
   customerCount?: number;
   isShiftActive?: boolean;
+  newItemsCount?: number;
   onCustomerChange: (value: string) => void;
   onCustomerPhoneChange?: (value: string) => void;
   onNotesChange: (value: string) => void;
@@ -57,6 +59,7 @@ const OrderCart = ({
   sentToKitchen,
   customerCount = 0,
   isShiftActive = true,
+  newItemsCount = 0,
   onCustomerChange,
   onCustomerPhoneChange,
   onNotesChange,
@@ -75,7 +78,9 @@ const OrderCart = ({
   const [searchError, setSearchError] = useState<string | null>(null);
 
   const isCartEmpty = items.length === 0;
-  const showSendToKitchen = orderType === "dine-in" && !sentToKitchen;
+  const showSendToKitchen =
+    orderType === "dine-in" &&
+    (typeof newItemsCount === "number" && newItemsCount > 0 ? true : !sentToKitchen);
   const isActionDisabled =
     isCartEmpty || !isShiftActive || (showSendToKitchen && !selectedTable);
 
@@ -411,15 +416,30 @@ const OrderCart = ({
 
         {/* Action buttons */}
         {showSendToKitchen ? (
-          <button
-            type="button"
-            className="flex h-[56px] w-full items-center justify-center gap-3 rounded-[5px] bg-[#8F6900] px-[30px] py-4 text-[16px] font-semibold uppercase leading-6 text-white transition-colors hover:bg-[#8F6900]/90 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
-            disabled={isActionDisabled}
-            onClick={onSendToKitchen}
-          >
-            <Send className="size-[18px] text-white" />
-            {t("Send to kitchen")}
-          </button>
+          <div className="flex flex-col gap-2.5">
+            <button
+              type="button"
+              className="flex h-[56px] w-full items-center justify-center gap-3 rounded-[5px] bg-[#8F6900] px-[30px] py-4 text-[16px] font-semibold uppercase leading-6 text-white transition-colors hover:bg-[#8F6900]/90 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+              disabled={isActionDisabled}
+              onClick={onSendToKitchen}
+            >
+              <Utensils className="size-[18px] text-white" />
+              <span>
+                {newItemsCount > 0
+                  ? `${t("SEND TO KITCHEN")} (${newItemsCount})`
+                  : t("SEND TO KITCHEN")}
+              </span>
+            </button>
+            <button
+              type="button"
+              className="flex h-[56px] w-full items-center justify-center gap-2 rounded-[5px] bg-[#F5F0EA] px-2 py-4 text-[12px] font-bold tracking-[0.2px] uppercase leading-6 text-[#8F6900] whitespace-nowrap transition-colors hover:bg-[#EFE7DC] disabled:opacity-50 disabled:pointer-events-none cursor-pointer sm:text-[13px]"
+              disabled={isActionDisabled}
+              onClick={onDeductFromEmployee}
+            >
+              <UserRound className="size-4.5 shrink-0 text-[#8F6900]" />
+              <span className="whitespace-nowrap">{t("DEDUCT FROM EMPLOYEE ACC.")}</span>
+            </button>
+          </div>
         ) : (
           <div className="flex flex-col gap-2.5">
             <button
@@ -433,7 +453,7 @@ const OrderCart = ({
             </button>
             <button
               type="button"
-              className="flex h-[56px] w-full items-center justify-center gap-2 rounded-[12px] bg-[#F5F0EA] px-2 py-4 text-[12px] font-bold tracking-[0.2px] uppercase leading-6 text-[#8F6900] whitespace-nowrap transition-colors hover:bg-[#EFE7DC] disabled:opacity-50 disabled:pointer-events-none cursor-pointer sm:text-[13px]"
+              className="flex h-[56px] w-full items-center justify-center gap-2 rounded-[5px] bg-[#F5F0EA] px-2 py-4 text-[12px] font-bold tracking-[0.2px] uppercase leading-6 text-[#8F6900] whitespace-nowrap transition-colors hover:bg-[#EFE7DC] disabled:opacity-50 disabled:pointer-events-none cursor-pointer sm:text-[13px]"
               disabled={isActionDisabled}
               onClick={onDeductFromEmployee}
             >

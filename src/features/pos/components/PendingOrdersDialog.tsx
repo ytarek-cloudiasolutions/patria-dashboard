@@ -5,13 +5,11 @@ import { Button } from "@/shared/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/shared/components/ui/dialog";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import type { PendingOrder } from "../types";
-import { formatEgp } from "../utils";
 import { api } from "@/config/api";
 
 type PendingOrdersDialogProps = {
