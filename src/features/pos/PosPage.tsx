@@ -13,7 +13,9 @@ import PosTopbar from "./components/PosTopbar";
 import ProductCustomizeDialog from "./components/ProductCustomizeDialog";
 import ProductGrid from "./components/ProductGrid";
 import ReceiptDialog from "./components/ReceiptDialog";
-import SelectStaffDialog from "./components/SelectStaffDialog";
+import SelectStaffDialog, {
+  type StaffOrderConfirmationData,
+} from "./components/SelectStaffDialog";
 import ShiftSummaryDialog from "./components/ShiftSummaryDialog";
 import OrderConfirmedDialog from "./components/OrderConfirmedDialog";
 import AwaitingManagerApprovalDialog from "./components/AwaitingManagerApprovalDialog";
@@ -1038,10 +1040,48 @@ const PosPage = () => {
     }
   };
 
-  const confirmStaffOrder = () => {
+  const confirmStaffOrder = (data: StaffOrderConfirmationData) => {
     setSelectStaffOpen(false);
-    showSuccessToast("Deducted from employee account");
-    completeOrder();
+
+    if (cartItems.length === 0) return;
+
+    let discountAmount = 0;
+    let discountVal = Number(data.discountValue) || 0;
+
+    if (data.discountType === "percentage") {
+      discountVal = Math.min(100, Math.max(0, discountVal));
+      discountAmount = (totals.total * discountVal) / 100;
+    } else if (data.discountType === "fixed") {
+      discountAmount = Math.min(totals.total, Math.max(0, discountVal));
+    }
+
+    const finalTotal = Math.max(0, totals.total - discountAmount);
+
+    const discountInfo =
+      discountAmount > 0
+        ? {
+            name: `${t("Employee Discount")} (${data.staffName})`,
+            value: data.discountType === "percentage" ? discountVal : discountAmount,
+            discountAmount,
+          }
+        : null;
+
+    setShiftOrders((prev) => [
+      ...prev,
+      { method: "cash" as PaymentMethod, total: finalTotal },
+    ]);
+
+    if (discountAmount > 0) {
+      showSuccessToast(
+        data.discountType === "percentage"
+          ? `${t("Deducted from employee account")} (${discountVal}% ${t("discount applied")})`
+          : `${t("Deducted from employee account")} (${discountAmount.toFixed(2)} EGP ${t("discount applied")})`
+      );
+    } else {
+      showSuccessToast(t("Deducted from employee account"));
+    }
+
+    finishWithReceipt("employee_account", finalTotal, discountInfo);
   };
 
   const handleReceiptClose = (open: boolean) => {
