@@ -16,7 +16,7 @@ import AppUsersOverview from "./components/AppUsersOverview";
 import AppUsersTable from "./components/AppUsersTable";
 import AppUserDetailsDialog from "./components/AppUserDetailsDialog";
 import BlockCustomerDialog from "./components/BlockCustomerDialog";
-import { updateCustomer } from "@/features/customers/api/customersApi";
+import { updateCustomer, forceLogoutCustomer } from "@/features/customers/api/customersApi";
 import { showSuccessToast, showErrorToast } from "@/shared/utils/toast";
 
 import {
@@ -235,6 +235,15 @@ const UsersPermissionsPage = () => {
     }
   };
 
+  const handleForceLogout = async (user: AppUser) => {
+    try {
+      await forceLogoutCustomer(String(user.id));
+      showSuccessToast(t("Customer logged out"));
+    } catch (error: any) {
+      showErrorToast(error?.response?.data?.message || t("Failed to log out customer"));
+    }
+  };
+
   const isLoading = !usersLoaded;
 
   if (isLoading) {
@@ -386,6 +395,7 @@ const UsersPermissionsPage = () => {
         user={viewingAppUser}
         onOpenChange={(open) => !open && setViewingAppUser(null)}
         onBlock={setBlockingAppUser}
+        onForceLogout={handleForceLogout}
       />
 
       <BlockCustomerDialog

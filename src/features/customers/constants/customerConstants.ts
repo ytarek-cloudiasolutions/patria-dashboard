@@ -2,4 +2,5 @@ export const CUSTOMER_ENDPOINTS = {
   CUSTOMERS: "/customers",
   STATS: "/customers/stats",
   CUSTOMER_BY_ID: (id: string) => `/customers/${id}`,
+  FORCE_LOGOUT: (id: string) => `/customers/${id}/force-logout`,
 };

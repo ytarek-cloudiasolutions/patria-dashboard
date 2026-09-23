@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Ban, Mail, Tablet } from "lucide-react";
+import { Ban, LogOut, Mail, Tablet } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -23,6 +23,7 @@ interface AppUserDetailsDialogProps {
   user: AppUser | null;
   onOpenChange: (open: boolean) => void;
   onBlock: (user: AppUser) => void;
+  onForceLogout: (user: AppUser) => void;
 }
 
 const formatEgp = (value: number) =>
@@ -59,6 +60,7 @@ const AppUserDetailsDialog = ({
   user,
   onOpenChange,
   onBlock,
+  onForceLogout,
 }: AppUserDetailsDialogProps) => {
   const { t } = useTranslation();
   const [orders, setOrders] = useState<AppUserOrder[]>([]);
@@ -259,6 +261,15 @@ const AppUserDetailsDialog = ({
               className="h-14 cursor-pointer rounded-[5px] border border-[#8F6900] px-7.5 text-[16px] font-semibold text-[#8F6900] hover:bg-[#FBF6EE] hover:text-[#8F6900]"
             >
               {t("Cancel")}
+            </Button>
+            <Button
+              type="button"
+              onClick={() => onForceLogout(user)}
+              variant="outline"
+              className="flex h-14 cursor-pointer items-center gap-3 rounded-[5px] border border-[#28293D] px-7.5 text-[16px] font-semibold text-[#28293D] hover:bg-[#F5F5F5]"
+            >
+              <LogOut className="size-4.5 text-[#28293D]" />
+              {t("Force Logout")}
             </Button>
             <Button
               type="button"
