@@ -1,4 +1,4 @@
-import { ShoppingBag, MapPin, Phone, CheckCircle2, Loader2 } from "lucide-react";
+import { ShoppingBag, MapPin, Phone, CheckCircle2, Loader2, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -14,41 +14,50 @@ interface IncomingOrderDialogProps {
   order: IncomingOrder | null;
   isConfirming: boolean;
   onConfirm: () => void;
+  onClose?: () => void;
 }
 
 /**
- * Real-time popup for a new order placed from the customer app. Stays open
- * (with a looping alert sound driven by the parent watcher) until staff
- * explicitly confirms it — closing via backdrop/escape is disabled on
- * purpose so a new order can never be silently missed.
+ * Real-time popup for a new order placed from the customer app.
  */
-const IncomingOrderDialog = ({ order, isConfirming, onConfirm }: IncomingOrderDialogProps) => {
+const IncomingOrderDialog = ({ order, isConfirming, onConfirm, onClose }: IncomingOrderDialogProps) => {
   const { t } = useTranslation();
   if (!order) return null;
 
   const orderDisplayId = order.orderId.startsWith("#") ? order.orderId : `#${order.orderId}`;
 
   return (
-    <Dialog open={!!order} onOpenChange={() => { }}>
+    <Dialog open={!!order} onOpenChange={(open) => { if (!open) onClose?.(); }}>
       <DialogContent
         showCloseButton={false}
-        onInteractOutside={(e) => e.preventDefault()}
-        onEscapeKeyDown={(e) => e.preventDefault()}
         className="w-[610px] max-w-[610px] sm:max-w-[610px] overflow-hidden rounded-[12px] border-[6px] border-[#8F6900] bg-white pt-8 pb-6 px-6 shadow-[0px_4px_6px_-4px_rgba(0,0,0,0.1),0px_10px_15px_-3px_rgba(0,0,0,0.1)] ring-0 outline-none flex flex-col gap-6"
       >
         {/* Header Row */}
-        <div className="flex items-center gap-4 text-start">
-          <div className="flex h-[47px] w-[47px] shrink-0 items-center justify-center rounded-[20.89px] bg-[#FAFAF7]">
-            <ShoppingBag className="size-[24px] text-[#8F6900]" />
+        <div className="flex items-start justify-between text-start">
+          <div className="flex items-center gap-4">
+            <div className="flex h-[47px] w-[47px] shrink-0 items-center justify-center rounded-[20.89px] bg-[#FAFAF7]">
+              <ShoppingBag className="size-[24px] text-[#8F6900]" />
+            </div>
+            <div className="flex flex-col justify-center gap-1">
+              <span className="text-[16px] font-normal leading-[22.4px] tracking-[0.32px] text-[#595959]">
+                {t("New Order · App Order")}
+              </span>
+              <DialogTitle className="text-[24px] font-semibold tracking-[0.48px] text-[#28293D]" dir="ltr">
+                {orderDisplayId}
+              </DialogTitle>
+            </div>
           </div>
-          <div className="flex flex-col justify-center gap-1">
-            <span className="text-[16px] font-normal leading-[22.4px] tracking-[0.32px] text-[#595959]">
-              {t("New Order · App Order")}
-            </span>
-            <DialogTitle className="text-[24px] font-semibold tracking-[0.48px] text-[#28293D]" dir="ltr">
-              {orderDisplayId}
-            </DialogTitle>
-          </div>
+
+          {onClose && (
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex size-8 items-center justify-center text-[#28293D] transition-none cursor-pointer border-0 outline-none ring-0 focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 bg-transparent hover:bg-transparent -mt-1 -mr-1"
+              aria-label={t("Close")}
+            >
+              <X className="size-5" />
+            </button>
+          )}
         </div>
 
         {/* Separator */}

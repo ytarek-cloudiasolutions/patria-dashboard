@@ -86,7 +86,7 @@ const IncomingOrderWatcher = () => {
           type: "order",
           title: `New Order Alert #${order.orderId}`,
           message: `New application order received from ${order.customer.name} - EGP ${order.total.toFixed(2)}`,
-        }).catch(() => {});
+        }).catch(() => { });
         return [...prev, order];
       }
       return prev;
@@ -105,7 +105,7 @@ const IncomingOrderWatcher = () => {
         const raw: any[] = res?.data ?? res?.orders ?? [];
         raw.forEach((o) => addToQueue(mapIncomingOrder(o)));
       })
-      .catch(() => {});
+      .catch(() => { });
   };
 
   useEffect(() => {
@@ -163,9 +163,20 @@ const IncomingOrderWatcher = () => {
     }
   };
 
+  const handleClose = () => {
+    if (!current) return;
+    stopLoopingAlert();
+    setQueue((prev) => prev.filter((o) => o._id !== current._id));
+  };
+
   return (
     <>
-      <IncomingOrderDialog order={current} isConfirming={isConfirming} onConfirm={handleConfirm} />
+      <IncomingOrderDialog
+        order={current}
+        isConfirming={isConfirming}
+        onConfirm={handleConfirm}
+        onClose={handleClose}
+      />
       <OrderDetailsDialog
         open={isOrderDetailsOpen}
         order={selectedOrder}
