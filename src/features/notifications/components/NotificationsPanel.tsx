@@ -10,6 +10,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { api } from "@/config/api";
+import { notificationsApi } from "../api/notificationsApi";
 import { getSocket } from "@/shared/lib/socket";
 import type { AppNotification, NotificationCategory, NotificationTab } from "../types";
 import NotificationItem from "./NotificationItem";
@@ -17,39 +18,77 @@ import OrderDetailsDialog from "@/features/orders/components/OrderDetailsDialog"
 import { mapOrder } from "@/features/orders/utils/orderMappers";
 import type { Order } from "@/features/orders/types";
 
-const mapCategory = (type: string, title?: string): NotificationCategory => {
+const mapCategory = (type?: string, title?: string, message?: string): NotificationCategory => {
   const t = (type || "").toLowerCase();
-  const titleLower = (title || "").toLowerCase();
+  const text = `${type || ""} ${title || ""} ${message || ""}`.toLowerCase();
 
-  if (t === "order" || t === "orders" || t.includes("order")) return "orders";
+  // Stock / inventory
   if (
     t === "stock" ||
     t === "inventory" ||
     t.includes("stock") ||
     t.includes("inventory") ||
-    titleLower.includes("stock") ||
-    titleLower.includes("inventory")
+    text.includes("stock") ||
+    text.includes("inventory") ||
+    text.includes("مخزون") ||
+    text.includes("المخزون") ||
+    text.includes("نفاذ")
   ) {
     return "stock";
   }
+
+  // Orders: English or Arabic keywords, order IDs, discount approval on orders
+  if (
+    t.includes("order") ||
+    t.includes("discount") ||
+    t.includes("approval") ||
+    text.includes("order") ||
+    text.includes("طلب") ||
+    text.includes("الطلب") ||
+    text.includes("اوردر") ||
+    text.includes("#ord") ||
+    text.includes("ord-")
+  ) {
+    return "orders";
+  }
+
   return "system";
 };
 
-const mapNotification = (n: any, idx: number): AppNotification => ({
-  id: n._id ?? idx,
-  category: mapCategory(n.type ?? "system", n.title),
-  title: n.title ?? n.type ?? "Notification",
-  description: n.message ?? "",
-  time: n.createdAt
-    ? new Date(n.createdAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })
-    : "—",
-  read: n.isRead ?? false,
-  resolved: false,
-});
+const mapNotification = (n: any, idx: number): AppNotification => {
+  const msg = n.message ?? n.body ?? "";
+  const title = n.title ?? n.type ?? "Notification";
+
+  const orderIdMatch =
+    n.orderId ||
+    n.data?.orderId ||
+    n.data?.order_id ||
+    (typeof msg === "string" && (msg.match(/#?(ORD-[A-Za-z0-9]+)/i)?.[1] || msg.match(/#([A-Za-z0-9-]+)/)?.[1])) ||
+    (typeof title === "string" && (title.match(/#?(ORD-[A-Za-z0-9]+)/i)?.[1] || title.match(/#([A-Za-z0-9-]+)/)?.[1])) ||
+    undefined;
+
+  return {
+    id: n._id ?? idx,
+    category: mapCategory(n.type, title, msg),
+    title,
+    description: msg,
+    time: n.createdAt
+      ? new Date(n.createdAt).toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        })
+      : "—",
+    read: n.isRead ?? false,
+    resolved: false,
+    orderId: orderIdMatch,
+  };
+};
 
 interface NotificationsPanelProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onUnreadCountChange?: (count: number) => void;
 }
 
 const TABS: { value: NotificationTab; label: string }[] = [
@@ -59,21 +98,21 @@ const TABS: { value: NotificationTab; label: string }[] = [
   { value: "system", label: "System" },
 ];
 
-const NotificationsPanel = ({ open, onOpenChange }: NotificationsPanelProps) => {
+const NotificationsPanel = ({ open, onOpenChange, onUnreadCountChange }: NotificationsPanelProps) => {
   const { t, dir } = useTranslation();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isOrderDetailsOpen, setIsOrderDetailsOpen] = useState(false);
 
   useEffect(() => {
-    const fetchNotifs = () => {
-      api
-        .get("/notifications")
-        .then((res) => {
-          const raw: any[] = res.data?.notifications ?? [];
-          setNotifications(raw.map(mapNotification));
-        })
-        .catch(() => {});
+    const fetchNotifs = async () => {
+      try {
+        const res = await notificationsApi.getNotifications();
+        const raw: any[] = res.notifications ?? [];
+        setNotifications(raw.map(mapNotification));
+      } catch (err) {
+        console.error("Failed to fetch notifications:", err);
+      }
     };
 
     fetchNotifs();
@@ -90,6 +129,7 @@ const NotificationsPanel = ({ open, onOpenChange }: NotificationsPanelProps) => 
         time: new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true }),
         read: false,
         resolved: false,
+        orderId,
       };
       setNotifications((prev) => [newNotif, ...prev.filter((n) => n.id !== newNotif.id)]);
     };
@@ -99,50 +139,63 @@ const NotificationsPanel = ({ open, onOpenChange }: NotificationsPanelProps) => 
       socket.off("newOrder", handleNewOrder);
     };
   }, []);
+
   const [activeTab, setActiveTab] = useState<NotificationTab>("all");
 
+  const unreadCount = useMemo(
+    () => notifications.filter((n) => !n.read).length,
+    [notifications],
+  );
+
+  useEffect(() => {
+    onUnreadCountChange?.(unreadCount);
+  }, [unreadCount, onUnreadCountChange]);
+
   const handleOpenOrderDetails = async (notification: AppNotification) => {
+    const notifId = String(notification.id);
+    notificationsApi.markNotificationAsRead(notifId).catch(() => {});
+
     setNotifications((prev) =>
       prev.map((n) => (n.id === notification.id ? { ...n, read: true } : n))
     );
 
-    const rawId = String(notification.id);
-    try {
-      const res = await api.get(`/orders/${rawId}`);
-      const rawOrder = res.data?.data || res.data?.order || res.data;
-      if (rawOrder) {
-        setSelectedOrder(mapOrder(rawOrder));
-        setIsOrderDetailsOpen(true);
-        return;
-      }
-    } catch {}
+    const targetOrderId =
+      notification.orderId ||
+      notification.description.match(/#?(ORD-[A-Za-z0-9]+)/i)?.[1] ||
+      notification.title.match(/#?(ORD-[A-Za-z0-9]+)/i)?.[1] ||
+      notification.description.match(/#([A-Za-z0-9-]+)/)?.[1] ||
+      notification.title.match(/#([A-Za-z0-9-]+)/)?.[1];
 
-    const match = notification.title.match(/#([A-Za-z0-9]+)/) || notification.description.match(/#([A-Za-z0-9]+)/);
-    if (match && match[1]) {
+    if (targetOrderId) {
       try {
-        const res = await api.get(`/orders/${match[1]}`);
-        const rawOrder = res.data?.data || res.data?.order || res.data;
-        if (rawOrder) {
+        const res = await api.get(`/orders/${targetOrderId}`);
+        const rawOrder = res.data?.data?.order || res.data?.data || res.data?.order || res.data;
+        if (rawOrder && (rawOrder._id || rawOrder.orderId)) {
           setSelectedOrder(mapOrder(rawOrder));
           setIsOrderDetailsOpen(true);
           return;
         }
       } catch {}
     }
+
+    try {
+      const res = await api.get(`/orders/${notifId}`);
+      const rawOrder = res.data?.data?.order || res.data?.data || res.data?.order || res.data;
+      if (rawOrder && (rawOrder._id || rawOrder.orderId)) {
+        setSelectedOrder(mapOrder(rawOrder));
+        setIsOrderDetailsOpen(true);
+        return;
+      }
+    } catch {}
   };
 
   const counts = useMemo(
     () => ({
-      all: notifications.length,
-      orders: notifications.filter((n) => n.category === "orders").length,
-      stock: notifications.filter((n) => n.category === "stock").length,
-      system: notifications.filter((n) => n.category === "system").length,
+      all: notifications.filter((n) => !n.read).length,
+      orders: notifications.filter((n) => n.category === "orders" && !n.read).length,
+      stock: notifications.filter((n) => n.category === "stock" && !n.read).length,
+      system: notifications.filter((n) => n.category === "system" && !n.read).length,
     }),
-    [notifications],
-  );
-
-  const resolvedCount = useMemo(
-    () => notifications.filter((n) => n.resolved).length,
     [notifications],
   );
 
@@ -154,19 +207,29 @@ const NotificationsPanel = ({ open, onOpenChange }: NotificationsPanelProps) => 
     [notifications, activeTab],
   );
 
+  const markOneAsRead = (id: number | string) => {
+    notificationsApi.markNotificationAsRead(String(id)).catch(() => {});
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, read: true } : n)),
+    );
+  };
+
   const markAllRead = () => {
-    notifications.filter((n) => !n.read).forEach((n) => {
-      api.patch(`/notifications/${n.id}/read`).catch(() => {});
-    });
+    const unread = notifications.filter((n) => !n.read);
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    unread.forEach((n) => {
+      notificationsApi.markNotificationAsRead(String(n.id)).catch(() => {});
+    });
   };
 
   const clearAll = () => setNotifications([]);
 
-  const resolve = (id: number | string) =>
+  const resolve = (id: number | string) => {
+    notificationsApi.markNotificationAsRead(String(id)).catch(() => {});
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, resolved: true, read: true } : n)),
     );
+  };
 
   const removeOne = (id: number | string) =>
     setNotifications((prev) => prev.filter((n) => n.id !== id));
@@ -273,7 +336,12 @@ const NotificationsPanel = ({ open, onOpenChange }: NotificationsPanelProps) => 
                   onResolve={(id) => resolve(id)}
                   onClick={(id) => {
                     const n = notifications.find((item) => item.id === id);
-                    if (n && n.category === "orders") handleOpenOrderDetails(n);
+                    if (n) {
+                      markOneAsRead(id);
+                      if (n.category === "orders" || n.orderId) {
+                        handleOpenOrderDetails(n);
+                      }
+                    }
                   }}
                 />
               ))
@@ -282,7 +350,7 @@ const NotificationsPanel = ({ open, onOpenChange }: NotificationsPanelProps) => 
 
           {/* Footer */}
           <div className="border-t border-[#E5E5E5] px-5 py-4 text-center text-[12px] font-normal text-[#8B8B8B]">
-            {counts.all} {t("total")} · {resolvedCount} {t("resolved")}
+            {notifications.length} {t("total")} · {unreadCount} {t("unread")}
           </div>
         </SheetContent>
       </Sheet>

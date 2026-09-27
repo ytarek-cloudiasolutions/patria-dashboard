@@ -1,7 +1,7 @@
 export type NotificationCategory = "orders" | "stock" | "system";
 
 export interface AppNotification {
-  id: number;
+  id: number | string;
   category: NotificationCategory;
   /** Notification heading — comes from the backend, not translated. */
   title: string;
@@ -11,6 +11,7 @@ export interface AppNotification {
   time: string;
   read: boolean;
   resolved: boolean;
+  orderId?: string;
 }
 
 export type NotificationTab = "all" | NotificationCategory;

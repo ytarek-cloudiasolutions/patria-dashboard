@@ -60,16 +60,18 @@ const AppTopbar = ({
 
   useEffect(() => {
     const fetchUnread = () => {
-      api
-        .get("/notifications")
-        .then((res) => {
-          const raw: any[] = res.data?.notifications ?? [];
-          const count = raw.filter((n: any) => !n.isRead).length;
-          setUnreadCount(count);
-        })
-        .catch(() => {
-          setUnreadCount(0);
-        });
+      import("@/features/notifications/api/notificationsApi").then(({ notificationsApi }) => {
+        notificationsApi
+          .getNotifications()
+          .then((res) => {
+            const raw = res.notifications ?? [];
+            const count = raw.filter((n: any) => !n.isRead).length;
+            setUnreadCount(count);
+          })
+          .catch(() => {
+            setUnreadCount(0);
+          });
+      });
     };
 
     fetchUnread();
@@ -145,7 +147,11 @@ const AppTopbar = ({
           )}
         </button>
 
-        <NotificationsPanel open={isNotifOpen} onOpenChange={setIsNotifOpen} />
+        <NotificationsPanel
+          open={isNotifOpen}
+          onOpenChange={setIsNotifOpen}
+          onUnreadCountChange={setUnreadCount}
+        />
 
         {/* Admin info */}
         <div className="flex items-center gap-2 sm:gap-3.25">

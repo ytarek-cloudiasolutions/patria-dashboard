@@ -265,6 +265,7 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   Decline: "رفض",
   total: "الإجمالي",
   resolved: "تم حلها",
+  unread: "غير مقروء",
   Close: "إغلاق",
   "No notifications": "لا توجد إشعارات",
   "Mark all as read": "تحديد الكل كمقروء",
