@@ -201,9 +201,9 @@ const NotificationsPanel = ({ open, onOpenChange, onUnreadCountChange }: Notific
 
   const visible = useMemo(
     () =>
-      activeTab === "all"
-        ? notifications
-        : notifications.filter((n) => n.category === activeTab),
+      notifications.filter(
+        (n) => !n.read && (activeTab === "all" || n.category === activeTab),
+      ),
     [notifications, activeTab],
   );
 
@@ -350,7 +350,7 @@ const NotificationsPanel = ({ open, onOpenChange, onUnreadCountChange }: Notific
 
           {/* Footer */}
           <div className="border-t border-[#E5E5E5] px-5 py-4 text-center text-[12px] font-normal text-[#8B8B8B]">
-            {notifications.length} {t("total")} · {unreadCount} {t("unread")}
+            {unreadCount} {t("unread")}
           </div>
         </SheetContent>
       </Sheet>
