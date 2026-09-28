@@ -1,5 +1,4 @@
 import { Banknote, CheckCheck, Printer, Users, X } from "lucide-react";
-import { Button } from "@/shared/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -8,18 +7,25 @@ import {
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import type { CartItem } from "../types";
 import { formatEgp } from "../utils";
+import { generateKitchenReceiptHtml } from "@/features/orders/utils/kitchenReceipt";
+import { generateCustomerReceiptHtml } from "@/features/orders/utils/customerReceipt";
 
-type OrderConfirmedDialogProps = {
+export type OrderConfirmedMode = "order" | "payment";
+
+export type OrderConfirmedDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   orderNumber: string;
   totalAmount: number;
   customerName?: string;
+  customerPhone?: string;
   orderType?: string;
   selectedTable?: string;
   cartItems?: CartItem[];
   paymentMethod?: string;
   guestCount?: number;
+  mode?: OrderConfirmedMode;
+  notes?: string;
   onNewOrder: () => void;
 };
 
@@ -29,167 +35,82 @@ const OrderConfirmedDialog = ({
   orderNumber,
   totalAmount,
   customerName = "Walk-in Customer",
+  customerPhone,
   orderType = "dine-in",
   selectedTable = "",
   cartItems = [],
   paymentMethod = "cash",
   guestCount = 0,
+  mode = "payment",
+  notes,
   onNewOrder,
 }: OrderConfirmedDialogProps) => {
   const { t } = useTranslation();
   const calculatedCostPerPerson =
     guestCount > 0 ? totalAmount / guestCount : totalAmount;
 
+  const isOrderMode = mode === "order";
+
   const handlePrint = (type: "customer" | "kitchen") => {
     const now = new Date();
-    const printTime = now.toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" });
-    const printDate = now.toLocaleDateString("ar-EG");
-    const displayId = orderNumber.replace(/^#/, "");
+    const printTime = now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+    const printDate = now.toLocaleDateString("en-US", { month: "numeric", day: "numeric", year: "2-digit" });
 
-    const kitchenHtml = `
-      <!DOCTYPE html>
-      <html dir="rtl">
-      <head>
-        <meta charset="UTF-8" />
-        <title>Kitchen Ticket - طلب #${displayId}</title>
-        <style>
-          * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { font-family: monospace; font-size: 13px; width: 80mm; padding: 10px; color: #000; }
-          .center { text-align: center; }
-          .divider { border-top: 2px dashed #000; margin: 8px 0; }
-          .divider-thin { border-top: 1px dashed #000; margin: 5px 0; }
-          .row { display: flex; justify-content: space-between; margin: 4px 0; }
-          .header-title { font-size: 20px; font-weight: bold; letter-spacing: 1px; }
-          .kitchen-label { font-size: 11px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; margin-top: 2px; }
-          .order-num { font-size: 22px; font-weight: bold; text-align: center; margin: 6px 0; }
-          .order-type { font-size: 15px; font-weight: bold; text-align: center; border: 2px solid #000; padding: 4px 8px; display: inline-block; margin: 4px auto; }
-          .order-type-wrap { text-align: center; margin: 4px 0; }
-          .item-name { font-size: 14px; font-weight: bold; }
-          .item-qty { font-size: 18px; font-weight: bold; }
-          .modifier { font-size: 11px; padding-right: 10px; margin: 2px 0; }
-          .note { font-size: 11px; padding-right: 10px; margin: 2px 0; font-style: italic; border-right: 2px solid #000; }
-        </style>
-      </head>
-      <body>
-        <div class="center">
-          <div class="header-title">Patria Restaurant</div>
-          <div class="kitchen-label">*** تذكرة المطبخ ***</div>
-        </div>
-        <div class="divider"></div>
-        <div class="order-num"># ${displayId}</div>
-        <div class="order-type-wrap">
-          <span class="order-type">${orderType === "dine-in" ? `صالة - ${selectedTable || "بدون طاولة"}` : "تيك أواي"}</span>
-        </div>
-        <div class="divider-thin"></div>
-        <div class="row">
-          <span>العميل:</span>
-          <span>${customerName}</span>
-        </div>
-        <div class="row">
-          <span>الوقت:</span>
-          <span>${printTime}</span>
-        </div>
-        <div class="divider"></div>
-        ${cartItems.map((item, index) => `
-          <div style="margin: 6px 0;">
-            <div class="row">
-              <span class="item-name">${item.name}</span>
-              <span class="item-qty">× ${item.qty}</span>
-            </div>
-            ${item.extras?.filter(e => e.selected).map(e => `
-              <div class="modifier">+ ${e.name}</div>
-            `).join("") || ""}
-            ${item.instructions ? `<div class="note">ملاحظة: ${item.instructions}</div>` : ""}
-          </div>
-          ${index < cartItems.length - 1 ? '<div class="divider-thin"></div>' : ""}
-        `).join("")}
-        <div class="divider"></div>
-      </body>
-      </html>
-    `;
+    const kitchenHtml = generateKitchenReceiptHtml({
+      orderNumber: String(orderNumber),
+      orderType: orderType === "dine-in" ? "dine-in" : "takeaway",
+      tableNumber: selectedTable || "",
+      customerName: customerName,
+      date: printDate,
+      time: printTime,
+      brandName: "Patria Restaurant",
+      notes: notes,
+      items: cartItems.map((item) => ({
+        name: item.name,
+        qty: item.qty,
+        options: (item as any).variants?.map((v: any) => `${v.name || v.group}: ${v.option}`) || [],
+        extras: item.extras?.filter((e) => e.selected).map((e) => `+ ${e.name}`) || [],
+        excluded: (item as any).excludedIngredients || [],
+        note: item.instructions || undefined,
+      })),
+    });
 
-    const customerHtml = `
-      <!DOCTYPE html>
-      <html dir="rtl">
-      <head>
-        <meta charset="UTF-8" />
-        <title>Customer Receipt - طلب #${displayId}</title>
-        <style>
-          * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { font-family: 'Courier New', monospace; font-size: 12px; width: 80mm; padding: 10px; color: #000; }
-          .center { text-align: center; }
-          .divider { border-top: 1px dashed #000; margin: 7px 0; }
-          .divider-solid { border-top: 1px solid #000; margin: 7px 0; }
-          .row { display: flex; justify-content: space-between; align-items: baseline; margin: 3px 0; }
-          .restaurant-name { font-size: 18px; font-weight: bold; letter-spacing: 1px; }
-          .restaurant-ar { font-size: 13px; margin-top: 2px; }
-          .receipt-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; margin-top: 3px; color: #555; }
-          .order-num { font-size: 13px; font-weight: bold; }
-          .section-label { font-size: 10px; font-weight: bold; text-transform: uppercase; color: #555; margin-bottom: 3px; }
-          .item-name { font-size: 12px; font-weight: bold; flex: 1; }
-          .item-price { font-size: 12px; font-weight: bold; white-space: nowrap; }
-          .modifier { font-size: 10px; color: #555; padding-right: 10px; margin: 1px 0; }
-          .total-row { font-size: 14px; font-weight: bold; }
-          .payment-badge { display: inline-block; border: 1px solid #000; padding: 2px 8px; font-size: 11px; font-weight: bold; margin-top: 4px; }
-          .thank-you { font-size: 12px; font-weight: bold; margin-top: 4px; }
-          .footer-note { font-size: 10px; color: #555; margin-top: 2px; }
-        </style>
-      </head>
-      <body>
-        <div class="center">
-          <div class="restaurant-name">Patria Restaurant</div>
-          <div class="restaurant-ar">مطعم باتريا</div>
-          <div class="receipt-label">*** فاتورة العميل ***</div>
-        </div>
-        <div class="divider-solid"></div>
-        <div class="row">
-          <span>رقم الطلب:</span>
-          <span class="order-num">#${displayId}</span>
-        </div>
-        <div class="row">
-          <span>نوع الطلب:</span>
-          <span>${orderType === "dine-in" ? `صالة (${selectedTable || "بدون طاولة"})` : "تيك أواي"}</span>
-        </div>
-        <div class="row">
-          <span>العميل:</span>
-          <span>${customerName}</span>
-        </div>
-        <div class="row">
-          <span>التاريخ والوقت:</span>
-          <span>${printDate} ${printTime}</span>
-        </div>
-        <div class="divider"></div>
-        <div class="section-label">الأصناف</div>
-        ${cartItems.map((item) => `
-          <div style="margin: 4px 0;">
-            <div class="row">
-              <span class="item-name">${item.name} × ${item.qty}</span>
-              <span class="item-price">EGP ${(item.unitPrice * item.qty).toFixed(2)}</span>
-            </div>
-            ${item.extras?.filter(e => e.selected).map(e => `
-              <div class="modifier">+ ${e.name} (${e.price.toFixed(2)} EGP)</div>
-            `).join("") || ""}
-            ${item.instructions ? `<div class="modifier">ملاحظة: ${item.instructions}</div>` : ""}
-          </div>
-        `).join("")}
-        <div class="divider"></div>
-        <div class="row total-row">
-          <span>الإجمالي:</span>
-          <span>EGP ${totalAmount.toFixed(2)}</span>
-        </div>
-        <div class="row">
-          <span>نصيب الفرد (${guestCount || 1}):</span>
-          <span>EGP ${calculatedCostPerPerson.toFixed(2)}</span>
-        </div>
-        <div class="divider-solid"></div>
-        <div class="center">
-          <div class="payment-badge">طريقة الدفع: ${paymentMethod.toUpperCase()}</div>
-          <div class="thank-you" style="margin-top: 10px;">شكراً لزيارتكم!</div>
-          <div class="footer-note">Patria Restaurant - Point of Sale</div>
-        </div>
-      </body>
-      </html>
-    `;
+    const subtotalCalc = cartItems.reduce((sum, item) => {
+      const extrasTotal =
+        item.extras?.filter((e) => e.selected).reduce((s, e) => s + (e.price || 0), 0) || 0;
+      return sum + (item.unitPrice + extrasTotal) * item.qty;
+    }, 0);
+
+    const customerHtml = generateCustomerReceiptHtml({
+      orderNumber: String(orderNumber),
+      date: printDate,
+      time: printTime,
+      orderType: orderType === "dine-in" ? "dine-in" : "takeaway",
+      tableNumber: selectedTable || "",
+      customerName: customerName,
+      customerPhone: customerPhone,
+      paymentMethod: paymentMethod,
+      status: "paid",
+      subtotal: subtotalCalc > 0 ? subtotalCalc : totalAmount,
+      total: totalAmount,
+      guestCount: guestCount,
+      costPerPerson: calculatedCostPerPerson,
+      items: cartItems.map((item) => {
+        const extrasTotal =
+          item.extras?.filter((e) => e.selected).reduce((s, e) => s + (e.price || 0), 0) || 0;
+        const itemLineTotal = (item.unitPrice + extrasTotal) * item.qty;
+        return {
+          name: item.name,
+          qty: item.qty,
+          unitPrice: item.unitPrice,
+          totalPrice: itemLineTotal,
+          options: (item as any).variants?.map((v: any) => `${v.name || v.group}: ${v.option}`) || [],
+          extras: item.extras?.filter((e) => e.selected).map((e) => `+ ${e.name}${(e.price || 0) > 0 ? ` (${(e.price || 0).toFixed(2)} EGP)` : ""}`) || [],
+          excluded: (item as any).excludedIngredients || [],
+          note: item.instructions || undefined,
+        };
+      }),
+    });
 
     const html = type === "customer" ? customerHtml : kitchenHtml;
     const win = window.open("", "_blank");
@@ -208,62 +129,64 @@ const OrderConfirmedDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="w-[696px] max-w-[calc(100%-2rem)] sm:max-w-[696px] gap-8 rounded-[12px] border border-[#CACBD4] bg-white p-6 shadow-[0px_4px_6px_-4px_rgba(0,0,0,0.10),0px_10px_15px_-3px_rgba(0,0,0,0.10)]"
+        className="w-[620px] max-w-[calc(100%-2rem)] sm:max-w-[620px] gap-6 rounded-[12px] border border-[#CACBD4] bg-white p-6 shadow-[0px_4px_6px_-4px_rgba(0,0,0,0.10),0px_10px_15px_-3px_rgba(0,0,0,0.10)]"
       >
-        {/* Header */}
+        {/* Header Title & Optional Close Button */}
         <div className="flex items-center justify-between">
-          <DialogTitle className="text-[24px] font-semibold tracking-[0.48px] text-black">
-            {t("Order Confirmed")}
+          <DialogTitle className="text-[22px] font-bold text-black">
+            {isOrderMode ? t("Order Confirmed") : t("Payment Confirmed!")}
           </DialogTitle>
-          <button
-            type="button"
-            onClick={() => onOpenChange(false)}
-            className="flex size-7 items-center justify-center rounded-full text-black transition-colors hover:bg-[#FAFAF7] cursor-pointer"
-          >
-            <X className="size-5 text-black" />
-          </button>
+          {orderType === "takeaway" && (
+            <button
+              type="button"
+              onClick={() => onOpenChange(false)}
+              className="flex size-8 items-center justify-center rounded-full text-black hover:bg-[#F3F4F6] transition-colors cursor-pointer"
+            >
+              <X className="size-5" />
+            </button>
+          )}
         </div>
 
         {/* Content body */}
-        <div className="flex flex-col gap-8 p-[10px]">
-          {/* Order Placed Info */}
+        <div className="flex flex-col gap-6">
+          {/* Status & Reference */}
           <div className="flex items-center gap-3">
-            <div className="flex size-[40px] items-center justify-center rounded-[10px] bg-[#E2F4ED] text-[#059B5A] shrink-0 p-1">
-              <CheckCheck className="size-6 stroke-[2.5]" />
+            <div className="flex size-[38px] items-center justify-center rounded-[8px] bg-[#E2F4ED] text-[#059B5A] shrink-0">
+              <CheckCheck className="size-5 stroke-[2.5]" />
             </div>
-            <div className="flex flex-col gap-1">
-              <h2 className="text-[18px] font-semibold leading-[19.26px] tracking-[0.36px] text-[#333333]">
-                {t("Order Placed!")}
+            <div className="flex flex-col">
+              <h2 className="text-[17px] font-bold text-[#1F2937]">
+                {isOrderMode ? t("Order Placed!") : t("Payment Confirmed!")}
               </h2>
-              <p className="text-[14px] font-semibold leading-[19.6px] tracking-[0.28px] text-black">
+              <p className="text-[13px] font-semibold text-black">
                 {t("Reference")}: {orderNumber.startsWith("#") ? orderNumber : `#${orderNumber}`}
               </p>
             </div>
           </div>
 
           {/* Cards Grid */}
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {/* Total Card */}
-            <div className="flex flex-col items-center justify-center gap-2 rounded-[5px] border-2 border-[#E5E5E5] bg-[#FAFAF7] px-6 py-8 text-center">
-              <Banknote className="size-6 text-black" />
-              <div className="flex flex-col items-center gap-1 w-full">
-                <span className="text-[12px] font-medium tracking-[0.24px] text-[#595959]">
+            <div className="flex flex-col items-center justify-center gap-2 rounded-[8px] border border-[#E5E5E5] bg-[#FAFAF7] px-4 py-6 text-center">
+              <Banknote className="size-5 text-black stroke-[1.8]" />
+              <div className="flex flex-col items-center gap-0.5 w-full">
+                <span className="text-[12px] font-medium text-[#737373]">
                   {t("Total")}
                 </span>
-                <span className="text-[14px] font-semibold tracking-[0.28px] text-black">
+                <span className="text-[15px] font-bold text-black">
                   {formatEgp(totalAmount)}
                 </span>
               </div>
             </div>
 
             {/* Cost per person Card */}
-            <div className="flex flex-col items-center justify-center gap-2 rounded-[5px] border-2 border-[#E5E5E5] bg-[#FAFAF7] px-6 py-8 text-center">
-              <Users className="size-6 text-black" />
-              <div className="flex flex-col items-center gap-1 w-full">
-                <span className="text-[12px] font-medium tracking-[0.24px] text-[#595959]">
+            <div className="flex flex-col items-center justify-center gap-2 rounded-[8px] border border-[#E5E5E5] bg-[#FAFAF7] px-4 py-6 text-center">
+              <Users className="size-5 text-black stroke-[1.8]" />
+              <div className="flex flex-col items-center gap-0.5 w-full">
+                <span className="text-[12px] font-medium text-[#737373]">
                   {t("Cost per person")} ({guestCount || 1})
                 </span>
-                <span className="text-[14px] font-semibold tracking-[0.28px] text-black">
+                <span className="text-[15px] font-bold text-black">
                   {formatEgp(calculatedCostPerPerson)}
                 </span>
               </div>
@@ -271,28 +194,53 @@ const OrderConfirmedDialog = ({
           </div>
 
           {/* Separator */}
-          <div className="w-full border-t border-[#CACBD4]" />
+          <div className="w-full border-t border-[#E5E5E5]" />
 
           {/* Actions */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <button
-              type="button"
-              onClick={() => handlePrint("customer")}
-              className="flex h-[56px] items-center justify-center gap-3 rounded-[5px] border border-[#8F6900] bg-white px-[30px] py-4 text-[16px] font-semibold leading-[24px] text-[#8F6900] hover:bg-[#8F6900]/5 transition-colors cursor-pointer"
-            >
-              <Printer className="size-5 text-[#8F6900]" />
-              {t("Print Customer Receipt")}
-            </button>
+          {orderType === "takeaway" ? (
+            <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 w-full">
+              <button
+                type="button"
+                onClick={() => handlePrint("customer")}
+                className="flex h-[56px] w-full items-center justify-center gap-2.5 rounded-[5px] border border-[#8F6900] bg-white px-4 text-[16px] font-semibold text-[#8F6900] whitespace-nowrap cursor-pointer"
+              >
+                <Printer className="size-5 shrink-0 text-[#8F6900]" />
+                <span>{t("Print Customer Receipt")}</span>
+              </button>
 
-            <button
-              type="button"
-              onClick={() => handlePrint("kitchen")}
-              className="flex h-[56px] items-center justify-center gap-3 rounded-[5px] bg-[#8F6900] px-[30px] py-4 text-[16px] font-semibold leading-[24px] text-white hover:bg-[#8F6900]/90 transition-colors cursor-pointer"
-            >
-              <Printer className="size-5 text-white" />
-              {t("Print Kitchen Receipt")}
-            </button>
-          </div>
+              <button
+                type="button"
+                onClick={() => handlePrint("kitchen")}
+                className="flex h-[56px] w-full items-center justify-center gap-2.5 rounded-[5px] bg-[#8F6900] px-4 text-[16px] font-semibold text-white whitespace-nowrap cursor-pointer"
+              >
+                <Printer className="size-5 shrink-0 text-white" />
+                <span>{t("Print Kitchen Receipt")}</span>
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center justify-end gap-3.5">
+              <button
+                type="button"
+                onClick={() => onOpenChange(false)}
+                className="flex h-[56px] items-center justify-center rounded-[5px] border border-[#8F6900] bg-white px-[30px] py-4 text-[16px] font-semibold text-[#8F6900] whitespace-nowrap cursor-pointer"
+              >
+                {t("Cancel")}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handlePrint(isOrderMode ? "kitchen" : "customer")}
+                className="flex h-[56px] items-center justify-center gap-2.5 rounded-[5px] bg-[#8F6900] px-[30px] py-4 text-[16px] font-semibold text-white whitespace-nowrap cursor-pointer"
+              >
+                <Printer className="size-5 shrink-0 text-white" />
+                <span>
+                  {isOrderMode
+                    ? t("Print Kitchen Receipt")
+                    : t("Print Customer Receipt")}
+                </span>
+              </button>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

@@ -16,6 +16,8 @@ import { translatePaymentMethod } from "../utils";
 import { api } from "@/config/api";
 import { showSuccessToast, showErrorToast } from "@/shared/utils/toast";
 import { mapOrder } from "../utils/orderMappers";
+import { generateKitchenReceiptHtml } from "../utils/kitchenReceipt";
+import { generateCustomerReceiptHtml } from "../utils/customerReceipt";
 
 interface OrderDetailsDialogProps {
   open: boolean;
@@ -180,239 +182,60 @@ const OrderDetailsDialog = ({
 
   const handlePrint = (type: "customer" | "kitchen") => {
     const now = new Date();
-    const printTime = now.toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" });
-    const printDate = now.toLocaleDateString("ar-EG");
+    const printTime = now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+    const printDate = now.toLocaleDateString("en-US", { month: "numeric", day: "numeric", year: "2-digit" });
 
-    const kitchenReceiptHtml = `
-      <!DOCTYPE html>
-      <html dir="rtl">
-      <head>
-        <meta charset="UTF-8" />
-        <title>Kitchen Receipt - طلب #${displayId}</title>
-        <style>
-          * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { font-family: monospace; font-size: 13px; width: 80mm; padding: 10px; }
-          .center { text-align: center; }
-          .divider { border-top: 2px dashed #000; margin: 8px 0; }
-          .divider-thin { border-top: 1px dashed #000; margin: 5px 0; }
-          .row { display: flex; justify-content: space-between; margin: 4px 0; }
-          .header-title { font-size: 20px; font-weight: bold; letter-spacing: 1px; }
-          .kitchen-label { font-size: 11px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; margin-top: 2px; }
-          .order-num { font-size: 22px; font-weight: bold; text-align: center; margin: 6px 0; }
-          .order-type { font-size: 15px; font-weight: bold; text-align: center; border: 2px solid #000; padding: 4px 8px; display: inline-block; margin: 4px auto; }
-          .order-type-wrap { text-align: center; margin: 4px 0; }
-          .item-name { font-size: 14px; font-weight: bold; }
-          .item-qty { font-size: 18px; font-weight: bold; }
-          .modifier { font-size: 11px; padding-right: 10px; margin: 2px 0; }
-          .note { font-size: 11px; padding-right: 10px; margin: 2px 0; font-style: italic; border-right: 2px solid #000; }
-          .customer-name { font-size: 13px; font-weight: bold; }
-          .meta { font-size: 11px; color: #333; }
-        </style>
-      </head>
-      <body>
-        <div class="center">
-          <div class="header-title">Patria Restaurant</div>
-          <div class="kitchen-label">*** KITCHEN COPY ***</div>
-        </div>
-        <div class="divider"></div>
+    const kitchenReceiptHtml = generateKitchenReceiptHtml({
+      orderNumber: String(displayId),
+      orderType: isDineIn ? "dine-in" : isTakeaway ? "takeaway" : isDelivery ? "delivery" : "dine-in",
+      tableNumber: tableOrAddressText,
+      customerName: order.customerName,
+      date: order.date || printDate,
+      time: order.time || printTime,
+      brandName: "Patria Restaurant",
+      notes: order.notes || (order as any).note || undefined,
+      items: order.items.map((item) => {
+        const rawItem = item as any;
+        return {
+          name: item.name,
+          qty: item.quantity,
+          options: item.selectedVariants?.map((v) => `${v.group}: ${v.option}`) || [],
+          extras: item.selectedExtras?.map((e) => `+ ${e.name}`) || [],
+          excluded: rawItem.excludedIngredients || rawItem.excluded_ingredients || [],
+          note: item.note || undefined,
+        };
+      }),
+    });
 
-        <div class="order-num"># ${displayId}</div>
-
-        <div class="order-type-wrap">
-          <span class="order-type">${orderTypeLabel}</span>
-        </div>
-
-        <div class="divider-thin"></div>
-        <div class="row">
-          <span class="meta">العميل:</span>
-          <span class="customer-name">${order.customerName}</span>
-        </div>
-        <div class="row">
-          <span class="meta">التاريخ:</span>
-          <span class="meta">${order.date || printDate} ${order.time || printTime}</span>
-        </div>
-        <div class="divider"></div>
-
-        ${order.items.map((item, index) => `
-          <div style="margin: 6px 0;">
-            <div class="row">
-              <span class="item-name">${item.name}</span>
-              <span class="item-qty">× ${item.quantity}</span>
-            </div>
-            ${item.selectedVariants && item.selectedVariants.length > 0
-        ? item.selectedVariants.map(v => `
-                  <div class="modifier">▸ ${v.group}: ${v.option}</div>
-                `).join("")
-        : ""
-      }
-            ${item.selectedExtras && item.selectedExtras.length > 0
-        ? item.selectedExtras.map(e => `
-                  <div class="modifier">+ إضافة: ${e.name}</div>
-                `).join("")
-        : ""
-      }
-            ${item.note ? `<div class="note">ملاحظة: ${item.note}</div>` : ""}
-          </div>
-          ${index < order.items.length - 1 ? '<div class="divider-thin"></div>' : ""}
-        `).join("")}
-
-        <div class="divider"></div>
-        <div class="center" style="font-size: 11px; margin-top: 4px;">
-          وقت الطباعة: ${printTime}
-        </div>
-      </body>
-      </html>
-    `;
-
-    const customerReceiptHtml = `
-      <!DOCTYPE html>
-      <html dir="rtl">
-      <head>
-        <meta charset="UTF-8" />
-        <title>Customer Receipt - طلب #${displayId}</title>
-        <style>
-          * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { font-family: 'Courier New', monospace; font-size: 12px; width: 80mm; padding: 10px; color: #000; }
-          .center { text-align: center; }
-          .left { text-align: left; }
-          .right { text-align: right; }
-          .divider { border-top: 1px dashed #000; margin: 7px 0; }
-          .divider-solid { border-top: 1px solid #000; margin: 7px 0; }
-          .row { display: flex; justify-content: space-between; align-items: baseline; margin: 3px 0; }
-          .restaurant-name { font-size: 18px; font-weight: bold; letter-spacing: 1px; }
-          .restaurant-ar { font-size: 13px; margin-top: 2px; }
-          .receipt-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; margin-top: 3px; color: #555; }
-          .order-num { font-size: 13px; font-weight: bold; }
-          .section-label { font-size: 10px; font-weight: bold; text-transform: uppercase; color: #555; margin-bottom: 3px; }
-          .item-name { font-size: 12px; font-weight: bold; flex: 1; }
-          .item-price { font-size: 12px; font-weight: bold; white-space: nowrap; }
-          .item-unit { font-size: 10px; color: #555; padding-right: 10px; margin: 1px 0; }
-          .modifier { font-size: 10px; color: #555; padding-right: 10px; margin: 1px 0; }
-          .total-row { font-size: 14px; font-weight: bold; }
-          .payment-badge { display: inline-block; border: 1px solid #000; padding: 2px 8px; font-size: 11px; font-weight: bold; margin-top: 4px; }
-          .thank-you { font-size: 12px; font-weight: bold; margin-top: 4px; }
-          .footer-note { font-size: 10px; color: #555; margin-top: 2px; }
-        </style>
-      </head>
-      <body>
-        <!-- Header / Branding -->
-        <div class="center">
-          <div class="restaurant-name">Patria Restaurant</div>
-          <div class="restaurant-ar">مطعم باتريا</div>
-          <div class="receipt-label">*** فاتورة العميل ***</div>
-        </div>
-
-        <div class="divider-solid"></div>
-
-        <!-- Order Info -->
-        <div class="row">
-          <span class="order-num">طلب # ${displayId}</span>
-          <span style="font-size:11px">${order.date || ""} ${order.time || ""}</span>
-        </div>
-        <div class="row">
-          <span style="font-size:11px">نوع الطلب:</span>
-          <span style="font-size:11px; font-weight:bold">${orderTypeLabel}</span>
-        </div>
-
-        <div class="divider"></div>
-
-        <!-- Customer Info -->
-        <div class="section-label">بيانات العميل</div>
-        <div class="row">
-          <span style="font-size:11px">الاسم:</span>
-          <span style="font-size:11px; font-weight:bold">${order.customerName}</span>
-        </div>
-        ${order.customerPhone ? `
-        <div class="row">
-          <span style="font-size:11px">الهاتف:</span>
-          <span style="font-size:11px" dir="ltr">${order.customerPhone}</span>
-        </div>` : ""}
-        ${isDelivery && tableOrAddressText ? `
-        <div style="margin-top:3px">
-          <span style="font-size:10px; font-weight:bold; text-transform:uppercase; color:#555;">العنوان: </span>
-          <span style="font-size:11px">${tableOrAddressText}</span>
-        </div>` : ""}
-
-        <div class="divider"></div>
-
-        <!-- Items -->
-        <div class="section-label">الطلبات</div>
-        ${order.items.map(item => {
-      const variantTotalAdjustment = item.selectedVariants?.reduce((sum, v) => sum + (v.priceAdjustment || 0), 0) || 0;
-      const extraTotalAdjustment = item.selectedExtras?.reduce((sum, e) => sum + (e.price || 0), 0) || 0;
-      const baseUnitPrice = item.unitPrice - variantTotalAdjustment - extraTotalAdjustment;
-      const displayBasePrice = item.quantity * baseUnitPrice;
-
-      return `
-            <div style="margin: 5px 0;">
-              <div class="row">
-                <span class="item-name">${item.name}</span>
-                <span class="item-price">${formatCurrency(displayBasePrice)}</span>
-              </div>
-              <div class="item-unit">${item.quantity} × ${formatCurrency(baseUnitPrice)}</div>
-              ${item.selectedVariants && item.selectedVariants.length > 0
-          ? item.selectedVariants.map(v => `
-                    <div class="row modifier">
-                      <span>▸ ${v.group}: ${v.option}</span>
-                      ${(v.priceAdjustment || 0) > 0 ? `<span>+${formatCurrency(item.quantity * (v.priceAdjustment || 0))}</span>` : ""}
-                    </div>
-                  `).join("")
-          : ""
-        }
-              ${item.selectedExtras && item.selectedExtras.length > 0
-          ? item.selectedExtras.map(e => `
-                    <div class="row modifier">
-                      <span>+ إضافة: ${e.name}</span>
-                      ${(e.price || 0) > 0 ? `<span>+${formatCurrency(item.quantity * (e.price || 0))}</span>` : ""}
-                    </div>
-                  `).join("")
-          : ""
-        }
-            </div>
-          `;
-    }).join("")}
-
-        <div class="divider"></div>
-
-        <!-- Totals -->
-        <div class="row">
-          <span>المجموع الفرعي:</span>
-          <span>${formatCurrency(order.subtotal)}</span>
-        </div>
-        ${order.deliveryFee > 0 ? `
-        <div class="row">
-          <span>رسوم التوصيل:</span>
-          <span>${formatCurrency(order.deliveryFee)}</span>
-        </div>` : ""}
-        ${effectiveDiscount > 0 ? `
-        <div class="row" style="font-weight:bold">
-          <span>الخصم:</span>
-          <span>${getDiscountDisplayText()}</span>
-        </div>` : ""}
-        <div class="divider-solid"></div>
-        <div class="row total-row">
-          <span>الإجمالي:</span>
-          <span>${formatCurrency(finalTotal)}</span>
-        </div>
-
-        <div class="divider"></div>
-
-        <!-- Payment -->
-        <div class="row" style="margin-top:2px">
-          <span style="font-size:11px">طريقة الدفع:</span>
-          <span class="payment-badge">${translatePaymentMethod(order.paymentMethod, t)}</span>
-        </div>
-
-        <div class="divider-solid"></div>
-
-        <!-- Footer -->
-        <div class="center">
-          <div class="thank-you">شكراً لزيارتكم 🙏</div>
-          <div class="footer-note">نتطلع لخدمتكم مجدداً</div>
-        </div>
-      </body>
-      </html>
-    `;
+    const customerReceiptHtml = generateCustomerReceiptHtml({
+      orderNumber: String(displayId),
+      date: order.date || printDate,
+      time: order.time || printTime,
+      orderType: isDineIn ? "dine-in" : isTakeaway ? "takeaway" : isDelivery ? "delivery" : "dine-in",
+      tableNumber: tableOrAddressText,
+      customerName: order.customerName,
+      customerPhone: order.customerPhone,
+      paymentMethod: order.paymentMethod,
+      status: order.paymentStatus || "paid",
+      subtotal: order.subtotal,
+      discount: effectiveDiscount,
+      discountName: effectiveDiscount > 0 ? getDiscountDisplayText() : undefined,
+      deliveryFee: order.deliveryFee,
+      total: finalTotal,
+      items: order.items.map((item) => {
+        const rawItem = item as any;
+        return {
+          name: item.name,
+          qty: item.quantity,
+          unitPrice: item.unitPrice,
+          totalPrice: item.quantity * item.unitPrice,
+          options: item.selectedVariants?.map((v) => `${v.group}: ${v.option}`) || [],
+          extras: item.selectedExtras?.map((e) => `+ ${e.name}${(e.price || 0) > 0 ? ` (${(e.price || 0).toFixed(2)} EGP)` : ""}`) || [],
+          excluded: rawItem.excludedIngredients || rawItem.excluded_ingredients || [],
+          note: item.note || undefined,
+        };
+      }),
+    });
 
     const receiptHtml = type === "kitchen" ? kitchenReceiptHtml : customerReceiptHtml;
 

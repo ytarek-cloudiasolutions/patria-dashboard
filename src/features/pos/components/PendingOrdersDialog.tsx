@@ -42,7 +42,7 @@ const PendingOrdersDialog = ({
         const raw: any[] = res.data?.data ?? res.data?.orders ?? [];
         const mapped: PendingOrder[] = raw.map((o) => ({
           id: o._id,
-          table: o.address || o.customer?.address || `Table ${o.tableNumber ?? "?"}`,
+          table: o.address || o.customer?.address || (o.tableNumber ? `Table ${o.tableNumber}` : "?"),
           itemCount: o.items?.length ?? 0,
           time: o.createdAt
             ? new Date(o.createdAt).toLocaleTimeString("en-US", {
@@ -52,11 +52,17 @@ const PendingOrdersDialog = ({
               })
             : "--",
           total: o.total ?? 0,
+          guestCount: o.guestCount ?? o.customerCount ?? o.numberOfCustomers,
+          customerCount: o.customerCount ?? o.guestCount,
+          customerName: o.customerName || o.customer?.name,
+          customerPhone: o.customerPhone || o.customer?.phone,
+          notes: o.notes || o.note,
           items: (o.items || []).map((item: any) => ({
             productId: item.productId?._id || item.product?._id || String(item.productId || ""),
             name: item.productId?.name || item.product?.name || item.name || "Unknown",
             qty: item.quantity || 1,
             unitPrice: item.price || item.productId?.price || 0,
+            instructions: item.notes || item.instructions || "",
           })),
         }));
         setOrders(mapped);

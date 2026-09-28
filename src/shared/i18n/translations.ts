@@ -1597,4 +1597,12 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   "The manager rejected the discount request for this order. You can proceed with the order at regular price.":
     "رفض المدير طلب الخصم لهذا الطلب. يمكنك المتابعة بالسعر العادي.",
   "Order loaded into cart": "تم تحميل الطلب إلى سلة التسوق",
+  "Order Confirmed": "تأكيد الطلب",
+  "Payment Confirmed!": "تم تأكيد الدفع!",
+  "Order Placed!": "تم إرسال الطلب!",
+  Reference: "الرقم المرجعي",
+  "Cost per person": "التكلفة لكل شخص",
+  "Bill split": "تقسيم الفاتورة",
+  guests: "أشخاص",
+  guest: "شخص",
 };

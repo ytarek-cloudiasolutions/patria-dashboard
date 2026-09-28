@@ -91,7 +91,18 @@ export type PendingOrder = {
   itemCount: number;
   time: string;
   total: number;
-  items: Array<{ productId: string; name: string; qty: number; unitPrice: number }>;
+  items: Array<{
+    productId: string;
+    name: string;
+    qty: number;
+    unitPrice: number;
+    instructions?: string;
+  }>;
+  guestCount?: number;
+  customerCount?: number;
+  customerName?: string;
+  customerPhone?: string;
+  notes?: string;
 };
 
 /** Totals derived from the current cart. */

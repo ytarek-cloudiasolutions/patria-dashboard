@@ -140,11 +140,14 @@ const PosPage = () => {
     orderNumber: string;
     totalAmount: number;
     customerName: string;
+    customerPhone?: string;
     orderType: string;
     selectedTable: string;
     cartItems: CartItem[];
     paymentMethod: string;
     guestCount: number;
+    mode?: "order" | "payment";
+    notes?: string;
   } | null>(null);
   const [isShiftSummaryOpen, setShiftSummaryOpen] = useState(false);
   const [isSelectStaffOpen, setSelectStaffOpen] = useState(false);
@@ -621,6 +624,24 @@ const PosPage = () => {
         if (targetOrder) {
           setLoadedOrderId(targetOrder._id);
           setOrderType("dine-in");
+          const targetCap =
+            targetOrder.guestCount ||
+            targetOrder.customerCount ||
+            targetOrder.numberOfCustomers;
+          if (targetCap && targetCap > 0) {
+            setCustomerCount(targetCap);
+          } else if (match && typeof match.capacity === "number" && match.capacity > 0) {
+            setCustomerCount(match.capacity);
+          }
+          if (targetOrder.customerName || targetOrder.customer?.name) {
+            setCustomer(targetOrder.customerName || targetOrder.customer?.name);
+          }
+          if (targetOrder.customerPhone || targetOrder.customer?.phone) {
+            setCustomerPhone(targetOrder.customerPhone || targetOrder.customer?.phone);
+          }
+          if (targetOrder.notes || targetOrder.note) {
+            setNotes(targetOrder.notes || targetOrder.note);
+          }
           if (targetOrder.items && targetOrder.items.length > 0) {
             const loadedItems: CartItem[] = targetOrder.items.map((item: any): CartItem => ({
               lineId: nextLineId(),
@@ -738,7 +759,7 @@ const PosPage = () => {
     // starting a new order. Also avoids a stale loadedOrderId lingering
     // across a table switch and silently merging the next table's items
     // into this one's order.
-    finishWithReceipt();
+    finishWithReceipt("cash", totals.total, null, "order");
   };
 
   const handleCheckout = async () => {
@@ -884,7 +905,8 @@ const PosPage = () => {
   const finishWithReceipt = (
     method: string = "cash",
     finalTotal: number = totals.total,
-    discountInfo?: { name: string; value: number; discountAmount: number } | null
+    discountInfo?: { name: string; value: number; discountAmount: number } | null,
+    mode: "order" | "payment" = "payment"
   ) => {
     const generatedNum = `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
     setOrderNumber(generatedNum);
@@ -892,11 +914,14 @@ const PosPage = () => {
       orderNumber: generatedNum,
       totalAmount: finalTotal,
       customerName: customer || "Walk-in Customer",
+      customerPhone: customerPhone || undefined,
       orderType,
       selectedTable: resolvedTable,
       cartItems: [...cartItems],
       paymentMethod: method,
       guestCount: customerCount,
+      mode,
+      notes: notes || undefined,
     });
     if (discountInfo) {
       setAppliedDiscountInfo({
@@ -1157,6 +1182,30 @@ const PosPage = () => {
     setSelectedTable(order.table);
     setSentToKitchen(true);
     setLoadedOrderId(order.id);
+
+    // Resolve table capacity / customer count
+    const match = tables?.find(
+      (t) => `Table ${t.number}` === order.table || `${t.number}` === order.table || t._id === order.table
+    );
+    const tableCap = match && typeof match.capacity === "number" && match.capacity > 0 ? match.capacity : 1;
+    const resolvedCap = (order.guestCount && order.guestCount > 0)
+      ? order.guestCount
+      : (order.customerCount && order.customerCount > 0)
+        ? order.customerCount
+        : tableCap;
+
+    setCustomerCount(resolvedCap);
+
+    if (order.customerName) {
+      setCustomer(order.customerName);
+    }
+    if (order.customerPhone) {
+      setCustomerPhone(order.customerPhone);
+    }
+    if (order.notes) {
+      setNotes(order.notes);
+    }
+
     if (order.items && order.items.length > 0) {
       const loadedItems = order.items.map((item) => ({
         lineId: nextLineId(),
@@ -1165,7 +1214,7 @@ const PosPage = () => {
         unitPrice: item.unitPrice,
         qty: item.qty,
         extras: [],
-        instructions: "",
+        instructions: item.instructions || "",
       }));
       setCartItems(loadedItems);
       // These items already exist on the backend order — only items added after this count as "new"
@@ -1389,6 +1438,8 @@ const PosPage = () => {
         items={cartItems}
         totals={totals}
         discountInfo={appliedDiscountInfo}
+        customerName={customer || undefined}
+        customerPhone={customerPhone || undefined}
         onOpenChange={handleReceiptClose}
       />
 
@@ -1401,11 +1452,14 @@ const PosPage = () => {
         orderNumber={orderConfirmedData?.orderNumber || orderNumber}
         totalAmount={orderConfirmedData?.totalAmount || totals.total}
         customerName={orderConfirmedData?.customerName || customer || "Walk-in Customer"}
+        customerPhone={orderConfirmedData?.customerPhone || customerPhone || undefined}
         orderType={orderConfirmedData?.orderType || orderType}
         selectedTable={orderConfirmedData?.selectedTable || resolvedTable}
         cartItems={orderConfirmedData?.cartItems || cartItems}
         paymentMethod={orderConfirmedData?.paymentMethod || "cash"}
         guestCount={orderConfirmedData?.guestCount || customerCount}
+        mode={orderConfirmedData?.mode || "payment"}
+        notes={orderConfirmedData?.notes || notes || undefined}
         onNewOrder={completeOrder}
       />
 

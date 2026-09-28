@@ -14,6 +14,7 @@ import {
   Trophy,
   User,
   UserRound,
+  Users,
   Utensils,
   X,
 } from "lucide-react";
@@ -71,7 +72,7 @@ const OrderCart = ({
   onCheckout,
   onDeductFromEmployee,
 }: OrderCartProps) => {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [phoneQuery, setPhoneQuery] = useState(customer);
   const [isSearchingCustomer, setIsSearchingCustomer] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<PosCustomer | null>(null);
@@ -391,18 +392,22 @@ const OrderCart = ({
               EGP {totals.tax.toFixed(2)}
             </span>
           </div>
+          {orderType === "dine-in" && customerCount > 1 && (
+            <div className="flex items-center justify-between">
+              <span className="flex items-center gap-1.5 font-semibold text-[#8B8B8B] leading-[15.40px]">
+                <Users className="size-4 text-[#8B8B8B] shrink-0" />
+                <span>
+                  {language === "ar"
+                    ? `${customerCount} أفراد • للفرد`
+                    : `${customerCount} Guests • Per person`}
+                </span>
+              </span>
+              <span className="font-semibold text-[#23252A] leading-[15.40px]">
+                EGP {(totals.total / customerCount).toFixed(2)}
+              </span>
+            </div>
+          )}
         </div>
-
-        {orderType === "dine-in" && customerCount > 1 && (
-          <div className="flex items-center justify-between text-[14px]">
-            <span className="font-semibold text-[#8B8B8B] leading-[15.40px]">
-              {t("Cost per person")} ({customerCount})
-            </span>
-            <span className="font-semibold text-[#23252A] leading-[15.40px]">
-              EGP {(totals.total / customerCount).toFixed(2)}
-            </span>
-          </div>
-        )}
 
         {/* Grand Total Box */}
         <div className="flex h-[66px] items-center justify-between rounded-[16px] border border-[#059B5A] bg-[#E2F4ED] px-3.5 py-6">
