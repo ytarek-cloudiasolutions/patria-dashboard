@@ -233,59 +233,23 @@ const PaymentDialog = ({
     return null;
   };
 
+  // Previously branched on the CURRENT user's own role (canApproveOrReject)
+  // to decide whether to show a local "Approval Request" confirm dialog
+  // (admin/manager/superadmin) or send a real apply request and wait
+  // (cashier/staff) — regardless of what the offer or backend actually
+  // required. That meant an admin/manager picking a "Requires approval"
+  // offer saw a confusing self-addressed "Approval Request from <their own
+  // name>" screen before the backend was ever even called, and — since
+  // only a literal super-admin role is auto-approved server-side
+  // (cashierDiscountController.applyDiscount) — an admin/manager's own
+  // click-through there could still come back "pending" underneath, with
+  // no real DiscountRequest for another manager to actually see/approve
+  // until they happened to click through this local dialog too.
+  // The backend is the only source of truth for whether a specific
+  // discount, for this specific requester, actually needs approval — so
+  // always call applyCashierDiscount and branch purely on its response.
   const handleSelectOffer = async (offer: DiscountOfferItem) => {
     setIsSelectOfferOpen(false);
-
-    // If discount requires manager/admin approval
-    if (offer.requiresApproval) {
-      setPendingApprovalOffer(offer);
-      if (canApproveOrReject) {
-        // Admin / Manager / SuperAdmin -> Show Approval Request dialog (Approve / Reject)
-        setIsApprovalRequestOpen(true);
-      } else {
-        // Cashier / Staff -> Show Awaiting Manager Approval dialog (Loading) & send apply request
-        setIsAwaitingApprovalOpen(true);
-        try {
-          setIsDiscountApiLoading(true);
-          const targetOrderId = await getOrFetchOrderId();
-          if (targetOrderId) {
-            const res = await cashierDiscountsApi.applyCashierDiscount(offer.id, targetOrderId);
-            const reqId = res?.request?._id || res?.request?.id || null;
-            setRequestId(reqId);
-
-            // Broadcast socket, in-tab, and cross-tab event so pending requests panel & manager dashboard update immediately
-            const reqItem =
-              res?.request ||
-              res || {
-                _id: reqId,
-                id: reqId,
-                status: "pending",
-                discountId: offer.id,
-                discountName: offer.name,
-                discountValue: offer.value,
-              };
-            const payload = {
-              request: reqItem,
-              data: reqItem,
-              status: "pending",
-              _id: reqId,
-              id: reqId,
-              orderId: targetOrderId,
-            };
-            broadcastDiscountEvent("discount_request_created", payload);
-            broadcastDiscountEvent("cashier_discount_request", payload);
-            broadcastDiscountEvent("discount_request_updated", payload);
-          }
-        } catch (err: any) {
-          console.error("Error creating discount request:", err);
-        } finally {
-          setIsDiscountApiLoading(false);
-        }
-      }
-      return;
-    }
-
-    // Direct discount (requiresApproval === false): apply directly
     setIsDiscountApiLoading(true);
     try {
       const targetOrderId = await getOrFetchOrderId();
@@ -293,13 +257,42 @@ const PaymentDialog = ({
         showErrorToast(t("Order ID is required to apply discount"));
         return;
       }
-      await cashierDiscountsApi.applyCashierDiscount(offer.id, targetOrderId);
-      setAppliedDiscount(offer);
-      showSuccessToast(t("Discount applied successfully"));
+      const res = await cashierDiscountsApi.applyCashierDiscount(offer.id, targetOrderId);
+
+      if (res?.status === "pending") {
+        setPendingApprovalOffer(offer);
+        const reqId = res?.request?._id || res?.request?.id || null;
+        setRequestId(reqId);
+        setIsAwaitingApprovalOpen(true);
+
+        // Broadcast socket, in-tab, and cross-tab event so pending requests panel & manager dashboard update immediately
+        const reqItem =
+          res?.request || {
+            _id: reqId,
+            id: reqId,
+            status: "pending",
+            discountId: offer.id,
+            discountName: offer.name,
+            discountValue: offer.value,
+          };
+        const payload = {
+          request: reqItem,
+          data: reqItem,
+          status: "pending",
+          _id: reqId,
+          id: reqId,
+          orderId: targetOrderId,
+        };
+        broadcastDiscountEvent("discount_request_created", payload);
+        broadcastDiscountEvent("cashier_discount_request", payload);
+        broadcastDiscountEvent("discount_request_updated", payload);
+      } else {
+        setAppliedDiscount(offer);
+        showSuccessToast(t("Discount applied successfully"));
+      }
     } catch (err: any) {
       console.error("Error applying discount preset:", err);
-      setAppliedDiscount(offer);
-      showSuccessToast(t("Discount applied successfully"));
+      showErrorToast(err?.response?.data?.message || t("Failed to apply discount"));
     } finally {
       setIsDiscountApiLoading(false);
     }
