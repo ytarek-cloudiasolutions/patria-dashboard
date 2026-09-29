@@ -193,7 +193,7 @@ const OrderDetailsDialog = ({
       date: order.date || printDate,
       time: order.time || printTime,
       brandName: "Patria Restaurant",
-      notes: order.notes || (order as any).note || undefined,
+      notes: (order as any).notes || (order as any).note || undefined,
       items: order.items.map((item) => {
         const rawItem = item as any;
         return {
@@ -216,7 +216,7 @@ const OrderDetailsDialog = ({
       customerName: order.customerName,
       customerPhone: order.customerPhone,
       paymentMethod: order.paymentMethod,
-      status: order.paymentStatus || "paid",
+      status: order.paymentState || "paid",
       subtotal: order.subtotal,
       discount: effectiveDiscount,
       discountName: effectiveDiscount > 0 ? getDiscountDisplayText() : undefined,
