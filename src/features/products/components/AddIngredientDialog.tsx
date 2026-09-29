@@ -28,7 +28,9 @@ const FORM_ID = "add-ingredient-form";
 
 const INITIAL_FORM: IngredientFormData = {
   name: "",
+  nameAr: "",
   description: "",
+  descriptionAr: "",
   barcode: "",
   price: "",
   quantity: "",
@@ -39,7 +41,7 @@ const INITIAL_FORM: IngredientFormData = {
   imageFile: undefined,
   isExtra: false,
   extraCategories: [],
-  productType: "",
+  productType: "raw_material",
 };
 
 interface AddIngredientDialogProps {
@@ -67,7 +69,6 @@ const AddIngredientDialog = ({
     Partial<Record<keyof IngredientFormData, string>>
   >({});
   const [isUnitOpen, setIsUnitOpen] = useState(false);
-  const [isItemTypeOpen, setIsItemTypeOpen] = useState(false);
   const [extraSearchQuery, setExtraSearchQuery] = useState("");
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
   const [fetchedProducts, setFetchedProducts] = useState<Product[]>([]);
@@ -134,7 +135,9 @@ const AddIngredientDialog = ({
       editingIngredient
         ? {
             name: editingIngredient.name,
+            nameAr: editingIngredient.nameAr || (editingIngredient as any).name_ar || "",
             description: editingIngredient.description || "",
+            descriptionAr: editingIngredient.descriptionAr || (editingIngredient as any).description_ar || "",
             barcode: editingIngredient.barcode || "",
             price: String(editingIngredient.price),
             quantity: String(editingIngredient.quantity),
@@ -145,13 +148,12 @@ const AddIngredientDialog = ({
             imageFile: undefined,
             isExtra: editingIngredient.isExtra ?? false,
             extraCategories: initialExtraTargetIds,
-            productType: editingIngredient.productType || "",
+            productType: editingIngredient.productType || "raw_material",
           }
         : INITIAL_FORM,
     );
     setErrors({});
     setIsUnitOpen(false);
-    setIsItemTypeOpen(false);
     setExtraSearchQuery("");
   }, [open, editingIngredient]);
 
@@ -405,10 +407,8 @@ const AddIngredientDialog = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const next: Partial<Record<keyof IngredientFormData, string>> = {};
-    if (!form.name.trim()) next.name = t("Product name is required");
-    if (!form.productType || !form.productType.trim()) {
-      next.productType = t("Item type is required");
-    }
+    if (!form.name.trim()) next.name = t("Product Name (EN) is required");
+    if (!form.nameAr.trim()) next.nameAr = t("Product Name (AR) is required");
     if (!form.price.trim() || Number(form.price) <= 0)
       next.price = t("Enter a valid price");
     if (!form.quantity.trim() || Number(form.quantity) < 0)
@@ -429,9 +429,9 @@ const AddIngredientDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-150"
+        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-[696px]"
       >
-        {(isUnitOpen || isItemTypeOpen) && (
+        {isUnitOpen && (
           <div className="pointer-events-none fixed inset-0 z-60 bg-black/40" />
         )}
 
@@ -458,14 +458,15 @@ const AddIngredientDialog = ({
               hint="PNG, JPG up to 5MB"
             />
 
+            {/* Row 1: Product Name (EN) & Product Name (AR) */}
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
               <div>
                 <InputField
                   data={{
-                    id: "ingredient-name",
+                    id: "ingredient-name-en",
                     label: {
-                      htmlFor: "ingredient-name",
-                      labelText: t("Product Name"),
+                      htmlFor: "ingredient-name-en",
+                      labelText: t("Product Name (EN)"),
                     },
                     placeholder: t("e.g. Artisanal Sourdough"),
                     required: true,
@@ -482,45 +483,54 @@ const AddIngredientDialog = ({
                 )}
               </div>
 
-              <div className="flex flex-col gap-2.5">
-                <Label className="text-[16px] font-medium text-black">
-                  {t("Item Type")}<span className="text-[#C90000]">*</span>
-                </Label>
-                <DropdownSelect
-                  options={[
-                    { value: "raw_material", label: t("Raw material") },
-                    { value: "service", label: t("Service") },
-                  ]}
-                  selected={form.productType || ""}
-                  onSelect={(val) => {
-                    set("productType", val);
-                    if (errors.productType) {
-                      setErrors((prev) => ({ ...prev, productType: undefined }));
-                    }
+              <div>
+                <InputField
+                  data={{
+                    id: "ingredient-name-ar",
+                    label: {
+                      htmlFor: "ingredient-name-ar",
+                      labelText: t("Product Name (AR)"),
+                    },
+                    placeholder: t("e.g. Artisanal Sourdough"),
+                    required: true,
+                    inputProps: {
+                      value: form.nameAr,
+                      onChange: (e) => set("nameAr", e.target.value),
+                    },
                   }}
-                  onOpenChange={setIsItemTypeOpen}
-                  placeholder={t("Select item type")}
-                  align="start"
-                  className={cn(
-                    "w-full md:w-full sm:w-full h-12.5 rounded-xl font-normal text-[#23252A]",
-                    errors.productType && "border-[#C90000]"
-                  )}
-                  contentClassName="w-[var(--radix-dropdown-menu-trigger-width)] md:w-[var(--radix-dropdown-menu-trigger-width)]"
                 />
-                {errors.productType && (
+                {errors.nameAr && (
                   <p className="mt-1 text-[13px] text-[#C90000]">
-                    {errors.productType}
+                    {errors.nameAr}
                   </p>
                 )}
               </div>
             </div>
 
+            {/* Row 2: Item Type */}
             <InputField
               data={{
-                id: "ingredient-description",
+                id: "ingredient-item-type",
                 label: {
-                  htmlFor: "ingredient-description",
-                  labelText: `${t("Description")} ${t("(Optional)")}`,
+                  htmlFor: "ingredient-item-type",
+                  labelText: t("Item Type"),
+                },
+                placeholder: "Raw Ingredient",
+                inputProps: {
+                  value: language === "ar" ? "مكون خام" : "Raw Ingredient",
+                  readOnly: true,
+                  className: "cursor-default bg-white",
+                },
+              }}
+            />
+
+            {/* Row 3: Description (EN) */}
+            <InputField
+              data={{
+                id: "ingredient-description-en",
+                label: {
+                  htmlFor: "ingredient-description-en",
+                  labelText: `${t("Description (EN)")} ${t("(Optional)")}`,
                 },
                 placeholder: t("Describe this product..."),
                 inputProps: {
@@ -530,6 +540,23 @@ const AddIngredientDialog = ({
               }}
             />
 
+            {/* Row 4: Description (AR) */}
+            <InputField
+              data={{
+                id: "ingredient-description-ar",
+                label: {
+                  htmlFor: "ingredient-description-ar",
+                  labelText: `${t("Description (AR)")} ${t("(Optional)")}`,
+                },
+                placeholder: t("Describe this product..."),
+                inputProps: {
+                  value: form.descriptionAr,
+                  onChange: (e) => set("descriptionAr", e.target.value),
+                },
+              }}
+            />
+
+            {/* Row 5: Barcode (Optional) */}
             <InputField
               data={{
                 id: "ingredient-barcode",
@@ -545,6 +572,7 @@ const AddIngredientDialog = ({
               }}
             />
 
+            {/* Row 6: Price, Unit, Initial Quantity */}
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
               <div>
                 <InputField
@@ -572,23 +600,22 @@ const AddIngredientDialog = ({
                 )}
               </div>
 
-              <div className="flex flex-col">
-                <Label
-                  className="mb-2.5 text-[16px] font-medium text-black"
-                >
+              <div className="flex flex-col gap-2.5">
+                <Label className="text-[16px] font-medium text-black">
                   {t("Unit")}
                 </Label>
                 <DropdownSelect
                   options={[
-                    { value: "ml", label: "ml" },
                     { value: "g", label: "g" },
                     { value: "kg", label: "kg" },
+                    { value: "ml", label: "ml" },
                     { value: "L", label: "L" },
                     { value: "pcs", label: "pcs" },
                   ]}
                   selected={form.unit}
                   onSelect={(val) => set("unit", val)}
                   onOpenChange={setIsUnitOpen}
+                  placeholder={t("Select Unit")}
                   align="start"
                   className="w-full md:w-full sm:w-full h-12.5 rounded-xl font-normal text-[#23252A]"
                   contentClassName="w-[var(--radix-dropdown-menu-trigger-width)] md:w-[var(--radix-dropdown-menu-trigger-width)]"

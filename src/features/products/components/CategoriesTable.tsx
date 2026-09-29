@@ -1,4 +1,4 @@
-import { Trash2, Loader2 } from "lucide-react";
+import { Trash2, Loader2, SquarePen } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -18,6 +18,7 @@ interface CategoriesTableProps {
   isMutating?: boolean;
   onToggleActive: (id: string, active: boolean) => void;
   onDelete: (category: Category) => void;
+  onEdit?: (category: Category) => void;
   onRowClick?: (category: Category) => void;
 }
 
@@ -25,18 +26,20 @@ const RowActions = ({
   category,
   onToggleActive,
   onDelete,
+  onEdit,
   togglingCategoryId,
   isMutating = false,
 }: {
   category: Category;
   onToggleActive: (id: string, active: boolean) => void;
   onDelete: (category: Category) => void;
+  onEdit?: (category: Category) => void;
   togglingCategoryId: string | null;
   isMutating?: boolean;
 }) => {
   const isTogglingThis = togglingCategoryId === category.id;
   return (
-    <div className="flex items-center justify-end gap-4" onClick={(e) => e.stopPropagation()}>
+    <div className="flex items-center justify-end gap-3.5" onClick={(e) => e.stopPropagation()}>
       {isTogglingThis ? (
         <div className="flex size-9 items-center justify-center">
           <Loader2 className="size-4.5 animate-spin text-[#059B5A]" />
@@ -54,10 +57,21 @@ const RowActions = ({
         disabled={isMutating || togglingCategoryId !== null}
         onClick={() => onDelete(category)}
         aria-label={`Delete ${category.name}`}
-        className="cursor-pointer text-[#C90000] disabled:opacity-50"
+        className="cursor-pointer text-[#C90000] disabled:opacity-50 hover:opacity-80 transition-opacity"
       >
         <Trash2 className="size-4.5" />
       </button>
+      {onEdit && (
+        <button
+          type="button"
+          disabled={isMutating || togglingCategoryId !== null}
+          onClick={() => onEdit(category)}
+          aria-label={`Edit ${category.name}`}
+          className="cursor-pointer text-[#28293D] hover:text-[#8F6900] disabled:opacity-50 transition-colors"
+        >
+          <SquarePen className="size-4.5" />
+        </button>
+      )}
     </div>
   );
 };
@@ -77,6 +91,7 @@ const CategoriesTable = ({
   isMutating = false,
   onToggleActive,
   onDelete,
+  onEdit,
   onRowClick,
 }: CategoriesTableProps) => {
   const { t } = useTranslation();
@@ -109,6 +124,7 @@ const CategoriesTable = ({
                   category={category}
                   onToggleActive={onToggleActive}
                   onDelete={onDelete}
+                  onEdit={onEdit}
                   togglingCategoryId={togglingCategoryId}
                   isMutating={isMutating}
                 />
@@ -174,6 +190,7 @@ const CategoriesTable = ({
                         category={category}
                         onToggleActive={onToggleActive}
                         onDelete={onDelete}
+                        onEdit={onEdit}
                         togglingCategoryId={togglingCategoryId}
                         isMutating={isMutating}
                       />

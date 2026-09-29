@@ -13,6 +13,7 @@ import type {
 const initialLoading: CategoriesLoadingState = {
   fetch: false,
   create: false,
+  update: false,
   toggle: false,
   delete: false,
 };
@@ -20,6 +21,7 @@ const initialLoading: CategoriesLoadingState = {
 const initialErrors: CategoriesErrorState = {
   fetch: null,
   create: null,
+  update: null,
   toggle: null,
   delete: null,
 };
@@ -86,6 +88,29 @@ const categoriesSlice = createSlice({
     },
     createCategoryFailure: (state, action: PayloadAction<string>) => {
       setOperationFailure(state, "create", action.payload);
+    },
+
+    updateCategoryRequest: (
+      state,
+      _action: PayloadAction<{ categoryId: string; data: any }>,
+    ) => {
+      setOperationLoading(state, "update");
+    },
+    updateCategorySuccess: (
+      state,
+      action: PayloadAction<{ category: any; message?: string }>,
+    ) => {
+      state.loading.update = false;
+      if (action.payload.category) {
+        const updatedCat = mapCategory(action.payload.category);
+        state.categories = state.categories.map((c) =>
+          c.id === updatedCat.id ? { ...c, ...updatedCat } : c,
+        );
+      }
+      state.successMessage = action.payload.message || "Category updated successfully";
+    },
+    updateCategoryFailure: (state, action: PayloadAction<string>) => {
+      setOperationFailure(state, "update", action.payload);
     },
 
     toggleCategoryStatusRequest: (

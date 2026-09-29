@@ -1,6 +1,7 @@
 export interface Category {
   id: string;
   name: string;
+  nameAr?: string;
   imageUrl: string;
   itemCount: number;
   active: boolean;
@@ -9,6 +10,7 @@ export interface Category {
 export interface GetCategoryResponseItem {
   _id: string;
   name: string;
+  nameAr?: string;
   order: number;
   isActive: boolean;
   productsCount: number;
@@ -18,7 +20,16 @@ export type GetCategoriesResponse = GetCategoryResponseItem[];
 
 export interface CreateCategoryRequest {
   name: string;
+  nameAr?: string;
   image?: string;
+}
+
+export interface UpdateCategoryRequest {
+  categoryId: string;
+  name?: string;
+  nameAr?: string;
+  image?: string;
+  removeImage?: boolean;
 }
 
 export interface CreateCategoryResponse {
@@ -53,7 +64,7 @@ export interface DeleteCategoryResponse {
   message: string;
 }
 
-export type CategoriesOperation = "fetch" | "create" | "toggle" | "delete";
+export type CategoriesOperation = "fetch" | "create" | "update" | "toggle" | "delete";
 
 export type CategoriesLoadingState = Record<CategoriesOperation, boolean>;
 export type CategoriesErrorState = Record<CategoriesOperation, string | null>;

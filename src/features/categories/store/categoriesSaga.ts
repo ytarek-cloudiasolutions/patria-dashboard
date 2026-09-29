@@ -3,6 +3,7 @@ import type { PayloadAction } from "@reduxjs/toolkit";
 import {
   getCategories,
   createCategory,
+  updateCategory,
   toggleCategoryStatus,
   deleteCategory,
 } from "../api/categoriesApi";
@@ -45,6 +46,31 @@ function* handleCreateCategory(action: PayloadAction<CreateCategoryRequest>) {
     const errorMessage = getCategoryErrorMessage(error);
     yield call(showErrorToast, errorMessage);
     yield put(categoriesActions.createCategoryFailure(errorMessage));
+  }
+}
+
+function* handleUpdateCategory(
+  action: PayloadAction<{ categoryId: string; data: any }>,
+) {
+  try {
+    const response: any = yield call(
+      updateCategory,
+      action.payload.categoryId,
+      action.payload.data,
+    );
+    yield call(showSuccessToast, "Category updated successfully");
+    yield put(
+      categoriesActions.updateCategorySuccess({
+        category: response?.category || response?.data || response,
+        message: "Category updated successfully",
+      }),
+    );
+    const refreshedCategories: any[] = yield call(getCategories);
+    yield put(categoriesActions.getCategoriesSuccess(refreshedCategories));
+  } catch (error) {
+    const errorMessage = getCategoryErrorMessage(error);
+    yield call(showErrorToast, errorMessage);
+    yield put(categoriesActions.updateCategoryFailure(errorMessage));
   }
 }
 
@@ -94,6 +120,7 @@ export default function* categoriesSaga() {
   yield all([
     takeLatest(categoriesActions.getCategoriesRequest.type, handleGetCategories),
     takeLatest(categoriesActions.createCategoryRequest.type, handleCreateCategory),
+    takeLatest(categoriesActions.updateCategoryRequest.type, handleUpdateCategory),
     takeLatest(
       categoriesActions.toggleCategoryStatusRequest.type,
       handleToggleCategoryStatus,

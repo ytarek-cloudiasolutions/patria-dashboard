@@ -38,6 +38,19 @@ export const toggleCategoryStatus = async ({
   return response.data;
 };
 
+export const updateCategory = async (
+  categoryId: string,
+  payload: any,
+) => {
+  const isFormData = payload instanceof FormData;
+  const response = await api.put<CreateCategoryResponse>(
+    CATEGORY_ENDPOINTS.CATEGORY_BY_ID(categoryId),
+    payload,
+    isFormData ? { headers: { "Content-Type": "multipart/form-data" } } : undefined,
+  );
+  return response.data;
+};
+
 export const deleteCategory = async (categoryId: string) => {
   const response = await api.delete<DeleteCategoryResponse>(
     CATEGORY_ENDPOINTS.CATEGORY_BY_ID(categoryId),
@@ -48,6 +61,7 @@ export const deleteCategory = async (categoryId: string) => {
 export const categoriesApi = {
   getCategories,
   createCategory,
+  updateCategory,
   toggleCategoryStatus,
   deleteCategory,
 };

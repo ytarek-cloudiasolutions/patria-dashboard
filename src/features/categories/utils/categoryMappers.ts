@@ -7,6 +7,7 @@ export const mapCategory = (backendCat: any): Category => {
   return {
     id: backendCat._id || backendCat.id,
     name: backendCat.name,
+    nameAr: backendCat.nameAr || backendCat.name_ar || "",
     imageUrl: backendCat.image || backendCat.imageUrl || DEFAULT_CATEGORY_IMAGE,
     itemCount: backendCat.productsCount ?? backendCat.itemCount ?? 0,
     active: backendCat.isActive ?? backendCat.active ?? true,

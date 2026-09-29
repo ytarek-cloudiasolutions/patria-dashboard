@@ -89,10 +89,12 @@ const ProductsPage = () => {
     togglingCategoryId,
     isFetchingCategories,
     isCreatingCategory,
+    isUpdatingCategory,
     isTogglingCategory,
     isDeletingCategory,
     getCategories,
     createCategory,
+    updateCategory,
     toggleCategoryStatus,
     deleteCategory,
   } = useCategories();
@@ -176,6 +178,7 @@ const ProductsPage = () => {
   const [editingIngredient, setEditingIngredient] = useState<Ingredient | null>(null);
   const [isAddIngredientOpen, setIsAddIngredientOpen] = useState(false);
   const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [isScanOpen, setIsScanOpen] = useState(false);
@@ -238,7 +241,9 @@ const ProductsPage = () => {
       .map((p) => ({
         id: p.id,
         name: p.name,
+        nameAr: p.nameAr,
         description: p.description || "",
+        descriptionAr: p.descriptionAr || "",
         imageUrl: p.imageUrl,
         price: p.price,
         quantity: p.quantity ?? 0,
@@ -282,7 +287,15 @@ const ProductsPage = () => {
   const handleSaveProduct = (data: ProductFormData) => {
     const formData = new FormData();
     formData.append("name", data.name.trim());
-    formData.append("description", data.description.trim());
+    if (data.nameAr && data.nameAr.trim()) {
+      formData.append("nameAr", data.nameAr.trim());
+      formData.append("name_ar", data.nameAr.trim());
+    }
+    formData.append("description", (data.description || "").trim());
+    if (data.descriptionAr && data.descriptionAr.trim()) {
+      formData.append("descriptionAr", data.descriptionAr.trim());
+      formData.append("description_ar", data.descriptionAr.trim());
+    }
     if (data.barcode !== undefined) {
       formData.append("barcode", data.barcode.trim());
     }
@@ -290,6 +303,9 @@ const ProductsPage = () => {
     formData.append("categoryId", data.category);
     formData.append("stockQty", String(Number(data.quantity) || 0));
     formData.append("productType", data.productType);
+    formData.append("showInApp", String(data.showInApp ?? false));
+    formData.append("showInPos", String(data.showInPos ?? false));
+    formData.append("isInfiniteStock", String(data.isInfiniteStock ?? false));
 
     const mappedVariantGroups = data.variantGroups
       .filter((g) => g.name && g.name.trim())
@@ -413,7 +429,15 @@ const ProductsPage = () => {
 
     const formData = new FormData();
     formData.append("name", data.name.trim());
+    if (data.nameAr && data.nameAr.trim()) {
+      formData.append("nameAr", data.nameAr.trim());
+      formData.append("name_ar", data.nameAr.trim());
+    }
     formData.append("description", data.description.trim());
+    if (data.descriptionAr && data.descriptionAr.trim()) {
+      formData.append("descriptionAr", data.descriptionAr.trim());
+      formData.append("description_ar", data.descriptionAr.trim());
+    }
     if (data.barcode !== undefined) {
       formData.append("barcode", data.barcode.trim());
     }
@@ -462,17 +486,47 @@ const ProductsPage = () => {
   };
 
   const handleAddCategory = (data: CategoryFormData) => {
-    if (data.imageFile) {
-      const formData = new FormData();
-      formData.append("name", data.name.trim());
-      formData.append("image", data.imageFile);
-      if (data.kitchenType) formData.append("kitchenType", data.kitchenType);
-      createCategory(formData as any);
+    if (editingCategory) {
+      if (data.imageFile) {
+        const formData = new FormData();
+        formData.append("name", data.name.trim());
+        if (data.nameAr && data.nameAr.trim()) {
+          formData.append("nameAr", data.nameAr.trim());
+          formData.append("name_ar", data.nameAr.trim());
+        }
+        formData.append("image", data.imageFile);
+        if (data.kitchenType) formData.append("kitchenType", data.kitchenType);
+        updateCategory(editingCategory.id, formData);
+      } else {
+        const payload: any = {
+          name: data.name.trim(),
+          ...(data.nameAr && data.nameAr.trim() ? { nameAr: data.nameAr.trim(), name_ar: data.nameAr.trim() } : {}),
+          ...(data.kitchenType ? { kitchenType: data.kitchenType } : {}),
+        };
+        if (data.removeImage) {
+          payload.image = "";
+          payload.removeImage = true;
+        }
+        updateCategory(editingCategory.id, payload);
+      }
     } else {
-      createCategory({
-        name: data.name.trim(),
-        ...(data.kitchenType ? { kitchenType: data.kitchenType } : {}),
-      });
+      if (data.imageFile) {
+        const formData = new FormData();
+        formData.append("name", data.name.trim());
+        if (data.nameAr && data.nameAr.trim()) {
+          formData.append("nameAr", data.nameAr.trim());
+          formData.append("name_ar", data.nameAr.trim());
+        }
+        formData.append("image", data.imageFile);
+        if (data.kitchenType) formData.append("kitchenType", data.kitchenType);
+        createCategory(formData as any);
+      } else {
+        createCategory({
+          name: data.name.trim(),
+          ...(data.nameAr && data.nameAr.trim() ? { nameAr: data.nameAr.trim(), name_ar: data.nameAr.trim() } : {}),
+          ...(data.kitchenType ? { kitchenType: data.kitchenType } : {}),
+        });
+      }
     }
   };
 
@@ -525,7 +579,10 @@ const ProductsPage = () => {
     : isCategories
       ? {
         text: t("Add New Category"),
-        onClick: () => setIsAddCategoryOpen(true),
+        onClick: () => {
+          setEditingCategory(null);
+          setIsAddCategoryOpen(true);
+        },
       }
       : {
         text: t("Add New Product"),
@@ -872,7 +929,7 @@ const ProductsPage = () => {
           categories={categories}
           togglingCategoryId={togglingCategoryId}
           isLoading={isFetchingCategories}
-          isMutating={isTogglingCategory || isDeletingCategory}
+          isMutating={isTogglingCategory || isDeletingCategory || isUpdatingCategory}
           onToggleActive={toggleCategoryActive}
           onDelete={(category) =>
             setDeleteTarget({
@@ -881,6 +938,10 @@ const ProductsPage = () => {
               kind: "category",
             })
           }
+          onEdit={(category) => {
+            setEditingCategory(category);
+            setIsAddCategoryOpen(true);
+          }}
           onRowClick={(category) => {
             setSelectedCategoryForProducts(category);
           }}
@@ -916,8 +977,12 @@ const ProductsPage = () => {
 
       <AddCategoryDialog
         open={isAddCategoryOpen}
-        onOpenChange={setIsAddCategoryOpen}
-        isSaving={isCreatingCategory}
+        editingCategory={editingCategory}
+        onOpenChange={(open) => {
+          setIsAddCategoryOpen(open);
+          if (!open) setEditingCategory(null);
+        }}
+        isSaving={isCreatingCategory || isUpdatingCategory}
         onSave={handleAddCategory}
       />
 

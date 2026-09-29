@@ -13,7 +13,9 @@ export interface ProductDiscount {
 export interface Product {
   id: string;
   name: string;
+  nameAr?: string;
   description: string;
+  descriptionAr?: string;
   category: string;
   imageUrl: string;
   price: number;
@@ -31,6 +33,9 @@ export interface Product {
   extraTargetProductIds?: string[];
   extraQuantity?: number;
   barcode?: string;
+  showInApp?: boolean;
+  showInPos?: boolean;
+  isInfiniteStock?: boolean;
 }
 
 // --- Ingredients (Recipes tab) ---------------------------------------------
@@ -38,7 +43,9 @@ export interface Product {
 export interface Ingredient {
   id: string;
   name: string;
+  nameAr?: string;
   description: string;
+  descriptionAr?: string;
   imageUrl: string;
   price: number;
   quantity: number;
@@ -61,6 +68,7 @@ export interface Ingredient {
 export interface Category {
   id: string;
   name: string;
+  nameAr?: string;
   imageUrl: string;
   itemCount: number;
   active: boolean;
@@ -113,7 +121,9 @@ export interface ProductExtra {
 
 export interface ProductFormData {
   name: string;
+  nameAr: string;
   description: string;
+  descriptionAr: string;
   barcode: string;
   price: string;
   discountPrice: string;
@@ -129,13 +139,18 @@ export interface ProductFormData {
   ingredients: RecipeIngredient[];
   recipe: OptionRecipeItem[];
   extras: ProductExtra[];
+  showInApp: boolean;
+  showInPos: boolean;
+  isInfiniteStock: boolean;
 }
 
 // --- Add Ingredient form ----------------------------------------------------
 
 export interface IngredientFormData {
   name: string;
+  nameAr: string;
   description: string;
+  descriptionAr: string;
   barcode: string;
   price: string;
   quantity: string;
@@ -156,8 +171,10 @@ export type KitchenType = 'barista' | 'pastry' | 'hot_food' | null;
 
 export interface CategoryFormData {
   name: string;
+  nameAr?: string;
   imageUrl?: string;
   imageFile?: File;
+  removeImage?: boolean;
   kitchenType?: KitchenType;
 }
 

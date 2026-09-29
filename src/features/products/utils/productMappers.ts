@@ -131,7 +131,9 @@ export const mapProduct = (backendProduct: any): Product => {
   return {
     id: String(backendProduct._id || backendProduct.id || ""),
     name: backendProduct.name,
+    nameAr: backendProduct.nameAr || backendProduct.name_ar || "",
     description: backendProduct.description || "",
+    descriptionAr: backendProduct.descriptionAr || backendProduct.description_ar || "",
     category: categoryName,
     imageUrl: resolveImageUrl(backendProduct.image || backendProduct.images),
     price: backendProduct.price,
@@ -148,6 +150,9 @@ export const mapProduct = (backendProduct: any): Product => {
     extraQuantity: backendProduct.extraQuantity,
     productType: backendProduct.productType || "ready",
     barcode: backendProduct.barcode || "",
+    showInApp: Boolean(backendProduct.showInApp),
+    showInPos: Boolean(backendProduct.showInPos),
+    isInfiniteStock: Boolean(backendProduct.isInfiniteStock ?? backendProduct.isInfinite),
   };
 };
 

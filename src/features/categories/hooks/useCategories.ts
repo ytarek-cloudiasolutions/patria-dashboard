@@ -30,8 +30,15 @@ export const useCategories = () => {
   }, [dispatch]);
 
   const createCategory = useCallback(
-    (payload: CreateCategoryRequest) => {
-      dispatch(categoriesActions.createCategoryRequest(payload));
+    (payload: CreateCategoryRequest | FormData) => {
+      dispatch(categoriesActions.createCategoryRequest(payload as any));
+    },
+    [dispatch],
+  );
+
+  const updateCategory = useCallback(
+    (categoryId: string, data: any) => {
+      dispatch(categoriesActions.updateCategoryRequest({ categoryId, data }));
     },
     [dispatch],
   );
@@ -70,12 +77,14 @@ export const useCategories = () => {
     successMessage,
     getCategories,
     createCategory,
+    updateCategory,
     toggleCategoryStatus,
     deleteCategory,
     clearCategoriesError,
     clearCategoriesMessages,
     isFetchingCategories: loading.fetch,
     isCreatingCategory: loading.create,
+    isUpdatingCategory: loading.update,
     isTogglingCategory: loading.toggle,
     isDeletingCategory: loading.delete,
   };

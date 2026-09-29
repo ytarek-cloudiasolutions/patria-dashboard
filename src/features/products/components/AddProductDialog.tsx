@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { ChevronDown, ChevronUp, Plus, Trash2, PlusCircle, Box, BadgePlus, Layers, ListPlus, Sparkles, Check } from "lucide-react";
+import { ChevronDown, ChevronUp, Plus, Trash2, PlusCircle, Box, BadgePlus, Layers, ListPlus, Sparkles, Check, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Dialog,
@@ -69,8 +69,10 @@ const DEFAULT_EXTRAS: ProductExtra[] = [
 
 const INITIAL_FORM: ProductFormData = {
   name: "",
+  nameAr: "",
   category: "",
   description: "",
+  descriptionAr: "",
   barcode: "",
   price: "",
   discountPrice: "",
@@ -85,6 +87,9 @@ const INITIAL_FORM: ProductFormData = {
   ingredients: [],
   recipe: [],
   extras: [],
+  showInApp: false,
+  showInPos: false,
+  isInfiniteStock: false,
 };
 
 interface AddProductDialogProps {
@@ -239,9 +244,11 @@ const AddProductDialog = ({
       editingProduct
         ? {
           ...INITIAL_FORM,
-          name: editingProduct.name,
+          name: editingProduct.name || "",
+          nameAr: (editingProduct as any).nameAr || (editingProduct as any).name_ar || "",
           category: categoryId,
-          description: editingProduct.description,
+          description: editingProduct.description || "",
+          descriptionAr: (editingProduct as any).descriptionAr || (editingProduct as any).description_ar || "",
           barcode: editingProduct.barcode || "",
           price: String(editingProduct.price),
           imageUrl: editingProduct.imageUrl,
@@ -249,6 +256,9 @@ const AddProductDialog = ({
           variantGroups: editingProduct.variantGroups ?? [],
           recipe: editingProduct.recipe ?? [],
           productType: editingProduct.productType ?? "ready",
+          showInApp: editingProduct.showInApp ?? false,
+          showInPos: editingProduct.showInPos ?? false,
+          isInfiniteStock: editingProduct.isInfiniteStock ?? false,
         }
         : {
           ...INITIAL_FORM,
@@ -466,9 +476,9 @@ const AddProductDialog = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const next: Partial<Record<keyof ProductFormData, string>> = {};
-    if (!form.name.trim()) next.name = t("Product name is required");
+    if (!form.name.trim()) next.name = t("Product Name (EN) is required");
+    if (!form.nameAr.trim()) next.nameAr = t("Product Name (AR) is required");
     if (!form.category) next.category = t("Category is required");
-    if (!form.description.trim()) next.description = t("Description is required");
     if (!form.price.trim() || Number(form.price) <= 0)
       next.price = t("Enter a valid price");
     setErrors(next);
@@ -486,7 +496,7 @@ const AddProductDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-160"
+        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-[696px]"
       >
         {(isCategoryOpen || isRecipeOpen || isItemTypeOpen) && (
           <div className="pointer-events-none fixed inset-0 z-60 bg-black/40" />
@@ -515,14 +525,15 @@ const AddProductDialog = ({
               hint="PNG, JPG up to 5MB"
             />
 
+            {/* Row 1: Product Name (EN) & Product Name (AR) */}
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
               <div>
                 <InputField
                   data={{
-                    id: "product-name",
+                    id: "product-name-en",
                     label: {
-                      htmlFor: "product-name",
-                      labelText: t("Product Name"),
+                      htmlFor: "product-name-en",
+                      labelText: t("Product Name (EN)"),
                     },
                     placeholder: t("e.g. Artisanal Sourdough"),
                     required: true,
@@ -539,6 +550,32 @@ const AddProductDialog = ({
                 )}
               </div>
 
+              <div>
+                <InputField
+                  data={{
+                    id: "product-name-ar",
+                    label: {
+                      htmlFor: "product-name-ar",
+                      labelText: t("Product Name (AR)"),
+                    },
+                    placeholder: t("e.g. Artisanal Sourdough"),
+                    required: true,
+                    inputProps: {
+                      value: form.nameAr,
+                      onChange: (e) => set("nameAr", e.target.value),
+                    },
+                  }}
+                />
+                {errors.nameAr && (
+                  <p className="mt-1 text-[13px] text-[#C90000]">
+                    {errors.nameAr}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Row 2: Category & Item Type */}
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
               <div className="flex flex-col gap-2.5">
                 <Label className="text-[16px] font-medium text-black">
                   {t("Category")}<span className="text-[#C90000]">*</span>
@@ -562,49 +599,142 @@ const AddProductDialog = ({
                   </p>
                 )}
               </div>
+
+              <div className="flex flex-col gap-2.5">
+                <Label className="text-[16px] font-medium text-black">
+                  {t("Item Type")}
+                </Label>
+                <DropdownSelect
+                  options={[
+                    { value: "ready", label: t("Ready-made (sold directly)") },
+                    { value: "manufactured", label: t("Manufactured (from components – automatically deducted)") },
+                    { value: "manufactured_work_order", label: t("Manufactured via work order") },
+                  ]}
+                  selected={form.productType}
+                  onSelect={(value) => set("productType", value)}
+                  onOpenChange={setIsItemTypeOpen}
+                  placeholder={t("Select item type")}
+                  align="start"
+                  className="md:w-full"
+                  contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
+                />
+              </div>
             </div>
 
-            <div className="flex flex-col gap-2.5">
-              <Label className="text-[16px] font-medium text-black">
-                {t("Item Type")}
-              </Label>
-              <DropdownSelect
-                options={[
-                  { value: "ready", label: t("Ready-made (sold directly)") },
-                  { value: "manufactured", label: t("Manufactured (from components – automatically deducted)") },
-                  { value: "manufactured_work_order", label: t("Manufactured via work order") },
-                ]}
-                selected={form.productType}
-                onSelect={(value) => set("productType", value)}
-                onOpenChange={setIsItemTypeOpen}
-                placeholder={t("Select item type")}
-                align="start"
-                className="md:w-full"
-                contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
-              />
+            {/* Show in (Channels & Stock Visibility) */}
+            <div className="rounded-[16px] border border-[#CACBD4] bg-[#FAFAF7] px-6 py-4 flex flex-col gap-4">
+              <div className="flex items-center gap-1">
+                <Eye className="size-[18px] text-black" />
+                <span className="text-[12px] font-semibold text-black leading-6">
+                  {t("Show in")}
+                </span>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-[18px]">
+                {/* Application */}
+                <div className="flex items-center gap-1.5">
+                  <div
+                    className={cn(
+                      "rounded-[10px] p-1 transition-colors",
+                      form.showInApp ? "bg-[#624F1C1A]" : ""
+                    )}
+                  >
+                    <Checkbox
+                      id="show-in-app"
+                      checked={form.showInApp}
+                      onCheckedChange={(checked) => set("showInApp", checked === true)}
+                      className="h-5 w-5 rounded-[5.99px] border-[#8F6900] cursor-pointer"
+                    />
+                  </div>
+                  <Label
+                    htmlFor="show-in-app"
+                    className="text-[14px] font-semibold text-[#333333] tracking-[0.28px] cursor-pointer"
+                  >
+                    {t("Application")}
+                  </Label>
+                </div>
+
+                {/* POS */}
+                <div className="flex items-center gap-1.5">
+                  <div
+                    className={cn(
+                      "rounded-[10px] p-1 transition-colors",
+                      form.showInPos ? "bg-[#624F1C1A]" : ""
+                    )}
+                  >
+                    <Checkbox
+                      id="show-in-pos"
+                      checked={form.showInPos}
+                      onCheckedChange={(checked) => set("showInPos", checked === true)}
+                      className="h-5 w-5 rounded-[5.99px] border-[#8F6900] cursor-pointer"
+                    />
+                  </div>
+                  <Label
+                    htmlFor="show-in-pos"
+                    className="text-[14px] font-semibold text-[#333333] tracking-[0.28px] cursor-pointer"
+                  >
+                    {t("POS")}
+                  </Label>
+                </div>
+
+                {/* Set as Infinite stock */}
+                <div className="flex items-center gap-1.5">
+                  <div
+                    className={cn(
+                      "rounded-[10px] p-1 transition-colors",
+                      form.isInfiniteStock ? "bg-[#624F1C1A]" : ""
+                    )}
+                  >
+                    <Checkbox
+                      id="set-infinite-stock"
+                      checked={form.isInfiniteStock}
+                      onCheckedChange={(checked) => set("isInfiniteStock", checked === true)}
+                      className="h-5 w-5 rounded-[5.99px] border-[#8F6900] cursor-pointer"
+                    />
+                  </div>
+                  <Label
+                    htmlFor="set-infinite-stock"
+                    className="text-[14px] font-semibold text-[#333333] tracking-[0.28px] cursor-pointer"
+                  >
+                    {t("Set as Infinite stock")}
+                  </Label>
+                </div>
+              </div>
             </div>
 
-            <div className="flex flex-col gap-2.5">
-              <Label
-                htmlFor="product-description"
-                className="text-[16px] font-medium text-black"
-              >
-                {t("Description")}<span className="text-[#C90000]">*</span>
-              </Label>
-              <Textarea
-                id="product-description"
-                value={form.description}
-                onChange={(e) => set("description", e.target.value)}
-                placeholder={t("Describe this product...")}
-                className="min-h-20 rounded-xl border-[#E5E5E5] px-4.5 py-3 text-[16px] text-[#23252A] placeholder:text-[#8B8B8B] placeholder:text-[16px] focus-visible:border-primary focus-visible:ring-0"
-              />
-              {errors.description && (
-                <p className="mt-1 text-[13px] text-[#C90000]">
-                  {errors.description}
-                </p>
-              )}
-            </div>
+            {/* Row 3: Description (EN) */}
+            <InputField
+              data={{
+                id: "product-description-en",
+                label: {
+                  htmlFor: "product-description-en",
+                  labelText: t("Description (EN)"),
+                },
+                placeholder: t("Describe this product..."),
+                inputProps: {
+                  value: form.description,
+                  onChange: (e) => set("description", e.target.value),
+                },
+              }}
+            />
 
+            {/* Row 4: Description (AR) */}
+            <InputField
+              data={{
+                id: "product-description-ar",
+                label: {
+                  htmlFor: "product-description-ar",
+                  labelText: t("Description (AR)"),
+                },
+                placeholder: t("Describe this product..."),
+                inputProps: {
+                  value: form.descriptionAr,
+                  onChange: (e) => set("descriptionAr", e.target.value),
+                },
+              }}
+            />
+
+            {/* Row 5: Barcode (Optional) */}
             <InputField
               data={{
                 id: "product-barcode",
