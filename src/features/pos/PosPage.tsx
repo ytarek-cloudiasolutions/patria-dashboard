@@ -1065,48 +1065,117 @@ const PosPage = () => {
     }
   };
 
-  const confirmStaffOrder = (data: StaffOrderConfirmationData) => {
+  const confirmStaffOrder = async (data: StaffOrderConfirmationData) => {
     setSelectStaffOpen(false);
 
     if (cartItems.length === 0) return;
 
-    let discountAmount = 0;
-    let discountVal = Number(data.discountValue) || 0;
-
-    if (data.discountType === "percentage") {
-      discountVal = Math.min(100, Math.max(0, discountVal));
-      discountAmount = (totals.total * discountVal) / 100;
-    } else if (data.discountType === "fixed") {
-      discountAmount = Math.min(totals.total, Math.max(0, discountVal));
+    if (orderType === "dine-in" && !selectedTable) {
+      showErrorToast(t("Please select a table before proceeding"));
+      return;
     }
 
-    const finalTotal = Math.max(0, totals.total - discountAmount);
+    // Creates a real order billed to the selected staff member's account
+    // (billedToStaffId, distinct from staffId which just records who rang
+    // it up) — it stays paymentStatus:"pending" until settled later from
+    // the Employee Accounts panel, exactly like any other unpaid POS order.
+    const { createOrder } = await import("@/features/orders/api/ordersApi");
+    const orderItems = cartItems.map((item) => ({
+      productId: item.productId,
+      quantity: item.qty,
+      price: item.unitPrice,
+      notes: item.instructions || undefined,
+      ...(item.excludedIngredients && item.excludedIngredients.length > 0
+        ? { excludedIngredients: item.excludedIngredients }
+        : {}),
+    }));
 
-    const discountInfo =
-      discountAmount > 0
-        ? {
-            name: `${t("Employee Discount")} (${data.staffName})`,
-            value: data.discountType === "percentage" ? discountVal : discountAmount,
-            discountAmount,
-          }
-        : null;
+    let createdId: string | undefined;
+    try {
+      const created: any = await createOrder({
+        type: orderType === "dine-in" ? "dine_in" : "takeaway",
+        source: "pos",
+        tableId: resolvedTableId,
+        customerName: customer || "Walk-in Customer",
+        customerPhone: customerPhone || undefined,
+        address: orderType === "dine-in" ? resolvedTable : undefined,
+        billedToStaffId: data.staffId,
+        items: orderItems,
+        notes: notes || undefined,
+        guestCount: orderType === "dine-in" && customerCount > 0 ? customerCount : undefined,
+      });
 
-    setShiftOrders((prev) => [
-      ...prev,
-      { method: "cash" as PaymentMethod, total: finalTotal },
-    ]);
-
-    if (discountAmount > 0) {
-      showSuccessToast(
-        data.discountType === "percentage"
-          ? `${t("Deducted from employee account")} (${discountVal}% ${t("discount applied")})`
-          : `${t("Deducted from employee account")} (${discountAmount.toFixed(2)} EGP ${t("discount applied")})`
+      createdId =
+        created?.data?._id ||
+        created?.data?.id ||
+        created?.order?._id ||
+        created?.order?.id ||
+        created?._id ||
+        created?.id;
+    } catch (err: any) {
+      showErrorToast(
+        err?.response?.data?.message || t("Failed to create order for employee account")
       );
-    } else {
-      showSuccessToast(t("Deducted from employee account"));
+      return;
     }
 
-    finishWithReceipt("employee_account", finalTotal, discountInfo);
+    if (!createdId) {
+      showErrorToast(t("Failed to create order for employee account"));
+      return;
+    }
+
+    // "Without discount" — the order is already created and billed; nothing left to do.
+    if (data.discountType === "without_discount") {
+      setShiftOrders((prev) => [...prev, { method: "cash" as PaymentMethod, total: totals.total }]);
+      showSuccessToast(t("Deducted from employee account"));
+      finishWithReceipt("employee_account", totals.total, null);
+      return;
+    }
+
+    try {
+      const result = await cashierDiscountsApi.requestOrderDiscount({
+        orderId: createdId,
+        discountType: data.discountType,
+        discountValue: data.discountValue,
+        reason: `${t("Employee Discount")} (${data.staffName})`,
+        supervisorEmail: data.supervisorEmail,
+        supervisorPassword: data.supervisorPassword,
+      });
+
+      if (result.status === "applied" && result.order) {
+        const parsedTotal = Number(result.order.total);
+        const finalTotal = Number.isFinite(parsedTotal) ? parsedTotal : totals.total;
+        const discountAmount = Number(result.order.discountAmount) || 0;
+        setShiftOrders((prev) => [...prev, { method: "cash" as PaymentMethod, total: finalTotal }]);
+        showSuccessToast(
+          data.discountType === "percentage"
+            ? `${t("Deducted from employee account")} (${data.discountValue}% ${t("discount applied")})`
+            : `${t("Deducted from employee account")} (${discountAmount.toFixed(2)} EGP ${t("discount applied")})`
+        );
+        finishWithReceipt("employee_account", finalTotal, {
+          name: `${t("Employee Discount")} (${data.staffName})`,
+          value: data.discountValue,
+          discountAmount,
+        });
+      } else {
+        // Pending manager approval — the order is already placed and billed
+        // to the staff member's account at its full (undiscounted) price;
+        // the total updates on its own once a manager approves the request
+        // from the Discount Requests panel.
+        setShiftOrders((prev) => [...prev, { method: "cash" as PaymentMethod, total: totals.total }]);
+        showSuccessToast(t("Order placed — discount awaiting manager approval"));
+        finishWithReceipt("employee_account", totals.total, null);
+      }
+    } catch (err: any) {
+      showErrorToast(
+        err?.response?.data?.message || t("Failed to apply employee discount")
+      );
+      // The order itself was already created successfully — still show the
+      // receipt at full price rather than leaving the cashier stuck with a
+      // placed order and no confirmation screen.
+      setShiftOrders((prev) => [...prev, { method: "cash" as PaymentMethod, total: totals.total }]);
+      finishWithReceipt("employee_account", totals.total, null);
+    }
   };
 
   const handleReceiptClose = (open: boolean) => {

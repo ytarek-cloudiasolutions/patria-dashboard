@@ -1,6 +1,4 @@
 import { useState } from "react";
-import { Loader2 } from "lucide-react";
-import { api } from "@/config/api";
 import {
   Dialog,
   DialogContent,
@@ -10,15 +8,22 @@ import {
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { useTranslation } from "@/shared/i18n/useTranslation";
-import { showErrorToast, showSuccessToast } from "@/shared/utils/toast";
+import { showErrorToast } from "@/shared/utils/toast";
 
 export interface SuperAdminApprovalDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCancel: () => void;
-  onConfirm: (adminUser: any) => void;
+  onConfirm: (credentials: { email: string; password: string }) => void;
 }
 
+// This dialog only collects the supervisor's credentials — it doesn't verify
+// them itself. Verification happens server-side, atomically with applying
+// the discount (POST /cashier-discounts/order-request's supervisorEmail/
+// supervisorPassword), so wrong credentials or an insufficiently-privileged
+// account are rejected by the same call that would otherwise apply the
+// discount — there's no separate "verify now, trust it later" step that
+// could drift from what actually gets authorized.
 const SuperAdminApprovalDialog = ({
   open,
   onOpenChange,
@@ -28,51 +33,14 @@ const SuperAdminApprovalDialog = ({
   const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim() || !password) {
       showErrorToast(t("Please enter both email and password"));
       return;
     }
-
-    setIsLoading(true);
-    try {
-      const response = await api.post("/auth/login", {
-        email: email.trim(),
-        password,
-      });
-
-      const user =
-        response.data?.data?.user ??
-        response.data?.user ??
-        response.data?.data;
-      const role = (user?.role || "").toLowerCase();
-
-      const isAdmin =
-        role.includes("admin") ||
-        role.includes("manager") ||
-        role === "super_admin" ||
-        role === "superadmin";
-
-      if (!isAdmin) {
-        showErrorToast(
-          t("Confirmation from an admin or super admin is required.")
-        );
-        return;
-      }
-
-      showSuccessToast(t("Discount approved by super admin"));
-      onConfirm(user);
-    } catch (err: any) {
-      const errMsg =
-        err?.response?.data?.message ||
-        t("Invalid login credentials. Please check your email and password.");
-      showErrorToast(errMsg);
-    } finally {
-      setIsLoading(false);
-    }
+    onConfirm({ email: email.trim(), password });
   };
 
   return (
@@ -106,7 +74,6 @@ const SuperAdminApprovalDialog = ({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="admin@erb.com"
-              disabled={isLoading}
               className="h-[50px] w-full rounded-[10px] border border-[#E5E5E5] bg-white px-4 text-[15px] text-[#23252A] placeholder:text-[#8B8B8B] outline-none focus:border-[#8F6900] focus:ring-0 focus-visible:ring-0 transition-colors"
             />
           </div>
@@ -121,7 +88,6 @@ const SuperAdminApprovalDialog = ({
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="******"
-              disabled={isLoading}
               className="h-[50px] w-full rounded-[10px] border border-[#E5E5E5] bg-white px-4 text-[15px] text-[#23252A] placeholder:text-[#8B8B8B] outline-none focus:border-[#8F6900] focus:ring-0 focus-visible:ring-0 transition-colors"
             />
           </div>
@@ -135,21 +101,16 @@ const SuperAdminApprovalDialog = ({
               type="button"
               variant="outline"
               onClick={onCancel}
-              disabled={isLoading}
               className="h-[50px] min-w-[120px] px-6 rounded-[5px] border border-[#8F6900] bg-white text-[16px] font-semibold text-[#8F6900] hover:bg-[#F5F0EA] transition-colors cursor-pointer disabled:opacity-60"
             >
               {t("Cancel")}
             </Button>
             <Button
               type="submit"
-              disabled={isLoading || !email.trim() || !password}
+              disabled={!email.trim() || !password}
               className="h-[50px] min-w-[130px] px-6 rounded-[5px] bg-[#8F6900] text-[16px] font-semibold text-white hover:bg-[#8F6900]/90 transition-colors cursor-pointer disabled:opacity-50"
             >
-              {isLoading ? (
-                <Loader2 className="size-5 animate-spin" />
-              ) : (
-                t("Confirm")
-              )}
+              {t("Confirm")}
             </Button>
           </div>
         </form>

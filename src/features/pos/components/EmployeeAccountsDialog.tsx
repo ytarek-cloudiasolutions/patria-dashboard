@@ -33,52 +33,34 @@ const EmployeeAccountsDialog = ({
     if (!open) return;
     setLoading(true);
 
-    const buildAccounts = async () => {
-      const usersRes = await api.get("/users", { params: { limit: 100 } });
-      const rawUsers: any[] =
-        usersRes.data?.data ?? (Array.isArray(usersRes.data) ? usersRes.data : []);
-
-      const accountsList = await Promise.all(
-        rawUsers.map(async (u) => {
-          const id = u._id || u.id;
-          const name = u.name || u.email || "Staff Member";
-
-          const [pendingRes, paidRes] = await Promise.all([
-            api.get("/orders", {
-              params: { staffId: id, paymentStatus: "pending", source: "pos", limit: 100 },
-            }),
-            api.get("/orders", {
-              params: { staffId: id, paymentStatus: "paid", source: "pos", limit: 5 },
-            }),
-          ]);
-
-          const pendingOrders: any[] =
-            pendingRes.data?.data ?? pendingRes.data?.orders ?? [];
-          const paidOrders: any[] = paidRes.data?.data ?? paidRes.data?.orders ?? [];
-
-          const total = pendingOrders.reduce((sum, o) => sum + (o.total || 0), 0);
-
-          const account: EmployeeAccount = {
-            id,
-            name,
-            total,
-            remaining: total,
-            pendingOrders: pendingOrders.map((o) => ({ id: o._id || o.id, total: o.total || 0 })),
-            payBook: paidOrders.map((o) => ({
-              amount: o.total || 0,
-              method: (o.paymentMethod || "cash").toLowerCase() === "card" ? "Card" : "Cash",
-              date: o.createdAt ? new Date(o.createdAt).toLocaleDateString() : "",
-            })),
-          };
-          return account;
-        }),
-      );
-
-      // Only staff who actually owe something belong on this screen.
-      setAccounts(accountsList.filter((a) => a.total > 0));
-    };
-
-    buildAccounts()
+    // Single server-side aggregation (GET /pos/employee-accounts) — this
+    // used to be N+1 requests done entirely client-side (1 for the staff
+    // list, then 2 more PER staff member), and it grouped debt by staffId
+    // (whoever rang the order up) instead of billedToStaffId (who the order
+    // was actually charged to), so any walk-in customer's not-yet-paid
+    // ticket showed up as the cashier's own personal debt.
+    api
+      .get("/pos/employee-accounts")
+      .then((res) => {
+        const raw: any[] = res.data?.accounts ?? res.data?.data?.accounts ?? [];
+        const accountsList: EmployeeAccount[] = raw.map((a) => ({
+          id: a.staffId,
+          name: a.staffName || "Staff Member",
+          total: a.totalOwed || 0,
+          remaining: a.totalOwed || 0,
+          pendingOrders: (a.pendingOrders || []).map((o: any) => ({
+            id: o._id || o.id,
+            total: o.total || 0,
+          })),
+          payBook: (a.payBook || []).map((o: any) => ({
+            amount: o.total || 0,
+            method: (o.paymentMethod || "cash").toLowerCase() === "card" ? "Card" : "Cash",
+            date: o.createdAt ? new Date(o.createdAt).toLocaleDateString() : "",
+          })),
+        }));
+        // Only staff who actually owe something belong on this screen.
+        setAccounts(accountsList.filter((a) => a.total > 0));
+      })
       .catch(() => setAccounts([]))
       .finally(() => setLoading(false));
   }, [open]);

@@ -21,8 +21,11 @@ export interface StaffOrderConfirmationData {
   discountType: "without_discount" | "percentage" | "fixed";
   discountValue: number;
   discountReason?: string;
-  adminApproved?: boolean;
-  approvedBy?: string;
+  /** On-the-spot manager-override credentials — set only when the current
+   *  user isn't already an admin/manager/super-admin themselves. Verified
+   *  server-side atomically with applying the discount. */
+  supervisorEmail?: string;
+  supervisorPassword?: string;
 }
 
 type SelectStaffDialogProps = {
@@ -39,11 +42,16 @@ const SelectStaffDialog = ({
   const { t } = useTranslation();
   const { user } = useAuth();
   const normalizedRole = (user?.role || "").toLowerCase().replace(/[\s_-]+/g, "");
+  // Matches the backend's own self-authorized role set for
+  // /cashier-discounts/order-request (admin/manager/super-admin) — any of
+  // these can apply the discount immediately with their own token, no
+  // separate supervisor-override credentials needed.
   const isSuperAdmin =
     normalizedRole === "superadmin" ||
     normalizedRole === "super_admin" ||
     normalizedRole.includes("superadmin") ||
-    normalizedRole === "admin";
+    normalizedRole === "admin" ||
+    normalizedRole === "manager";
 
   const [selectedStaffId, setSelectedStaffId] = useState("");
   const [staffMembers, setStaffMembers] = useState<StaffMember[]>(STAFF_MEMBERS);
@@ -122,24 +130,23 @@ const SelectStaffDialog = ({
       });
       onOpenChange(false);
     } else if (isSuperAdmin) {
-      // Super admin is already logged in — directly apply without asking for credentials
+      // Already admin/manager/super-admin — the backend applies immediately
+      // for their own role, no separate override credentials needed.
       onConfirm({
         staffId: selectedStaffId,
         staffName: selectedStaff?.name || "Staff Member",
         discountType,
         discountValue: finalVal,
         discountReason: discountReason.trim() || undefined,
-        adminApproved: true,
-        approvedBy: user?.name || user?.email || "Super Admin",
       });
       onOpenChange(false);
     } else {
-      // Non-super-admin cashiers require super admin credential approval dialog
+      // Non-privileged cashiers need a supervisor override, verified server-side.
       setIsApprovalOpen(true);
     }
   };
 
-  const handleSuperAdminApproved = (adminUser: any) => {
+  const handleSuperAdminApproved = (credentials: { email: string; password: string }) => {
     setIsApprovalOpen(false);
     const numValue = Number(discountValue) || 0;
     const finalVal =
@@ -153,8 +160,8 @@ const SelectStaffDialog = ({
       discountType,
       discountValue: finalVal,
       discountReason: discountReason.trim() || undefined,
-      adminApproved: true,
-      approvedBy: adminUser?.name || adminUser?.email,
+      supervisorEmail: credentials.email,
+      supervisorPassword: credentials.password,
     });
     onOpenChange(false);
   };

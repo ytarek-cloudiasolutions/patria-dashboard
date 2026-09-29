@@ -150,6 +150,31 @@ export const cashierDiscountsApi = {
   },
 
   /**
+   * POST /cashier-discounts/order-request
+   * An ad-hoc (non-preset) discount — the POS's "Select Staff" employee-discount
+   * dialog, where the cashier types a one-off value instead of picking a preset.
+   * Applied immediately if the requester is already admin/manager/super-admin, or
+   * if a valid supervisorEmail/supervisorPassword override is supplied (an
+   * on-the-spot manager approval at the same terminal, verified server-side);
+   * otherwise falls back to a pending DiscountRequest, same as a preset with
+   * requiresApproval:true.
+   */
+  requestOrderDiscount: async (data: {
+    orderId: string;
+    discountType: "percentage" | "fixed";
+    discountValue: number;
+    reason?: string;
+    supervisorEmail?: string;
+    supervisorPassword?: string;
+  }): Promise<ApplyDiscountResponseData> => {
+    const response = await api.post<ApplyCashierDiscountResponse>(
+      "/cashier-discounts/order-request",
+      data
+    );
+    return response.data?.data || (response.data as any);
+  },
+
+  /**
    * POST /cashier-discounts/requests/{id}/approve
    * Approves a pending discount request (Requires ADMIN, MANAGER, or SUPER_ADMIN).
    */

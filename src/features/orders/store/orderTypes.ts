@@ -35,6 +35,8 @@ export interface CreateOrderRequest {
   zone?: string;
   deliveryFee?: number;
   paymentMethod?: string;
+  /** Bills this order to a staff member's personal tab (POS "Select Staff" employee-account flow). */
+  billedToStaffId?: string;
   items: {
     productId: string;
     quantity: number;
