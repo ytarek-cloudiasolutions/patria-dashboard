@@ -51,7 +51,7 @@ function* handleCreateCategory(action: PayloadAction<CreateCategoryRequest>) {
 
 function* handleUpdateCategory(
   action: PayloadAction<{ categoryId: string; data: any }>,
-) {
+): Generator<any, void, any> {
   try {
     const response: any = yield call(
       updateCategory,
