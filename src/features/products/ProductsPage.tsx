@@ -101,6 +101,7 @@ const ProductsPage = () => {
 
   const [productSearch, setProductSearch] = useState("");
   const [ingredientSearch, setIngredientSearch] = useState("");
+  const [categorySearch, setCategorySearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [isCategoryFilterOpen, setIsCategoryFilterOpen] = useState(false);
   const [page, setPage] = useState(1);
@@ -131,6 +132,7 @@ const ProductsPage = () => {
     setPage(1);
     setProductSearch("");
     setIngredientSearch("");
+    setCategorySearch("");
     setCategoryFilter("all");
   }, [tab]);
 
@@ -273,6 +275,15 @@ const ProductsPage = () => {
       barcode: p.barcode || "",
     }));
   }, [products]);
+
+  const filteredCategories = useMemo(() => {
+    if (!categorySearch.trim()) return categories;
+    const q = categorySearch.toLowerCase().trim();
+    return categories.filter((c) =>
+      (c.name && c.name.toLowerCase().includes(q)) ||
+      (c.nameAr && c.nameAr.toLowerCase().includes(q))
+    );
+  }, [categories, categorySearch]);
 
   // --- Mutations ------------------------------------------------------------
 
@@ -925,27 +936,95 @@ const ProductsPage = () => {
       )}
 
       {isCategories && (
-        <CategoriesTable
-          categories={categories}
-          togglingCategoryId={togglingCategoryId}
-          isLoading={isFetchingCategories}
-          isMutating={isTogglingCategory || isDeletingCategory || isUpdatingCategory}
-          onToggleActive={toggleCategoryActive}
-          onDelete={(category) =>
-            setDeleteTarget({
-              id: category.id,
-              name: category.name,
-              kind: "category",
-            })
-          }
-          onEdit={(category) => {
-            setEditingCategory(category);
-            setIsAddCategoryOpen(true);
-          }}
-          onRowClick={(category) => {
-            setSelectedCategoryForProducts(category);
-          }}
-        />
+        <>
+          <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="flex-1">
+              <SearchInputField
+                value={categorySearch}
+                onChange={(val) => {
+                  setCategorySearch(val);
+                }}
+                placeholder={t("Search categories...")}
+              />
+            </div>
+
+            {/* View Mode Toggle Control (Figma specification) */}
+            <div className="flex h-[56px] items-center justify-center gap-4 rounded-[12px] bg-[#F5F0EA] px-3 py-1 shrink-0 overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setViewMode("table")}
+                aria-label={t("Table view")}
+                className={cn(
+                  "flex cursor-pointer items-center justify-center transition-all",
+                  viewMode === "table"
+                    ? "rounded-[6px] bg-white px-3 py-1.5 shadow-xs"
+                    : "p-1.5 text-black hover:opacity-80"
+                )}
+              >
+                <List className="size-6 text-black" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("grid")}
+                aria-label={t("Grid view")}
+                className={cn(
+                  "flex cursor-pointer items-center justify-center transition-all",
+                  viewMode === "grid"
+                    ? "rounded-[6px] bg-white px-3 py-1.5 shadow-xs"
+                    : "p-1.5 text-black hover:opacity-80"
+                )}
+              >
+                <LayoutGrid className="size-6 text-black" />
+              </button>
+            </div>
+          </div>
+
+          {viewMode === "grid" ? (
+            <CategoriesCards
+              categories={filteredCategories}
+              togglingCategoryId={togglingCategoryId}
+              isLoading={isFetchingCategories}
+              isMutating={isTogglingCategory || isDeletingCategory || isUpdatingCategory}
+              onToggleActive={toggleCategoryActive}
+              onDelete={(category) =>
+                setDeleteTarget({
+                  id: category.id,
+                  name: category.name,
+                  kind: "category",
+                })
+              }
+              onEdit={(category) => {
+                setEditingCategory(category);
+                setIsAddCategoryOpen(true);
+              }}
+              onCardClick={(category) => {
+                setSelectedCategoryForProducts(category);
+              }}
+            />
+          ) : (
+            <CategoriesTable
+              categories={filteredCategories}
+              togglingCategoryId={togglingCategoryId}
+              isLoading={isFetchingCategories}
+              isMutating={isTogglingCategory || isDeletingCategory || isUpdatingCategory}
+              onToggleActive={toggleCategoryActive}
+              onDelete={(category) =>
+                setDeleteTarget({
+                  id: category.id,
+                  name: category.name,
+                  kind: "category",
+                })
+              }
+              onEdit={(category) => {
+                setEditingCategory(category);
+                setIsAddCategoryOpen(true);
+              }}
+              onRowClick={(category) => {
+                setSelectedCategoryForProducts(category);
+              }}
+            />
+          )}
+        </>
       )}
 
       {/* Dialogs */}

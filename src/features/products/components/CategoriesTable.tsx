@@ -94,7 +94,7 @@ const CategoriesTable = ({
   onEdit,
   onRowClick,
 }: CategoriesTableProps) => {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   return (
     <>
       {/* Mobile card list */}
@@ -113,8 +113,8 @@ const CategoriesTable = ({
               >
                 <Thumb category={category} />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[15px] font-semibold text-[#28293D]">
-                    {category.name}
+                  <p className="truncate text-[15px] font-semibold text-black" style={{ fontWeight: 600 }}>
+                    {(language === "ar" && category.nameAr) ? category.nameAr : category.name}
                   </p>
                   <p className="text-[12px] text-[#8B8B8B]">
                     {category.itemCount} {t("items")}
@@ -179,8 +179,10 @@ const CategoriesTable = ({
                     <TableCell className="ps-6 py-4">
                       <Thumb category={category} />
                     </TableCell>
-                    <TableCell className="px-6 py-4 whitespace-nowrap text-[14px] font-semibold text-[#28293D]">
-                      {category.name}
+                    <TableCell className="px-6 py-4 whitespace-nowrap">
+                      <p className="text-[14px] font-semibold text-black" style={{ fontWeight: 600 }}>
+                        {(language === "ar" && category.nameAr) ? category.nameAr : category.name}
+                      </p>
                     </TableCell>
                     <TableCell className="px-6 py-4 whitespace-nowrap text-center text-[14px] font-medium text-[#28293D]">
                       {category.itemCount}

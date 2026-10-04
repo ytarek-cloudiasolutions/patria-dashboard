@@ -1,5 +1,4 @@
-import { Box, Loader2, Trash2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Box, Loader2, SquarePen, Trash2 } from "lucide-react";
 import type { Category } from "../types";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { Switch } from "@/shared/components/ui/switch";
@@ -11,6 +10,7 @@ interface CategoriesCardsProps {
   isMutating?: boolean;
   onToggleActive: (id: string, active: boolean) => void;
   onDelete?: (category: Category) => void;
+  onEdit?: (category: Category) => void;
   onCardClick?: (category: Category) => void;
 }
 
@@ -21,17 +21,18 @@ const CategoriesCards = ({
   isMutating = false,
   onToggleActive,
   onDelete,
+  onEdit,
   onCardClick,
 }: CategoriesCardsProps) => {
   const { t, language } = useTranslation();
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-        {Array.from({ length: 8 }).map((_, i) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {Array.from({ length: 6 }).map((_, i) => (
           <div
             key={i}
-            className="h-[260px] animate-pulse rounded-[16px] border-2 border-[#E5E5E5] bg-[#FAFAF7]"
+            className="h-[104px] animate-pulse rounded-xl border-2 border-[#E5E5E5] bg-[#FAFAF7]"
           />
         ))}
       </div>
@@ -42,95 +43,108 @@ const CategoriesCards = ({
     return (
       <div className="flex min-h-[240px] w-full flex-col items-center justify-center rounded-[16px] border-2 border-dashed border-[#CACBD4] bg-[#FAFAF7] p-8 text-center">
         <p className="text-[15px] font-semibold text-[#8B8B8B]">
-          {t("No categories found")}
+          {t("No categories found.")}
         </p>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {categories.map((category) => {
         const isToggling = togglingCategoryId === category.id;
+        const displayName =
+          language === "ar" && category.nameAr ? category.nameAr : category.name;
 
         return (
           <div
             key={category.id}
             onClick={() => onCardClick?.(category)}
-            className="group relative flex flex-col justify-between rounded-[16px] border-2 border-[#E5E5E5] bg-white overflow-hidden transition-all duration-200 hover:shadow-md cursor-pointer"
+            className="group relative flex items-center justify-between rounded-xl border-2 border-[#E5E5E5] bg-white px-3 py-6 sm:px-4 gap-4 transition-all duration-200 hover:shadow-md cursor-pointer min-w-0"
           >
-            {/* Top Image Container */}
-            <div className="relative h-[160px] w-full bg-[#FAFAF7] overflow-hidden flex items-center justify-center border-b border-[#E5E5E5]/50">
-              {category.imageUrl ? (
-                <img
-                  src={category.imageUrl}
-                  alt={category.name}
-                  className="h-full w-full object-cover rounded-t-[5px] transition-transform duration-300 group-hover:scale-105"
-                  onError={(e) => {
-                    (e.target as HTMLElement).style.display = "none";
-                  }}
-                />
-              ) : (
-                <Box className="size-12 text-[#A1A1AA]" />
-              )}
+            {/* Left Content (Image + Name & Count) */}
+            <div className="flex items-center gap-4 min-w-0 flex-1">
+              {/* Category Image */}
+              <div className="relative size-14 shrink-0 overflow-hidden rounded-xl border-[0.47px] border-[#E5E5E5] bg-[#FAFAF7]">
+                {category.imageUrl ? (
+                  <img
+                    src={category.imageUrl}
+                    alt={displayName}
+                    className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    onError={(e) => {
+                      (e.target as HTMLElement).style.display = "none";
+                    }}
+                  />
+                ) : (
+                  <div className="flex size-full items-center justify-center">
+                    <Box className="size-6 text-[#A1A1AA]" />
+                  </div>
+                )}
+              </div>
 
-              {/* Category Badge (Top-Left) */}
-              <div className="absolute top-3.5 start-2.5 z-10">
-                <span className="inline-flex items-center rounded-full border border-[#725400] bg-[#8F6900] px-2 py-0.5 text-[10px] font-semibold text-white tracking-[0.20px]">
-                  {language === "ar" ? "قسم" : "Category"}
-                </span>
+              {/* Name & Count */}
+              <div className="flex flex-col justify-center items-start gap-2 min-w-0">
+                <h4 className="text-[13px] font-semibold text-black tracking-tight truncate max-w-full" style={{ fontWeight: 600 }}>
+                  {displayName}
+                </h4>
+                <div className="inline-flex items-center gap-1 rounded-[30px] border border-[#8F6900] bg-[#F5F0EA] px-2 py-0.5 overflow-hidden">
+                  <span className="text-[12px] font-semibold text-[#8F6900] tracking-tight whitespace-nowrap" style={{ fontWeight: 600 }}>
+                    {category.itemCount ?? 0} {language === "ar" ? "منتج" : "Products"}
+                  </span>
+                </div>
               </div>
             </div>
 
-            {/* Card Content Body */}
-            <div className="flex flex-1 flex-col justify-between p-3 gap-3 bg-white">
-              <div className="flex flex-col gap-1">
-                {/* Category Name */}
-                <h4 className="text-[14px] font-semibold text-black tracking-[0.28px] line-clamp-1">
-                  {category.name}
-                </h4>
+            {/* Right Content (Actions) */}
+            <div
+              className="flex items-center justify-end gap-3 shrink-0"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Active Toggle Switch */}
+              {isToggling ? (
+                <div className="flex size-9 items-center justify-center">
+                  <Loader2 className="size-4.5 animate-spin text-[#059B5A]" />
+                </div>
+              ) : (
+                <Switch
+                  checked={category.active}
+                  disabled={isMutating || togglingCategoryId !== null}
+                  onCheckedChange={(val) => onToggleActive(category.id, val)}
+                  className="data-[state=checked]:bg-[#059B5A] ring-[#059B5A33]"
+                />
+              )}
 
-                {/* Item Count Subtitle */}
-                <p className="text-[13px] font-semibold text-[#595959] tracking-[0.26px]">
-                  {category.itemCount ?? 0} {t("items")}
-                </p>
-              </div>
+              {/* Delete Button */}
+              {onDelete && (
+                <button
+                  type="button"
+                  disabled={isMutating || togglingCategoryId !== null}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(category);
+                  }}
+                  aria-label={`Delete ${category.name}`}
+                  className="cursor-pointer text-[#C90000] disabled:opacity-50 hover:opacity-80 transition-opacity p-0.5"
+                >
+                  <Trash2 className="size-4 text-[#C90000]" />
+                </button>
+              )}
 
-              {/* Footer Row (Action Controls) */}
-              <div
-                className="flex items-center justify-end w-full pt-1 gap-3"
-                onClick={(e) => e.stopPropagation()}
-              >
-                {/* Active Switch */}
-                {isToggling ? (
-                  <div className="flex size-9 items-center justify-center">
-                    <Loader2 className="size-4.5 animate-spin text-[#059B5A]" />
-                  </div>
-                ) : (
-                  <Switch
-                    checked={category.active}
-                    disabled={isMutating || togglingCategoryId !== null}
-                    onCheckedChange={(val) => onToggleActive(category.id, val)}
-                    className="data-[state=checked]:bg-[#059B5A] ring-[#059B5A33]"
-                  />
-                )}
-
-                {/* Delete Button */}
-                {onDelete && (
-                  <button
-                    type="button"
-                    disabled={isMutating || togglingCategoryId !== null}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDelete(category);
-                    }}
-                    aria-label={`Delete ${category.name}`}
-                    className="flex size-5 items-center justify-center text-[#C90000] transition-opacity hover:opacity-80 disabled:opacity-50 cursor-pointer"
-                  >
-                    <Trash2 className="size-4.5 text-[#C90000]" />
-                  </button>
-                )}
-              </div>
+              {/* Edit Button */}
+              {onEdit && (
+                <button
+                  type="button"
+                  disabled={isMutating || togglingCategoryId !== null}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit(category);
+                  }}
+                  aria-label={`Edit ${category.name}`}
+                  className="cursor-pointer text-[#28293D] hover:text-[#8F6900] disabled:opacity-50 transition-colors p-0.5"
+                >
+                  <SquarePen className="size-4 text-black" />
+                </button>
+              )}
             </div>
           </div>
         );

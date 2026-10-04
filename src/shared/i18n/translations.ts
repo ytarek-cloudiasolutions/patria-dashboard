@@ -1621,4 +1621,5 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   "Show in": "العرض في",
   POS: "نقاط البيع",
   "Set as Infinite stock": "تعيين كمخزون غير محدود",
+  "Search categories...": "البحث في الفئات...",
 };
