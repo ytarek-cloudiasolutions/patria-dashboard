@@ -10,6 +10,7 @@ import {
   Bell,
   CalendarDays,
   LayoutDashboard,
+  RefreshCw,
 } from "lucide-react";
 import { api } from "@/config/api";
 import { DASHBOARD_DATE } from "./data";
@@ -34,6 +35,7 @@ import CustomerNotificationDialog from "./components/CustomerNotificationDialog"
 import OrderDetailsDialog from "@/features/orders/components/OrderDetailsDialog";
 import { mapOrder } from "@/features/orders/utils/orderMappers";
 import type { Order } from "@/features/orders/types";
+import PosViewDashboard from "./components/PosViewDashboard";
 
 const getTodayDateString = () => {
   const d = new Date();
@@ -79,6 +81,23 @@ const DashboardPage = () => {
   });
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isPosView, setIsPosView] = useState(() => {
+    return localStorage.getItem("patria_dashboard_view") === "pos";
+  });
+
+  const handleToggleView = () => {
+    setIsPosView((prev) => {
+      const next = !prev;
+      localStorage.setItem("patria_dashboard_view", next ? "pos" : "admin");
+      return next;
+    });
+  };
+  const [posSummary, setPosSummary] = useState<{
+    totalOrders?: number;
+    totalRevenue?: number;
+    openShifts?: number;
+    staffCount?: number;
+  }>({});
 
   useEffect(() => {
     const load = async () => {
@@ -228,6 +247,13 @@ const DashboardPage = () => {
 
         setRawOrdersMap(ordersMap);
         setLiveOrders(live);
+        setPosSummary({
+          totalOrders: summary.totalOrders ?? live.length,
+          totalRevenue: summary.totalRevenue,
+          openShifts: ov.openShifts ?? 0,
+          staffCount: ov.staffCount ?? 0,
+        });
+
       } catch {
         // silently fail — static fallback via initial empty state
       } finally {
@@ -281,35 +307,62 @@ const DashboardPage = () => {
           description={`${t("Real-time business performance metrics")} — ${today || DASHBOARD_DATE}`}
           className="mb-0"
         />
-        <div className="flex flex-wrap items-center gap-3.5">
-          <div className="flex h-12 sm:h-14 items-center rounded-[5px] border border-[#E1E1E5] bg-white px-4.5 text-[14px]">
-            <DatePicker
-              value={dateRange.from}
-              onChange={(from) => setDateRange((prev) => ({ ...prev, from }))}
-              placeholder={t("From")}
-              popoverPlacement="bottom-right"
-              withBackdrop
-              buttonClassName="border-0 bg-transparent h-auto p-0 shadow-none hover:bg-transparent text-[14px] font-semibold text-[#28293D] cursor-pointer w-auto inline-flex gap-1.5 [&>svg]:size-4.5 [&>svg]:text-primary"
-            />
-            <span className="mx-2 h-4 w-px bg-[#E1E1E5]" />
-            <DatePicker
-              value={dateRange.to}
-              onChange={(to) => setDateRange((prev) => ({ ...prev, to }))}
-              placeholder={t("To")}
-              popoverPlacement="bottom-right"
-              minDate={dateRange.from || undefined}
-              withBackdrop
-              buttonClassName="border-0 bg-transparent h-auto p-0 shadow-none hover:bg-transparent text-[14px] font-semibold text-[#28293D] cursor-pointer w-auto inline-flex gap-1.5 [&>svg]:size-4.5 [&>svg]:text-primary"
-            />
-          </div>
+        <div className="flex items-center gap-2.5 sm:gap-3.5 flex-wrap sm:flex-nowrap">
+          {!isPosView && (
+            <>
+              <div className="flex h-12 sm:h-14 items-center rounded-[5px] border border-[#E1E1E5] bg-white px-3.5 sm:px-4 text-[14px] shrink-0">
+                <DatePicker
+                  value={dateRange.from}
+                  onChange={(from) => setDateRange((prev) => ({ ...prev, from }))}
+                  placeholder={t("From")}
+                  popoverPlacement="bottom-right"
+                  withBackdrop
+                  buttonClassName="border-0 bg-transparent h-auto p-0 shadow-none hover:bg-transparent text-[14px] font-semibold text-[#28293D] cursor-pointer w-auto inline-flex gap-1.5 [&>svg]:size-4.5 [&>svg]:text-primary"
+                />
+                <span className="mx-2 h-4 w-px bg-[#E1E1E5]" />
+                <DatePicker
+                  value={dateRange.to}
+                  onChange={(to) => setDateRange((prev) => ({ ...prev, to }))}
+                  placeholder={t("To")}
+                  popoverPlacement="bottom-right"
+                  minDate={dateRange.from || undefined}
+                  withBackdrop
+                  buttonClassName="border-0 bg-transparent h-auto p-0 shadow-none hover:bg-transparent text-[14px] font-semibold text-[#28293D] cursor-pointer w-auto inline-flex gap-1.5 [&>svg]:size-4.5 [&>svg]:text-primary"
+                />
+              </div>
 
-          <DefaultButton
-            data={{
-              buttonText: t("Customer Notification"),
-              onClick: () => setIsNotificationOpen(true),
-              icon: <Bell className="size-4.5 text-white" />,
-            }}
-          />
+              <DefaultButton
+                data={{
+                  buttonText: t("Customer Notification"),
+                  onClick: () => setIsNotificationOpen(true),
+                  icon: <Bell className="size-4 text-white" />,
+                  className: "h-12 sm:h-14 px-3.5 sm:px-4.5 text-xs sm:text-sm font-semibold shrink-0 whitespace-nowrap",
+                }}
+              />
+            </>
+          )}
+
+          {/* POS View / Admin View toggle */}
+          {isPosView && (
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="size-14 p-4 bg-[#F5F0EA] rounded-lg inline-flex justify-center items-center gap-3 cursor-pointer shrink-0"
+              title={t("Refresh")}
+            >
+              <div className="size-7 relative flex items-center justify-center">
+                <RefreshCw className="size-6 text-[#8F6900]" />
+              </div>
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={handleToggleView}
+            className="flex h-12 sm:h-14 items-center justify-center rounded-[5px] bg-[#8F6900] px-4.5 sm:px-6 text-sm sm:text-[15px] font-semibold text-white cursor-pointer shrink-0 whitespace-nowrap"
+          >
+            {isPosView ? t("Admin View") : t("POS View")}
+          </button>
         </div>
       </div>
 
@@ -325,20 +378,30 @@ const DashboardPage = () => {
         onOrderUpdated={(updated) => setSelectedOrder(updated)}
       />
 
-      <DashboardMetrics metrics={metrics} />
-
-      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[1.6fr_1fr]">
-        <RevenueTrendChart data={revenueTrend} />
-        <PerformanceIndicators
-          indicators={indicators}
-          posRevenuePercent={posRevenuePercent}
+      {isPosView ? (
+        <PosViewDashboard
+          orders={liveOrders}
+          onOrderClick={handleOrderClick}
+          summary={posSummary}
         />
-      </div>
+      ) : (
+        <>
+          <DashboardMetrics metrics={metrics} />
 
-      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[1fr_1.4fr]">
-        <TopSoldProducts products={topProducts} />
-        <LiveOrderStream orders={liveOrders} onOrderClick={handleOrderClick} />
-      </div>
+          <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[1.6fr_1fr]">
+            <RevenueTrendChart data={revenueTrend} />
+            <PerformanceIndicators
+              indicators={indicators}
+              posRevenuePercent={posRevenuePercent}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[1fr_1.4fr]">
+            <TopSoldProducts products={topProducts} />
+            <LiveOrderStream orders={liveOrders} onOrderClick={handleOrderClick} />
+          </div>
+        </>
+      )}
     </div>
   );
 };
