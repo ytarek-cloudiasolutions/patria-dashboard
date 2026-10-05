@@ -518,7 +518,7 @@ export const PosViewDashboard: React.FC<PosViewDashboardProps> = ({
                   >
                     {t(order.status)}
                   </span>
-                  <span className="inline-flex items-center justify-center rounded-full border border-[#D9D9D9] bg-white px-2 py-0.5 text-[10px] font-medium text-[#595959]">
+                  <span className="inline-flex items-center justify-center rounded-[30px] border border-[var(--Border-dark,#595959)] bg-[var(--Surface-informaiton,#DCDCDC)] px-2.5 py-0.5 text-[10px] font-semibold text-[#000000]">
                     {t(order.orderType || "Dine In")}
                   </span>
                 </div>

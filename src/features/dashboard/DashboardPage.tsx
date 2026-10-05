@@ -56,11 +56,27 @@ const getSevenDaysAgoDateString = () => {
 
 const mapOrderStatus = (s: string): LiveOrder["status"] => {
   switch ((s ?? "").toLowerCase()) {
-    case "confirmed": return "Confirmed";
-    case "delivered": return "Delivered";
-    case "on the way": case "on_the_way": return "On The Way";
-    default: return "Pending";
+    case "confirmed":
+    case "preparing":
+      return "Confirmed";
+    case "delivered":
+    case "completed":
+    case "served":
+      return "Delivered";
+    case "on the way":
+    case "on_the_way":
+    case "ready":
+      return "On The Way";
+    default:
+      return "Pending";
   }
+};
+
+const mapOrderType = (t: string): LiveOrder["orderType"] => {
+  const type = (t ?? "").toLowerCase().replace(/[-_]/g, " ");
+  if (type.includes("takeaway") || type.includes("take out") || type.includes("takeout")) return "Takeaway";
+  if (type.includes("delivery")) return "Delivery";
+  return "Dine In";
 };
 
 const DashboardPage = () => {
@@ -242,6 +258,7 @@ const DashboardPage = () => {
               })
               : "--",
             status: mapOrderStatus(o.status),
+            orderType: mapOrderType(o.type),
           };
         });
 

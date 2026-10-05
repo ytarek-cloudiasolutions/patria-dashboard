@@ -23,7 +23,10 @@ import type {
 const mapOrderStatus = (s: string): OrderReport["status"] => {
   switch ((s ?? "").toLowerCase()) {
     case "confirmed": return "Confirmed";
-    case "delivered": return "Delivered";
+    case "delivered":
+    case "completed":
+    case "served":
+      return "Delivered";
     case "on the way": case "on_the_way": return "On the Way";
     case "cancelled": case "canceled": return "Cancelled";
     default: return "Pending";
