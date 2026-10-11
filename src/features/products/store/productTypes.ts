@@ -12,6 +12,8 @@ export interface GetProductsRequest {
   page?: number;
   limit?: number;
   includeInactive?: boolean;
+  /** "pos" — the POS's own sell screen: only active, showInPos products (backend-enforced). */
+  context?: "pos";
 }
 
 export interface GetProductsResponse {

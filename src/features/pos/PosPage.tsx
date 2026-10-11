@@ -97,7 +97,7 @@ const PosPage = () => {
   const isShiftActive = Boolean(currentShift && currentShift.status === "open");
 
   useEffect(() => {
-    getProducts({ limit: 100 });
+    getProducts({ limit: 100, context: "pos" });
     getCategories();
     getTables();
     getCurrentShift();
@@ -198,7 +198,7 @@ const PosPage = () => {
   }, [pendingDiscountRequest]);
 
   useEffect(() => {
-    getProducts({ limit: 100 });
+    getProducts({ limit: 100, context: "pos" });
     getCategories();
     getTables();
   }, [getProducts, getCategories, getTables]);
@@ -381,7 +381,7 @@ const PosPage = () => {
   // Fetch products whenever search or activeCategory changes
   useEffect(() => {
     const handler = setTimeout(() => {
-      const params: Record<string, any> = { limit: 100 };
+      const params: Record<string, any> = { limit: 100, context: "pos" };
       if (search.trim()) {
         params.search = search.trim();
       }
