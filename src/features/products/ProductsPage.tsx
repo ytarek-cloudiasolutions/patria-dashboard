@@ -261,19 +261,40 @@ const ProductsPage = () => {
       }));
   }, [products, tab, categories]);
 
+  // Feeds the "Select a reciepe" dropdown in the Add/Edit Product dialog's
+  // recipe editor (both the product's own base recipe and each variant
+  // option's recipe) — this must only offer actual ingredients to build a
+  // recipe FROM, not every menu item on the catalog. Was unfiltered (every
+  // product), unlike the near-identical filteredIngredients just above —
+  // which has the right predicate but is gated to the Recipes tab only, so
+  // it's empty whenever this dialog is actually open (Products tab).
   const ingredientOptions = useMemo(() => {
-    return products.map((p) => ({
-      id: p.id,
-      name: p.name,
-      description: p.description || "",
-      imageUrl: p.imageUrl,
-      price: p.price,
-      quantity: p.quantity ?? 0,
-      unit: formatUnit(p.unit),
-      isExtra: p.isExtra ?? false,
-      extraTargetProductIds: p.extraTargetProductIds || [],
-      barcode: p.barcode || "",
-    }));
+    return products
+      .filter((p) => {
+        const pType = (p.productType || "").toLowerCase();
+        const cat = (p.category || "").toLowerCase().trim();
+        return (
+          p.isIngredient ||
+          pType === "raw_material" ||
+          pType === "service" ||
+          cat === "raw ingredients" ||
+          cat === "raw ingredient" ||
+          cat === "ingredients" ||
+          cat === "المكونات الخام"
+        );
+      })
+      .map((p) => ({
+        id: p.id,
+        name: p.name,
+        description: p.description || "",
+        imageUrl: p.imageUrl,
+        price: p.price,
+        quantity: p.quantity ?? 0,
+        unit: formatUnit(p.unit),
+        isExtra: p.isExtra ?? false,
+        extraTargetProductIds: p.extraTargetProductIds || [],
+        barcode: p.barcode || "",
+      }));
   }, [products]);
 
   const filteredCategories = useMemo(() => {
