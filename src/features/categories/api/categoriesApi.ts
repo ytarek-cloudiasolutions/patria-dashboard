@@ -51,9 +51,10 @@ export const updateCategory = async (
   return response.data;
 };
 
-export const deleteCategory = async (categoryId: string) => {
+export const deleteCategory = async (categoryId: string, reassignTo?: string) => {
   const response = await api.delete<DeleteCategoryResponse>(
     CATEGORY_ENDPOINTS.CATEGORY_BY_ID(categoryId),
+    reassignTo ? { data: { reassignTo } } : undefined,
   );
   return response.data;
 };

@@ -23,6 +23,8 @@ import AddProductDialog from "./components/AddProductDialog";
 import AddIngredientDialog from "./components/AddIngredientDialog";
 import AddCategoryDialog from "./components/AddCategoryDialog";
 import CategoryProductsDialog from "./components/CategoryProductsDialog";
+import ReassignCategoryDialog from "./components/ReassignCategoryDialog";
+import { categoriesApi } from "@/features/categories/api/categoriesApi";
 import ImportDataDialog from "./components/ImportDataDialog";
 import ScanProductDialog from "./components/ScanProductDialog";
 import WhatsAppOfferDialog from "./components/WhatsAppOfferDialog";
@@ -96,7 +98,6 @@ const ProductsPage = () => {
     createCategory,
     updateCategory,
     toggleCategoryStatus,
-    deleteCategory,
   } = useCategories();
 
   const [productSearch, setProductSearch] = useState("");
@@ -195,6 +196,15 @@ const ProductsPage = () => {
   }, [isAddProductOpen, products.length, getIngredients]);
 
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
+  // Set when deleting a category fails because products still use it (409)
+  // — opens ReassignCategoryDialog so the admin explicitly picks a
+  // destination category instead of the delete just failing silently.
+  const [reassignCategory, setReassignCategory] = useState<{
+    id: string;
+    name: string;
+    productCount: number;
+  } | null>(null);
+  const [isReassigning, setIsReassigning] = useState(false);
 
   const isProducts = tab === "products";
   const isRecipes = tab === "recipes";
@@ -586,14 +596,51 @@ const ProductsPage = () => {
     }
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
-    const { id, kind } = deleteTarget;
-    if (kind === "product" || kind === "ingredient")
+    const { id, kind, name } = deleteTarget;
+    if (kind === "product" || kind === "ingredient") {
       deleteProduct({ productId: String(id) });
-    if (kind === "category")
-      deleteCategory({ categoryId: String(id) });
-    setDeleteTarget(null);
+      setDeleteTarget(null);
+      return;
+    }
+    if (kind === "category") {
+      // Called directly (not through the Redux action) so a 409 "still has
+      // products" response can be caught right here and turned into the
+      // reassign-category prompt, instead of just failing silently.
+      try {
+        await categoriesApi.deleteCategory(String(id));
+        showSuccessToast(t("Category deleted"));
+        getCategories();
+      } catch (err: any) {
+        if (err?.response?.status === 409) {
+          const match = String(err?.response?.data?.message || "").match(/(\d+)/);
+          setReassignCategory({
+            id: String(id),
+            name,
+            productCount: match ? Number(match[1]) : 0,
+          });
+        } else {
+          showErrorToast(err?.response?.data?.message || t("Failed to delete category"));
+        }
+      }
+      setDeleteTarget(null);
+    }
+  };
+
+  const handleReassignConfirm = async (targetCategoryId: string) => {
+    if (!reassignCategory) return;
+    setIsReassigning(true);
+    try {
+      await categoriesApi.deleteCategory(reassignCategory.id, targetCategoryId);
+      showSuccessToast(t("Category deleted — products moved"));
+      getCategories();
+      setReassignCategory(null);
+    } catch (err: any) {
+      showErrorToast(err?.response?.data?.message || t("Failed to move products"));
+    } finally {
+      setIsReassigning(false);
+    }
   };
 
   // --- Header config per tab ------------------------------------------------
@@ -1131,6 +1178,16 @@ const ProductsPage = () => {
           typeBeforeName: true,
         }}
         onConfirm={handleConfirmDelete}
+      />
+
+      <ReassignCategoryDialog
+        open={!!reassignCategory}
+        categoryName={reassignCategory?.name ?? ""}
+        productCount={reassignCategory?.productCount ?? 0}
+        categories={categories.filter((c) => c.id !== reassignCategory?.id)}
+        isSubmitting={isReassigning}
+        onOpenChange={(open) => !open && setReassignCategory(null)}
+        onConfirm={handleReassignConfirm}
       />
     </>
   );
