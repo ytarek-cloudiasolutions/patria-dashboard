@@ -205,6 +205,7 @@ const NewCallOrderDialog = ({
       }),
       subtotal,
       discount: payment.appliedDiscount,
+      discountCode: payment.discountCode.trim() || undefined,
       deliveryFee: paymentDeliveryFee(payment),
       total,
       status: "Pending",

@@ -342,6 +342,13 @@ const OrdersPage = () => {
       zone: order.zone,
       deliveryFee: order.deliveryFee,
       items: requestItems,
+      // The discount code entered in the call-center wizard was never
+      // forwarded here at all — the order was always created at its full,
+      // undiscounted total regardless of what the agent typed and "applied"
+      // in the payment step. The backend now validates this code for real
+      // (createOrder, mirroring placeCustomerOrder) and computes the
+      // discount itself, rather than trusting a client-side number.
+      couponCode: order.discountCode || undefined,
       notes: order.items.map((item) => item.note).filter(Boolean).join("; ") || undefined,
     };
 

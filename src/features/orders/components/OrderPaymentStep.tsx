@@ -123,10 +123,11 @@ const OrderPaymentStep = ({ payment, subtotal, errors = {} }: OrderPaymentStepPr
             />
             <button
               type="button"
-              onClick={payment.applyDiscount}
-              className="h-[50px] rounded-[5px] border border-primary px-6 text-[16px] font-semibold text-primary cursor-pointer"
+              onClick={() => payment.applyDiscount(subtotal)}
+              disabled={payment.isApplyingDiscount}
+              className="h-[50px] rounded-[5px] border border-primary px-6 text-[16px] font-semibold text-primary cursor-pointer disabled:opacity-60"
             >
-              {t("Apply")}
+              {payment.isApplyingDiscount ? t("Checking...") : t("Apply")}
             </button>
           </div>
         </div>

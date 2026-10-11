@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { api } from "@/config/api";
+import { showErrorToast } from "@/shared/utils/toast";
 
 export type PaymentMethod = "Cash" | "Visa/Card" | "Mix";
 
@@ -12,7 +14,8 @@ export interface OrderPaymentControls {
   discountCode: string;
   setDiscountCode: (value: string) => void;
   appliedDiscount: number;
-  applyDiscount: () => void;
+  isApplyingDiscount: boolean;
+  applyDiscount: (subtotal: number) => Promise<void>;
   deliveryFee: string;
   setDeliveryFee: (value: string) => void;
   notes: string;
@@ -29,11 +32,45 @@ export const useOrderPayment = (
   const [visaAmount, setVisaAmount] = useState("");
   const [discountCode, setDiscountCode] = useState("");
   const [appliedDiscount, setAppliedDiscount] = useState(0);
+  const [isApplyingDiscount, setIsApplyingDiscount] = useState(false);
   const [deliveryFee, setDeliveryFee] = useState(initialDeliveryFee);
   const [notes, setNotes] = useState("");
 
-  const applyDiscount = () =>
-    setAppliedDiscount(discountCode.trim() ? 24 : 0);
+  // This used to just set a hardcoded 24 EGP off for ANY non-empty code,
+  // with no check against the real Coupon/Offer records at all — and even
+  // that fake number was then dropped before the order was ever created
+  // (see OrdersPage.handleCreateOrder), so the saved order's total was
+  // always the full, undiscounted amount regardless. Now actually
+  // validates the code against /coupons/validate (same endpoint the mobile
+  // app uses) and shows the real computed discount; the backend applies it
+  // for real when the order is created (createOrder now re-validates the
+  // code itself rather than trusting this client-side preview).
+  const applyDiscount = async (subtotal: number) => {
+    const code = discountCode.trim();
+    if (!code) {
+      setAppliedDiscount(0);
+      return;
+    }
+    setIsApplyingDiscount(true);
+    try {
+      const { data } = await api.post<{ valid: boolean; discountAmount: number; message?: string }>(
+        "/coupons/validate",
+        { code, orderTotal: subtotal },
+      );
+      if (data?.valid) {
+        setAppliedDiscount(Number(data.discountAmount) || 0);
+      } else {
+        setAppliedDiscount(0);
+        showErrorToast(data?.message || "Invalid discount code");
+      }
+    } catch (err: unknown) {
+      setAppliedDiscount(0);
+      const message = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      showErrorToast(message || "Invalid discount code");
+    } finally {
+      setIsApplyingDiscount(false);
+    }
+  };
 
   const reset = () => {
     setPaymentMethod("Visa/Card");
@@ -55,6 +92,7 @@ export const useOrderPayment = (
     discountCode,
     setDiscountCode,
     appliedDiscount,
+    isApplyingDiscount,
     applyDiscount,
     deliveryFee,
     setDeliveryFee,

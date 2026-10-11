@@ -55,8 +55,11 @@ const OrderDetailsDialog = ({
   if (!order) return null;
 
   const rawOrder = order as any;
+  // Same 0-is-a-real-value trap as orderMappers.mapOrder's discount field —
+  // `discountAmount` defaults to 0 on orders that only ever had `discount`
+  // set (mobile checkout coupons), so `??` must not be used here either.
   const backendDiscount = Number(
-    order.discount ?? rawOrder.discountAmount ?? rawOrder.discount ?? 0
+    order.discount || rawOrder.discountAmount || rawOrder.discount || 0
   );
   const effectiveDiscount = adminDiscount > 0 ? adminDiscount : backendDiscount;
 

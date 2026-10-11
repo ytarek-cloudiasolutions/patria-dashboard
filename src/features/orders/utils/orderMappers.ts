@@ -188,7 +188,15 @@ export const mapOrder = (o: any): Order => {
     total: o.totalAmount || o.total || subtotal,
     gross: o.gross ?? (o.subtotal || subtotal) + (o.tax || 0),
     subtotal: o.subtotal || subtotal,
-    discount: o.discountAmount ?? o.discount ?? 0,
+    // `discountAmount` defaults to 0 on the backend schema even when an
+    // order only ever had `discount` set (e.g. a mobile checkout coupon via
+    // placeCustomerOrder, which never touches discountAmount) — `??` treated
+    // that default 0 as "a real value" and never fell through to the actual
+    // coupon discount in `discount`, so applying a coupon at checkout never
+    // showed up here. Both fields use 0 as "no discount" in this codebase
+    // (admin-applied discounts via applyDiscount keep them equal), so `||`
+    // is the correct fallback, not `??`.
+    discount: o.discountAmount || o.discount || 0,
     discountType: o.discountType || undefined,
     discountValue: o.discountValue ?? undefined,
     deliveryFee: o.deliveryFee || 0,
