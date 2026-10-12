@@ -159,14 +159,14 @@ const ordersSlice = createSlice({
 
     updateOrderLocal: (
       state,
-      action: PayloadAction<{ orderId: string; driverName: string; status?: string }>,
+      action: PayloadAction<{ orderId: string; driverName?: string; status?: string }>,
     ) => {
       const { orderId, driverName, status } = action.payload;
       state.orders = state.orders.map((o) => {
         if (o.id === orderId) {
           return {
             ...o,
-            driver: driverName,
+            driver: driverName ?? o.driver,
             status: status ? mapOrderStatus(status) : o.status,
           };
         }
@@ -175,7 +175,7 @@ const ordersSlice = createSlice({
       if (state.selectedOrder?.id === orderId) {
         state.selectedOrder = {
           ...state.selectedOrder,
-          driver: driverName,
+          driver: driverName ?? state.selectedOrder.driver,
           status: status ? mapOrderStatus(status) : state.selectedOrder.status,
         };
       }

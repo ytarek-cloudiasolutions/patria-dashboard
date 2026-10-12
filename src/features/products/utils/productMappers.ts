@@ -1,9 +1,13 @@
 import type { Product, VariantGroup, ProductExtra } from "../types";
 import { ENV } from "@/config/env";
 import { formatUnit } from "../utils";
+import patriaLogo from "../../../assets/images/svgs/patria-logo.svg";
 
-export const DEFAULT_PRODUCT_IMAGE =
-  "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=600&q=80";
+// A product created without a photo used to fall back to a random Unsplash
+// bakery stock photo (bread loaves) — copy-pasted from the backend's seed
+// data — which looked like a real uploaded image instead of "no image set".
+// The Patria brand logo is the correct generic placeholder here.
+export const DEFAULT_PRODUCT_IMAGE = patriaLogo;
 
 // Strip the /api suffix to get the server root (e.g. https://api.patriacoffeebeans.com)
 const SERVER_ROOT = (ENV.API_URL || "").replace(/\/api\/?$/, "");

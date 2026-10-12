@@ -59,7 +59,7 @@ export const useOrders = () => {
   );
 
   const updateOrderLocal = useCallback(
-    (payload: { orderId: string; driverName: string; status?: string }) => {
+    (payload: { orderId: string; driverName?: string; status?: string }) => {
       dispatch(ordersActions.updateOrderLocal(payload));
     },
     [dispatch],

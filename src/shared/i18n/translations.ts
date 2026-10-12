@@ -1066,7 +1066,6 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   "Password must be at least 6 characters": "يجب أن تكون كلمة المرور 6 أحرف على الأقل",
   "Role is required": "الدور مطلوب",
   "Create Account": "إنشاء الحساب",
-  Staff: "موظف",
   Manager: "مدير",
   User: "مستخدم",
   "Order management only": "إدارة الطلبات فقط",
@@ -1275,7 +1274,6 @@ export const AR_TRANSLATIONS: Record<string, string> = {
 
   // POS — select staff
   "Select Staff": "اختر موظفًا",
-  "Staff Member": "الموظف",
   "Remaining amount": "المبلغ المتبقي",
   "Staff Name": "اسم الموظف",
   "Select Position": "اختر المنصب",

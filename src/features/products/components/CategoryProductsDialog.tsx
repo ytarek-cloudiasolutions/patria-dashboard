@@ -21,6 +21,7 @@ import { api } from "@/config/api";
 import SearchInputField from "@/shared/components/SearchInputField";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { formatEgp } from "../utils";
+import { DEFAULT_PRODUCT_IMAGE } from "../utils/productMappers";
 import type { Category, Product } from "../types";
 
 interface CategoryProductsDialogProps {
@@ -65,7 +66,7 @@ const CategoryProductsDialog = ({
           name: p.name,
           description: p.description || "",
           category: p.category?.name || p.category || "",
-          imageUrl: p.images?.[0] || p.imageUrl || "https://images.unsplash.com/photo-1561047029-3000c68339ca?w=600",
+          imageUrl: p.images?.[0] || p.imageUrl || DEFAULT_PRODUCT_IMAGE,
           price: p.price || 0,
           discount: p.discount,
           available: p.isActive !== undefined ? p.isActive : true,
