@@ -96,9 +96,16 @@ const OrderDetailsDialog = ({
   const subtotalVal = Number(order.subtotal || rawOrder.subtotal || 0);
   const deliveryFeeVal = Number(order.deliveryFee || rawOrder.deliveryFee || 0);
   const taxVal = Number(rawOrder.tax || order.tax || 0);
-  const orderTotalVal = Number(order.total || rawOrder.total || 0);
+  // A coupon/discount that fully covers the subtotal is a real, correct $0
+  // order — `orderTotalVal > 0` treated that legitimate 0 as "no total
+  // data" and recomputed the pre-discount subtotal+delivery+tax instead,
+  // silently undoing the discount on a fully-discounted order. Distinguish
+  // "total is actually 0" (valid, finite) from "total is missing"
+  // (undefined/null on both the mapped and raw order) instead.
+  const rawTotal = order.total ?? rawOrder.total;
+  const orderTotalVal = Number(rawTotal ?? NaN);
 
-  const baseTotal = orderTotalVal > 0 ? orderTotalVal : subtotalVal + deliveryFeeVal + taxVal;
+  const baseTotal = Number.isFinite(orderTotalVal) ? orderTotalVal : subtotalVal + deliveryFeeVal + taxVal;
   const finalTotal = adminDiscount > 0
     ? Math.max(subtotalVal + deliveryFeeVal + taxVal - adminDiscount, 0)
     : Math.max(baseTotal, 0);

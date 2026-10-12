@@ -232,7 +232,14 @@ export const mapOrder = (o: any): Order => {
     zone,
     date: dateStr,
     time: timeStr,
-    total: o.totalAmount || o.total || subtotal,
+    // `||` treats a legitimately-zero total (e.g. a coupon/discount that
+    // fully covers the subtotal — a real, correct $0 order) as "missing"
+    // and falls back to the pre-discount subtotal instead, showing the
+    // full undiscounted amount for what should display as a free order.
+    // `o.totalAmount` never actually exists on the backend schema (always
+    // falls through to `o.total`), so `??` can't be masked by it the way
+    // the discount field fix above needed `||`.
+    total: o.totalAmount ?? o.total ?? subtotal,
     gross: o.gross ?? (o.subtotal || subtotal) + (o.tax || 0),
     subtotal: o.subtotal || subtotal,
     discount: o.discountAmount || o.discount || 0,
