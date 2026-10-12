@@ -11,7 +11,8 @@ export type PermissionPage =
   | "Profile"
   | "General Settings"
   | "Users & Permissions"
-  | "Branches & Locations";
+  | "Branches & Locations"
+  | "POS";
 
 export interface UserAccount {
   id: string | number;
@@ -36,6 +37,7 @@ export interface UserFormData {
   password: string;
   role: UserRole | "";
   virtualShift: string;
+  posPermissions?: string[];
 }
 
 export interface UserOverviewCounts {

@@ -14,6 +14,7 @@ export const ALL_PERMISSION_PAGES: PermissionPage[] = [
   "General Settings",
   "Users & Permissions",
   "Branches & Locations",
+  "POS",
 ];
 
 export const ROLE_DEFAULT_PAGES: Record<UserRole, PermissionPage[]> = {
@@ -27,10 +28,53 @@ export const ROLE_DEFAULT_PAGES: Record<UserRole, PermissionPage[]> = {
     "Offers & Discounts",
     "Branches & Locations",
   ],
-  cashier: ["Home", "Order Management"],
+  cashier: ["Home", "Order Management", "POS"],
   kitchen: ["Home", "Order Management"],
   staff: ["Home", "Order Management"],
 };
+
+export const POS_PERMISSIONS: { id: string; title: string; description: string }[] = [
+  {
+    id: "standard_discount",
+    title: "Standard Discount",
+    description: "Percentage or fixed amount off selected categories or products",
+  },
+  {
+    id: "seasonal_discount",
+    title: "Seasonal Discount",
+    description: "Discounts applied during specific seasons or holidays",
+  },
+  {
+    id: "bulk_purchase_discount",
+    title: "Bulk Purchase Discount",
+    description: "Reduced price per unit when purchasing in large quantities",
+  },
+  {
+    id: "referral_discount",
+    title: "Referral Discount",
+    description: "Discounts offered to customers who refer new clients",
+  },
+  {
+    id: "loyalty_reward_discount",
+    title: "Loyalty Reward Discount",
+    description: "Discounts for returning customers based on their purchase history",
+  },
+  {
+    id: "first_time_buyer_discount",
+    title: "First-Time Buyer Discount",
+    description: "Special pricing for customers making their initial purchase",
+  },
+  {
+    id: "membership_discount",
+    title: "Membership Discount",
+    description: "Exclusive discounts for members of a particular club or organization",
+  },
+  {
+    id: "clearance_discount",
+    title: "Clearance Discount",
+    description: "Significant price reductions on items being discontinued or cleared out",
+  },
+];
 
 export const INITIAL_USERS: UserAccount[] = [
   {

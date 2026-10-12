@@ -4,6 +4,7 @@ import {
   MapPin,
   Settings,
   ShoppingBag,
+  ShoppingCart,
   Tag,
   UserCircle,
   Users,
@@ -26,4 +27,6 @@ export const PAGE_ICONS: Record<
   "General Settings": { icon: Settings, color: "text-[#28293D]" },
   "Users & Permissions": { icon: UserCircle, color: "text-[#C90000]" },
   "Branches & Locations": { icon: MapPin, color: "text-[#28293D]" },
+  POS: { icon: ShoppingCart, color: "text-[#8F6900]" },
 };
+

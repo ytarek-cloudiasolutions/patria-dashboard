@@ -21,6 +21,7 @@ import {
 import type { PermissionPage, UserAccount, UserRole } from "../types";
 import { PAGE_ICONS } from "../pageIcons";
 import { useWarehouses } from "@/features/warehouses/hooks/useWarehouses";
+import PosPermissionsCard from "./PosPermissionsCard";
 
 interface ModifyPermissionsDialogProps {
   open: boolean;
@@ -49,6 +50,7 @@ const ModifyPermissionsDialog = ({
   const [virtualShift, setVirtualShift] = useState("none");
   const [isWarehouseOpen, setIsWarehouseOpen] = useState(false);
   const [isShiftOpen, setIsShiftOpen] = useState(false);
+  const [posPermissions, setPosPermissions] = useState<string[]>([]);
 
   useEffect(() => {
     getWarehouses();
@@ -74,6 +76,7 @@ const ModifyPermissionsDialog = ({
       setVirtualShift(user.virtualShift || "none");
       setIsWarehouseOpen(false);
       setIsShiftOpen(false);
+      setPosPermissions([]);
     }
   }, [open, user]);
 
@@ -243,6 +246,14 @@ const ModifyPermissionsDialog = ({
                   })}
                 </div>
               </div>
+
+              {/* Detailed POS Permissions — shown only for cashier role */}
+              {role === "cashier" && (
+                <PosPermissionsCard
+                  selected={posPermissions}
+                  onChange={setPosPermissions}
+                />
+              )}
             </div>
           </div>
 

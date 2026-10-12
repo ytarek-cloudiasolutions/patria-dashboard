@@ -18,6 +18,7 @@ import {
 } from "../data";
 import type { UserFormData, UserRole } from "../types";
 import PageChip from "./PageChip";
+import PosPermissionsCard from "./PosPermissionsCard";
 
 const FORM_ID = "create-user-form";
 
@@ -48,6 +49,7 @@ const CreateUserDialog = ({
   >({});
   const [isRoleOpen, setIsRoleOpen] = useState(false);
   const [isShiftOpen, setIsShiftOpen] = useState(false);
+  const [posPermissions, setPosPermissions] = useState<string[]>([]);
 
   useEffect(() => {
     if (open) {
@@ -55,6 +57,7 @@ const CreateUserDialog = ({
       setErrors({});
       setIsRoleOpen(false);
       setIsShiftOpen(false);
+      setPosPermissions([]);
     }
   }, [open]);
 
@@ -64,6 +67,11 @@ const CreateUserDialog = ({
   ) => {
     setForm((prev) => ({ ...prev, [key]: value }));
     if (errors[key]) setErrors((prev) => ({ ...prev, [key]: "" }));
+  };
+
+  const handlePosPermissionsChange = (selected: string[]) => {
+    setPosPermissions(selected);
+    setForm((prev) => ({ ...prev, posPermissions: selected }));
   };
 
   const validate = () => {
@@ -272,6 +280,14 @@ const CreateUserDialog = ({
                     ))}
                   </div>
                 </div>
+              )}
+
+              {/* Detailed POS Permissions — shown only for cashier role */}
+              {form.role === "cashier" && (
+                <PosPermissionsCard
+                  selected={posPermissions}
+                  onChange={handlePosPermissionsChange}
+                />
               )}
             </div>
           </form>
