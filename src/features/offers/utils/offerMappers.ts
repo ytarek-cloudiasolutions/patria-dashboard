@@ -70,6 +70,7 @@ export const mapOffer = (o: any): Offer => {
     releaseDate: o.releaseDate,
     productId: o.productId || (productIds.length === 1 ? productIds[0] : undefined),
     productName,
+    offerType: o.offerType || "standard",
   };
 };
 

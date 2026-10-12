@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import { DISCOUNT_TYPE_OPTIONS } from "../data";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { getProducts } from "@/features/products/api/productsApi";
-import type { DiscountType, Offer, OfferDialogTab, OfferFormData } from "../types";
+import type { DiscountType, Offer, OfferDialogTab, OfferFormData, OfferType } from "../types";
 
 interface SimpleProduct {
   id: string;
@@ -22,6 +22,33 @@ interface SimpleProduct {
 }
 
 const FORM_ID = "create-offer-form";
+
+const OFFER_TYPE_CARDS: Array<{
+  id: OfferType;
+  title: string;
+  desc: string;
+}> = [
+  {
+    id: "standard",
+    title: "Standard Discount",
+    desc: "Percentage or fixed amount off selected categories or products",
+  },
+  {
+    id: "buy_2_get_1",
+    title: "Buy 2 get 1 free (same item)",
+    desc: "Every 2 of the exact same item ordered from the category — 1 of them is free",
+  },
+  {
+    id: "priciest_charged",
+    title: "Priciest Charged (Legacy)",
+    desc: "Pairs the priciest and next-priciest distinct items ordered from the category — the cheaper one's full quantity is free, the pricier one's is charged",
+  },
+  {
+    id: "first_order",
+    title: "First Order Discount",
+    desc: "Auto-applied on a customer's first-ever order — no code needed",
+  },
+];
 
 const INITIAL_FORM: OfferFormData = {
   productName: "",
@@ -76,6 +103,7 @@ const CreateOfferDialog = ({
 }: CreateOfferDialogProps) => {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<OfferDialogTab>("offer");
+  const [selectedOfferType, setSelectedOfferType] = useState<OfferType>("standard");
   const [form, setForm] = useState<OfferFormData>(INITIAL_FORM);
   const [errors, setErrors] = useState<
     Partial<Record<keyof OfferFormData, string>>
@@ -197,6 +225,7 @@ const CreateOfferDialog = ({
           ? editingOffer?.productName || editingOffer?.offerTitle || ""
           : "",
       );
+      setSelectedOfferType(editingOffer?.offerType || "standard");
       setErrors({});
       setIsDiscountOpen(false);
       setImageFile(undefined);
@@ -377,11 +406,16 @@ const CreateOfferDialog = ({
       return;
     }
 
+    const isStandardOrFirstOrder =
+      selectedOfferType === "standard" || selectedOfferType === "first_order";
+
     // Offer tab validation
     if (!form.productName.trim()) next.productName = "Offer name is required";
     if (!form.description.trim()) next.description = "Description is required";
-    if (!form.discountValue.trim() || Number(form.discountValue) <= 0) {
-      next.discountValue = "Enter a valid discount";
+    if (isStandardOrFirstOrder) {
+      if (!form.discountValue.trim() || Number(form.discountValue) <= 0) {
+        next.discountValue = "Enter a valid discount";
+      }
     }
     if (!form.startDate) next.startDate = "Start date is required";
     if (!form.endDate) next.endDate = "End date is required";
@@ -393,20 +427,21 @@ const CreateOfferDialog = ({
       offerStatus: editingOffer?.offerStatus ?? true,
       offerTitle: form.productName.trim(),
       offerDescription: form.description.trim(),
-      offerPercentage: Number(form.discountValue) || 0,
-      discountType: form.discountType,
+      offerPercentage: isStandardOrFirstOrder ? (Number(form.discountValue) || 0) : 0,
+      discountType: isStandardOrFirstOrder ? form.discountType : "percentage",
       offerValidPeriod: formatPeriod(form.startDate, form.endDate),
       numberOfProducts: form.productIds.length,
       offerImage: form.bannerImage,
       startDate: form.startDate,
       endDate: form.endDate,
       code: undefined,
-      usageLimit: form.usageLimit?.trim() ? Number(form.usageLimit) : 0,
-      minOrderAmount: form.minOrderAmount?.trim()
+      usageLimit: isStandardOrFirstOrder && form.usageLimit?.trim() ? Number(form.usageLimit) : 0,
+      minOrderAmount: isStandardOrFirstOrder && form.minOrderAmount?.trim()
         ? Number(form.minOrderAmount)
         : 0,
       productIds: form.productIds,
       isBanner: false,
+      offerType: selectedOfferType,
     };
     onSaveOffer(offer, imageFile);
     onOpenChange(false);
@@ -476,6 +511,61 @@ const CreateOfferDialog = ({
             >
               {activeTab === "offer" ? (
                 <>
+                  {/* ── Offer Type Selection Cards ── */}
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 self-stretch">
+                    {OFFER_TYPE_CARDS.map((card) => {
+                      const isSelected = selectedOfferType === card.id;
+                      return (
+                        <div
+                          key={card.id}
+                          onClick={() => {
+                            setSelectedOfferType(card.id);
+                            if (card.id === "buy_2_get_1" || card.id === "priciest_charged") {
+                              setErrors((prev) => ({ ...prev, discountValue: "" }));
+                            }
+                          }}
+                          className={cn(
+                            "self-stretch px-3 py-4 rounded-[5px] outline outline-2 outline-offset-[-2px] flex flex-col justify-start items-start gap-2 overflow-hidden cursor-pointer transition-all",
+                            isSelected
+                              ? "bg-[#F5F0EA] outline-[#8F6900]"
+                              : "bg-[#FAFAF7] outline-[#E5E5E5] hover:outline-[#8F6900]/50",
+                          )}
+                        >
+                          <div className="self-stretch inline-flex justify-start items-start gap-2">
+                            {/* Radio indicator */}
+                            <div className="size-3.5 relative shrink-0 mt-0.5">
+                              {isSelected ? (
+                                <div className="size-3.5 left-0 top-0 absolute bg-[#8F6900] rounded-full outline outline-[2.80px] outline-[#8F6900]/10" />
+                              ) : (
+                                <div className="size-3.5 left-0 top-0 absolute rounded-full outline outline-[0.70px] outline-[#8F6900]" />
+                              )}
+                            </div>
+                            {/* Text Container */}
+                            <div className="flex-1 inline-flex flex-col justify-start items-start gap-1">
+                              <div className="self-stretch inline-flex justify-start items-start gap-2">
+                                <span
+                                  className={cn(
+                                    "justify-start text-xs font-['Montserrat'] leading-4 tracking-tight",
+                                    isSelected
+                                      ? "font-semibold text-[#000000]"
+                                      : "font-medium text-[#000000]",
+                                  )}
+                                >
+                                  {t(card.title)}
+                                </span>
+                              </div>
+                              <div className="self-stretch inline-flex justify-start items-start gap-2">
+                                <span className="flex-1 justify-start text-[#8B8B8B] text-xs font-normal font-['Montserrat'] leading-4 tracking-tight">
+                                  {t(card.desc)}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
                   {/* Banner Image Section */}
                   <div className="flex flex-col gap-3">
                     <p className="text-[16px] font-semibold tracking-[0.02em] text-[#28293D]">
@@ -744,143 +834,191 @@ const CreateOfferDialog = ({
                       )}
                     </div>
 
-                    {/* Discount Type + Discount Value row */}
-                    <div className="flex flex-col gap-4 sm:flex-row">
-                      {/* Discount Type */}
-                      <div className="flex flex-1 flex-col gap-[10px]">
-                        <label className="text-[16px] font-medium text-[#000000]">
-                          {t("Discount Type")}{" "}
-                          <span className="text-[#C90000]">*</span>
-                        </label>
-                        <DropdownSelect
-                          options={DISCOUNT_TYPE_OPTIONS.map((o) => ({
-                            ...o,
-                            label: t(o.label),
-                          }))}
-                          selected={form.discountType}
-                          onSelect={(value) =>
-                            set("discountType", value as DiscountType)
-                          }
-                          onOpenChange={setIsDiscountOpen}
-                          align="start"
-                          className="h-[50px] w-full rounded-[12px] md:w-full"
-                          contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
-                        />
-                      </div>
+                    {selectedOfferType === "standard" || selectedOfferType === "first_order" ? (
+                      <>
+                        {/* Discount Type + Discount Value row */}
+                        <div className="flex flex-col gap-4 sm:flex-row">
+                          {/* Discount Type */}
+                          <div className="flex flex-1 flex-col gap-[10px]">
+                            <label className="text-[16px] font-medium text-[#000000]">
+                              {t("Discount Type")}{" "}
+                              <span className="text-[#C90000]">*</span>
+                            </label>
+                            <DropdownSelect
+                              options={DISCOUNT_TYPE_OPTIONS.map((o) => ({
+                                ...o,
+                                label: t(o.label),
+                              }))}
+                              selected={form.discountType}
+                              onSelect={(value) =>
+                                set("discountType", value as DiscountType)
+                              }
+                              onOpenChange={setIsDiscountOpen}
+                              align="start"
+                              className="h-[50px] w-full rounded-[12px] md:w-full"
+                              contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
+                            />
+                          </div>
 
-                      {/* Discount Value */}
-                      <div className="flex flex-1 flex-col gap-[10px]">
-                        <label
-                          htmlFor="discount-value"
-                          className="text-[16px] font-medium text-[#000000]"
-                        >
-                          {form.discountType === "percentage"
-                            ? t("Discount %")
-                            : t("Discount Value")}
-                        </label>
-                        <input
-                          id="discount-value"
-                          type="number"
-                          min="0"
-                          value={form.discountValue}
-                          onChange={(e) => set("discountValue", e.target.value)}
-                          placeholder="e.g. 20"
-                          className="h-[50px] rounded-[12px] border border-[#E5E5E5] bg-white px-3 text-[16px] text-[#000000] outline-none placeholder:text-[#8B8B8B] focus:border-primary"
-                        />
-                        {errors.discountValue && (
-                          <p className="text-[13px] text-[#C90000]">
-                            {errors.discountValue}
-                          </p>
-                        )}
-                      </div>
-                    </div>
+                          {/* Discount Value */}
+                          <div className="flex flex-1 flex-col gap-[10px]">
+                            <label
+                              htmlFor="discount-value"
+                              className="text-[16px] font-medium text-[#000000]"
+                            >
+                              {form.discountType === "percentage"
+                                ? t("Discount %")
+                                : t("Discount Value")}
+                            </label>
+                            <input
+                              id="discount-value"
+                              type="number"
+                              min="0"
+                              value={form.discountValue}
+                              onChange={(e) => set("discountValue", e.target.value)}
+                              placeholder="e.g. 20"
+                              className="h-[50px] rounded-[12px] border border-[#E5E5E5] bg-white px-3 text-[16px] text-[#000000] outline-none placeholder:text-[#8B8B8B] focus:border-primary"
+                            />
+                            {errors.discountValue && (
+                              <p className="text-[13px] text-[#C90000]">
+                                {errors.discountValue}
+                              </p>
+                            )}
+                          </div>
+                        </div>
 
-                    {/* Usage Limits (Total Uses) - Full Width (Promo code removed per spec) */}
-                    <div className="flex flex-col gap-[10px]">
-                      <label
-                        htmlFor="usage-limit"
-                        className="text-[16px] font-medium text-[#000000]"
-                      >
-                        {t("Usage Limits")}{" "}
-                        <span className="text-[13px] font-medium tracking-[0.02em] text-[#595959]">
-                          ({t("Total Uses")})
-                        </span>
-                      </label>
-                      <input
-                        id="usage-limit"
-                        type="number"
-                        min="0"
-                        value={form.usageLimit}
-                        onChange={(e) => set("usageLimit", e.target.value)}
-                        placeholder={t("Infinite")}
-                        className="h-[50px] rounded-[12px] border border-[#E5E5E5] bg-white px-3 text-[16px] text-[#000000] outline-none placeholder:text-[#8B8B8B] focus:border-primary"
-                      />
-                    </div>
+                        {/* Usage Limits (Total Uses) */}
+                        <div className="flex flex-col gap-[10px]">
+                          <label
+                            htmlFor="usage-limit"
+                            className="text-[16px] font-medium text-[#000000]"
+                          >
+                            {t("Usage Limits")}{" "}
+                            <span className="text-[13px] font-medium tracking-[0.02em] text-[#595959]">
+                              ({t("Total Uses")})
+                            </span>
+                          </label>
+                          <input
+                            id="usage-limit"
+                            type="number"
+                            min="0"
+                            value={form.usageLimit}
+                            onChange={(e) => set("usageLimit", e.target.value)}
+                            placeholder={t("Infinite")}
+                            className="h-[50px] rounded-[12px] border border-[#E5E5E5] bg-white px-3 text-[16px] text-[#000000] outline-none placeholder:text-[#8B8B8B] focus:border-primary"
+                          />
+                        </div>
 
-                    {/* Start Date + End Date + Min. Order Amount row (3 columns) */}
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                      {/* Start Date */}
-                      <div className="flex flex-1 flex-col gap-[10px]">
-                        <label className="text-[16px] font-medium text-[#000000]">
-                          {t("Start Date")}{" "}
-                          <span className="text-[#C90000]">*</span>
-                        </label>
-                        <DatePicker
-                          value={form.startDate}
-                          onChange={(date) => set("startDate", date)}
-                          placeholder="dd/mm/yyyy"
-                          popoverPlacement="bottom-right"
-                          withBackdrop
-                        />
-                        {errors.startDate && (
-                          <p className="text-[13px] text-[#C90000]">
-                            {errors.startDate}
-                          </p>
-                        )}
-                      </div>
+                        {/* Start Date + End Date + Min. Order Amount row (3 columns) */}
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                          {/* Start Date */}
+                          <div className="flex flex-1 flex-col gap-[10px]">
+                            <label className="text-[16px] font-medium text-[#000000]">
+                              {t("Start Date")}{" "}
+                              <span className="text-[#C90000]">*</span>
+                            </label>
+                            <DatePicker
+                              value={form.startDate}
+                              onChange={(date) => set("startDate", date)}
+                              placeholder="dd/mm/yyyy"
+                              popoverPlacement="bottom-right"
+                              withBackdrop
+                            />
+                            {errors.startDate && (
+                              <p className="text-[13px] text-[#C90000]">
+                                {errors.startDate}
+                              </p>
+                            )}
+                          </div>
 
-                      {/* End Date */}
-                      <div className="flex flex-1 flex-col gap-[10px]">
-                        <label className="text-[16px] font-medium text-[#000000]">
-                          {t("End Date")}{" "}
-                          <span className="text-[#C90000]">*</span>
-                        </label>
-                        <DatePicker
-                          value={form.endDate}
-                          onChange={(date) => set("endDate", date)}
-                          placeholder="dd/mm/yyyy"
-                          popoverPlacement="bottom-right"
-                          minDate={form.startDate || undefined}
-                          withBackdrop
-                        />
-                        {errors.endDate && (
-                          <p className="text-[13px] text-[#C90000]">
-                            {errors.endDate}
-                          </p>
-                        )}
-                      </div>
+                          {/* End Date */}
+                          <div className="flex flex-1 flex-col gap-[10px]">
+                            <label className="text-[16px] font-medium text-[#000000]">
+                              {t("End Date")}{" "}
+                              <span className="text-[#C90000]">*</span>
+                            </label>
+                            <DatePicker
+                              value={form.endDate}
+                              onChange={(date) => set("endDate", date)}
+                              placeholder="dd/mm/yyyy"
+                              popoverPlacement="bottom-right"
+                              minDate={form.startDate || undefined}
+                              withBackdrop
+                            />
+                            {errors.endDate && (
+                              <p className="text-[13px] text-[#C90000]">
+                                {errors.endDate}
+                              </p>
+                            )}
+                          </div>
 
-                      {/* Min. Order Amount */}
-                      <div className="flex flex-1 flex-col gap-[10px]">
-                        <label
-                          htmlFor="min-order-amount"
-                          className="text-[16px] font-medium text-[#000000]"
-                        >
-                          {t("Min. Order Amount (EGP)")}
-                        </label>
-                        <input
-                          id="min-order-amount"
-                          type="number"
-                          min="0"
-                          value={form.minOrderAmount}
-                          onChange={(e) =>
-                            set("minOrderAmount", e.target.value)
-                          }
-                          placeholder={t("e.g. 100")}
-                          className="h-[50px] rounded-[12px] border border-[#E5E5E5] bg-white px-3 text-[16px] text-[#000000] outline-none placeholder:text-[#8B8B8B] focus:border-primary"
-                        />
+                          {/* Min. Order Amount */}
+                          <div className="flex flex-1 flex-col gap-[10px]">
+                            <label
+                              htmlFor="min-order-amount"
+                              className="text-[16px] font-medium text-[#000000]"
+                            >
+                              {t("Min. Order Amount (EGP)")}
+                            </label>
+                            <input
+                              id="min-order-amount"
+                              type="number"
+                              min="0"
+                              value={form.minOrderAmount}
+                              onChange={(e) =>
+                                set("minOrderAmount", e.target.value)
+                              }
+                              placeholder={t("e.g. 100")}
+                              className="h-[50px] rounded-[12px] border border-[#E5E5E5] bg-white px-3 text-[16px] text-[#000000] outline-none placeholder:text-[#8B8B8B] focus:border-primary"
+                            />
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      /* Start Date + End Date row (2 columns) for Buy 2 get 1 / Priciest Charged */
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        {/* Start Date */}
+                        <div className="flex flex-1 flex-col gap-[10px]">
+                          <label className="text-[16px] font-medium text-[#000000]">
+                            {t("Start Date")}{" "}
+                            <span className="text-[#C90000]">*</span>
+                          </label>
+                          <DatePicker
+                            value={form.startDate}
+                            onChange={(date) => set("startDate", date)}
+                            placeholder="dd/mm/yyyy"
+                            popoverPlacement="bottom-right"
+                            withBackdrop
+                          />
+                          {errors.startDate && (
+                            <p className="text-[13px] text-[#C90000]">
+                              {errors.startDate}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* End Date */}
+                        <div className="flex flex-1 flex-col gap-[10px]">
+                          <label className="text-[16px] font-medium text-[#000000]">
+                            {t("End Date")}{" "}
+                            <span className="text-[#C90000]">*</span>
+                          </label>
+                          <DatePicker
+                            value={form.endDate}
+                            onChange={(date) => set("endDate", date)}
+                            placeholder="dd/mm/yyyy"
+                            popoverPlacement="bottom-right"
+                            minDate={form.startDate || undefined}
+                            withBackdrop
+                          />
+                          {errors.endDate && (
+                            <p className="text-[13px] text-[#C90000]">
+                              {errors.endDate}
+                            </p>
+                          )}
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </>
               ) : (

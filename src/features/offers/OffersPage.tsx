@@ -101,6 +101,7 @@ const OffersPage = () => {
       endDate,
       status: newOffer.offerStatus ? "active" : "inactive",
       productIds: newOffer.productIds ?? [],
+      offerType: newOffer.offerType || "standard",
       ...(withImage
         ? {}
         : {

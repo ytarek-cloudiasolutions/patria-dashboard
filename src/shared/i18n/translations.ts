@@ -393,6 +393,18 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   "Select products for this offer": "اختر المنتجات لهذا العرض",
   "Min. Order Amount (EGP)": "الحد الأدنى للطلب (ج.م)",
   "Save offer": "حفظ العرض",
+  "Standard Discount": "خصم قياسي",
+  "Percentage or fixed amount off selected categories or products":
+    "نسبة مئوية أو مبلغ ثابت خصم على الفئات أو المنتجات المحددة",
+  "Buy 2 get 1 free (same item)": "اشتري 2 واحصل على 1 مجاناً (نفس المنتج)",
+  "Every 2 of the exact same item ordered from the category — 1 of them is free":
+    "كل قطعتين من نفس المنتج تماماً يتم طلبهما من الفئة — قطعة واحدة مجانية",
+  "Priciest Charged (Legacy)": "تحصيل الأغلى سعراً",
+  "Pairs the priciest and next-priciest distinct items ordered from the category — the cheaper one's full quantity is free, the pricier one's is charged":
+    "يطابق أغلى منتجين مختلفين يتم طلبهما من الفئة — الكمية الكاملة للأرخص مجانية، ويتم تحصيل الأغلى",
+  "First Order Discount": "خصم أول طلب",
+  "Auto-applied on a customer's first-ever order — no code needed":
+    "يُطبق تلقائياً على أول طلب للعميل على الإطلاق — بدون كود",
 
   // Coupons module
   "Customer discount code management and mobile application":
