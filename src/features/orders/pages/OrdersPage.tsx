@@ -262,7 +262,15 @@ const OrdersPage = () => {
   }, [orders, activeSource, localStaffOrders]);
 
   const summary = useMemo(() => {
-    const revenue = orders.reduce((sum, o) => sum + (o.status !== "Cancelled" ? o.total : 0), 0);
+    // Revenue must only count money actually collected — this used to add
+    // every order's total the instant it was placed (status: "Pending"),
+    // only excluding Cancelled, same class of bug already fixed on the
+    // backend's /reports/overview (this card is computed client-side from
+    // the orders list instead, so it needed its own fix).
+    const revenue = orders.reduce(
+      (sum, o) => sum + (o.paymentState === "Paid" && o.status !== "Cancelled" ? o.total : 0),
+      0
+    );
     const totalOrders = pagination?.total ?? orders.length;
     const pending = orders.filter(
       (o) =>
@@ -278,7 +286,11 @@ const OrdersPage = () => {
 
   const staffSummary = useMemo(() => {
     const list = activeSource === "staff" ? filteredOrders : MOCK_STAFF_ORDERS;
-    const revenue = list.reduce((sum, o) => sum + (o.status !== "Cancelled" ? o.total : 0), 0) || 7074.4;
+    const revenue =
+      list.reduce(
+        (sum, o) => sum + (o.paymentState === "Paid" && o.status !== "Cancelled" ? o.total : 0),
+        0
+      ) || 7074.4;
     const totalStaffOrders = pagination?.total ?? (list.length > 0 ? list.length : 43);
     const tabOrders = list.filter((o) => (o.staffStatus || (o.paymentState === "Paid" ? "Paid" : "Charged to tab")) === "Charged to tab");
     const totalTabAmount = tabOrders.reduce((sum, o) => sum + o.total, 0) || 12000;
