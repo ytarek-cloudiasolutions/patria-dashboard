@@ -10,6 +10,7 @@ import PendingOrdersDialog from "./components/PendingOrdersDialog";
 import PosShell from "./components/PosShell";
 import PosSidebar from "./components/PosSidebar";
 import PosTopbar from "./components/PosTopbar";
+import { AvailabilityModal } from "@/features/dashboard/components/AvailabilityModal";
 import ProductCustomizeDialog from "./components/ProductCustomizeDialog";
 import ProductGrid from "./components/ProductGrid";
 import ReceiptDialog from "./components/ReceiptDialog";
@@ -155,6 +156,7 @@ const PosPage = () => {
   const [isPaymentRegOpen, setPaymentRegOpen] = useState(false);
   const [payAccount, setPayAccount] = useState<EmployeeAccount | null>(null);
   const [isPendingOpen, setPendingOpen] = useState(false);
+  const [isAvailabilityOpen, setIsAvailabilityOpen] = useState(false);
   const [orderNumber, setOrderNumber] = useState("");
   const [pendingCreatePayload, setPendingCreatePayload] = useState<null | { method: PaymentMethod }>(null);
   const [loadedOrderId, setLoadedOrderId] = useState<string | null>(null);
@@ -1407,6 +1409,11 @@ const PosPage = () => {
         <div className="fixed inset-0 z-75 bg-black/50 backdrop-blur-[2px] transition-all animate-in fade-in-0 duration-200" aria-hidden="true" />
       )}
 
+      <AvailabilityModal
+        open={isAvailabilityOpen}
+        onOpenChange={setIsAvailabilityOpen}
+      />
+
       <PosShell
         sidebar={
           <PosSidebar
@@ -1432,6 +1439,7 @@ const PosPage = () => {
             search={search}
             timeLabel={timeLabel}
             onSearchChange={setSearch}
+            onAvailabilityClick={() => setIsAvailabilityOpen(true)}
           />
         }
         cart={

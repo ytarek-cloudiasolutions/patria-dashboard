@@ -1,4 +1,4 @@
-import { Clock, UserRound } from "lucide-react";
+import { Clock, UserRound, SlidersHorizontal } from "lucide-react";
 
 import SearchInputField from "@/shared/components/SearchInputField";
 import { useTranslation } from "@/shared/i18n/useTranslation";
@@ -8,9 +8,10 @@ type PosTopbarProps = {
   search: string;
   timeLabel: string;
   onSearchChange: (value: string) => void;
+  onAvailabilityClick?: () => void;
 };
 
-const PosTopbar = ({ search, timeLabel, onSearchChange }: PosTopbarProps) => {
+const PosTopbar = ({ search, timeLabel, onSearchChange, onAvailabilityClick }: PosTopbarProps) => {
   const { t } = useTranslation();
   const { user } = useAuth();
 
@@ -28,7 +29,25 @@ const PosTopbar = ({ search, timeLabel, onSearchChange }: PosTopbarProps) => {
         />
       </div>
 
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-4">
+        {/* Availability Button */}
+        <button
+          type="button"
+          data-buttonactive="True"
+          data-icononly="False"
+          data-leading-icon="True"
+          data-size="Small"
+          data-trailing-icon="False"
+          data-type="Secondary"
+          onClick={onAvailabilityClick}
+          className="h-10 px-6 py-3 bg-[#F5F0EA] rounded-[5px] inline-flex justify-center items-center gap-3 cursor-pointer"
+        >
+          <SlidersHorizontal className="size-4 text-[#8F6900]" />
+          <span className="text-[#8F6900] text-sm font-semibold font-['Montserrat'] leading-6">
+            {t("Availability")}
+          </span>
+        </button>
+
         {/* Clock Badge */}
         <div className="flex h-[46px] items-center justify-center gap-3 rounded-[16px] border border-[#E5E5E5] bg-[#FAFAF7] px-6">
           <Clock className="size-6 text-black stroke-[1.75]" />
