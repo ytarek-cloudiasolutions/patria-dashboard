@@ -36,6 +36,8 @@ interface OrdersTableProps {
   onAssignDriver: (orderId: string, driver: string, updatedOrderData?: any) => void;
   onStatusMenuOpenChange?: (open: boolean) => void;
   isPos?: boolean;
+  isStaffTab?: boolean;
+  onUpdateStaffStatus?: (orderId: string, status: "Charged to tab" | "Paid") => void;
 }
 
 const POS_ORDER_STATUS_OPTIONS: OrderStatus[] = [
@@ -59,6 +61,8 @@ const OrdersTable = ({
   onAssignDriver,
   onStatusMenuOpenChange,
   isPos = false,
+  isStaffTab = false,
+  onUpdateStaffStatus,
 }: OrdersTableProps) => {
   const { t } = useTranslation();
 
@@ -68,6 +72,8 @@ const OrdersTable = ({
   const availableStatuses = isPos
     ? POS_ORDER_STATUS_OPTIONS
     : ORDER_STATUS_OPTIONS;
+
+  const hideDriver = isPos || isStaffTab;
 
   return (
     <div className="w-full overflow-x-auto rounded-[16px] border border-[#E5E5E5]">
@@ -81,7 +87,7 @@ const OrdersTable = ({
           <col className="w-44" />
           <col className="w-32" />
           <col className="w-28" />
-          {!isPos && <col className="w-28" />}
+          {!hideDriver && <col className="w-28" />}
         </colgroup>
         <TableHeader>
           <TableRow className="h-11 bg-[#F5F0EA] hover:bg-[#F5F0EA] border-b border-[#E5E5E5]">
@@ -101,7 +107,7 @@ const OrdersTable = ({
                 </div>
               </div>
             </TableHead>
-            {(isPos
+            {(hideDriver
               ? ["ID", "Customer", "Products", "Total", "Payment", "Status", "Date"]
               : ["Order ID", "Customer", "Products", "Total", "Payment", "Status", "Date", "Driver"]
             ).map((header) => (
@@ -116,7 +122,7 @@ const OrdersTable = ({
           {orders.length === 0 ? (
             <TableRow>
               <TableCell
-                colSpan={isPos ? 8 : 9}
+                colSpan={hideDriver ? 8 : 9}
                 className="px-4 py-12 text-center text-[14px] text-[#5b4f4f]"
               >
                 {t("No orders found.")}
@@ -191,7 +197,25 @@ const OrdersTable = ({
 
                     <TableCell className="text-center">
                       <div className="flex items-center justify-center">
-                        {isStaff ? (
+                        {isStaffTab ? (
+                          <div className="flex flex-col items-center">
+                            <span className="text-[13px] font-semibold text-[#28293D] tracking-tight">
+                              {order.customerName || t("Staff Member")}
+                            </span>
+                            {Boolean(order.customerPhone && order.customerPhone.trim()) && (
+                              <div className="mt-1 flex items-center gap-1.5">
+                                <span className="text-[12px] text-[#8B8B8B]" dir="ltr">
+                                  {order.customerPhone}
+                                </span>
+                                <img
+                                  src={Whatsapp}
+                                  alt="Whatsapp"
+                                  className="size-3.5"
+                                />
+                              </div>
+                            )}
+                          </div>
+                        ) : isStaff ? (
                           <div className="flex items-center gap-1.5">
                             <User className="size-4 text-[#333333]" />
                             <span className="text-[12px] font-semibold text-[#333333] tracking-[0.24px]">
@@ -250,10 +274,10 @@ const OrdersTable = ({
 
                     <TableCell className="text-center">
                       <div className="flex flex-col items-center gap-1.5">
-                        <span className="inline-flex h-6 min-w-20 items-center justify-center rounded-full border border-[#004EF9] bg-[#EDF4FB] px-3 py-1 text-[13px] font-semibold text-[#3574FF]">
+                        <span className="inline-flex min-h-6 min-w-20 items-center justify-center rounded-[30px] outline outline-1 outline-offset-[-1px] outline-blue-700 bg-slate-100 px-3 py-1 text-xs font-semibold text-blue-500 tracking-tight">
                           {displayPayment}
                         </span>
-                        {order.paymentState !== "None" && (
+                        {!isStaffTab && order.paymentState !== "None" && (
                           <span
                             className={`inline-flex h-4.5 items-center justify-center rounded-full border px-1.5 py-1 text-[8px] font-semibold ${
                               paymentStateStyles[order.paymentState]
@@ -267,35 +291,75 @@ const OrdersTable = ({
 
                     <TableCell className="text-center">
                       <div className="flex justify-center">
-                        <DropdownMenu onOpenChange={onStatusMenuOpenChange}>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              className="h-6 border-transparent px-0 ring-0 hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 focus-visible:border-transparent focus-visible:ring-0 focus-visible:ring-offset-0 aria-expanded:bg-transparent aria-expanded:text-inherit data-[state=open]:bg-transparent cursor-pointer"
-                            >
-                              <OrdersStatusBadge status={order.status} />
-                              <ChevronDown className="ml-2 size-4 text-[#000000]" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent
-                            align="end"
-                            className="z-70 w-px rounded-[16px] p-2 ring-0"
-                          >
-                            {availableStatuses.map((status) => (
-                              <DropdownMenuItem
-                                key={status}
-                                onSelect={() => onUpdateStatus(order.id, status)}
-                                className={`rounded-[16px] px-3 py-2 text-[12px] font-medium cursor-pointer ${
-                                  order.status === status
-                                    ? "bg-primary text-primary-foreground pointer-events-none"
-                                    : "text-[#28293D] data-highlighted:bg-[#F5F0EA]"
-                                }`}
+                        {isStaffTab ? (
+                          <DropdownMenu onOpenChange={onStatusMenuOpenChange}>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                className="h-6 border-transparent px-0 ring-0 hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 focus-visible:border-transparent focus-visible:ring-0 focus-visible:ring-offset-0 aria-expanded:bg-transparent aria-expanded:text-inherit data-[state=open]:bg-transparent cursor-pointer"
                               >
-                                {t(status)}
-                              </DropdownMenuItem>
-                            ))}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                                {((order.staffStatus || (order.paymentState === "Paid" ? "Paid" : "Charged to tab")) === "Charged to tab") ? (
+                                  <span className="inline-flex min-h-6 items-center justify-center rounded-[30px] outline outline-1 outline-offset-[-1px] outline-purple-700 bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-600 tracking-tight">
+                                    {t("Charged to tab")}
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex min-h-6 items-center justify-center rounded-[30px] outline outline-1 outline-offset-[-1px] outline-[#059B5A] bg-[#E2F4ED] px-3 py-1 text-xs font-semibold text-[#059B5A] tracking-tight">
+                                    {t("Paid")}
+                                  </span>
+                                )}
+                                <ChevronDown className="ml-2 size-4 text-[#28293D]" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                              align="end"
+                              className="z-70 w-36 rounded-[16px] p-2 ring-0"
+                            >
+                              {(["Charged to tab", "Paid"] as const).map((s) => (
+                                <DropdownMenuItem
+                                  key={s}
+                                  onSelect={() => onUpdateStaffStatus?.(order.id, s)}
+                                  className={`rounded-[16px] px-3 py-2 text-[12px] font-medium cursor-pointer ${
+                                    (order.staffStatus || (order.paymentState === "Paid" ? "Paid" : "Charged to tab")) === s
+                                      ? "bg-primary text-primary-foreground pointer-events-none"
+                                      : "text-[#28293D] data-highlighted:bg-[#F5F0EA]"
+                                  }`}
+                                >
+                                  {t(s)}
+                                </DropdownMenuItem>
+                              ))}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        ) : (
+                          <DropdownMenu onOpenChange={onStatusMenuOpenChange}>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                className="h-6 border-transparent px-0 ring-0 hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 focus-visible:border-transparent focus-visible:ring-0 focus-visible:ring-offset-0 aria-expanded:bg-transparent aria-expanded:text-inherit data-[state=open]:bg-transparent cursor-pointer"
+                              >
+                                <OrdersStatusBadge status={order.status} />
+                                <ChevronDown className="ml-2 size-4 text-[#000000]" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                              align="end"
+                              className="z-70 w-px rounded-[16px] p-2 ring-0"
+                            >
+                              {availableStatuses.map((status) => (
+                                <DropdownMenuItem
+                                  key={status}
+                                  onSelect={() => onUpdateStatus(order.id, status)}
+                                  className={`rounded-[16px] px-3 py-2 text-[12px] font-medium cursor-pointer ${
+                                    order.status === status
+                                      ? "bg-primary text-primary-foreground pointer-events-none"
+                                      : "text-[#28293D] data-highlighted:bg-[#F5F0EA]"
+                                  }`}
+                                >
+                                  {t(status)}
+                                </DropdownMenuItem>
+                              ))}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
                       </div>
                     </TableCell>
 
@@ -305,7 +369,7 @@ const OrdersTable = ({
                       <span>{order.time}</span>
                     </TableCell>
 
-                    {!isPos && (
+                    {!hideDriver && (
                       <TableCell className="text-center">
                         <DriverCell
                           orderId={order.id}
@@ -320,7 +384,7 @@ const OrdersTable = ({
                   </TableRow>
                   {!isLast && (
                     <TableRow className="h-0 hover:bg-transparent data-[state=selected]:bg-transparent">
-                      <TableCell colSpan={isPos ? 8 : 9} className="p-0">
+                      <TableCell colSpan={hideDriver ? 8 : 9} className="p-0">
                         <div className="mx-6 h-px bg-[#CACBD4]" />
                       </TableCell>
                     </TableRow>

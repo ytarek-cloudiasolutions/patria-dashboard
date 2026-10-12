@@ -6,7 +6,9 @@ export type OrderStatus =
   | "Delivered"
   | "Cancelled";
 
-export type OrderSource = "application" | "pos" | "call";
+export type OrderSource = "application" | "pos" | "call" | "staff";
+
+export type StaffOrderStatus = "Charged to tab" | "Paid";
 
 export type OrderStatusFilter = "All statuses" | OrderStatus;
 
@@ -67,6 +69,10 @@ export interface Order {
   items: OrderLineItem[];
   type?: string;
   driver?: string;
+  billedToStaffId?: string;
+  isStaffOrder?: boolean;
+  staffName?: string;
+  staffStatus?: StaffOrderStatus;
 }
 
 export interface OrdersSummary {
@@ -74,6 +80,13 @@ export interface OrdersSummary {
   totalOrders: number;
   pending: number;
   delivered: number;
+}
+
+export interface StaffOrdersSummary {
+  revenue: number;
+  totalStaffOrders: number;
+  totalTabAmount: number;
+  employeeCount: number;
 }
 
 /** A single selectable add-on for a product (multi-select checkboxes). */

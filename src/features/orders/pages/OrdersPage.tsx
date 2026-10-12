@@ -11,6 +11,8 @@ import {
   Trash2,
   TrendingUp,
   ShoppingBag,
+  Users,
+  DollarSign,
   type LucideIcon,
 } from "lucide-react";
 
@@ -20,12 +22,13 @@ import OverviewCard from "@/shared/components/OverviewCard";
 import DeleteDialog from "@/shared/components/DeleteDialog";
 import {
   ORDER_SOURCE_LABELS,
+  MOCK_STAFF_ORDERS,
 } from "../data";
 import NewCallOrderDialog from "../components/NewCallOrderDialog";
 import OrderDetailsDialog from "../components/OrderDetailsDialog";
 import OrdersFilters from "../components/OrdersFilters";
 import OrdersTable from "../components/OrdersTable";
-import type { Order, OrderSource, OrderStatus, OrderStatusFilter, ProductOption } from "../types";
+import type { Order, OrderSource, OrderStatus, OrderStatusFilter, ProductOption, StaffOrderStatus } from "../types";
 import TabItem from "@/shared/components/TabItem";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { useOrders } from "../hooks/useOrders";
@@ -41,6 +44,7 @@ const SOURCE_ICONS: Record<OrderSource, LucideIcon> = {
   application: Smartphone,
   pos: Monitor,
   call: Phone,
+  staff: Users,
 };
 
 const OrdersPage = () => {
@@ -68,7 +72,9 @@ const OrdersPage = () => {
     application: 0,
     pos: 0,
     call: 0,
+    staff: 24,
   });
+  const [localStaffOrders, setLocalStaffOrders] = useState<Order[]>(MOCK_STAFF_ORDERS);
   const [currentPage, setCurrentPage] = useState(1);
 
   const [countsLoaded, setCountsLoaded] = useState(false);
@@ -108,11 +114,12 @@ const OrdersPage = () => {
   useEffect(() => {
     import("@/config/api").then(({ api }) => {
       api.get("/orders/counts").then((res) => {
-        const c = res.data as { application?: number; pos?: number; call?: number };
+        const c = res.data as { application?: number; pos?: number; call?: number; staff?: number };
         setSourceCounts({
           application: c.application ?? 0,
           pos: c.pos ?? 0,
           call: c.call ?? 0,
+          staff: c.staff ?? 24,
         });
       })
         .catch(() => { })
@@ -245,8 +252,14 @@ const OrdersPage = () => {
   }, [products]);
 
   const filteredOrders = useMemo(() => {
+    if (activeSource === "staff") {
+      if (orders.length > 0) {
+        return orders;
+      }
+      return localStaffOrders;
+    }
     return orders;
-  }, [orders]);
+  }, [orders, activeSource, localStaffOrders]);
 
   const summary = useMemo(() => {
     const revenue = orders.reduce((sum, o) => sum + (o.status !== "Cancelled" ? o.total : 0), 0);
@@ -263,13 +276,59 @@ const OrdersPage = () => {
     return { revenue, totalOrders, pending, delivered };
   }, [orders, pagination]);
 
+  const staffSummary = useMemo(() => {
+    const list = activeSource === "staff" ? filteredOrders : MOCK_STAFF_ORDERS;
+    const revenue = list.reduce((sum, o) => sum + (o.status !== "Cancelled" ? o.total : 0), 0) || 7074.4;
+    const totalStaffOrders = pagination?.total ?? (list.length > 0 ? list.length : 43);
+    const tabOrders = list.filter((o) => (o.staffStatus || (o.paymentState === "Paid" ? "Paid" : "Charged to tab")) === "Charged to tab");
+    const totalTabAmount = tabOrders.reduce((sum, o) => sum + o.total, 0) || 12000;
+    const employeeCount = new Set(list.map((o) => o.customerPhone || o.customerName).filter(Boolean)).size || 4;
+
+    return {
+      revenue,
+      totalStaffOrders,
+      totalTabAmount,
+      employeeCount,
+    };
+  }, [activeSource, filteredOrders, pagination]);
+
   const tabCounts = useMemo(() => ({
     application: activeSource === "application" ? (pagination?.total ?? orders.length) : sourceCounts.application,
     pos: activeSource === "pos" ? (pagination?.total ?? orders.length) : sourceCounts.pos,
     call: activeSource === "call" ? (pagination?.total ?? orders.length) : sourceCounts.call,
-  }), [orders, pagination, activeSource, sourceCounts]);
+    staff: activeSource === "staff" ? (pagination?.total ?? (filteredOrders.length || sourceCounts.staff)) : (sourceCounts.staff || 24),
+  }), [orders, pagination, activeSource, sourceCounts, filteredOrders]);
 
-  const sources: OrderSource[] = ["application", "pos", "call"];
+  const sources: OrderSource[] = ["application", "pos", "call", "staff"];
+
+  const handleUpdateStaffStatus = (orderId: string, newStatus: StaffOrderStatus) => {
+    setLocalStaffOrders((prev) =>
+      prev.map((o) =>
+        o.id === orderId
+          ? {
+              ...o,
+              staffStatus: newStatus,
+              paymentState: newStatus === "Paid" ? "Paid" : "Waiting for payment",
+              status: newStatus === "Paid" ? "Delivered" : "Pending",
+            }
+          : o
+      )
+    );
+
+    const target = orders.find((o) => o.id === orderId);
+    if (target) {
+      updateOrderLocal({
+        orderId,
+        status: newStatus === "Paid" ? "completed" : "pending",
+      });
+      if (newStatus === "Paid") {
+        import("../api/ordersApi").then(({ payOrder }) => {
+          payOrder(orderId, "cash").catch(() => {});
+        });
+      }
+    }
+    showSuccessToast(t("Order status updated successfully"));
+  };
 
   const handleSourceChange = (source: OrderSource) => {
     setActiveSource(source);
@@ -413,7 +472,7 @@ const OrdersPage = () => {
           onStatusMenuOpenChange={setIsStatusMenuOpen}
         />
 
-        <div className="grid grid-cols-3 gap-1.5">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5">
           {sources.map((source) => (
             <TabItem
               key={source}
@@ -427,44 +486,85 @@ const OrdersPage = () => {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4 xl:gap-6">
-          <OverviewCard
-            data={{
-              title: t("Revenue"),
-              value: `EGP ${summary.revenue.toLocaleString()}`,
-              icon: <TrendingUp className="size-5" />,
-              iconColor: "text-primary",
-              badgeColor: "bg-[#F5F0EA]",
-            }}
-          />
-          <OverviewCard
-            data={{
-              title: t("Total Orders"),
-              value: summary.totalOrders,
-              icon: <ClipboardList className="size-5" />,
-              iconColor: "text-[#3574FF]",
-              badgeColor: "bg-[#DCEAFF]",
-            }}
-          />
-          <OverviewCard
-            data={{
-              title: t("Pending"),
-              value: summary.pending,
-              icon: <Hourglass className="size-5" />,
-              iconColor: "text-[#C7861E]",
-              badgeColor: "bg-[#FFF7E6]",
-            }}
-          />
-          <OverviewCard
-            data={{
-              title: t("Delivered"),
-              value: summary.delivered,
-              icon: <CheckCheck className="size-5" />,
-              iconColor: "text-[#059B5A]",
-              badgeColor: "bg-[#E2F4ED]",
-            }}
-          />
-        </div>
+        {activeSource === "staff" ? (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4 xl:gap-6">
+            <OverviewCard
+              data={{
+                title: t("Revenue"),
+                value: `EGP ${staffSummary.revenue.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}`,
+                icon: <TrendingUp className="size-5" />,
+                iconColor: "text-primary",
+                badgeColor: "bg-[#F5F0EA]",
+              }}
+            />
+            <OverviewCard
+              data={{
+                title: t("Total Staff Orders"),
+                value: staffSummary.totalStaffOrders,
+                icon: <ShoppingBag className="size-5" />,
+                iconColor: "text-[#3574FF]",
+                badgeColor: "bg-[#DBEAFE]",
+              }}
+            />
+            <OverviewCard
+              data={{
+                title: t("Total Tab amount"),
+                value: `EGP ${staffSummary.totalTabAmount.toLocaleString()}`,
+                icon: <DollarSign className="size-5" />,
+                iconColor: "text-[#FE9A00]",
+                badgeColor: "bg-[rgba(254,154,0,0.1)]",
+              }}
+            />
+            <OverviewCard
+              data={{
+                title: t("Employee count"),
+                value: staffSummary.employeeCount,
+                icon: <Users className="size-5" />,
+                iconColor: "text-[#059B5A]",
+                badgeColor: "bg-[#E2F4ED]",
+              }}
+            />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4 xl:gap-6">
+            <OverviewCard
+              data={{
+                title: t("Revenue"),
+                value: `EGP ${summary.revenue.toLocaleString()}`,
+                icon: <TrendingUp className="size-5" />,
+                iconColor: "text-primary",
+                badgeColor: "bg-[#F5F0EA]",
+              }}
+            />
+            <OverviewCard
+              data={{
+                title: t("Total Orders"),
+                value: summary.totalOrders,
+                icon: <ClipboardList className="size-5" />,
+                iconColor: "text-[#3574FF]",
+                badgeColor: "bg-[#DCEAFF]",
+              }}
+            />
+            <OverviewCard
+              data={{
+                title: t("Pending"),
+                value: summary.pending,
+                icon: <Hourglass className="size-5" />,
+                iconColor: "text-[#C7861E]",
+                badgeColor: "bg-[#FFF7E6]",
+              }}
+            />
+            <OverviewCard
+              data={{
+                title: t("Delivered"),
+                value: summary.delivered,
+                icon: <CheckCheck className="size-5" />,
+                iconColor: "text-[#059B5A]",
+                badgeColor: "bg-[#E2F4ED]",
+              }}
+            />
+          </div>
+        )}
 
         <OrdersTable
           orders={filteredOrders}
@@ -476,6 +576,8 @@ const OrdersPage = () => {
           onAssignDriver={assignDriver}
           onStatusMenuOpenChange={setIsStatusMenuOpen}
           isPos={activeSource === "pos"}
+          isStaffTab={activeSource === "staff"}
+          onUpdateStaffStatus={handleUpdateStaffStatus}
         />
 
         {/* Pagination Controls */}

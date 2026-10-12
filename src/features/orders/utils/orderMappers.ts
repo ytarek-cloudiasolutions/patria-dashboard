@@ -175,11 +175,58 @@ export const mapOrder = (o: any): Order => {
     (Array.isArray(o.customer?.addresses) && (o.customer.addresses.find((a: any) => a.isDefault) || o.customer.addresses[0])?.area) ||
     "";
 
+  const isStaffOrder = Boolean(
+    o.billedToStaffId ||
+    o.source === "staff" ||
+    o.isStaffOrder ||
+    (o.type || "").toLowerCase() === "staff"
+  );
+
+  const rawSource = (o.source || "").toLowerCase();
+  let resolvedSource: OrderSource = "application";
+  if (isStaffOrder || rawSource === "staff") {
+    resolvedSource = "staff";
+  } else if (rawSource === "pos") {
+    resolvedSource = "pos";
+  } else if (rawSource === "call" || o.type === "takeaway") {
+    resolvedSource = "call";
+  } else {
+    resolvedSource = "application";
+  }
+
+  const staffName =
+    (typeof o.billedToStaffId === "object" ? (o.billedToStaffId?.name || o.billedToStaffId?.fullName) : undefined) ||
+    o.staffName;
+
+  const staffPhone =
+    (typeof o.billedToStaffId === "object" ? o.billedToStaffId?.phone : undefined) ||
+    o.customerPhone;
+
+  const customerName =
+    staffName ||
+    o.customerId?.name ||
+    o.customer?.name ||
+    o.customerName ||
+    (isStaffOrder ? "Staff Member" : "Walk-in Customer");
+
+  const customerPhone =
+    staffPhone ||
+    o.customerId?.phone ||
+    o.customer?.phone ||
+    o.customerPhone ||
+    "";
+
+  const staffStatus =
+    o.staffStatus ||
+    (paymentState === "Paid" || o.paymentStatus === "paid" || o.isPaid
+      ? "Paid"
+      : "Charged to tab");
+
   return {
     id: o._id || o.id,
     orderId: o.orderId || null,
-    customerName: o.customerId?.name || o.customer?.name || o.customerName || "Walk-in Customer",
-    customerPhone: o.customerId?.phone || o.customer?.phone || o.customerPhone || "",
+    customerName,
+    customerPhone,
     customerEmail: o.customerId?.email || o.customer?.email || o.customerEmail || "",
     address: o.customer?.address || o.address || ((o.type || "").toLowerCase() === "takeaway" ? "Takeaway" : "In Store"),
     zone,
@@ -188,26 +235,22 @@ export const mapOrder = (o: any): Order => {
     total: o.totalAmount || o.total || subtotal,
     gross: o.gross ?? (o.subtotal || subtotal) + (o.tax || 0),
     subtotal: o.subtotal || subtotal,
-    // `discountAmount` defaults to 0 on the backend schema even when an
-    // order only ever had `discount` set (e.g. a mobile checkout coupon via
-    // placeCustomerOrder, which never touches discountAmount) — `??` treated
-    // that default 0 as "a real value" and never fell through to the actual
-    // coupon discount in `discount`, so applying a coupon at checkout never
-    // showed up here. Both fields use 0 as "no discount" in this codebase
-    // (admin-applied discounts via applyDiscount keep them equal), so `||`
-    // is the correct fallback, not `??`.
     discount: o.discountAmount || o.discount || 0,
     discountType: o.discountType || undefined,
     discountValue: o.discountValue ?? undefined,
     deliveryFee: o.deliveryFee || 0,
     status: mapOrderStatus(o.status),
     category,
-    source: (o.source || (o.type === "takeaway" ? "call" : "application")).toLowerCase() as OrderSource,
+    source: resolvedSource,
     paymentMethod: o.paymentMethod || "Cash on delivery",
     paymentState,
     type: o.type,
     items,
     driver: o.assignedDriver?.name || o.driver || undefined,
+    billedToStaffId: typeof o.billedToStaffId === "object" ? o.billedToStaffId?._id : o.billedToStaffId,
+    isStaffOrder,
+    staffName,
+    staffStatus,
   };
 };
 
