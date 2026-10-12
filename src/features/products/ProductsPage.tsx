@@ -628,16 +628,28 @@ const ProductsPage = () => {
     }
   };
 
-  const handleReassignConfirm = async (targetCategoryId: string) => {
+  const handleReassignConfirm = async (targetCategoryId?: string) => {
     if (!reassignCategory) return;
     setIsReassigning(true);
     try {
-      await categoriesApi.deleteCategory(reassignCategory.id, targetCategoryId);
-      showSuccessToast(t("Category deleted — products moved"));
+      await categoriesApi.deleteCategory(
+        reassignCategory.id,
+        targetCategoryId
+          ? { reassignTo: targetCategoryId }
+          : { deleteProducts: true },
+      );
+      showSuccessToast(
+        targetCategoryId
+          ? t("Category deleted — products moved")
+          : t("Category deleted — products permanently deleted"),
+      );
       getCategories();
       setReassignCategory(null);
     } catch (err: any) {
-      showErrorToast(err?.response?.data?.message || t("Failed to move products"));
+      showErrorToast(
+        err?.response?.data?.message ||
+          (targetCategoryId ? t("Failed to move products") : t("Failed to delete products")),
+      );
     } finally {
       setIsReassigning(false);
     }
