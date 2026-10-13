@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Plus, ScanBarcode, Upload, Loader2, Coffee, LayoutGrid, List } from "lucide-react";
+import { Plus, ScanBarcode, Upload, Loader2, Coffee, LayoutGrid, List, SlidersHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
@@ -28,6 +28,8 @@ import { categoriesApi } from "@/features/categories/api/categoriesApi";
 import ImportDataDialog from "./components/ImportDataDialog";
 import ScanProductDialog from "./components/ScanProductDialog";
 import WhatsAppOfferDialog from "./components/WhatsAppOfferDialog";
+import BulkAvailabilityDialog from "./components/BulkAvailabilityDialog";
+import { updateProduct as updateProductApi } from "./api/productsApi";
 
 import { formatUnit } from "./utils";
 import {
@@ -186,6 +188,11 @@ const ProductsPage = () => {
   const [isImporting, setIsImporting] = useState(false);
   const [isScanOpen, setIsScanOpen] = useState(false);
   const [isWhatsAppOpen, setIsWhatsAppOpen] = useState(false);
+  const [isBulkAvailabilityOpen, setIsBulkAvailabilityOpen] = useState(false);
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
+  const [selectedIngredientIds, setSelectedIngredientIds] = useState<string[]>([]);
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
+  const [isSavingBulkAvailability, setIsSavingBulkAvailability] = useState(false);
   const [selectedCategoryForProducts, setSelectedCategoryForProducts] = useState<Category | null>(null);
   const prevCreatingRef = useRef(false);
 
@@ -320,6 +327,47 @@ const ProductsPage = () => {
 
   const toggleProductAvailability = (id: string, available: boolean) => {
     toggleProductActive({ productId: id, isActive: available });
+  };
+
+  const handleBulkAvailabilitySave = async ({ showInApp, showInPos }: { showInApp: boolean; showInPos: boolean }) => {
+    if (tab === "categories") {
+      const selection = selectedCategoryIds.filter((id) => filteredCategories.some((category) => category.id === id));
+      if (selection.length === 0) return;
+      setIsSavingBulkAvailability(true);
+      try {
+        await Promise.all(selection.map((id) => toggleCategoryStatus({ categoryId: id, isActive: showInApp || showInPos })));
+        showSuccessToast(t("Category availability updated"));
+        setIsBulkAvailabilityOpen(false);
+        setSelectedCategoryIds([]);
+      } catch (err: any) {
+        showErrorToast(err?.response?.data?.message || t("Failed to update category availability"));
+      } finally {
+        setIsSavingBulkAvailability(false);
+      }
+      return;
+    }
+    const sourceProducts = tab === "recipes" ? filteredIngredients : filteredProducts;
+    const selection = tab === "recipes" ? selectedIngredientIds : selectedProductIds;
+    const ids = selection.filter((id) => sourceProducts.some((product) => product.id === id));
+    if (ids.length === 0) return;
+    setIsSavingBulkAvailability(true);
+    try {
+      await Promise.all(ids.map((id) => {
+        const formData = new FormData();
+        formData.append("showInApp", String(showInApp));
+        formData.append("showInPos", String(showInPos));
+        return updateProductApi(id, formData);
+      }));
+      showSuccessToast(t("Product availability updated"));
+      setIsBulkAvailabilityOpen(false);
+      setSelectedProductIds([]);
+      setSelectedIngredientIds([]);
+      getProducts({ search: productSearch.trim() || undefined, category: categoryFilter !== "all" ? categoryFilter : undefined, page, limit: 100 });
+    } catch (err: any) {
+      showErrorToast(err?.response?.data?.message || t("Failed to update product availability"));
+    } finally {
+      setIsSavingBulkAvailability(false);
+    }
   };
 
   const toggleCategoryActive = (id: string, active: boolean) => {
@@ -712,6 +760,16 @@ const ProductsPage = () => {
                 "border border-[#7E00D7] bg-[#F3E9FA] text-[#9524E4] hover:bg-[#F3E9FA] hover:text-[#9524E4] hover:border-[#7E00D7] active:translate-y-0 shadow-none ring-0 focus:ring-0",
             }}
           />
+          {(isProducts || isRecipes || isCategories) && (
+            <DefaultButton
+              data={{
+                buttonText: t("Availability"),
+                icon: <SlidersHorizontal className="size-[18px]" />,
+                onClick: () => setIsBulkAvailabilityOpen(true),
+                className: "border border-primary bg-white text-primary hover:bg-[#F5F0EA] hover:text-primary",
+              }}
+            />
+          )}
           <DefaultButton
             data={{
               buttonText: t("Scan Product"),
@@ -822,6 +880,8 @@ const ProductsPage = () => {
                       kind: "product",
                     })
                   }
+                  selectedIds={selectedProductIds}
+                  onSelectedIdsChange={setSelectedProductIds}
                 />
               ) : (
                 <ProductsTable
@@ -846,6 +906,8 @@ const ProductsPage = () => {
                       kind: "product",
                     })
                   }
+                  selectedIds={selectedProductIds}
+                  onSelectedIdsChange={setSelectedProductIds}
                 />
               )}
 
@@ -956,6 +1018,8 @@ const ProductsPage = () => {
                       kind: "ingredient",
                     })
                   }
+                  selectedIds={selectedIngredientIds}
+                  onSelectedIdsChange={setSelectedIngredientIds}
                 />
               ) : (
                 <IngredientsTable
@@ -971,6 +1035,8 @@ const ProductsPage = () => {
                       kind: "ingredient",
                     })
                   }
+                  selectedIds={selectedIngredientIds}
+                  onSelectedIdsChange={setSelectedIngredientIds}
                 />
               )}
 
@@ -1080,6 +1146,8 @@ const ProductsPage = () => {
               onCardClick={(category) => {
                 setSelectedCategoryForProducts(category);
               }}
+              selectedIds={selectedCategoryIds}
+              onSelectedIdsChange={setSelectedCategoryIds}
             />
           ) : (
             <CategoriesTable
@@ -1102,12 +1170,28 @@ const ProductsPage = () => {
               onRowClick={(category) => {
                 setSelectedCategoryForProducts(category);
               }}
+              selectedIds={selectedCategoryIds}
+              onSelectedIdsChange={setSelectedCategoryIds}
             />
           )}
         </>
       )}
 
       {/* Dialogs */}
+      {isBulkAvailabilityOpen && (
+        <BulkAvailabilityDialog
+          open
+          onOpenChange={setIsBulkAvailabilityOpen}
+          mode={isCategories ? "categories" : isRecipes ? "recipes" : "products"}
+          products={(isRecipes ? filteredIngredients : isCategories ? (filteredCategories as unknown as Product[]) : filteredProducts) as unknown as Product[]}
+          categories={filteredCategories as any}
+          selectedIds={isCategories ? selectedCategoryIds : isRecipes ? selectedIngredientIds : selectedProductIds}
+          onSelectedIdsChange={isCategories ? setSelectedCategoryIds : isRecipes ? setSelectedIngredientIds : setSelectedProductIds}
+          saving={isSavingBulkAvailability}
+          onSave={handleBulkAvailabilitySave}
+        />
+      )}
+
       <AddProductDialog
         open={isAddProductOpen}
         editingProduct={editingProduct}

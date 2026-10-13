@@ -9,6 +9,7 @@ import {
 } from "@/shared/components/ui/table";
 import { Badge } from "@/shared/components/ui/badge";
 import { Switch } from "@/shared/components/ui/switch";
+import { Checkbox } from "@/shared/components/ui/checkbox";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { cn } from "@/lib/utils";
 import type { Product } from "../types";
@@ -22,6 +23,8 @@ interface ProductsTableProps {
   onToggleAvailability: (id: string, available: boolean) => void;
   onEdit: (product: Product) => void;
   onDelete: (product: Product) => void;
+  selectedIds: string[];
+  onSelectedIdsChange: (ids: string[]) => void;
 }
 
 const StatusBadge = ({ available }: { available: boolean }) => {
@@ -122,6 +125,25 @@ const ProductThumb = ({ product }: { product: Product }) => (
   />
 );
 
+const SelectionCheckbox = ({
+  checked,
+  onCheckedChange,
+  ariaLabel,
+}: {
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+  ariaLabel: string;
+}) => (
+  <span className={`inline-flex rounded-[10px] p-1 ${checked ? "bg-[#624F1C1A]" : ""}`}>
+    <Checkbox
+      checked={checked}
+      onCheckedChange={(value) => onCheckedChange(value === true)}
+      aria-label={ariaLabel}
+      className="size-5 cursor-pointer rounded-[5.994px] border-[#8F6900] bg-white shadow-[0_1.998px_3.996px_0_rgba(27,28,29,0.04)]"
+    />
+  </span>
+);
+
 const ProductsTable = ({
   products,
   togglingProductId,
@@ -130,8 +152,14 @@ const ProductsTable = ({
   onToggleAvailability,
   onEdit,
   onDelete,
+  selectedIds,
+  onSelectedIdsChange,
 }: ProductsTableProps) => {
   const { t } = useTranslation();
+  const allSelected = products.length > 0 && products.every((product) => selectedIds.includes(product.id));
+  const toggleSelection = (id: string, checked: boolean) => onSelectedIdsChange(
+    checked ? [...new Set([...selectedIds, id])] : selectedIds.filter((selectedId) => selectedId !== id),
+  );
   return (
     <>
       {/* Mobile card list */}
@@ -148,6 +176,7 @@ const ProductsTable = ({
                 className="rounded-2xl border border-[#E5E5E5] bg-white px-4 py-4"
               >
                 <div className="mb-3 flex items-start gap-3">
+                  <SelectionCheckbox checked={selectedIds.includes(product.id)} onCheckedChange={(checked) => toggleSelection(product.id, checked)} ariaLabel={`Select ${product.name}`} />
                   <ProductThumb product={product} />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[15px] font-semibold text-[#28293D]">
@@ -178,10 +207,13 @@ const ProductsTable = ({
       </div>
 
       {/* Desktop table */}
-      <div className="hidden md:block">
+      <div className="hidden md:block [&_[data-slot=table-container]]:overflow-visible">
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[52px] px-3 py-4 text-center">
+                <SelectionCheckbox checked={allSelected} onCheckedChange={(checked) => onSelectedIdsChange(checked ? [...new Set([...selectedIds, ...products.map((product) => product.id)])] : selectedIds.filter((id) => !products.some((product) => product.id === id)))} ariaLabel={t("Select all products")} />
+              </TableHead>
               <TableHead className="ps-6 py-4 text-start">
                 {t("IMAGE")}
               </TableHead>
@@ -206,7 +238,7 @@ const ProductsTable = ({
             {isLoading ? (
               <TableRow>
                 <TableCell
-                  colSpan={6}
+                  colSpan={7}
                   className="py-12 text-center text-[14px] text-[#8B8B8B]"
                 >
                   <div className="flex items-center justify-center">
@@ -218,6 +250,9 @@ const ProductsTable = ({
               <>
                 {products.map((product) => (
                   <TableRow key={product.id} className="hover:bg-[#FAFAF8]">
+                    <TableCell className="w-[52px] px-3 py-4 text-center">
+                      <SelectionCheckbox checked={selectedIds.includes(product.id)} onCheckedChange={(checked) => toggleSelection(product.id, checked)} ariaLabel={`Select ${product.name}`} />
+                    </TableCell>
                     <TableCell className="ps-6 py-4">
                       <ProductThumb product={product} />
                     </TableCell>

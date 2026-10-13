@@ -2,6 +2,7 @@ import { Box, Loader2, SquarePen, Trash2 } from "lucide-react";
 import type { Category } from "../types";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { Switch } from "@/shared/components/ui/switch";
+import SelectionCheckbox from "./SelectionCheckbox";
 
 interface CategoriesCardsProps {
   categories: Category[];
@@ -12,6 +13,8 @@ interface CategoriesCardsProps {
   onDelete?: (category: Category) => void;
   onEdit?: (category: Category) => void;
   onCardClick?: (category: Category) => void;
+  selectedIds: string[];
+  onSelectedIdsChange: (ids: string[]) => void;
 }
 
 const CategoriesCards = ({
@@ -23,6 +26,8 @@ const CategoriesCards = ({
   onDelete,
   onEdit,
   onCardClick,
+  selectedIds,
+  onSelectedIdsChange,
 }: CategoriesCardsProps) => {
   const { t, language } = useTranslation();
 
@@ -62,8 +67,11 @@ const CategoriesCards = ({
             onClick={() => onCardClick?.(category)}
             className="group relative flex items-center justify-between rounded-xl border-2 border-[#E5E5E5] bg-white px-3 py-6 sm:px-4 gap-4 transition-all duration-200 hover:shadow-md cursor-pointer min-w-0"
           >
-            {/* Left Content (Image + Name & Count) */}
-            <div className="flex items-center gap-4 min-w-0 flex-1">
+            {/* Left Content (Checkbox + Image + Name & Count) */}
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <div onClick={(event) => event.stopPropagation()}>
+                <SelectionCheckbox checked={selectedIds.includes(category.id)} onCheckedChange={(checked) => onSelectedIdsChange(checked ? [...new Set([...selectedIds, category.id])] : selectedIds.filter((id) => id !== category.id))} ariaLabel={`Select ${category.name}`} />
+              </div>
               {/* Category Image */}
               <div className="relative size-14 shrink-0 overflow-hidden rounded-xl border-[0.47px] border-[#E5E5E5] bg-[#FAFAF7]">
                 {category.imageUrl ? (

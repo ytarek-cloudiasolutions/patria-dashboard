@@ -3,12 +3,15 @@ import { cn } from "@/lib/utils";
 import type { Ingredient } from "../types";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { formatEgp, formatUnit } from "../utils";
+import SelectionCheckbox from "./SelectionCheckbox";
 
 interface IngredientsCardsProps {
   ingredients: Ingredient[];
   isLoading?: boolean;
   onEdit: (ingredient: Ingredient) => void;
   onDelete?: (ingredient: Ingredient) => void;
+  selectedIds: string[];
+  onSelectedIdsChange: (ids: string[]) => void;
 }
 
 const IngredientsCards = ({
@@ -16,6 +19,8 @@ const IngredientsCards = ({
   isLoading = false,
   onEdit,
   onDelete,
+  selectedIds,
+  onSelectedIdsChange,
 }: IngredientsCardsProps) => {
   const { t, language } = useTranslation();
 
@@ -70,7 +75,10 @@ const IngredientsCards = ({
               )}
 
               {/* Product Type Badge (Top-Left) */}
-              <div className="absolute top-3.5 start-2.5 z-10">
+              <div className="absolute left-2 top-2 z-20">
+                <SelectionCheckbox checked={selectedIds.includes(ingredient.id)} onCheckedChange={(checked) => onSelectedIdsChange(checked ? [...new Set([...selectedIds, ingredient.id])] : selectedIds.filter((id) => id !== ingredient.id))} ariaLabel={`Select ${ingredient.name}`} />
+              </div>
+              <div className="absolute right-2 top-3.5 z-10">
                 <span className="inline-flex items-center rounded-full border border-[#725400] bg-[#8F6900] px-2 py-0.5 text-[10px] font-semibold text-white tracking-[0.20px]">
                   {ingredient.productType === "service"
                     ? (language === "ar" ? "خدمة" : "Service")

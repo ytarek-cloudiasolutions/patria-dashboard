@@ -4,6 +4,7 @@ import type { Product } from "../types";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { formatEgp } from "../utils";
 import { Switch } from "@/shared/components/ui/switch";
+import { Checkbox } from "@/shared/components/ui/checkbox";
 
 interface ProductsCardsProps {
   products: Product[];
@@ -13,6 +14,8 @@ interface ProductsCardsProps {
   onToggleAvailability: (id: string, available: boolean) => void;
   onEdit: (product: Product) => void;
   onDelete?: (product: Product) => void;
+  selectedIds: string[];
+  onSelectedIdsChange: (ids: string[]) => void;
 }
 
 const ProductsCards = ({
@@ -23,6 +26,8 @@ const ProductsCards = ({
   onToggleAvailability,
   onEdit,
   onDelete,
+  selectedIds,
+  onSelectedIdsChange,
 }: ProductsCardsProps) => {
   const { t, language } = useTranslation();
 
@@ -70,7 +75,10 @@ const ProductsCards = ({
               )}
 
               {/* Manufactured / Product Type Badge (Top-Left) */}
-              <div className="absolute top-3.5 start-2.5 z-10">
+              <div className={`absolute left-2 top-2 z-20 rounded-[10px] p-1 ${selectedIds.includes(product.id) ? "bg-[#624F1C1A]" : ""}`}>
+                <Checkbox checked={selectedIds.includes(product.id)} onCheckedChange={(checked) => onSelectedIdsChange(checked === true ? [...new Set([...selectedIds, product.id])] : selectedIds.filter((id) => id !== product.id))} aria-label={`Select ${product.name}`} className="size-5 cursor-pointer rounded-[5.994px] border-[#8F6900] bg-white shadow-[0_1.998px_3.996px_0_rgba(27,28,29,0.04)]" />
+              </div>
+              <div className="absolute right-2 top-3.5 z-10">
                 <span className="inline-flex items-center rounded-full border border-[#004EF9] bg-[#EDF4FB] px-2 py-0.5 text-[10px] font-semibold text-[#3574FF] tracking-[0.20px]">
                   {product.productType === "factory" || product.productType === "manufactured"
                     ? language === "ar"

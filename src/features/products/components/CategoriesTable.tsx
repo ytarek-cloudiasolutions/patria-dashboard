@@ -10,6 +10,7 @@ import {
 import { Switch } from "@/shared/components/ui/switch";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import type { Category } from "../types";
+import SelectionCheckbox from "./SelectionCheckbox";
 
 interface CategoriesTableProps {
   categories: Category[];
@@ -20,6 +21,8 @@ interface CategoriesTableProps {
   onDelete: (category: Category) => void;
   onEdit?: (category: Category) => void;
   onRowClick?: (category: Category) => void;
+  selectedIds: string[];
+  onSelectedIdsChange: (ids: string[]) => void;
 }
 
 const RowActions = ({
@@ -93,8 +96,12 @@ const CategoriesTable = ({
   onDelete,
   onEdit,
   onRowClick,
+  selectedIds,
+  onSelectedIdsChange,
 }: CategoriesTableProps) => {
   const { t, language } = useTranslation();
+  const allSelected = categories.length > 0 && categories.every((category) => selectedIds.includes(category.id));
+  const toggleSelection = (id: string, checked: boolean) => onSelectedIdsChange(checked ? [...new Set([...selectedIds, id])] : selectedIds.filter((selectedId) => selectedId !== id));
   return (
     <>
       {/* Mobile card list */}
@@ -111,6 +118,7 @@ const CategoriesTable = ({
                 onClick={() => onRowClick?.(category)}
                 className="flex items-center gap-3 rounded-2xl border border-[#E5E5E5] bg-white px-4 py-4 cursor-pointer hover:bg-[#FAFAF8] transition-colors"
               >
+                <div onClick={(event) => event.stopPropagation()}><SelectionCheckbox checked={selectedIds.includes(category.id)} onCheckedChange={(checked) => toggleSelection(category.id, checked)} ariaLabel={`Select ${category.name}`} /></div>
                 <Thumb category={category} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-[15px] font-semibold text-black" style={{ fontWeight: 600 }}>
@@ -140,10 +148,11 @@ const CategoriesTable = ({
       </div>
 
       {/* Desktop table */}
-      <div className="hidden md:block">
+      <div className="hidden md:block [&_[data-slot=table-container]]:overflow-visible">
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[52px] px-3 py-4 text-center"><SelectionCheckbox checked={allSelected} onCheckedChange={(checked) => onSelectedIdsChange(checked ? [...new Set([...selectedIds, ...categories.map((category) => category.id)])] : selectedIds.filter((id) => !categories.some((category) => category.id === id)))} ariaLabel={t("Select all categories")} /></TableHead>
               <TableHead className="ps-6 py-4 text-start">{t("IMAGE")}</TableHead>
               <TableHead className="px-6 py-4 text-start">
                 {t("CATEGORY NAME")}
@@ -160,7 +169,7 @@ const CategoriesTable = ({
             {isLoading ? (
               <TableRow>
                 <TableCell
-                  colSpan={4}
+                  colSpan={5}
                   className="py-12 text-center text-[14px] text-[#8B8B8B]"
                 >
                   <div className="flex items-center justify-center">
@@ -176,6 +185,7 @@ const CategoriesTable = ({
                     onClick={() => onRowClick?.(category)}
                     className="hover:bg-[#FAFAF8] cursor-pointer"
                   >
+                    <TableCell className="w-[52px] px-3 py-4 text-center" onClick={(event) => event.stopPropagation()}><SelectionCheckbox checked={selectedIds.includes(category.id)} onCheckedChange={(checked) => toggleSelection(category.id, checked)} ariaLabel={`Select ${category.name}`} /></TableCell>
                     <TableCell className="ps-6 py-4">
                       <Thumb category={category} />
                     </TableCell>
@@ -202,7 +212,7 @@ const CategoriesTable = ({
                 {categories.length === 0 && (
                   <TableRow>
                     <TableCell
-                      colSpan={4}
+                      colSpan={5}
                       className="py-10 text-center text-[14px] text-[#8B8B8B]"
                     >
                       {t("No categories found.")}
