@@ -26,6 +26,7 @@ import type { EmployeeAccount } from "@/features/pos/types";
 import { formatEgp } from "@/features/pos/utils";
 import NewCallOrderDialog from "../components/NewCallOrderDialog";
 import OrderDetailsDialog from "../components/OrderDetailsDialog";
+import StaffAccountDetailsDialog from "../components/StaffAccountDetailsDialog";
 import OrdersFilters from "../components/OrdersFilters";
 import OrdersTable from "../components/OrdersTable";
 import type { Order, OrderSource, OrderStatus, OrderStatusFilter, ProductOption } from "../types";
@@ -85,6 +86,7 @@ const OrdersPage = () => {
   // of pretending to be a plain order list.
   const [staffAccounts, setStaffAccounts] = useState<EmployeeAccount[]>([]);
   const [isLoadingStaffAccounts, setIsLoadingStaffAccounts] = useState(false);
+  const [selectedStaffAccount, setSelectedStaffAccount] = useState<EmployeeAccount | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
   const [countsLoaded, setCountsLoaded] = useState(false);
@@ -608,7 +610,13 @@ const OrdersPage = () => {
               staffAccounts.map((account) => (
                 <div
                   key={account.id}
-                  className="flex flex-col gap-6 rounded-[20px] border border-[#CACBD4] bg-[#FAFAF7] p-6"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setSelectedStaffAccount(account)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") setSelectedStaffAccount(account);
+                  }}
+                  className="flex cursor-pointer flex-col gap-6 rounded-[20px] border border-[#CACBD4] bg-[#FAFAF7] p-6 transition-colors hover:bg-[#F5F0EA]"
                 >
                   <div className="flex items-center justify-between">
                     <p className="text-[16px] font-semibold tracking-[0.32px] text-black">
@@ -735,6 +743,15 @@ const OrdersPage = () => {
             status: selectedStatus === "All statuses" ? undefined : mapOrderStatusToBackend(selectedStatus),
             search: searchValue.trim() || undefined,
           });
+        }}
+      />
+
+      <StaffAccountDetailsDialog
+        open={selectedStaffAccount !== null}
+        staffId={selectedStaffAccount?.id ?? null}
+        staffName={selectedStaffAccount?.name ?? ""}
+        onOpenChange={(open) => {
+          if (!open) setSelectedStaffAccount(null);
         }}
       />
 
