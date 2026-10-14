@@ -122,11 +122,18 @@ interface PosViewDashboardProps {
     openShifts?: number;
     staffCount?: number;
   };
+  /** Real per-status counts across ALL order sources (app/pos/call) — see DashboardPage. */
+  orderStatusCounts?: {
+    pending?: number;
+    preparing?: number;
+    onTheWay?: number;
+  };
 }
 
 export const PosViewDashboard: React.FC<PosViewDashboardProps> = ({
   orders,
   onOrderClick,
+  orderStatusCounts,
 }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -160,10 +167,20 @@ export const PosViewDashboard: React.FC<PosViewDashboardProps> = ({
     : 100;
   const occupiedPercentage = 100 - freePercentage;
 
-  // Compute stat counts from live orders or fallbacks
-  const pendingCount = orders.filter((o) => o.status === "Pending").length || 1;
-  const preparingCount = 4; // active kitchen preparing count
-  const onTheWayCount = orders.filter((o) => o.status === "On The Way").length || 2;
+  // Real per-status counts across every order source (app/pos/call) — see
+  // DashboardPage.tsx. These used to be inferred from the 6-order "Recent
+  // Inbound Orders" preview list (and "Preparing" was simply hardcoded to
+  // 4), so a handful of recent app orders crowded POS/call orders out of
+  // the sample entirely, making it look like only app orders were ever
+  // counted. Falls back to the old sample-based inference only if the
+  // caller doesn't provide real counts (e.g. the Figma-mock no-props case).
+  const pendingCount = orderStatusCounts?.pending
+    ?? orders.filter((o) => o.status === "Pending").length
+    ?? 1;
+  const preparingCount = orderStatusCounts?.preparing ?? 0;
+  const onTheWayCount = orderStatusCounts?.onTheWay
+    ?? orders.filter((o) => o.status === "On The Way").length
+    ?? 2;
 
   // Display orders: use provided orders if available, else Figma mock orders
   const displayOrders = orders.length > 0 ? orders : FIGMA_MOCK_ORDERS;

@@ -114,16 +114,32 @@ const DashboardPage = () => {
     openShifts?: number;
     staffCount?: number;
   }>({});
+  const [orderStatusCounts, setOrderStatusCounts] = useState<{
+    pending?: number;
+    preparing?: number;
+    onTheWay?: number;
+  }>({});
 
   useEffect(() => {
     const load = async () => {
       setIsLoading(true);
       try {
-        const [overviewRes, ordersRes] = await Promise.all([
+        const [overviewRes, ordersRes, pendingCountRes, preparingCountRes, readyCountRes] = await Promise.all([
           api.get("/reports/overview", {
             params: { startDate: dateRange.from, endDate: dateRange.to },
           }),
           api.get("/orders", { params: { limit: 6, sort: "-createdAt" } }),
+          // The POS view's "Pending/Preparing/On The Way" tiles used to be
+          // inferred from this same 6-order preview list above — with a
+          // limit of 6 across EVERY source, a handful of recent app orders
+          // crowds out POS/call orders entirely, so those sources never
+          // showed up in the counts even when they had active orders. These
+          // three ask the real per-status count directly (status filter +
+          // limit:1, reading `pagination.total`, which is a true
+          // countDocuments() regardless of source or the limit).
+          api.get("/orders", { params: { status: "pending", limit: 1 } }),
+          api.get("/orders", { params: { status: "preparing", limit: 1 } }),
+          api.get("/orders", { params: { status: "ready", limit: 1 } }),
         ]);
 
         const ov = overviewRes.data;
@@ -271,6 +287,14 @@ const DashboardPage = () => {
           staffCount: ov.staffCount ?? 0,
         });
 
+        const statusTotal = (res: typeof pendingCountRes) =>
+          res.data?.pagination?.total ?? res.data?.data?.pagination?.total ?? 0;
+        setOrderStatusCounts({
+          pending: statusTotal(pendingCountRes),
+          preparing: statusTotal(preparingCountRes),
+          onTheWay: statusTotal(readyCountRes),
+        });
+
       } catch {
         // silently fail — static fallback via initial empty state
       } finally {
@@ -400,6 +424,7 @@ const DashboardPage = () => {
           orders={liveOrders}
           onOrderClick={handleOrderClick}
           summary={posSummary}
+          orderStatusCounts={orderStatusCounts}
         />
       ) : (
         <>
