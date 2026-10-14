@@ -88,7 +88,12 @@ const ApiKitchenOrderCard = ({ order, onStatusChange, stationColor, onCardClick 
       <CardContent className="flex flex-col flex-1 px-0 py-0">
         <div className="mb-3 flex items-center justify-between gap-3">
           <h3 className="text-[18px] font-bold text-[#333333]">
-            {order.orderNumber ?? `#${order._id.slice(-6).toUpperCase()}`}
+            {/* orderNumber never actually exists on the backend Order
+                document — only orderId does (the same "#ORD-XXXXXX" shown
+                on every other order screen) — so this always fell through
+                to the raw Mongo _id hex slice, showing staff a completely
+                different id for the same order than the Orders screen. */}
+            {`#${order.orderId ?? order.orderNumber ?? order._id.slice(-6).toUpperCase()}`}
           </h3>
           <Badge
             className="rounded-[30px] border px-3 py-1 text-[12px] font-normal"

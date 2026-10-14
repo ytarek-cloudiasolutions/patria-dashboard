@@ -72,7 +72,13 @@ const mapOrderStatus = (s: string): LiveOrder["status"] => {
   }
 };
 
-const mapOrderType = (t: string): LiveOrder["orderType"] => {
+// `type` (dine_in/takeaway/delivery) is the fulfillment method, not who
+// placed the order — a call-center order is still typically "takeaway"
+// by type, so showing only the type badge made a call-placed order look
+// identical to one placed through the app. `source` is the actual signal
+// for "this came in via a phone call" and takes priority when present.
+const mapOrderType = (t: string, source?: string): LiveOrder["orderType"] => {
+  if ((source ?? "").toLowerCase().startsWith("call")) return "Call";
   const type = (t ?? "").toLowerCase().replace(/[-_]/g, " ");
   if (type.includes("takeaway") || type.includes("take out") || type.includes("takeout")) return "Takeaway";
   if (type.includes("delivery")) return "Delivery";
@@ -274,7 +280,7 @@ const DashboardPage = () => {
               })
               : "--",
             status: mapOrderStatus(o.status),
-            orderType: mapOrderType(o.type),
+            orderType: mapOrderType(o.type, o.source),
           };
         });
 

@@ -16,6 +16,9 @@ export interface KitchenOrderItem {
 
 export interface KitchenOrder {
   _id: string;
+  /** Real human-readable order number (e.g. "ORD-214067") — the backend's actual field name, same as every other order list/screen. */
+  orderId?: string;
+  /** Not actually present on the backend Order document; kept only so any existing caller that still sets it keeps compiling. */
   orderNumber?: string;
   status: KitchenOrderStatus;
   items: KitchenOrderItem[];

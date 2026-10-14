@@ -251,6 +251,12 @@ const AddProductDialog = ({
           descriptionAr: (editingProduct as any).descriptionAr || (editingProduct as any).description_ar || "",
           barcode: editingProduct.barcode || "",
           price: String(editingProduct.price),
+          // The real current stock (editingProduct.quantity, mapped from the
+          // backend's `inventory` field) was never copied into the form —
+          // "Initial quantity" always started blank/0 regardless of actual
+          // stock, so saving without manually retyping the real number
+          // silently reset it to 0.
+          quantity: editingProduct.quantity != null ? String(editingProduct.quantity) : "",
           imageUrl: editingProduct.imageUrl,
           extras: initialExtras,
           variantGroups: editingProduct.variantGroups ?? [],
