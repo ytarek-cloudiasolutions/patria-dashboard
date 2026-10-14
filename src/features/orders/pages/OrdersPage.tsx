@@ -164,8 +164,11 @@ const OrdersPage = () => {
             date: o.createdAt ? new Date(o.createdAt).toLocaleDateString() : "",
           })),
         }));
-        setStaffAccounts(accounts);
-        setSourceCounts((prev) => ({ ...prev, staff: accounts.length }));
+        // Only staff who actually owe something belong on this tab — same
+        // rule the POS's own Employee Accounts panel already applies.
+        const debtors = accounts.filter((a) => a.total > 0);
+        setStaffAccounts(debtors);
+        setSourceCounts((prev) => ({ ...prev, staff: debtors.length }));
       })
       .catch(() => setStaffAccounts([]))
       .finally(() => setIsLoadingStaffAccounts(false));
