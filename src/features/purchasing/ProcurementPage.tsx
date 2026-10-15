@@ -9,6 +9,7 @@ import PurchasingOverview from "./components/PurchasingOverview";
 import PurchasingTable from "./components/PurchasingTable";
 import CreatePoDialog from "./components/CreatePoDialog";
 import PaymentDialog from "./components/PaymentDialog";
+import DeleteDialog from "@/shared/components/DeleteDialog";
 import {
   PURCHASING_STATUS_FILTERS,
 } from "./data";
@@ -28,6 +29,7 @@ import {
   makePurchaseOrderPayment,
   receivePurchaseOrder,
   cancelPurchaseOrder,
+  deletePurchaseOrder,
 } from "./api/purchasingApi";
 import { showSuccessToast, showErrorToast } from "@/shared/utils/toast";
 
@@ -143,6 +145,7 @@ const ProcurementPage = () => {
   }, [isFetchingProducts]);
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<PurchaseOrder | null>(null);
   const [paymentTarget, setPaymentTarget] = useState<PurchaseOrder | null>(
     null,
   );
@@ -238,6 +241,18 @@ const ProcurementPage = () => {
     }
   };
 
+  const handleConfirmDeletePo = async () => {
+    if (!deleteTarget) return;
+    try {
+      await deletePurchaseOrder(String(deleteTarget.id));
+      showSuccessToast(t("Purchase order deleted"));
+      setDeleteTarget(null);
+      getPurchaseOrders();
+    } catch (error: any) {
+      showErrorToast(error?.response?.data?.message || t("Failed to delete purchase order"));
+    }
+  };
+
   const isLoading = !purchasingLoaded || !suppliersLoaded || !warehousesLoaded || !productsLoaded;
 
   if (isLoading) {
@@ -303,6 +318,7 @@ const ProcurementPage = () => {
         onMakePayment={setPaymentTarget}
         onMarkReceived={handleMarkReceived}
         onCancel={handleCancelPo}
+        onDelete={setDeleteTarget}
       />
 
       <CreatePoDialog
@@ -319,6 +335,13 @@ const ProcurementPage = () => {
         order={paymentTarget}
         onOpenChange={(open) => !open && setPaymentTarget(null)}
         onConfirm={handleConfirmPayment}
+      />
+
+      <DeleteDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}
+        data={{ item: deleteTarget?.poNumber ?? "", type: "purchase order" }}
+        onConfirm={handleConfirmDeletePo}
       />
     </>
   );

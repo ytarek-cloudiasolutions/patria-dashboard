@@ -281,6 +281,12 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   category: "فئة",
   "delivery zone": "منطقة توصيل",
   notification: "إشعار",
+  adjustment: "تسوية",
+  "purchase order": "أمر شراء",
+  "Adjustment deleted": "تم حذف التسوية",
+  "Failed to delete adjustment": "فشل حذف التسوية",
+  "Purchase order deleted": "تم حذف أمر الشراء",
+  "Failed to delete purchase order": "فشل حذف أمر الشراء",
 
   // Delete dialog — sentences
   "Are you sure you want to delete": "هل أنت متأكد أنك تريد حذف",

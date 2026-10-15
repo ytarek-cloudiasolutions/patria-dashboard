@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Copy } from "lucide-react";
+import { Copy, Trash2 } from "lucide-react";
 import { Badge } from "@/shared/components/ui/badge";
 import {
   Table,
@@ -10,8 +10,9 @@ import {
   TableRow,
 } from "@/shared/components/ui/table";
 import { useTranslation } from "@/shared/i18n/useTranslation";
-import { showSuccessToast } from "@/shared/utils/toast";
+import { showSuccessToast, showErrorToast } from "@/shared/utils/toast";
 import { api } from "@/config/api";
+import DeleteDialog from "@/shared/components/DeleteDialog";
 
 interface AdjustmentRecord {
   id: string;
@@ -31,8 +32,10 @@ interface AdjustmentsWastageViewProps {
 const AdjustmentsWastageView = ({ refreshKey }: AdjustmentsWastageViewProps) => {
   const { t } = useTranslation();
   const [records, setRecords] = useState<AdjustmentRecord[]>([]);
+  const [deleteTarget, setDeleteTarget] = useState<AdjustmentRecord | null>(null);
+  const [localRefreshKey, setLocalRefreshKey] = useState(0);
 
-  useEffect(() => {
+  const loadRecords = () => {
     api
       .get("/inventory/adjustments")
       .then((res) => {
@@ -53,11 +56,27 @@ const AdjustmentsWastageView = ({ refreshKey }: AdjustmentsWastageViewProps) => 
         );
       })
       .catch(() => setRecords([]));
-  }, [refreshKey]);
+  };
+
+  useEffect(() => {
+    loadRecords();
+  }, [refreshKey, localRefreshKey]);
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
     showSuccessToast(`${t("Copied")} ${text}`);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      await api.delete(`/inventory/adjustments/${deleteTarget.id}`);
+      showSuccessToast(t("Adjustment deleted"));
+      setDeleteTarget(null);
+      setLocalRefreshKey((k) => k + 1);
+    } catch {
+      showErrorToast(t("Failed to delete adjustment"));
+    }
   };
 
   return (
@@ -83,8 +102,11 @@ const AdjustmentsWastageView = ({ refreshKey }: AdjustmentsWastageViewProps) => 
             <TableHead className="px-6 py-4 text-center font-semibold text-[13px] uppercase tracking-[0.26px] text-[#28293D]">
               {t("NO. OF ITEMS")}
             </TableHead>
-            <TableHead className="pe-8 py-4 text-center font-semibold text-[13px] uppercase tracking-[0.26px] text-[#28293D]">
+            <TableHead className="px-6 py-4 text-center font-semibold text-[13px] uppercase tracking-[0.26px] text-[#28293D]">
               {t("STATUS")}
+            </TableHead>
+            <TableHead className="pe-8 py-4 text-center font-semibold text-[13px] uppercase tracking-[0.26px] text-[#28293D]">
+              {t("ACTIONS")}
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -92,7 +114,7 @@ const AdjustmentsWastageView = ({ refreshKey }: AdjustmentsWastageViewProps) => 
           {records.length === 0 ? (
             <TableRow className="border-none">
               <TableCell
-                colSpan={7}
+                colSpan={8}
                 className="py-12 text-center text-[14px] font-bold tracking-[0.28px] text-[#28293D]"
               >
                 {t("No Data Found")}
@@ -131,18 +153,35 @@ const AdjustmentsWastageView = ({ refreshKey }: AdjustmentsWastageViewProps) => 
                 <TableCell className="px-6 py-5 whitespace-nowrap text-center text-[14px] font-medium tracking-[0.28px] text-black">
                   {rec.noOfItems}
                 </TableCell>
-                <TableCell className="pe-8 py-5 whitespace-nowrap text-center">
+                <TableCell className="px-6 py-5 whitespace-nowrap text-center">
                   <div className="inline-flex justify-center">
                     <Badge className="h-[34px] w-[160px] justify-center rounded-[30px] bg-[#EDF4FB] text-[#3574FF] border border-[#004EF9] text-[13px] font-semibold tracking-[0.26px] shadow-none">
                       {t(rec.status)}
                     </Badge>
                   </div>
                 </TableCell>
+                <TableCell className="pe-8 py-5 whitespace-nowrap text-center">
+                  <button
+                    type="button"
+                    onClick={() => setDeleteTarget(rec)}
+                    title={t("Delete")}
+                    className="inline-flex items-center justify-center rounded-[8px] p-2 text-[#C90000] hover:bg-[#FFEBEE] transition-colors cursor-pointer"
+                  >
+                    <Trash2 className="size-4.5" />
+                  </button>
+                </TableCell>
               </TableRow>
             ))
           )}
         </TableBody>
       </Table>
+
+      <DeleteDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}
+        data={{ item: deleteTarget?.number ?? "", type: "adjustment" }}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 };

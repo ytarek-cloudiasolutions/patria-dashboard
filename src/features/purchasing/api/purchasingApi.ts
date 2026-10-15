@@ -13,6 +13,7 @@ const ENDPOINTS = {
   PURCHASE_ORDER_CANCEL: (id: string) => `/purchasing/${id}/cancel`,
   PURCHASE_ORDER_PAYMENT: (id: string) => `/purchasing/${id}/payment`,
   PURCHASE_ORDER_RECEIVE: (id: string) => `/purchasing/${id}/receive`,
+  PURCHASE_ORDER_BY_ID: (id: string) => `/purchasing/${id}`,
 };
 
 export const getPurchaseOrders = async (params?: GetPurchaseOrdersRequest) => {
@@ -60,6 +61,13 @@ export const receivePurchaseOrder = async (id: string) => {
   return response.data;
 };
 
+export const deletePurchaseOrder = async (id: string) => {
+  const response = await api.delete<{ message: string }>(
+    ENDPOINTS.PURCHASE_ORDER_BY_ID(id),
+  );
+  return response.data;
+};
+
 export const purchasingApi = {
   getPurchaseOrders,
   createPurchaseOrder,
@@ -67,5 +75,6 @@ export const purchasingApi = {
   cancelPurchaseOrder,
   makePurchaseOrderPayment,
   receivePurchaseOrder,
+  deletePurchaseOrder,
 };
 export default purchasingApi;

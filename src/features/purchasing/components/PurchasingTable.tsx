@@ -1,4 +1,4 @@
-import { Store } from "lucide-react";
+import { Store, Trash2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -18,6 +18,7 @@ interface PurchasingTableProps {
   onMakePayment: (order: PurchaseOrder) => void;
   onMarkReceived: (order: PurchaseOrder) => void;
   onCancel: (order: PurchaseOrder) => void;
+  onDelete: (order: PurchaseOrder) => void;
 }
 
 const formatEgp = (value: number) =>
@@ -39,24 +40,27 @@ const PoActions = ({
   onMakePayment,
   onMarkReceived,
   onCancel,
+  onDelete,
 }: {
   order: PurchaseOrder;
   onSubmitToSupplier: (o: PurchaseOrder) => void;
   onMakePayment: (o: PurchaseOrder) => void;
   onMarkReceived: (o: PurchaseOrder) => void;
   onCancel: (o: PurchaseOrder) => void;
+  onDelete: (o: PurchaseOrder) => void;
 }) => {
   const { t } = useTranslation();
   // Was previously always showing Submit + Make a payment regardless of
   // status — there was also no way at all to mark a PO received or
   // cancel it (both real backend endpoints existed and were unused).
-  if (order.status === "Paid" || order.status === "Canceled") {
-    return null;
-  }
+  // A Paid/Canceled order has no status-change actions left, but it still
+  // needs the Delete button below — a completed order had no way to be
+  // removed at all otherwise.
+  const hasStatusActions = order.status !== "Paid" && order.status !== "Canceled";
 
   return (
     <div className="flex flex-wrap gap-2">
-      {order.status === "Pending" && (
+      {hasStatusActions && order.status === "Pending" && (
         <DefaultButton
           data={{
             buttonText: t("Submit to Supplier"),
@@ -89,15 +93,25 @@ const PoActions = ({
           />
         </>
       )}
-      <DefaultButton
-        data={{
-          buttonText: t("Cancel"),
-          type: "button",
-          onClick: () => onCancel(order),
-          className:
-            "h-9 sm:h-9 px-3 sm:px-3 text-[12px] sm:text-[12px] gap-1 sm:gap-1 bg-[#FFECEC] text-[#C90000] rounded-[16px]",
-        }}
-      />
+      {hasStatusActions && (
+        <DefaultButton
+          data={{
+            buttonText: t("Cancel"),
+            type: "button",
+            onClick: () => onCancel(order),
+            className:
+              "h-9 sm:h-9 px-3 sm:px-3 text-[12px] sm:text-[12px] gap-1 sm:gap-1 bg-[#FFECEC] text-[#C90000] rounded-[16px]",
+          }}
+        />
+      )}
+      <button
+        type="button"
+        onClick={() => onDelete(order)}
+        title={t("Delete")}
+        className="inline-flex h-9 items-center justify-center rounded-[16px] px-2 text-[#C90000] hover:bg-[#FFEBEE] transition-colors cursor-pointer"
+      >
+        <Trash2 className="size-4.5" />
+      </button>
     </div>
   );
 };
@@ -142,6 +156,7 @@ const PurchasingTable = ({
   onMakePayment,
   onMarkReceived,
   onCancel,
+  onDelete,
 }: PurchasingTableProps) => {
   const { t } = useTranslation();
   return (
@@ -185,6 +200,7 @@ const PurchasingTable = ({
               onMakePayment={onMakePayment}
               onMarkReceived={onMarkReceived}
               onCancel={onCancel}
+              onDelete={onDelete}
             />
           </div>
         ))}
@@ -248,6 +264,7 @@ const PurchasingTable = ({
                       onMakePayment={onMakePayment}
                       onMarkReceived={onMarkReceived}
                       onCancel={onCancel}
+                      onDelete={onDelete}
                     />
                   </div>
                 </TableCell>
