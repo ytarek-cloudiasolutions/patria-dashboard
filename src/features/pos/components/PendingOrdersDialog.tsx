@@ -36,7 +36,13 @@ const PendingOrdersDialog = ({
     setLoading(true);
     api
       .get("/orders", {
-        params: { source: "pos", status: "pending", type: "dine_in", limit: 50 },
+        // `status: "pending"` is the order's workflow stage, not its
+        // payment — an order paid before `payOrder` started advancing
+        // status to "completed" is stuck at status "pending" forever with
+        // paymentStatus "paid", and without this filter it kept showing up
+        // here as a reopenable tab, loading a fully-paid order back into
+        // the cart and failing with "Order is already paid" at checkout.
+        params: { source: "pos", status: "pending", paymentStatus: "pending", type: "dine_in", limit: 50 },
       })
       .then((res) => {
         const raw: any[] = res.data?.data ?? res.data?.orders ?? [];
