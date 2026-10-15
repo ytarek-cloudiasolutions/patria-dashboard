@@ -8,6 +8,8 @@ export interface GetOrdersRequest {
   source?: string;
   search?: string;
   tableNumber?: number;
+  /** "any" fetches every order billed to any staff member's personal tab — the Orders page's Staff tab. */
+  billedToStaffId?: string;
 }
 
 export interface Pagination {

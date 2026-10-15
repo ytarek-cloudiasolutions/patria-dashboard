@@ -21,12 +21,8 @@ import DefaultButton from "@/shared/components/DefaultButton";
 import OverviewCard from "@/shared/components/OverviewCard";
 import DeleteDialog from "@/shared/components/DeleteDialog";
 import { ORDER_SOURCE_LABELS } from "../data";
-import { api } from "@/config/api";
-import type { EmployeeAccount } from "@/features/pos/types";
-import { formatEgp } from "@/features/pos/utils";
 import NewCallOrderDialog from "../components/NewCallOrderDialog";
 import OrderDetailsDialog from "../components/OrderDetailsDialog";
-import StaffAccountDetailsDialog from "../components/StaffAccountDetailsDialog";
 import OrdersFilters from "../components/OrdersFilters";
 import OrdersTable from "../components/OrdersTable";
 import type { Order, OrderSource, OrderStatus, OrderStatusFilter, ProductOption } from "../types";
@@ -34,10 +30,12 @@ import TabItem from "@/shared/components/TabItem";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { useOrders } from "../hooks/useOrders";
 import { mapOrderStatusToBackend } from "../utils/orderMappers";
+import { payOrder } from "../api/ordersApi";
 import { useProducts } from "@/features/products/hooks/useProducts";
 import { useLocations } from "@/features/locations/hooks/useLocations";
+import { usePermissions } from "@/features/auth/hooks/usePermissions";
 import type { CreateOrderRequest } from "../store/orderTypes";
-import { showSuccessToast } from "@/shared/utils/toast";
+import { showSuccessToast, showErrorToast } from "@/shared/utils/toast";
 import { getSocket } from "@/shared/lib/socket";
 import { playNotificationSound } from "@/shared/lib/notificationSound";
 
@@ -64,6 +62,7 @@ const OrdersPage = () => {
   } = useOrders();
   const { products, getProducts, isFetchingProducts } = useProducts();
   const { locations, getLocations, isFetchingLocations } = useLocations();
+  const { isSuperAdmin } = usePermissions();
 
   const [searchValue, setSearchValue] = useState("");
   const [selectedStatus, setSelectedStatus] =
@@ -75,18 +74,6 @@ const OrdersPage = () => {
     call: 0,
     staff: 0,
   });
-  // The "Staff" tab used to be wired to `source: "staff"` — a value that
-  // doesn't even exist in the backend's Order.source enum, so that fetch
-  // always came back empty and the tab fell back to hardcoded mock data
-  // (a fake "Layla Ibrahim" order repeated with different payment methods).
-  // "Staff orders" really means orders billed to a staff member's personal
-  // tab (Order.billedToStaffId), which GET /pos/employee-accounts already
-  // aggregates correctly (same endpoint the POS's own Employee Accounts
-  // panel uses) — so this tab now fetches and shows that real data instead
-  // of pretending to be a plain order list.
-  const [staffAccounts, setStaffAccounts] = useState<EmployeeAccount[]>([]);
-  const [isLoadingStaffAccounts, setIsLoadingStaffAccounts] = useState(false);
-  const [selectedStaffAccount, setSelectedStaffAccount] = useState<EmployeeAccount | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
   const [countsLoaded, setCountsLoaded] = useState(false);
@@ -139,65 +126,33 @@ const OrdersPage = () => {
     });
   }, []);
 
-  // Real per-staff tab data (see note above) — fetched once whenever the
-  // Staff tab is opened, same endpoint and shape the POS's own Employee
-  // Accounts dialog already uses.
-  useEffect(() => {
-    if (activeSource !== "staff") return;
-    setIsLoadingStaffAccounts(true);
-    api
-      .get("/pos/employee-accounts")
-      .then((res) => {
-        const raw: any[] = res.data?.accounts ?? res.data?.data?.accounts ?? [];
-        const accounts: EmployeeAccount[] = raw.map((a) => ({
-          id: a.staffId,
-          name: a.staffName || "Staff Member",
-          total: a.totalOwed || 0,
-          remaining: a.totalOwed || 0,
-          pendingOrders: (a.pendingOrders || []).map((o: any) => ({
-            id: o._id || o.id,
-            total: o.total || 0,
-          })),
-          payBook: (a.payBook || []).map((o: any) => ({
-            amount: o.total || 0,
-            method: (o.paymentMethod || "cash").toLowerCase() === "card" ? "Card" : "Cash",
-            date: o.createdAt ? new Date(o.createdAt).toLocaleDateString() : "",
-          })),
-        }));
-        // Only staff who actually owe something belong on this tab — same
-        // rule the POS's own Employee Accounts panel already applies.
-        const debtors = accounts.filter((a) => a.total > 0);
-        setStaffAccounts(debtors);
-        setSourceCounts((prev) => ({ ...prev, staff: debtors.length }));
-      })
-      .catch(() => setStaffAccounts([]))
-      .finally(() => setIsLoadingStaffAccounts(false));
-  }, [activeSource]);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isCallDialogOpen, setIsCallDialogOpen] = useState(false);
   const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isBulkDeleteOpen, setIsBulkDeleteOpen] = useState(false);
 
-  // Fetch orders when source, status or page changes
+  // "Staff" isn't a real `source` value in the backend — it's every order
+  // billed to ANY staff member's personal tab (Order.billedToStaffId),
+  // which `billedToStaffId=any` fetches regardless of source.
+  const buildOrdersQuery = useCallback(
+    () => ({
+      ...(activeSource === "staff" ? { billedToStaffId: "any" } : { source: activeSource }),
+      limit: 100,
+      page: currentPage,
+      status: selectedStatus === "All statuses" ? undefined : mapOrderStatusToBackend(selectedStatus),
+      search: searchValue.trim() || undefined,
+    }),
+    [activeSource, currentPage, selectedStatus, searchValue],
+  );
+
   // Fetch orders when source, status, search, or page changes
-  // "staff" has its own real data source (the employee-accounts effect
-  // above) — `source: "staff"` isn't a real backend value, so skip this
-  // fetch entirely for that tab instead of firing a request that can only
-  // ever come back empty.
   useEffect(() => {
-    if (activeSource === "staff") return;
     const delayDebounceId = setTimeout(() => {
-      getOrdersList({
-        source: activeSource,
-        limit: 100,
-        page: currentPage,
-        status: selectedStatus === "All statuses" ? undefined : mapOrderStatusToBackend(selectedStatus),
-        search: searchValue.trim() || undefined,
-      });
+      getOrdersList(buildOrdersQuery());
     }, 300);
     return () => clearTimeout(delayDebounceId);
-  }, [activeSource, selectedStatus, currentPage, searchValue, getOrdersList]);
+  }, [buildOrdersQuery, getOrdersList]);
 
   // Live updates: play a sound and refresh the list when a new order comes in
   // or an existing order gets new items sent to the kitchen.
@@ -205,14 +160,7 @@ const OrdersPage = () => {
     const socket = getSocket();
     const handleUpdate = () => {
       playNotificationSound();
-      if (activeSource === "staff") return;
-      getOrdersList({
-        source: activeSource,
-        limit: 100,
-        page: currentPage,
-        status: selectedStatus === "All statuses" ? undefined : mapOrderStatusToBackend(selectedStatus),
-        search: searchValue.trim() || undefined,
-      });
+      getOrdersList(buildOrdersQuery());
     };
 
     socket.on("newOrder", handleUpdate);
@@ -222,13 +170,10 @@ const OrdersPage = () => {
       socket.off("newOrder", handleUpdate);
       socket.off("orderUpdated", handleUpdate);
     };
-  }, [activeSource, selectedStatus, currentPage, getOrdersList]);
+  }, [buildOrdersQuery, getOrdersList]);
 
-  // Remember the count for each source tab after load — staff's count comes
-  // from the employee-accounts effect instead, since no order fetch runs
-  // for that tab (see above).
+  // Remember the count for each source tab after load.
   useEffect(() => {
-    if (activeSource === "staff") return;
     if (!loading.fetch) {
       setSourceCounts((prev) => ({
         ...prev,
@@ -307,9 +252,6 @@ const OrdersPage = () => {
       });
   }, [products]);
 
-  // The Staff tab no longer uses the generic order list/table at all (see
-  // the real employee-accounts fetch above), so this only ever needs to be
-  // the plain fetched orders now.
   const filteredOrders = orders;
 
   const summary = useMemo(() => {
@@ -335,31 +277,28 @@ const OrdersPage = () => {
     return { revenue, totalOrders, pending, delivered };
   }, [orders, pagination]);
 
-  // Real numbers derived from the same /pos/employee-accounts data the POS's
-  // own Employee Accounts panel uses — see the fetch effect above.
+  // Real numbers derived straight from the orders billed to staff tabs (see
+  // the unified fetch above) — previously computed from hardcoded mock data.
   const staffSummary = useMemo(() => {
-    const revenue = staffAccounts.reduce(
-      (sum, a) => sum + a.payBook.reduce((s, e) => s + e.amount, 0),
-      0
-    );
-    const totalStaffOrders = staffAccounts.reduce((sum, a) => sum + a.pendingOrders.length, 0);
-    const totalTabAmount = staffAccounts.reduce((sum, a) => sum + a.total, 0);
-    const employeeCount = staffAccounts.length;
+    const list = activeSource === "staff" ? orders : [];
+    const isPaid = (o: Order) =>
+      (o.staffStatus || (o.paymentState === "Paid" ? "Paid" : "Charged to tab")) === "Paid";
+    const revenue = list.reduce((sum, o) => sum + (isPaid(o) ? o.total : 0), 0);
+    const totalStaffOrders = pagination?.total ?? list.length;
+    const totalTabAmount = list.reduce((sum, o) => sum + (isPaid(o) ? 0 : o.total), 0);
+    const employeeCount = new Set(
+      list.map((o) => o.billedToStaffId || o.staffName).filter(Boolean)
+    ).size;
 
-    return {
-      revenue,
-      totalStaffOrders,
-      totalTabAmount,
-      employeeCount,
-    };
-  }, [staffAccounts]);
+    return { revenue, totalStaffOrders, totalTabAmount, employeeCount };
+  }, [activeSource, orders, pagination]);
 
   const tabCounts = useMemo(() => ({
     application: activeSource === "application" ? (pagination?.total ?? orders.length) : sourceCounts.application,
     pos: activeSource === "pos" ? (pagination?.total ?? orders.length) : sourceCounts.pos,
     call: activeSource === "call" ? (pagination?.total ?? orders.length) : sourceCounts.call,
-    staff: activeSource === "staff" ? staffAccounts.length : sourceCounts.staff,
-  }), [orders, pagination, activeSource, sourceCounts, staffAccounts]);
+    staff: activeSource === "staff" ? (pagination?.total ?? orders.length) : sourceCounts.staff,
+  }), [orders, pagination, activeSource, sourceCounts]);
 
   const sources: OrderSource[] = ["application", "pos", "call", "staff"];
 
@@ -378,6 +317,25 @@ const OrdersPage = () => {
     updateOrderStatusValue({ orderId, status });
     if (selectedOrder?.id === orderId) {
       setSelectedOrder({ ...selectedOrder, status });
+    }
+  };
+
+  // Marking a staff tab order "Paid" actually settles it (there's no
+  // backend support for reversing a paid order back to "Charged to tab"),
+  // and it's restricted to super admins — same bar as any other action that
+  // clears someone else's running balance.
+  const handleUpdateStaffStatus = async (orderId: string, status: "Charged to tab" | "Paid") => {
+    if (status !== "Paid") return;
+    if (!isSuperAdmin) {
+      showErrorToast(t("Only a super admin can settle a staff order"));
+      return;
+    }
+    try {
+      await payOrder(orderId, "cash");
+      showSuccessToast(t("Order marked as paid"));
+      getOrdersList(buildOrdersQuery());
+    } catch {
+      showErrorToast(t("Failed to settle order"));
     }
   };
 
@@ -599,102 +557,22 @@ const OrdersPage = () => {
           </div>
         )}
 
-        {activeSource === "staff" ? (
-          <div className="space-y-4">
-            {isLoadingStaffAccounts ? (
-              <p className="py-8 text-center text-[14px] text-[#8B8B8B]">
-                {t("Loading staff accounts...")}
-              </p>
-            ) : staffAccounts.length === 0 ? (
-              <p className="py-8 text-center text-[14px] text-[#8B8B8B]">
-                {t("No employee accounts found")}
-              </p>
-            ) : (
-              staffAccounts.map((account) => (
-                <div
-                  key={account.id}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => setSelectedStaffAccount(account)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") setSelectedStaffAccount(account);
-                  }}
-                  className="flex cursor-pointer flex-col gap-6 rounded-[20px] border border-[#CACBD4] bg-[#FAFAF7] p-6 transition-colors hover:bg-[#F5F0EA]"
-                >
-                  <div className="flex items-center justify-between">
-                    <p className="text-[16px] font-semibold tracking-[0.32px] text-black">
-                      {account.name}
-                    </p>
-                    {account.pendingOrders.length > 0 && (
-                      <div className="flex items-center justify-center rounded-[30px] border border-[#C7861E] bg-[rgba(254,154,0,0.10)] px-3 py-1">
-                        <span className="text-[11px] font-semibold tracking-[0.22px] text-[#C7861E]">
-                          {account.pendingOrders.length} {t("unpaid orders")}
-                        </span>
-                      </div>
-                    )}
-                  </div>
+        <OrdersTable
+          orders={filteredOrders}
+          selectedIds={selectedIds}
+          onToggleSelected={toggleSelected}
+          onToggleSelectAll={toggleSelectAll}
+          onViewOrder={setSelectedOrder}
+          onUpdateStatus={updateStatus}
+          onAssignDriver={assignDriver}
+          onStatusMenuOpenChange={setIsStatusMenuOpen}
+          isPos={activeSource === "pos"}
+          isStaffTab={activeSource === "staff"}
+          onUpdateStaffStatus={handleUpdateStaffStatus}
+        />
 
-                  <div className="flex items-center justify-between">
-                    <div className="flex flex-col gap-1">
-                      <p className="text-[11px] font-semibold leading-[11.77px] tracking-[0.22px] text-black">
-                        {t("Total")}
-                      </p>
-                      <p className="text-[16px] font-normal leading-[22.40px] tracking-[0.32px] text-black">
-                        {formatEgp(account.total)}
-                      </p>
-                    </div>
-                    <div className="flex flex-col gap-1 text-end">
-                      <p className="text-[11px] font-semibold leading-[11.77px] tracking-[0.22px] text-black">
-                        {t("Remaining")}
-                      </p>
-                      <p className="text-[16px] font-normal leading-[22.40px] tracking-[0.32px] text-black">
-                        {formatEgp(account.remaining)}
-                      </p>
-                    </div>
-                  </div>
-
-                  {account.payBook.length > 0 && (
-                    <div className="flex flex-col gap-2 rounded-[16px] border border-dashed border-[#8F6900] bg-[#FAFAF7] px-5 py-4">
-                      <p className="text-[13px] font-medium tracking-[0.26px] text-black">
-                        {t("pay book")}:
-                      </p>
-                      <div className="flex max-h-[120px] flex-col gap-2 overflow-y-auto pe-1">
-                        {account.payBook.map((entry, index) => (
-                          <div
-                            key={index}
-                            className="flex items-center gap-2 text-[11px] font-medium tracking-[0.22px] text-[#595959]"
-                          >
-                            <span className="inline-block size-1 shrink-0 rounded-full bg-[#595959]" />
-                            <span>
-                              {formatEgp(entry.amount)} - {t(entry.method)} - {entry.date}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))
-            )}
-          </div>
-        ) : (
-          <OrdersTable
-            orders={filteredOrders}
-            selectedIds={selectedIds}
-            onToggleSelected={toggleSelected}
-            onToggleSelectAll={toggleSelectAll}
-            onViewOrder={setSelectedOrder}
-            onUpdateStatus={updateStatus}
-            onAssignDriver={assignDriver}
-            onStatusMenuOpenChange={setIsStatusMenuOpen}
-            isPos={activeSource === "pos"}
-          />
-        )}
-
-        {/* Pagination Controls — not applicable to the Staff tab, which
-            isn't paginated (employee-accounts returns every active account
-            at once) and no longer fetches orders at all. */}
-        {activeSource !== "staff" && pagination && (pagination.totalPages || pagination.pages || 1) > 1 && (
+        {/* Pagination Controls */}
+        {pagination && (pagination.totalPages || pagination.pages || 1) > 1 && (
           <div className="mt-6 flex items-center justify-center gap-2">
             <button
               type="button"
@@ -739,22 +617,7 @@ const OrdersPage = () => {
         }}
         onOrderUpdated={(updated) => {
           setSelectedOrder(updated);
-          getOrdersList({
-            source: activeSource,
-            limit: 100,
-            page: currentPage,
-            status: selectedStatus === "All statuses" ? undefined : mapOrderStatusToBackend(selectedStatus),
-            search: searchValue.trim() || undefined,
-          });
-        }}
-      />
-
-      <StaffAccountDetailsDialog
-        open={selectedStaffAccount !== null}
-        staffId={selectedStaffAccount?.id ?? null}
-        staffName={selectedStaffAccount?.name ?? ""}
-        onOpenChange={(open) => {
-          if (!open) setSelectedStaffAccount(null);
+          getOrdersList(buildOrdersQuery());
         }}
       />
 
