@@ -218,11 +218,28 @@ const DEFAULT_PRODUCTS: ProductModalItem[] = [
 interface AvailabilityModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Called whenever products are (re)loaded with a computed global availability label. */
+  onSummaryChange?: (summary: string) => void;
 }
+
+/** Derive a single global availability summary label from a flat product list. */
+const computeAvailabilitySummary = (products: import("@/features/products/types").Product[]): string => {
+  if (products.length === 0) return "All Active";
+  const active = products.filter((p) => p.isActive !== false && p.available !== false);
+  const hiddenCount = products.length - active.length;
+  if (hiddenCount > 0) return `${hiddenCount} Hidden`;
+  const posOnly = active.filter((p) => p.showInPos && !p.showInApp).length;
+  const appOnly = active.filter((p) => p.showInApp && !p.showInPos).length;
+  if (posOnly > 0 && appOnly > 0) return `${appOnly} App Only \u2022 ${posOnly} POS Only`;
+  if (posOnly > 0) return "POS Only";
+  if (appOnly > 0) return "App Only";
+  return "All Active";
+};
 
 export const AvailabilityModal: React.FC<AvailabilityModalProps> = ({
   open,
   onOpenChange,
+  onSummaryChange,
 }) => {
   const { t } = useTranslation();
   const { categories, getCategories } = useCategories();
@@ -260,12 +277,13 @@ export const AvailabilityModal: React.FC<AvailabilityModalProps> = ({
         [];
       const mapped = mapProducts(Array.isArray(rawList) ? rawList : []);
       setAllProducts(mapped);
+      onSummaryChange?.(computeAvailabilitySummary(mapped));
     } catch (err) {
       console.error("Failed to load products/categories in AvailabilityModal", err);
     } finally {
       setIsFetching(false);
     }
-  }, [getCategories]);
+  }, [getCategories, onSummaryChange]);
 
   useEffect(() => {
     if (open) {
@@ -310,6 +328,8 @@ export const AvailabilityModal: React.FC<AvailabilityModalProps> = ({
             ).length;
 
             if (hiddenCount > 0) realStatus = `${hiddenCount} Hidden`;
+            else if (posCount > 0 && appCount > 0)
+              realStatus = `${appCount} App Only • ${posCount} POS Only`;
             else if (posCount > 0) realStatus = `${posCount} POS Only`;
             else if (appCount > 0) realStatus = `${appCount} App Only`;
             else realStatus = "All Active";
@@ -599,16 +619,30 @@ export const AvailabilityModal: React.FC<AvailabilityModalProps> = ({
 
                   {/* Bottom status row */}
                   <div className="self-stretch flex justify-between items-center">
-                    <div className="py-1 flex justify-center items-center gap-2">
-                      <div className={`size-1.5 rounded-full ${getStatusDotColor(cat.status)}`} />
-                      <div
-                        className={`text-xs font-semibold font-['Montserrat'] tracking-tight ${getStatusTextColor(
-                          cat.status
-                        )}`}
-                      >
-                        {t(cat.status)}
+                    {/* Mixed status: render two separate dot+label segments */}
+                    {cat.status.includes("App Only") && cat.status.includes("POS Only") ? (
+                      <div className="py-1 flex items-center gap-3">
+                        {cat.status.split(" \u2022 ").map((segment) => (
+                          <div key={segment} className="flex items-center gap-1.5">
+                            <div className={`size-1.5 rounded-full shrink-0 ${getStatusDotColor(segment)}`} />
+                            <span className={`text-xs font-semibold font-['Montserrat'] tracking-tight ${getStatusTextColor(segment)}`}>
+                              {t(segment)}
+                            </span>
+                          </div>
+                        ))}
                       </div>
-                    </div>
+                    ) : (
+                      <div className="py-1 flex justify-center items-center gap-2">
+                        <div className={`size-1.5 rounded-full ${getStatusDotColor(cat.status)}`} />
+                        <div
+                          className={`text-xs font-semibold font-['Montserrat'] tracking-tight ${getStatusTextColor(
+                            cat.status
+                          )}`}
+                        >
+                          {t(cat.status)}
+                        </div>
+                      </div>
+                    )}
                     <ArrowRight className="size-3.5 text-[#8F6900]" />
                   </div>
                 </div>

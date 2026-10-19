@@ -139,6 +139,7 @@ export const PosViewDashboard: React.FC<PosViewDashboardProps> = ({
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [isAvailabilityOpen, setIsAvailabilityOpen] = useState(false);
+  const [availabilitySummary, setAvailabilitySummary] = useState<string | null>(null);
 
   // Fetch real tables and reservations
   const { tables, getTables, reservations, getReservations } = useTables();
@@ -229,6 +230,7 @@ export const PosViewDashboard: React.FC<PosViewDashboardProps> = ({
       <AvailabilityModal
         open={isAvailabilityOpen}
         onOpenChange={setIsAvailabilityOpen}
+        onSummaryChange={setAvailabilitySummary}
       />
 
       {/* 4 Main POS Cards Grid */}
