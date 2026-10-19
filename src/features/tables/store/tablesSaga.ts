@@ -199,6 +199,26 @@ function* handleUpdateReservationStatus(
         message: response.message || "Status updated successfully",
       }),
     );
+
+    // A reservation status can change the availability of its assigned
+    // table. Refresh the Tables endpoint after the reservation update has
+    // succeeded so the table cards immediately reflect the server state.
+    try {
+      const tablesResponse: GetTablesResponse = yield call(getTables);
+      const tablesBody = (tablesResponse as any).data || tablesResponse;
+      const tablesList = tablesBody.data || tablesBody.tables || tablesBody || [];
+
+      yield put(
+        tablesActions.getTablesSuccess({
+          tables: tablesList,
+          pagination: tablesBody.pagination || null,
+          message: tablesResponse.message || "Success",
+        }),
+      );
+    } catch {
+      // The reservation status was saved successfully. Keep that update even
+      // if the follow-up tables refresh is temporarily unavailable.
+    }
   } catch (error) {
     const errorMessage = getTableErrorMessage(error);
     yield call(showErrorToast, errorMessage);

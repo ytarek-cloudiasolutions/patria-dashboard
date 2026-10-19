@@ -139,7 +139,7 @@ const OrdersTable = ({
 
               const rawPayment = translatePaymentMethod(order.paymentMethod, t);
               let displayPayment = rawPayment;
-              if (isPos) {
+              if (isPos || isStaffTab) {
                 if (rawPayment.toLowerCase().includes("cash on delivery") || rawPayment.toLowerCase() === "cod") {
                   displayPayment = t("Cash");
                 }

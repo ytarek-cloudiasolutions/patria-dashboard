@@ -52,47 +52,49 @@ const TableOrdersDialog = ({ table, onOpenChange }: TableOrdersDialogProps) => {
     <Dialog open={!!table} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[696px] overflow-y-auto rounded-[12px] border border-[#CACBD4] p-6 shadow-[0px_4px_6px_-4px_rgba(0,0,0,0.10),0px_10px_15px_-3px_rgba(0,0,0,0.10)] sm:max-w-[696px]"
+        className="flex h-[92vh] max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[696px] flex-col overflow-hidden rounded-[12px] border border-[#CACBD4] p-6 shadow-[0px_4px_6px_-4px_rgba(0,0,0,0.10),0px_10px_15px_-3px_rgba(0,0,0,0.10)] sm:max-w-[696px]"
       >
-        <DialogTitle className="text-[24px] font-semibold tracking-[0.48px] text-black">
+        <DialogTitle className="shrink-0 text-[24px] font-semibold tracking-[0.48px] text-black">
           {formatTableTitle(table, t)}
         </DialogTitle>
 
-        {isLoading ? (
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="size-8 animate-spin text-primary" />
-          </div>
-        ) : orders.length === 0 ? (
-          <p className="py-8 text-center text-[14px] text-[#8B8B8B]">
-            {t("No orders for this table yet.")}
-          </p>
-        ) : (
-          <div className="flex flex-col gap-3">
-            {orders.map((order) => (
-              <div
-                key={order.id}
-                className="flex items-center justify-between rounded-[12px] border border-[#E5E5E5] px-4 py-3"
-              >
-                <div className="flex flex-col gap-1">
-                  <span className="text-[14px] font-semibold text-[#28293D]">
-                    #{order.orderId || order.id}
-                  </span>
-                  <span className="text-[12px] text-[#8B8B8B]">
-                    {order.date} · {order.time}
-                  </span>
+        <div className="min-h-0 flex-1 overflow-y-auto py-4 pe-2">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="size-8 animate-spin text-primary" />
+            </div>
+          ) : orders.length === 0 ? (
+            <p className="py-8 text-center text-[14px] text-[#8B8B8B]">
+              {t("No orders for this table yet.")}
+            </p>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {orders.map((order) => (
+                <div
+                  key={order.id}
+                  className="flex items-center justify-between rounded-[12px] border border-[#E5E5E5] px-4 py-3"
+                >
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[14px] font-semibold text-[#28293D]">
+                      #{order.orderId || order.id}
+                    </span>
+                    <span className="text-[12px] text-[#8B8B8B]">
+                      {order.date} · {order.time}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[14px] font-semibold text-[#28293D]">
+                      {formatCurrency(order.total)}
+                    </span>
+                    <OrdersStatusBadge status={order.status} />
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-[14px] font-semibold text-[#28293D]">
-                    {formatCurrency(order.total)}
-                  </span>
-                  <OrdersStatusBadge status={order.status} />
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
 
-        <div className="mt-4 flex flex-col gap-6">
+        <div className="shrink-0 flex flex-col gap-6 pt-4">
           <div className="w-full border-t border-[#CACBD4]" />
           <div className="flex justify-end">
             <button

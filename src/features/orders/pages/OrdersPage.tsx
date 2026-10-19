@@ -59,6 +59,9 @@ const OrdersPage = () => {
     createNewOrder,
     deleteOrderValue,
     isFetchingOrders,
+    isCreatingOrder,
+    successMessage,
+    errors,
   } = useOrders();
   const { products, getProducts, isFetchingProducts } = useProducts();
   const { locations, getLocations, isFetchingLocations } = useLocations();
@@ -84,6 +87,28 @@ const OrdersPage = () => {
   const productsStarted = useRef(isFetchingProducts);
   const locationsStarted = useRef(isFetchingLocations);
   const ordersStarted = useRef(isFetchingOrders);
+  const shouldRefreshCountsAfterCallOrder = useRef(false);
+
+  const refreshSourceCounts = useCallback(async () => {
+    try {
+      const { api } = await import("@/config/api");
+      const res = await api.get("/orders/counts");
+      const counts = res.data as Partial<Record<OrderSource, number>>;
+      setSourceCounts((previous) => ({
+        ...previous,
+        application: counts.application ?? previous.application,
+        pos: counts.pos ?? previous.pos,
+        call: counts.call ?? previous.call,
+        // The backend can add this field without requiring a frontend
+        // change. Until then, retain the current staff badge value.
+        staff: counts.staff ?? previous.staff,
+      }));
+    } catch {
+      // Keep the last confirmed badge values if the refresh fails.
+    } finally {
+      setCountsLoaded(true);
+    }
+  }, []);
 
   useEffect(() => {
     if (isFetchingProducts) {
@@ -109,22 +134,29 @@ const OrdersPage = () => {
     }
   }, [isFetchingOrders]);
 
-  // Fetch all source counts on mount for accurate initial badges
+  // Badges are deliberately sourced from the aggregate counts endpoint, not
+  // from the currently displayed list. The list still contains the previous
+  // tab's orders for a render while the next request is being scheduled.
   useEffect(() => {
-    import("@/config/api").then(({ api }) => {
-      api.get("/orders/counts").then((res) => {
-        const c = res.data as { application?: number; pos?: number; call?: number };
-        setSourceCounts((prev) => ({
-          ...prev,
-          application: c.application ?? 0,
-          pos: c.pos ?? 0,
-          call: c.call ?? 0,
-        }));
-      })
-        .catch(() => { })
-        .finally(() => setCountsLoaded(true));
-    });
-  }, []);
+    void refreshSourceCounts();
+  }, [refreshSourceCounts]);
+
+  // Refresh the aggregate badges only after this call-order request has
+  // succeeded. This ensures the just-created order is included in the API
+  // response rather than refreshing before persistence finishes.
+  useEffect(() => {
+    if (!shouldRefreshCountsAfterCallOrder.current || isCreatingOrder) return;
+
+    if (errors.create) {
+      shouldRefreshCountsAfterCallOrder.current = false;
+      return;
+    }
+
+    if (successMessage) {
+      shouldRefreshCountsAfterCallOrder.current = false;
+      void refreshSourceCounts();
+    }
+  }, [errors.create, isCreatingOrder, refreshSourceCounts, successMessage]);
 
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isCallDialogOpen, setIsCallDialogOpen] = useState(false);
@@ -171,16 +203,6 @@ const OrdersPage = () => {
       socket.off("orderUpdated", handleUpdate);
     };
   }, [buildOrdersQuery, getOrdersList]);
-
-  // Remember the count for each source tab after load.
-  useEffect(() => {
-    if (!loading.fetch) {
-      setSourceCounts((prev) => ({
-        ...prev,
-        [activeSource]: pagination?.total ?? orders.length,
-      }));
-    }
-  }, [orders, activeSource, pagination, loading.fetch]);
 
   // Fetch products and locations for call orders
   useEffect(() => {
@@ -252,7 +274,16 @@ const OrdersPage = () => {
       });
   }, [products]);
 
-  const filteredOrders = orders;
+  // Staff-tab purchases are created through the POS, so the backend's POS
+  // source query can include them. They belong exclusively in the Staff tab
+  // in this screen and must not be rendered alongside walk-in POS orders.
+  const filteredOrders = useMemo(
+    () =>
+      activeSource === "pos"
+        ? orders.filter((order) => !order.isStaffOrder && !order.billedToStaffId)
+        : orders,
+    [activeSource, orders],
+  );
 
   const summary = useMemo(() => {
     // Revenue must only count money actually collected — this used to add
@@ -260,22 +291,24 @@ const OrdersPage = () => {
     // only excluding Cancelled, same class of bug already fixed on the
     // backend's /reports/overview (this card is computed client-side from
     // the orders list instead, so it needed its own fix).
-    const revenue = orders.reduce(
+    const revenue = filteredOrders.reduce(
       (sum, o) => sum + (o.paymentState === "Paid" && o.status !== "Cancelled" ? o.total : 0),
       0
     );
-    const totalOrders = pagination?.total ?? orders.length;
-    const pending = orders.filter(
+    const totalOrders = activeSource === "pos"
+      ? filteredOrders.length
+      : pagination?.total ?? filteredOrders.length;
+    const pending = filteredOrders.filter(
       (o) =>
         o.status === "Pending" ||
         o.status === "Preparing" ||
         o.status === "Confirmed" ||
         o.status === "On The Way"
     ).length;
-    const delivered = orders.filter((o) => o.status === "Delivered").length;
+    const delivered = filteredOrders.filter((o) => o.status === "Delivered").length;
 
     return { revenue, totalOrders, pending, delivered };
-  }, [orders, pagination]);
+  }, [activeSource, filteredOrders, pagination]);
 
   // Real numbers derived straight from the orders billed to staff tabs (see
   // the unified fetch above) — previously computed from hardcoded mock data.
@@ -292,13 +325,6 @@ const OrdersPage = () => {
 
     return { revenue, totalStaffOrders, totalTabAmount, employeeCount };
   }, [activeSource, orders, pagination]);
-
-  const tabCounts = useMemo(() => ({
-    application: activeSource === "application" ? (pagination?.total ?? orders.length) : sourceCounts.application,
-    pos: activeSource === "pos" ? (pagination?.total ?? orders.length) : sourceCounts.pos,
-    call: activeSource === "call" ? (pagination?.total ?? orders.length) : sourceCounts.call,
-    staff: activeSource === "staff" ? (pagination?.total ?? orders.length) : sourceCounts.staff,
-  }), [orders, pagination, activeSource, sourceCounts]);
 
   const sources: OrderSource[] = ["application", "pos", "call", "staff"];
 
@@ -375,6 +401,13 @@ const OrdersPage = () => {
   };
 
   const handleCreateOrder = (order: Order) => {
+    // A call order may be created after looking up a customer. Do not leave
+    // that customer name as an active Orders-list filter once the dialog
+    // closes, otherwise the user sees a filtered Call tab unexpectedly.
+    setSearchValue("");
+    setCurrentPage(1);
+    shouldRefreshCountsAfterCallOrder.current = true;
+
     const requestItems = order.items.map((item) => ({
       productId: String(item.productId || item.id),
       quantity: item.quantity,
@@ -470,7 +503,7 @@ const OrdersPage = () => {
               value={source}
               label={t(ORDER_SOURCE_LABELS[source])}
               icon={SOURCE_ICONS[source]}
-              count={tabCounts[source]}
+              count={sourceCounts[source]}
               isActive={source === activeSource}
               onClick={(value) => handleSourceChange(value as OrderSource)}
             />

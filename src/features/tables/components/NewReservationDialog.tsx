@@ -159,7 +159,7 @@ const NewReservationDialog = ({
                   data={{
                     id: "res-email",
                     label: { htmlFor: "res-email", labelText: t("Email Address") },
-                    placeholder: t("Full Name"),
+                    placeholder: t("Email Address"),
                     inputProps: {
                       type: "email",
                       value: form.email,

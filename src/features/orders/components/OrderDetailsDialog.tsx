@@ -487,6 +487,13 @@ const OrderDetailsDialog = ({
                   </span>
                 </div>
 
+                <div className="flex items-center justify-between text-[#23252A]">
+                  <span className="font-medium leading-[17.60px]">{t("Tax (14%)")}:</span>
+                  <span className="font-semibold tracking-[0.32px] text-[#333333]">
+                    {formatCurrency(taxVal)}
+                  </span>
+                </div>
+
                 {order.deliveryFee > 0 && (
                   <div className="flex items-center justify-between text-[#23252A]">
                     <span className="font-medium leading-[17.60px]">{t("Delivery Fees")}:</span>
