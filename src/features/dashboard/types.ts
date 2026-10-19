@@ -44,6 +44,6 @@ export interface LiveOrder {
   amount: number;
   time: string;
   status: OrderStatus;
-  orderType?: "Dine In" | "Takeaway" | "Delivery" | "Call";
+  orderType?: "Dine In" | "Takeaway" | "Delivery" | "Call" | "Application";
 }
 

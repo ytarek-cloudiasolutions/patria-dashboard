@@ -72,13 +72,15 @@ const mapOrderStatus = (s: string): LiveOrder["status"] => {
   }
 };
 
-// `type` (dine_in/takeaway/delivery) is the fulfillment method, not who
-// placed the order — a call-center order is still typically "takeaway"
-// by type, so showing only the type badge made a call-placed order look
-// identical to one placed through the app. `source` is the actual signal
-// for "this came in via a phone call" and takes priority when present.
+// `type` (dine_in/takeaway/delivery) is the fulfillment method, whereas
+// `source` (pos/application/call) indicates where the order originated.
+// For incoming orders from "call" or "application", we display the source
+// ("Call" or "Application"). For POS orders, we display the fulfillment
+// type ("Takeaway" or "Dine In").
 const mapOrderType = (t: string, source?: string): LiveOrder["orderType"] => {
-  if ((source ?? "").toLowerCase().startsWith("call")) return "Call";
+  const s = (source ?? "").toLowerCase();
+  if (s.startsWith("call")) return "Call";
+  if (s.startsWith("app")) return "Application";
   const type = (t ?? "").toLowerCase().replace(/[-_]/g, " ");
   if (type.includes("takeaway") || type.includes("take out") || type.includes("takeout")) return "Takeaway";
   if (type.includes("delivery")) return "Delivery";
@@ -120,32 +122,16 @@ const DashboardPage = () => {
     openShifts?: number;
     staffCount?: number;
   }>({});
-  const [orderStatusCounts, setOrderStatusCounts] = useState<{
-    pending?: number;
-    preparing?: number;
-    onTheWay?: number;
-  }>({});
 
   useEffect(() => {
     const load = async () => {
       setIsLoading(true);
       try {
-        const [overviewRes, ordersRes, pendingCountRes, preparingCountRes, readyCountRes] = await Promise.all([
+        const [overviewRes, ordersRes] = await Promise.all([
           api.get("/reports/overview", {
             params: { startDate: dateRange.from, endDate: dateRange.to },
           }),
           api.get("/orders", { params: { limit: 6, sort: "-createdAt" } }),
-          // The POS view's "Pending/Preparing/On The Way" tiles used to be
-          // inferred from this same 6-order preview list above — with a
-          // limit of 6 across EVERY source, a handful of recent app orders
-          // crowds out POS/call orders entirely, so those sources never
-          // showed up in the counts even when they had active orders. These
-          // three ask the real per-status count directly (status filter +
-          // limit:1, reading `pagination.total`, which is a true
-          // countDocuments() regardless of source or the limit).
-          api.get("/orders", { params: { status: "pending", limit: 1 } }),
-          api.get("/orders", { params: { status: "preparing", limit: 1 } }),
-          api.get("/orders", { params: { status: "ready", limit: 1 } }),
         ]);
 
         const ov = overviewRes.data;
@@ -293,13 +279,6 @@ const DashboardPage = () => {
           staffCount: ov.staffCount ?? 0,
         });
 
-        const statusTotal = (res: typeof pendingCountRes) =>
-          res.data?.pagination?.total ?? res.data?.data?.pagination?.total ?? 0;
-        setOrderStatusCounts({
-          pending: statusTotal(pendingCountRes),
-          preparing: statusTotal(preparingCountRes),
-          onTheWay: statusTotal(readyCountRes),
-        });
 
       } catch {
         // silently fail — static fallback via initial empty state
@@ -430,7 +409,6 @@ const DashboardPage = () => {
           orders={liveOrders}
           onOrderClick={handleOrderClick}
           summary={posSummary}
-          orderStatusCounts={orderStatusCounts}
         />
       ) : (
         <>

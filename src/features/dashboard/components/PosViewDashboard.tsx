@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { useTables } from "@/features/tables/hooks/useTables";
+import { api } from "@/config/api";
 import type { LiveOrder, OrderStatus } from "../types";
 import { AvailabilityModal } from "./AvailabilityModal";
 
@@ -148,6 +149,47 @@ export const PosViewDashboard: React.FC<PosViewDashboardProps> = ({
     getReservations({ date: today });
   }, [getTables, getReservations]);
 
+  // Fetch real per-status order counts across all sources (app/pos/call) directly in POS view
+  const [internalStatusCounts, setInternalStatusCounts] = useState<{
+    pending?: number;
+    preparing?: number;
+    onTheWay?: number;
+  } | null>(null);
+
+  useEffect(() => {
+    if (orderStatusCounts) return;
+
+    let cancelled = false;
+    const fetchCounts = async () => {
+      try {
+        const [pendingRes, preparingRes, readyRes] = await Promise.all([
+          api.get("/orders", { params: { status: "pending", limit: 1 } }),
+          api.get("/orders", { params: { status: "preparing", limit: 1 } }),
+          api.get("/orders", { params: { status: "ready", limit: 1 } }),
+        ]);
+
+        if (cancelled) return;
+
+        const statusTotal = (res: any) =>
+          res.data?.pagination?.total ?? res.data?.data?.pagination?.total ?? 0;
+
+        setInternalStatusCounts({
+          pending: statusTotal(pendingRes),
+          preparing: statusTotal(preparingRes),
+          onTheWay: statusTotal(readyRes),
+        });
+      } catch (err) {
+        console.error("Failed to fetch order status counts:", err);
+      }
+    };
+
+    fetchCounts();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [orderStatusCounts]);
+
   // Real tables calculations with fallbacks matching Figma
   const totalTablesCount = tables.length > 0 ? tables.length : 12;
   const availableCount = tables.length > 0
@@ -167,18 +209,14 @@ export const PosViewDashboard: React.FC<PosViewDashboardProps> = ({
     : 100;
   const occupiedPercentage = 100 - freePercentage;
 
-  // Real per-status counts across every order source (app/pos/call) — see
-  // DashboardPage.tsx. These used to be inferred from the 6-order "Recent
-  // Inbound Orders" preview list (and "Preparing" was simply hardcoded to
-  // 4), so a handful of recent app orders crowded POS/call orders out of
-  // the sample entirely, making it look like only app orders were ever
-  // counted. Falls back to the old sample-based inference only if the
-  // caller doesn't provide real counts (e.g. the Figma-mock no-props case).
-  const pendingCount = orderStatusCounts?.pending
+  // Real per-status counts across every order source (app/pos/call).
+  // Falls back to the old sample-based inference only if counts are not yet loaded.
+  const activeCounts = orderStatusCounts ?? internalStatusCounts;
+  const pendingCount = activeCounts?.pending
     ?? orders.filter((o) => o.status === "Pending").length
     ?? 1;
-  const preparingCount = orderStatusCounts?.preparing ?? 0;
-  const onTheWayCount = orderStatusCounts?.onTheWay
+  const preparingCount = activeCounts?.preparing ?? 0;
+  const onTheWayCount = activeCounts?.onTheWay
     ?? orders.filter((o) => o.status === "On The Way").length
     ?? 2;
 
