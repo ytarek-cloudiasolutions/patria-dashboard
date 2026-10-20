@@ -1363,6 +1363,8 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   "No products found.": "لا توجد منتجات.",
   "Number of targeted customers": "عدد العملاء المستهدفين",
   "Option name": "اسم الخيار",
+  "The number next to each option is added ON TOP of the product's base price — enter 0 for an option that costs the same as the base price.":
+    "الرقم بجانب كل خيار بيتضاف فوق السعر الأساسي للمنتج — اكتب 0 لو الخيار سعره زي السعر الأساسي بالظبط.",
   "PRICE": "السعر",
   "Price Unit": "وحدة السعر",
   "Gram (g)": "جرام (g)",

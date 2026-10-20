@@ -891,6 +891,11 @@ const AddProductDialog = ({
                       <div className="flex gap-2.5 w-full ps-1">
                         <div className="w-1 self-stretch rounded-full bg-[#8F6900] shrink-0" />
                         <div className="flex-1 flex flex-col gap-2.5">
+                          {group.options.length > 0 && (
+                            <p className="-mt-1 text-[11px] font-medium text-[#8B8B8B]">
+                              {t("The number next to each option is added ON TOP of the product's base price — enter 0 for an option that costs the same as the base price.")}
+                            </p>
+                          )}
                           {group.options.map((option) => {
                             const optionRecipeKey = `opt-${group.id}-${option.id}`;
                             const isRecipeOpen = openRecipeKey === optionRecipeKey;
