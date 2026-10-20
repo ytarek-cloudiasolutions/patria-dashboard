@@ -156,6 +156,20 @@ const ProductsPage = () => {
     prevCreatingRef.current = isCreatingProduct;
   }, [isCreatingProduct, productErrors.create, productSuccessMessage]);
 
+  // updateProductSuccess only patches the ONE edited product in the already-
+  // fetched list — it was never refetching the others. "Add as Extra" and
+  // its target products are merged into a product's `extras[]` server-side
+  // at read time (see getLinkedExtrasMap), so toggling an ingredient's
+  // "Add as Extra" off correctly updated that ingredient's own entry, but
+  // every OTHER product that had shown it as an extra kept showing the
+  // stale merged list from the last full fetch until the page was reloaded.
+  useEffect(() => {
+    if (prevUpdatingRef.current && !isUpdatingProduct && !productErrors.update && productSuccessMessage) {
+      getProducts({ search: productSearch.trim() || undefined, category: categoryFilter !== "all" ? categoryFilter : undefined, page, limit: 100 });
+    }
+    prevUpdatingRef.current = isUpdatingProduct;
+  }, [isUpdatingProduct, productErrors.update, productSuccessMessage, getProducts, productSearch, categoryFilter, page]);
+
   useEffect(() => {
     const delayDebounceId = setTimeout(() => {
       if (tab === "products") {
@@ -195,6 +209,7 @@ const ProductsPage = () => {
   const [isSavingBulkAvailability, setIsSavingBulkAvailability] = useState(false);
   const [selectedCategoryForProducts, setSelectedCategoryForProducts] = useState<Category | null>(null);
   const prevCreatingRef = useRef(false);
+  const prevUpdatingRef = useRef(false);
 
   useEffect(() => {
     if (isAddProductOpen && products.length === 0) {
