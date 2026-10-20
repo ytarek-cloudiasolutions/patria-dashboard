@@ -24,6 +24,7 @@ import { useTables } from "@/features/tables/hooks/useTables";
 import { api } from "@/config/api";
 import type { LiveOrder, OrderStatus } from "../types";
 import { AvailabilityModal } from "./AvailabilityModal";
+import DailyProductsSold, { type DailyProduct } from "./DailyProductsSold";
 
 // ─────────────────────────────────────────────
 //  Status badge styles (matching Figma)
@@ -129,12 +130,21 @@ interface PosViewDashboardProps {
     preparing?: number;
     onTheWay?: number;
   };
+  dailyProducts?: DailyProduct[];
+  dailyProductSummary?: {
+    totalUnits?: number;
+    totalProducts?: number;
+  };
+  dailyProductsDate?: string;
 }
 
 export const PosViewDashboard: React.FC<PosViewDashboardProps> = ({
   orders,
   onOrderClick,
   orderStatusCounts,
+  dailyProducts = [],
+  dailyProductSummary,
+  dailyProductsDate = "",
 }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -591,6 +601,13 @@ export const PosViewDashboard: React.FC<PosViewDashboardProps> = ({
           )}
         </div>
       </section>
+
+      <DailyProductsSold
+        products={dailyProducts}
+        date={dailyProductsDate}
+        totalUnits={dailyProductSummary?.totalUnits}
+        totalProducts={dailyProductSummary?.totalProducts}
+      />
     </div>
   );
 };

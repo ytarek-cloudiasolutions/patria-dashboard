@@ -36,6 +36,7 @@ import OrderDetailsDialog from "@/features/orders/components/OrderDetailsDialog"
 import { mapOrder } from "@/features/orders/utils/orderMappers";
 import type { Order } from "@/features/orders/types";
 import PosViewDashboard from "./components/PosViewDashboard";
+import DailyProductsSold, { type DailyProduct } from "./components/DailyProductsSold";
 
 const getTodayDateString = () => {
   const d = new Date();
@@ -92,6 +93,11 @@ const DashboardPage = () => {
   const [metrics, setMetrics] = useState<DashboardMetric[]>([]);
   const [revenueTrend, setRevenueTrend] = useState<RevenuePoint[]>([]);
   const [topProducts, setTopProducts] = useState<SoldProduct[]>([]);
+  const [dailyProducts, setDailyProducts] = useState<DailyProduct[]>([]);
+  const [dailyProductSummary, setDailyProductSummary] = useState<{
+    totalUnits?: number;
+    totalProducts?: number;
+  }>({});
   const [liveOrders, setLiveOrders] = useState<LiveOrder[]>([]);
   const [rawOrdersMap, setRawOrdersMap] = useState<Map<string, any>>(new Map());
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -206,6 +212,20 @@ const DashboardPage = () => {
             units: p.quantity,
           }));
         setTopProducts(products);
+        setDailyProducts(
+          (ov.topProducts ?? []).map(
+            (p: { _id?: string; id?: string; name: string; quantity: number; revenue?: number }, idx: number) => ({
+              id: p._id ?? p.id ?? `${p.name}-${idx}`,
+              name: p.name,
+              quantity: p.quantity ?? 0,
+              revenue: p.revenue ?? 0,
+            }),
+          ),
+        );
+        setDailyProductSummary({
+          totalUnits: summary.totalItemsOrdered,
+          totalProducts: ov.productCount,
+        });
 
         setIndicators([
           {
@@ -409,6 +429,9 @@ const DashboardPage = () => {
           orders={liveOrders}
           onOrderClick={handleOrderClick}
           summary={posSummary}
+          dailyProducts={dailyProducts}
+          dailyProductSummary={dailyProductSummary}
+          dailyProductsDate={dateRange.to}
         />
       ) : (
         <>
@@ -426,6 +449,13 @@ const DashboardPage = () => {
             <TopSoldProducts products={topProducts} />
             <LiveOrderStream orders={liveOrders} onOrderClick={handleOrderClick} />
           </div>
+
+          <DailyProductsSold
+            products={dailyProducts}
+            date={dateRange.to}
+            totalUnits={dailyProductSummary.totalUnits}
+            totalProducts={dailyProductSummary.totalProducts}
+          />
         </>
       )}
     </div>
