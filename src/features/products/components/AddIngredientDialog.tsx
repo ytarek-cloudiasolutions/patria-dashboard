@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Search, ChevronDown, ChevronUp, ChevronRight, Check, CornerDownRight } from "lucide-react";
+import { Search, ChevronDown, ChevronUp, ChevronRight, Check, CornerDownRight, Trash2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -39,6 +39,7 @@ const INITIAL_FORM: IngredientFormData = {
   recipe: [],
   imageUrl: undefined,
   imageFile: undefined,
+  removeImage: false,
   isExtra: false,
   extraCategories: [],
   productType: "raw_material",
@@ -146,6 +147,7 @@ const AddIngredientDialog = ({
             recipe: mappedRecipeItems,
             imageUrl: editingIngredient.imageUrl,
             imageFile: undefined,
+            removeImage: false,
             isExtra: editingIngredient.isExtra ?? false,
             extraCategories: initialExtraTargetIds,
             productType: editingIngredient.productType || "raw_material",
@@ -449,14 +451,29 @@ const AddIngredientDialog = ({
             className="flex flex-1 flex-col gap-5 overflow-y-auto px-5 py-5 sm:px-7 sm:py-6"
           >
             <UploadDropzone
-              value={form.imageUrl}
+              value={form.removeImage ? undefined : form.imageUrl}
               onSelect={(file, url) => {
                 set("imageUrl", url);
                 set("imageFile", file);
+                set("removeImage", false);
               }}
               title="Click to upload image"
               hint="PNG, JPG up to 5MB"
             />
+            {editingIngredient && ((form.imageUrl && !form.removeImage) || form.imageFile) && (
+              <button
+                type="button"
+                onClick={() => {
+                  set("imageUrl", undefined);
+                  set("imageFile", undefined);
+                  set("removeImage", true);
+                }}
+                className="flex items-center gap-2 self-start py-1 text-[16px] font-semibold text-[#C90000] cursor-pointer transition-opacity hover:opacity-80"
+              >
+                <Trash2 className="size-4.5 text-[#C90000]" />
+                <span>{t("Remove image")}</span>
+              </button>
+            )}
 
             {/* Row 1: Product Name (EN) & Product Name (AR) */}
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
@@ -508,21 +525,20 @@ const AddIngredientDialog = ({
             </div>
 
             {/* Row 2: Item Type */}
-            <InputField
-              data={{
-                id: "ingredient-item-type",
-                label: {
-                  htmlFor: "ingredient-item-type",
-                  labelText: t("Item Type"),
-                },
-                placeholder: "Raw Ingredient",
-                inputProps: {
-                  value: language === "ar" ? "مكون خام" : "Raw Ingredient",
-                  readOnly: true,
-                  className: "cursor-default bg-white",
-                },
-              }}
-            />
+            <div>
+              <Label htmlFor="ingredient-item-type" className="text-[14px] font-medium text-[#28293D]">
+                {t("Item Type")}
+              </Label>
+              <DropdownSelect
+                options={[
+                  { label: "Raw Ingredient", value: "raw_material" },
+                  { label: "Service", value: "service" },
+                ]}
+                selected={form.productType}
+                onSelect={(value) => set("productType", value)}
+                className="mt-2"
+              />
+            </div>
 
             {/* Row 3: Description (EN) */}
             <InputField

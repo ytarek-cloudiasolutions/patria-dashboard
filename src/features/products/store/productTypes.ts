@@ -9,6 +9,7 @@ export interface Pagination {
 export interface GetProductsRequest {
   search?: string;
   category?: string;
+  productType?: string;
   page?: number;
   limit?: number;
   includeInactive?: boolean;

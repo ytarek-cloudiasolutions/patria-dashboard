@@ -146,7 +146,7 @@ export const mapProduct = (backendProduct: any): Product => {
     extras,
     variantGroups,
     recipe,
-    quantity: backendProduct.inventory ?? backendProduct.stockQty ?? 0,
+    quantity: backendProduct.inventory ?? backendProduct.totalInventory ?? backendProduct.stockQty ?? 0,
     unit: formatUnit(backendProduct.unit),
     isIngredient,
     isExtra: Boolean(backendProduct.isExtra),

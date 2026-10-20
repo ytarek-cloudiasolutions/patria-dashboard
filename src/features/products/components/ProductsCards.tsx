@@ -80,7 +80,7 @@ const ProductsCards = ({
               </div>
               <div className="absolute right-2 top-3.5 z-10">
                 <span className="inline-flex items-center rounded-full border border-[#004EF9] bg-[#EDF4FB] px-2 py-0.5 text-[10px] font-semibold text-[#3574FF] tracking-[0.20px]">
-                  {product.productType === "factory" || product.productType === "manufactured"
+                  {product.productType === "factory" || product.productType === "manufactured" || product.productType === "manufactured_work_order"
                     ? language === "ar"
                       ? "مصنع"
                       : "Manufactured"

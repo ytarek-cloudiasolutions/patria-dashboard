@@ -83,6 +83,7 @@ const INITIAL_FORM: ProductFormData = {
   productType: "ready",
   imageUrl: undefined,
   imageFile: undefined,
+  removeImage: false,
   variantGroups: [],
   ingredients: [],
   recipe: [],
@@ -135,9 +136,10 @@ const AddProductDialog = ({
     const timer = setTimeout(async () => {
       setIsSearchingRecipes(true);
       try {
-        const rawIngredientCategory = categories.find(
-          (c) => c.name.toLowerCase() === "raw ingredients"
-        );
+        const rawIngredientCategory = categories.find((c) => {
+          const name = c.name.toLowerCase().trim();
+          return name === "raw ingredients" || name === "raw ingredient" || name === "ingredients" || name === "المكونات الخام";
+        });
         const categoryId = rawIngredientCategory
           ? rawIngredientCategory.id
           : "6a3927888bbe5f4d11bde590";
@@ -151,7 +153,18 @@ const AddProductDialog = ({
         });
         const fetchedData =
           response.data?.products || response.data?.data || response.data || [];
-        setRecipeSearchResults(Array.isArray(fetchedData) ? fetchedData : []);
+        setRecipeSearchResults(
+          Array.isArray(fetchedData)
+            ? fetchedData.filter((product: any) => {
+                const productType = String(product.productType || "").toLowerCase();
+                const category = typeof product.category === "string"
+                  ? product.category
+                  : product.category?.name || "";
+                const normalizedCategory = category.toLowerCase().trim();
+                return product.isIngredient || productType === "raw_material" || productType === "service" || normalizedCategory === "raw ingredients" || normalizedCategory === "raw ingredient" || normalizedCategory === "ingredients" || normalizedCategory === "المكونات الخام";
+              })
+            : [],
+        );
       } catch (err) {
         console.error("Failed to search recipe products:", err);
       } finally {
@@ -258,6 +271,7 @@ const AddProductDialog = ({
           // silently reset it to 0.
           quantity: editingProduct.quantity != null ? String(editingProduct.quantity) : "",
           imageUrl: editingProduct.imageUrl,
+          removeImage: false,
           extras: initialExtras,
           variantGroups: editingProduct.variantGroups ?? [],
           recipe: editingProduct.recipe ?? [],
@@ -522,14 +536,29 @@ const AddProductDialog = ({
             className="flex flex-1 flex-col gap-5 overflow-y-auto px-5 py-5 sm:px-7 sm:py-6"
           >
             <UploadDropzone
-              value={form.imageUrl}
+              value={form.removeImage ? undefined : form.imageUrl}
               onSelect={(file, url) => {
                 set("imageUrl", url);
                 set("imageFile", file);
+                set("removeImage", false);
               }}
               title="Click to upload image"
               hint="PNG, JPG up to 5MB"
             />
+            {editingProduct && ((form.imageUrl && !form.removeImage) || form.imageFile) && (
+              <button
+                type="button"
+                onClick={() => {
+                  set("imageUrl", undefined);
+                  set("imageFile", undefined);
+                  set("removeImage", true);
+                }}
+                className="flex items-center gap-2 self-start py-1 text-[16px] font-semibold text-[#C90000] cursor-pointer transition-opacity hover:opacity-80"
+              >
+                <Trash2 className="size-4.5 text-[#C90000]" />
+                <span>{t("Remove image")}</span>
+              </button>
+            )}
 
             {/* Row 1: Product Name (EN) & Product Name (AR) */}
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">

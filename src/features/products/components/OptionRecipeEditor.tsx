@@ -31,6 +31,65 @@ const UNITS = [
   { value: "pcs", label: "pcs" },
 ];
 
+const unitToBase = (unit?: string): { group: "mass" | "volume" | "count"; factor: number } => {
+  switch (formatUnit(unit)) {
+    case "kg": return { group: "mass", factor: 1000 };
+    case "g": return { group: "mass", factor: 1 };
+    case "L": return { group: "volume", factor: 1000 };
+    case "ml": return { group: "volume", factor: 1 };
+    default: return { group: "count", factor: 1 };
+  }
+};
+
+const isCompatibleUnit = (unit: string, ingredientUnit?: string) =>
+  unitToBase(unit).group === unitToBase(ingredientUnit).group;
+
+const isRecipeIngredient = (item: any) => {
+  const productType = String(item.productType || "").toLowerCase();
+  const category = typeof item.category === "string"
+    ? item.category
+    : item.category?.name || "";
+  const normalizedCategory = category.toLowerCase().trim();
+  return Boolean(
+    item.isIngredient ||
+    productType === "raw_material" ||
+    productType === "service" ||
+    normalizedCategory === "raw ingredients" ||
+    normalizedCategory === "raw ingredient" ||
+    normalizedCategory === "ingredients" ||
+    normalizedCategory === "المكونات الخام",
+  );
+};
+
+const extractProducts = (responseData: any): any[] => {
+  const candidates = [
+    responseData?.products,
+    responseData?.data?.products,
+    responseData?.data?.data,
+    responseData?.data,
+    responseData,
+  ];
+  return candidates.find(Array.isArray) || [];
+};
+
+// A product price is stored per its selected unit (e.g. EGP 0.45 per g).
+// Convert the recipe amount back to that stock unit before calculating its
+// live cost, so 1 kg of a per-gram ingredient correctly costs 1,000 times
+// its per-gram price.
+const calculateIngredientCost = (
+  price: number,
+  quantity: number,
+  selectedUnit?: string,
+  ingredientUnit?: string,
+) => {
+  const selected = unitToBase(selectedUnit);
+  const stock = unitToBase(ingredientUnit);
+  const quantityInStockUnit = selected.group === stock.group
+    ? quantity * selected.factor / stock.factor
+    : quantity;
+  return Math.round(price * quantityInStockUnit * 100) / 100;
+};
+
 const OptionRecipeEditor = ({
   recipe = [],
   onChange,
@@ -45,6 +104,7 @@ const OptionRecipeEditor = ({
   const [remoteIngredients, setRemoteIngredients] = useState<any[]>([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isUnitOpen, setIsUnitOpen] = useState(false);
+  const [isSearchingRecipes, setIsSearchingRecipes] = useState(false);
 
   const defaultPlaceholder =
     placeholder || (language === "ar" ? "اختر وصفة / مكون" : "Select a reciepe");
@@ -55,17 +115,19 @@ const OptionRecipeEditor = ({
     let isMounted = true;
     const fetchInitial = async () => {
       try {
-        const rawCat = categories.find(
-          (c) => c.name.toLowerCase() === "raw ingredients"
-        );
+        const rawCat = categories.find((c) => {
+          const name = c.name.toLowerCase().trim();
+          return name === "raw ingredients" || name === "raw ingredient" || name === "ingredients" || name === "المكونات الخام";
+        });
         const categoryId = rawCat ? rawCat.id : "6a3927888bbe5f4d11bde590";
         const response = await api.get("/products", {
           params: { category: categoryId, limit: 50 },
         });
-        const fetchedData =
-          response.data?.products || response.data?.data || response.data || [];
+        const fetchedData = extractProducts(response.data);
         if (isMounted && Array.isArray(fetchedData)) {
-          setRemoteIngredients(fetchedData);
+          // The category query is not a guarantee across all API versions;
+          // keep regular sellable products out of every recipe picker.
+          setRemoteIngredients(fetchedData.filter(isRecipeIngredient));
         }
       } catch (err) {
         console.error("Failed to fetch initial raw ingredients:", err);
@@ -76,6 +138,45 @@ const OptionRecipeEditor = ({
       isMounted = false;
     };
   }, [categories, ingredients, remoteIngredients.length]);
+
+  // Search against the API instead of only filtering the recipes already
+  // loaded in the dialog. Starting at page 1 gives every new search a clean
+  // paginated result set, while the generous limit preserves the dropdown's
+  // current single-list behavior.
+  useEffect(() => {
+    const search = searchQuery.trim();
+    if (!search) return;
+
+    let isMounted = true;
+    const timer = setTimeout(async () => {
+      setIsSearchingRecipes(true);
+      try {
+        const response = await api.get("/products", {
+          params: {
+            search,
+            page: 1,
+            limit: 100,
+          },
+        });
+        const fetchedData = extractProducts(response.data);
+        if (isMounted) {
+          setRemoteIngredients(
+            Array.isArray(fetchedData) ? fetchedData.filter(isRecipeIngredient) : [],
+          );
+        }
+      } catch (err) {
+        console.error("Failed to search recipes:", err);
+        if (isMounted) setRemoteIngredients([]);
+      } finally {
+        if (isMounted) setIsSearchingRecipes(false);
+      }
+    }, 300);
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
+  }, [searchQuery, categories]);
 
   // Combine ingredients prop and remoteIngredients into a unified list
   const combinedIngredients = useMemo(() => {
@@ -88,10 +189,9 @@ const OptionRecipeEditor = ({
   // Filter combined list by search query
   const filteredIngredients = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    if (!q) return combinedIngredients;
-    return combinedIngredients.filter((i: any) =>
-      (i.name || "").toLowerCase().includes(q)
-    );
+    // Search results deliberately come from the API. The unfiltered view
+    // continues to use the recipes already available to the dialog.
+    return q ? remoteIngredients : combinedIngredients;
   }, [searchQuery, combinedIngredients]);
 
   const handleAddIngredient = (item: any) => {
@@ -102,21 +202,15 @@ const OptionRecipeEditor = ({
       return;
     }
 
-    // item.price is the cost of item.quantity units as stocked (e.g. EGP 50
-    // for 1000ml), not a per-unit price — the backend now recomputes this
-    // properly on save regardless, but showing the raw full price here
-    // until then is a confusing live preview. Derive the per-unit rate so
-    // the displayed price already matches the default quantity of 1.
-    const stockQty = Number((item as any).quantity) || 0;
-    const unitPrice = stockQty ? (Number(item.price) || 0) / stockQty : 0;
     const defaultQty = 1;
+    const ingredientUnit = formatUnit(item.unit);
     const newItem: OptionRecipeItem = {
       material: ingId,
       name: item.name,
-      price: Math.round(unitPrice * defaultQty * 100) / 100,
+      price: calculateIngredientCost(Number(item.price) || 0, defaultQty, ingredientUnit, ingredientUnit),
       quantity: defaultQty,
-      unit: item.unit || "pcs",
-      ingredientUnit: item.unit || "pcs",
+      unit: ingredientUnit,
+      ingredientUnit,
     };
 
     onChange([...recipe, newItem]);
@@ -131,18 +225,24 @@ const OptionRecipeEditor = ({
     onChange(updated);
   };
 
-  // Quantity/unit changes must recompute price too — the backend recomputes
-  // this correctly on save regardless, but leaving the old price displayed
-  // until then makes the live preview look wrong/stuck.
+  // Quantity/unit changes recompute the live cost using the ingredient's
+  // price per stocked unit.
   const handleQuantityOrUnitChange = (index: number, patch: { quantity?: number; unit?: string }) => {
     const item = recipe[index];
     const ing = combinedIngredients.find((i: any) => String(i._id || i.id) === String(item.material));
-    const stockQty = ing ? Number((ing as any).quantity) || 0 : 0;
-    const unitPrice = ing && stockQty ? (Number((ing as any).price) || 0) / stockQty : undefined;
     const nextQuantity = patch.quantity ?? item.quantity;
+    const nextUnit = patch.unit ?? item.unit;
+    const ingredientUnit = item.ingredientUnit || ing?.unit || item.unit;
     handleUpdateItem(index, {
       ...patch,
-      ...(unitPrice !== undefined ? { price: Math.round(unitPrice * nextQuantity * 100) / 100 } : {}),
+      ...(ing ? {
+        price: calculateIngredientCost(
+          Number(ing.price) || 0,
+          nextQuantity,
+          nextUnit,
+          ingredientUnit,
+        ),
+      } : {}),
     });
   };
 
@@ -199,7 +299,20 @@ const OptionRecipeEditor = ({
               inputPosition === "bottom" ? "bottom-full mb-2" : "top-[54px]"
             )}
           >
-            {filteredIngredients.length === 0 ? (
+            <div className="sticky top-0 z-10 bg-white px-1 pb-1">
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onClick={(e) => e.stopPropagation()}
+                placeholder={t("Search recipes...")}
+                className="h-10 rounded-[10px] border-[#E5E5E5] text-[14px] focus-visible:border-[#8F6900] focus-visible:ring-0"
+              />
+            </div>
+            {isSearchingRecipes ? (
+              <div className="px-3.5 py-3 text-center text-[13px] text-[#8B8B8B]">
+                {t("Loading...")}
+              </div>
+            ) : filteredIngredients.length === 0 ? (
               <div className="px-3.5 py-3 text-center text-[13px] text-[#8B8B8B]">
                 {language === "ar" ? "لا توجد نتائج" : "No ingredients found"}
               </div>
@@ -282,9 +395,11 @@ const OptionRecipeEditor = ({
                 {UNITS.map((u) => (
                   <DropdownMenuItem
                     key={u.value}
-                    onClick={() => handleUpdateItem(idx, { unit: u.value })}
+                    disabled={!isCompatibleUnit(u.value, item.ingredientUnit || item.unit)}
+                    onClick={() => handleQuantityOrUnitChange(idx, { unit: u.value })}
                     className={cn(
                       "px-3 py-2 text-[14px] font-normal rounded-[12px] cursor-pointer transition-colors outline-none",
+                      !isCompatibleUnit(u.value, item.ingredientUnit || item.unit) && "cursor-not-allowed opacity-40",
                       item.unit === u.value
                         ? "bg-[#8F6900] text-white font-medium cursor-default data-highlighted:bg-[#8F6900] data-highlighted:text-white"
                         : "text-[#28293D] hover:bg-[#FAFAF7] data-highlighted:bg-[#FAFAF7] data-highlighted:text-[#28293D]"

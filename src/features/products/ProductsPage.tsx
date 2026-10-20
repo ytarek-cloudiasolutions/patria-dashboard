@@ -488,6 +488,9 @@ const ProductsPage = () => {
     if (data.imageFile) {
       formData.append("images", data.imageFile);
     }
+    if (data.removeImage) {
+      formData.append("removeImage", "true");
+    }
 
     if (editingProduct) {
       updateProduct({ productId: editingProduct.id, formData });
@@ -565,6 +568,9 @@ const ProductsPage = () => {
 
     if (data.imageFile) {
       formData.append("images", data.imageFile);
+    }
+    if (data.removeImage) {
+      formData.append("removeImage", "true");
     }
 
     if (editingIngredient) {
@@ -750,7 +756,7 @@ const ProductsPage = () => {
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <HeaderLayout title={headerTitle} description={headerDescription} />
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3 md:flex-nowrap">
           <DefaultButton
             data={{
               buttonText: t("import data"),

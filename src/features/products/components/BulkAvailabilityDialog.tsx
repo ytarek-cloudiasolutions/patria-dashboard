@@ -6,6 +6,11 @@ import type { Category, Product } from "../types";
 import { getProducts } from "../api/productsApi";
 import { mapProducts } from "../utils/productMappers";
 
+const isRecipeAvailabilityItem = (product: Product) => {
+  const productType = (product.productType || "").toLowerCase();
+  return productType === "raw_material" || productType === "service";
+};
+
 interface BulkAvailabilityDialogProps {
   open: boolean;
   mode?: "products" | "recipes" | "categories";
@@ -35,8 +40,13 @@ const BulkAvailabilityDialog = ({
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [pickerSelectedIds, setPickerSelectedIds] = useState<string[]>([]);
   const [productSearch, setProductSearch] = useState("");
-  const [pickerProducts, setPickerProducts] = useState<Product[]>(products);
+  const [pickerProducts, setPickerProducts] = useState<Product[]>(
+    mode === "recipes" ? products.filter(isRecipeAvailabilityItem) : products,
+  );
   const [isSearching, setIsSearching] = useState(false);
+  const selectableProducts = mode === "recipes"
+    ? products.filter(isRecipeAvailabilityItem)
+    : products;
   const knownProducts = isCategories
     ? categories.map((category) => ({
         id: category.id,
@@ -50,7 +60,7 @@ const BulkAvailabilityDialog = ({
         available: category.active,
         isActive: category.active,
       } as unknown as Product))
-    : [...products, ...pickerProducts].filter(
+    : [...selectableProducts, ...pickerProducts].filter(
         (product, index, list) => list.findIndex((item) => item.id === product.id) === index,
       );
   const selectedProducts = knownProducts.filter((product) => selectedIds.includes(product.id));
@@ -70,7 +80,7 @@ const BulkAvailabilityDialog = ({
     setPickerSelectedIds(selectedIds);
     setProductSearch("");
     if (!isCategories) {
-      setPickerProducts(products);
+      setPickerProducts(selectableProducts);
     }
     setIsPickerOpen(true);
   };
@@ -80,14 +90,27 @@ const BulkAvailabilityDialog = ({
     const timer = window.setTimeout(async () => {
       setIsSearching(true);
       try {
-        const response = await getProducts({ search: productSearch.trim(), limit: 100 });
-        setPickerProducts(mapProducts(response.products || []));
+        if (mode === "recipes") {
+          const [rawIngredients, services] = await Promise.all([
+            getProducts({ search: productSearch.trim(), productType: "raw_material", limit: 100 }),
+            getProducts({ search: productSearch.trim(), productType: "service", limit: 100 }),
+          ]);
+          const fetchedItems = [...mapProducts(rawIngredients.products || []), ...mapProducts(services.products || [])];
+          setPickerProducts(
+            fetchedItems.filter(isRecipeAvailabilityItem).filter(
+              (product, index, list) => list.findIndex((item) => item.id === product.id) === index,
+            ),
+          );
+        } else {
+          const response = await getProducts({ search: productSearch.trim(), limit: 100 });
+          setPickerProducts(mapProducts(response.products || []));
+        }
       } finally {
         setIsSearching(false);
       }
     }, 300);
     return () => window.clearTimeout(timer);
-  }, [isPickerOpen, productSearch]);
+  }, [isPickerOpen, mode, productSearch]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -154,7 +177,7 @@ const BulkAvailabilityDialog = ({
           <div className="min-h-0 overflow-y-auto px-2 pb-3 pt-3">
             <div className="relative mx-3 mb-3">
               <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#8B8B8B]" />
-              <input value={productSearch} onChange={(event) => { const value = event.target.value; setProductSearch(value); if (!value.trim() && !isCategories) setPickerProducts(products); }} placeholder={isCategories ? "Search categories..." : "Search products..."} className="h-11 w-full rounded-xl border border-[#D4D5DD] bg-white pl-10 pr-3 text-sm outline-none focus:border-[#8F6900]" autoFocus />
+              <input value={productSearch} onChange={(event) => { const value = event.target.value; setProductSearch(value); if (!value.trim() && !isCategories) setPickerProducts(selectableProducts); }} placeholder={isCategories ? "Search categories..." : "Search products..."} className="h-11 w-full rounded-xl border border-[#D4D5DD] bg-white pl-10 pr-3 text-sm outline-none focus:border-[#8F6900]" autoFocus />
             </div>
             <div className="flex flex-col gap-0">
               {isSearching && !isCategories ? (

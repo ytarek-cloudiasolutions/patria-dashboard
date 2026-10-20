@@ -70,7 +70,11 @@ const CategoryProductsDialog = ({
           price: p.price || 0,
           discount: p.discount,
           available: p.isActive !== undefined ? p.isActive : true,
-          quantity: p.stockQty !== undefined ? p.stockQty : 0,
+          // Category-scoped responses expose current stock as `inventory`
+          // (and some endpoints return `totalInventory`) rather than
+          // `stockQty`. Preserve a real zero, but only fall back to zero when
+          // none of the inventory fields are available.
+          quantity: Number(p.inventory ?? p.totalInventory ?? p.stockQty ?? 0),
         }));
         setProducts(mapped);
       } catch (err) {

@@ -135,6 +135,7 @@ export interface ProductFormData {
   unit: string;
   imageUrl?: string;
   imageFile?: File;
+  removeImage?: boolean;
   variantGroups: VariantGroup[];
   ingredients: RecipeIngredient[];
   recipe: OptionRecipeItem[];
@@ -159,6 +160,7 @@ export interface IngredientFormData {
   extraQuantity?: string;
   imageUrl?: string;
   imageFile?: File;
+  removeImage?: boolean;
   recipe?: OptionRecipeItem[];
   isExtra: boolean;
   extraCategories: string[];
