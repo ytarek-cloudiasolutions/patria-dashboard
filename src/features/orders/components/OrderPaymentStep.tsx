@@ -4,8 +4,6 @@ import { Separator } from "@/shared/components/ui/separator";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import {
   paymentDeliveryFee,
-  paymentTax,
-  paymentTotal,
   type OrderPaymentControls,
   type PaymentMethod,
 } from "../useOrderPayment";
@@ -13,7 +11,8 @@ import {
 interface OrderPaymentStepProps {
   payment: OrderPaymentControls;
   subtotal: number;
-  taxRate?: number;
+  /** Cart lines, used to re-fetch the real preview when "Apply" is pressed. */
+  items: { price: number; quantity: number }[];
   errors?: Record<string, string>;
 }
 
@@ -28,16 +27,20 @@ const PAYMENT_ICONS: Record<PaymentMethod, typeof Banknote> = {
 const OrderPaymentStep = ({
   payment,
   subtotal,
-  taxRate = 0,
+  items,
   errors = {},
 }: OrderPaymentStepProps) => {
   const { t } = useTranslation();
   const isMix = payment.paymentMethod === "Mix";
-  const tax = paymentTax(payment, subtotal, taxRate);
-  const total = paymentTotal(payment, subtotal, taxRate);
-  const discountDisplay = payment.discountType === "percentage"
-    ? `${payment.discountValue}% (EGP ${payment.appliedDiscount.toFixed(2)})`
-    : `EGP ${payment.appliedDiscount.toFixed(2)}`;
+  const preview = payment.preview;
+  const discountAmount = preview?.discountAmount ?? 0;
+  const tax = preview?.tax ?? 0;
+  // Fall back to a plain (no tax/discount) estimate before the first
+  // preview resolves, so the summary isn't blank while it loads.
+  const total = preview?.total ?? subtotal + paymentDeliveryFee(payment);
+  const discountDisplay = preview?.discountType === "percentage"
+    ? `${preview.discountValue}% (EGP ${discountAmount.toFixed(2)})`
+    : `EGP ${discountAmount.toFixed(2)}`;
 
   return (
     <div className="space-y-6">
@@ -134,11 +137,11 @@ const OrderPaymentStep = ({
             />
             <button
               type="button"
-              onClick={() => payment.applyDiscount(subtotal)}
-              disabled={payment.isApplyingDiscount}
+              onClick={() => payment.refreshPreview(items)}
+              disabled={payment.isPreviewing}
               className="h-[50px] rounded-[5px] border border-primary px-6 text-[16px] font-semibold text-primary cursor-pointer disabled:opacity-60"
             >
-              {payment.isApplyingDiscount ? t("Checking...") : t("Apply")}
+              {payment.isPreviewing ? t("Checking...") : t("Apply")}
             </button>
           </div>
         </div>
@@ -154,6 +157,7 @@ const OrderPaymentStep = ({
             placeholder="0.00"
             value={payment.deliveryFee}
             onChange={(e) => payment.setDeliveryFee(e.target.value)}
+            onBlur={() => payment.refreshPreview(items)}
             className="h-[50px] w-full rounded-[12px] border border-[#E5E5E5] bg-white px-3.5 text-[16px] text-black placeholder:text-[#8B8B8B] focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
           />
         </div>
@@ -187,7 +191,7 @@ const OrderPaymentStep = ({
               <span className="font-semibold">{subtotal.toFixed(2)}</span>
             </span>
           </div>
-          {payment.appliedDiscount > 0 && (
+          {discountAmount > 0 && (
             <div className="flex items-center justify-between text-[16px] text-[#059B5A]">
               <span className="font-medium">{t("Discount")}:</span>
               <span>

@@ -16,8 +16,6 @@ import { cartSubtotal, cartToOrderItems, formatCurrency } from "../utils";
 import {
   paymentDeliveryFee,
   paymentMethodLabel,
-  paymentTax,
-  paymentTotal,
   useOrderPayment,
 } from "../useOrderPayment";
 import OrderWizardStepper from "./OrderWizardStepper";
@@ -59,9 +57,12 @@ const NewCallOrderDialog = ({
   const payment = useOrderPayment("40");
 
   const subtotal = cartSubtotal(cart);
-  const taxRate = 0.14;
-  const tax = paymentTax(payment, subtotal, taxRate);
-  const total = paymentTotal(payment, subtotal, taxRate);
+  const previewItems = useMemo(
+    () => cart.map((line) => ({ price: line.unitPrice, quantity: line.quantity })),
+    [cart],
+  );
+  const tax = payment.preview?.tax ?? 0;
+  const total = payment.preview?.total ?? subtotal + paymentDeliveryFee(payment);
 
   const resetAll = () => {
     setStep(0);
@@ -207,9 +208,9 @@ const NewCallOrderDialog = ({
         minute: "2-digit",
       }),
       subtotal,
-      discount: payment.appliedDiscount,
-      discountType: payment.discountType ?? undefined,
-      discountValue: payment.discountValue || undefined,
+      discount: payment.preview?.discountAmount ?? 0,
+      discountType: payment.preview?.discountType ?? undefined,
+      discountValue: payment.preview?.discountValue || undefined,
       discountCode: payment.discountCode.trim() || undefined,
       deliveryFee: paymentDeliveryFee(payment),
       tax,
@@ -248,6 +249,7 @@ const NewCallOrderDialog = ({
     }
     setCartError("");
     setStep(2);
+    void payment.refreshPreview(previewItems);
   };
 
   const handleStep2Submit = () => {
@@ -387,7 +389,7 @@ const NewCallOrderDialog = ({
               <OrderPaymentStep
                 payment={payment}
                 subtotal={subtotal}
-                taxRate={taxRate}
+                items={previewItems}
                 errors={paymentErrors}
               />
             )}

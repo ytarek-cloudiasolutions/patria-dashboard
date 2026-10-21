@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
   Dialog,
@@ -13,7 +13,6 @@ import { cartSubtotal, cartToOrderItems, formatCurrency } from "../utils";
 import {
   paymentDeliveryFee,
   paymentMethodLabel,
-  paymentTotal,
   useOrderPayment,
 } from "../useOrderPayment";
 import OrderWizardStepper from "./OrderWizardStepper";
@@ -39,7 +38,11 @@ const NewPosOrderDialog = ({
   const payment = useOrderPayment("27");
 
   const subtotal = cartSubtotal(cart);
-  const total = paymentTotal(payment, subtotal);
+  const previewItems = useMemo(
+    () => cart.map((line) => ({ price: line.unitPrice, quantity: line.quantity })),
+    [cart],
+  );
+  const total = payment.preview?.total ?? subtotal + paymentDeliveryFee(payment);
 
   useEffect(() => {
     if (!open) {
@@ -64,7 +67,10 @@ const NewPosOrderDialog = ({
         minute: "2-digit",
       }),
       subtotal,
-      discount: payment.appliedDiscount,
+      discount: payment.preview?.discountAmount ?? 0,
+      discountType: payment.preview?.discountType ?? undefined,
+      discountValue: payment.preview?.discountValue || undefined,
+      discountCode: payment.discountCode.trim() || undefined,
       deliveryFee: paymentDeliveryFee(payment),
       total,
       status: "Pending",
@@ -82,7 +88,10 @@ const NewPosOrderDialog = ({
     step === 0
       ? {
           buttonText: `${t("Add products to cart")} ${formatCurrency(subtotal)}`,
-          onClick: () => setStep(1),
+          onClick: () => {
+            setStep(1);
+            void payment.refreshPreview(previewItems);
+          },
           className: cart.length === 0 ? "pointer-events-none opacity-60" : "",
         }
       : {
@@ -121,7 +130,7 @@ const NewPosOrderDialog = ({
                 onCartChange={setCart}
               />
             ) : (
-              <OrderPaymentStep payment={payment} subtotal={subtotal} />
+              <OrderPaymentStep payment={payment} subtotal={subtotal} items={previewItems} />
             )}
           </div>
 
