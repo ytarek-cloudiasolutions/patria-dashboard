@@ -212,19 +212,18 @@ const DashboardPage = () => {
             units: p.quantity,
           }));
         setTopProducts(products);
-        setDailyProducts(
-          (ov.topProducts ?? []).map(
-            (p: { _id?: string; id?: string; name: string; quantity: number; revenue?: number }, idx: number) => ({
-              id: p._id ?? p.id ?? `${p.name}-${idx}`,
-              name: p.name,
-              quantity: p.quantity ?? 0,
-              revenue: p.revenue ?? 0,
-            }),
-          ),
+        const dailyProductRows: DailyProduct[] = (ov.topProducts ?? []).map(
+          (p: { _id?: string; id?: string; name: string; quantity: number; revenue?: number }, idx: number) => ({
+            id: p._id ?? p.id ?? `${p.name}-${idx}`,
+            name: p.name,
+            quantity: p.quantity ?? 0,
+            revenue: p.revenue ?? 0,
+          }),
         );
+        setDailyProducts(dailyProductRows);
         setDailyProductSummary({
-          totalUnits: summary.totalItemsOrdered,
-          totalProducts: ov.productCount,
+          totalUnits: dailyProductRows.reduce((total, product) => total + product.quantity, 0),
+          totalProducts: dailyProductRows.length,
         });
 
         setIndicators([

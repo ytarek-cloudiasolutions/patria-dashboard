@@ -42,7 +42,9 @@ const DailyProductsSold = ({
   totalProducts,
 }: DailyProductsSoldProps) => {
   const { t } = useTranslation();
-  const displayProducts = products.length > 0 ? products.slice(0, 5) : FIGMA_PRODUCTS;
+  // Keep the complete API response available in the table. The table viewport
+  // shows six rows at a time and scrolls when more products are present.
+  const displayProducts = products.length > 0 ? products : FIGMA_PRODUCTS;
   const bestSeller = displayProducts[0];
   const maxQuantity = Math.max(...displayProducts.map((product) => product.quantity), 1);
   const shownUnits = totalUnits ?? displayProducts.reduce((total, product) => total + product.quantity, 0);
@@ -83,7 +85,7 @@ const DailyProductsSold = ({
         <span className="text-right">{t("Sales")}</span>
       </div>
 
-      <div className="max-h-[320px] overflow-y-auto px-4 sm:px-8">
+      <div className="max-h-[312px] overflow-y-auto px-4 sm:px-8">
         {displayProducts.map((product, index) => (
           <div
             key={product.id}
