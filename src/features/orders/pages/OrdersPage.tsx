@@ -658,7 +658,10 @@ const OrdersPage = () => {
         open={isCallDialogOpen}
         productOptions={productOptions}
         deliveryZones={deliveryZones}
-        onOpenChange={setIsCallDialogOpen}
+        onOpenChange={(open) => {
+          setIsCallDialogOpen(open);
+          if (!open) setSearchValue("");
+        }}
         onCreateOrder={handleCreateOrder}
         onSearchProducts={handleSearchProducts}
       />

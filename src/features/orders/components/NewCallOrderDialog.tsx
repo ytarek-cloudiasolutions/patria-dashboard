@@ -16,6 +16,7 @@ import { cartSubtotal, cartToOrderItems, formatCurrency } from "../utils";
 import {
   paymentDeliveryFee,
   paymentMethodLabel,
+  paymentTax,
   paymentTotal,
   useOrderPayment,
 } from "../useOrderPayment";
@@ -58,7 +59,9 @@ const NewCallOrderDialog = ({
   const payment = useOrderPayment("40");
 
   const subtotal = cartSubtotal(cart);
-  const total = paymentTotal(payment, subtotal);
+  const taxRate = 0.14;
+  const tax = paymentTax(payment, subtotal, taxRate);
+  const total = paymentTotal(payment, subtotal, taxRate);
 
   const resetAll = () => {
     setStep(0);
@@ -205,8 +208,11 @@ const NewCallOrderDialog = ({
       }),
       subtotal,
       discount: payment.appliedDiscount,
+      discountType: payment.discountType ?? undefined,
+      discountValue: payment.discountValue || undefined,
       discountCode: payment.discountCode.trim() || undefined,
       deliveryFee: paymentDeliveryFee(payment),
+      tax,
       total,
       status: "Pending",
       category: "Meals",
@@ -381,6 +387,7 @@ const NewCallOrderDialog = ({
               <OrderPaymentStep
                 payment={payment}
                 subtotal={subtotal}
+                taxRate={taxRate}
                 errors={paymentErrors}
               />
             )}

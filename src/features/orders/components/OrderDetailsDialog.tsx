@@ -33,6 +33,33 @@ const formatCurrency = (amount: number) =>
     maximumFractionDigits: 2,
   })}`;
 
+/** Backend order fields not present on the mapped Order type. */
+interface RawOrder {
+  discountAmount?: number;
+  discount?: number;
+  discountType?: "fixed" | "percentage";
+  discountValue?: number;
+  customer?: {
+    region?: { name?: string } | string;
+    zone?: { name?: string } | string;
+    address?: string;
+  };
+  region?: { name?: string } | string;
+  type?: string;
+  source?: string;
+  subtotal?: number;
+  deliveryFee?: number;
+  tax?: number;
+  total?: number;
+  notes?: string;
+}
+
+/** Backend line-item fields accessed in receipt rendering. */
+interface RawOrderItem {
+  excludedIngredients?: string[];
+  excluded_ingredients?: string[];
+}
+
 const OrderDetailsDialog = ({
   open,
   order,
@@ -46,15 +73,9 @@ const OrderDetailsDialog = ({
   const [appliedDiscountValue, setAppliedDiscountValue] = useState<number | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    setAdminDiscount(0);
-    setAppliedDiscountType(null);
-    setAppliedDiscountValue(null);
-  }, [order?.id]);
-
   if (!order) return null;
 
-  const rawOrder = order as any;
+  const rawOrder = order as RawOrder;
   // Same 0-is-a-real-value trap as orderMappers.mapOrder's discount field —
   // `discountAmount` defaults to 0 on orders that only ever had `discount`
   // set (mobile checkout coupons), so `??` must not be used here either.
@@ -107,7 +128,7 @@ const OrderDetailsDialog = ({
 
   const baseTotal = Number.isFinite(orderTotalVal) ? orderTotalVal : subtotalVal + deliveryFeeVal + taxVal;
   const finalTotal = adminDiscount > 0
-    ? Math.max(subtotalVal + deliveryFeeVal + taxVal - adminDiscount, 0)
+    ? Math.max(subtotalVal + taxVal - adminDiscount, 0)
     : Math.max(baseTotal, 0);
   const zoneName =
     order.zone ||
@@ -184,8 +205,18 @@ const OrderDetailsDialog = ({
       setAppliedDiscountValue(discountValue);
       if (response.data?.order) onOrderUpdated?.(mapOrder(response.data.order));
       showSuccessToast(t("Discount applied successfully"));
-    } catch (error: any) {
-      const serverMessage = error?.response?.data?.message;
+    } catch (error) {
+      let serverMessage = "";
+      if (
+        error &&
+        typeof error === "object" &&
+        "response" in (error as Record<string, unknown>)
+      ) {
+        const msg =
+          (error as { response?: { data?: { message?: string } } }).response
+            ?.data?.message;
+        if (typeof msg === "string") serverMessage = msg;
+      }
       showErrorToast(serverMessage || t("Failed to save discount"));
     }
   };
@@ -203,9 +234,9 @@ const OrderDetailsDialog = ({
       date: order.date || printDate,
       time: order.time || printTime,
       brandName: "Patria Restaurant",
-      notes: (order as any).notes || (order as any).note || undefined,
+      notes: rawOrder.notes || undefined,
       items: order.items.map((item) => {
-        const rawItem = item as any;
+        const rawItem = item as RawOrderItem;
         return {
           name: item.name,
           qty: item.quantity,
@@ -233,7 +264,7 @@ const OrderDetailsDialog = ({
       deliveryFee: order.deliveryFee,
       total: finalTotal,
       items: order.items.map((item) => {
-        const rawItem = item as any;
+        const rawItem = item as RawOrderItem;
         return {
           name: item.name,
           qty: item.quantity,
@@ -487,12 +518,14 @@ const OrderDetailsDialog = ({
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between text-[#23252A]">
-                  <span className="font-medium leading-[17.60px]">{t("Tax (14%)")}:</span>
-                  <span className="font-semibold tracking-[0.32px] text-[#333333]">
-                    {formatCurrency(taxVal)}
-                  </span>
-                </div>
+                {taxVal > 0 && (
+                  <div className="flex items-center justify-between text-[#23252A]">
+                    <span className="font-medium leading-[17.60px]">{t("Tax (14%)")}:</span>
+                    <span className="font-semibold tracking-[0.32px] text-[#333333]">
+                      {formatCurrency(taxVal)}
+                    </span>
+                  </div>
+                )}
 
                 {order.deliveryFee > 0 && (
                   <div className="flex items-center justify-between text-[#23252A]">
@@ -568,6 +601,8 @@ const OrderDetailsDialog = ({
       <AdministrativeDiscountDialog
         open={isDiscountOpen}
         total={baseTotal}
+        subtotal={subtotalVal}
+        tax={taxVal}
         onOpenChange={setIsDiscountOpen}
         onApply={handleApplyDiscount}
       />

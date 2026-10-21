@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -11,6 +11,8 @@ type DiscountMode = "fixed" | "percentage";
 interface AdministrativeDiscountDialogProps {
   open: boolean;
   total: number;
+  subtotal: number;
+  tax: number;
   onOpenChange: (open: boolean) => void;
   onApply: (
     discountType: DiscountMode,
@@ -29,6 +31,8 @@ const formatCurrency = (amount: number) =>
 const AdministrativeDiscountDialog = ({
   open,
   total,
+  subtotal,
+  tax,
   onOpenChange,
   onApply,
 }: AdministrativeDiscountDialogProps) => {
@@ -38,22 +42,13 @@ const AdministrativeDiscountDialog = ({
   const [amount, setAmount] = useState("");
   const [reason, setReason] = useState("");
 
-  useEffect(() => {
-    if (!open) {
-      setPassword("");
-      setMode("fixed");
-      setAmount("");
-      setReason("");
-    }
-  }, [open]);
-
   const discount = useMemo(() => {
     const value = Number(amount) || 0;
     const raw = mode === "fixed" ? value : (total * value) / 100;
     return Math.min(Math.max(raw, 0), total);
   }, [amount, mode, total]);
 
-  const totalAfterDiscount = Math.max(total - discount, 0);
+  const totalAfterDiscount = Math.max(subtotal + tax - discount, 0);
   const canApply = password.trim().length > 0 && discount > 0;
 
   const handleApply = () => {

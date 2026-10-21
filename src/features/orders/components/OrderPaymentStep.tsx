@@ -4,6 +4,7 @@ import { Separator } from "@/shared/components/ui/separator";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import {
   paymentDeliveryFee,
+  paymentTax,
   paymentTotal,
   type OrderPaymentControls,
   type PaymentMethod,
@@ -12,6 +13,7 @@ import {
 interface OrderPaymentStepProps {
   payment: OrderPaymentControls;
   subtotal: number;
+  taxRate?: number;
   errors?: Record<string, string>;
 }
 
@@ -23,10 +25,19 @@ const PAYMENT_ICONS: Record<PaymentMethod, typeof Banknote> = {
   Mix: Wallet,
 };
 
-const OrderPaymentStep = ({ payment, subtotal, errors = {} }: OrderPaymentStepProps) => {
+const OrderPaymentStep = ({
+  payment,
+  subtotal,
+  taxRate = 0,
+  errors = {},
+}: OrderPaymentStepProps) => {
   const { t } = useTranslation();
   const isMix = payment.paymentMethod === "Mix";
-  const total = paymentTotal(payment, subtotal);
+  const tax = paymentTax(payment, subtotal, taxRate);
+  const total = paymentTotal(payment, subtotal, taxRate);
+  const discountDisplay = payment.discountType === "percentage"
+    ? `${payment.discountValue}% (EGP ${payment.appliedDiscount.toFixed(2)})`
+    : `EGP ${payment.appliedDiscount.toFixed(2)}`;
 
   return (
     <div className="space-y-6">
@@ -116,7 +127,7 @@ const OrderPaymentStep = ({ payment, subtotal, errors = {} }: OrderPaymentStepPr
             <input
               id="discount-code"
               type="text"
-              placeholder="0.00"
+              placeholder={t("Discount Code")}
               value={payment.discountCode}
               onChange={(e) => payment.setDiscountCode(e.target.value)}
               className="h-[50px] flex-1 rounded-[12px] border border-[#E5E5E5] bg-white px-3.5 text-[16px] text-black placeholder:text-[#8B8B8B] focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
@@ -176,13 +187,23 @@ const OrderPaymentStep = ({ payment, subtotal, errors = {} }: OrderPaymentStepPr
               <span className="font-semibold">{subtotal.toFixed(2)}</span>
             </span>
           </div>
-          <div className="flex items-center justify-between text-[16px] text-[#059B5A]">
-            <span className="font-medium">{t("Discount")}:</span>
-            <span>
-              <span className="font-medium">EGP </span>
-              <span className="font-semibold">{payment.appliedDiscount.toFixed(2)}</span>
-            </span>
-          </div>
+          {payment.appliedDiscount > 0 && (
+            <div className="flex items-center justify-between text-[16px] text-[#059B5A]">
+              <span className="font-medium">{t("Discount")}:</span>
+              <span>
+                <span className="font-semibold">{discountDisplay}</span>
+              </span>
+            </div>
+          )}
+          {tax > 0 && (
+            <div className="flex items-center justify-between text-[16px]">
+              <span className="font-medium text-[#23252A]">{t("Tax (14%)")}:</span>
+              <span className="text-[#333333]">
+                <span className="font-medium">EGP </span>
+                <span className="font-semibold">{tax.toFixed(2)}</span>
+              </span>
+            </div>
+          )}
           <div className="flex items-center justify-between text-[16px]">
             <span className="font-medium text-[#23252A]">{t("Delivery Fees")}:</span>
             <span className="text-[#333333]">
