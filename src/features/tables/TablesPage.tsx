@@ -151,12 +151,18 @@ const TablesPage = () => {
         ? t("No reservations match your search.")
         : t("No reservations yet.");
 
+  // A table someone is physically sitting at right now can't take a new
+  // reservation at all (the backend rejects it with 409 regardless) — drop
+  // it from the picker entirely instead of only catching the mistake after
+  // the staff member already picked it and hit confirm.
   const tableOptions = useMemo(
     () =>
-      tables.map((tbl) => ({
-        value: tbl._id,
-        label: `${t("Table")} ${tbl.number} (${tbl.capacity} ${t("ppl")})`,
-      })),
+      tables
+        .filter((tbl) => tbl.status !== "occupied")
+        .map((tbl) => ({
+          value: tbl._id,
+          label: `${t("Table")} ${tbl.number} (${tbl.capacity} ${t("ppl")})`,
+        })),
     [tables, t],
   );
 
