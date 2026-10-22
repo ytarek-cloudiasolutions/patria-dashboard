@@ -527,20 +527,20 @@ const OrderDetailsDialog = ({
                   </div>
                 )}
 
-                {order.deliveryFee > 0 && (
-                  <div className="flex items-center justify-between text-[#23252A]">
-                    <span className="font-medium leading-[17.60px]">{t("Delivery Fees")}:</span>
-                    <span className="font-semibold tracking-[0.32px] text-[#333333]">
-                      {formatCurrency(order.deliveryFee)}
-                    </span>
-                  </div>
-                )}
-
                 {effectiveDiscount > 0 && (
                   <div className="flex items-center justify-between text-[#059B5A]">
                     <span className="font-medium leading-[17.60px]">{t("Discount")}:</span>
                     <span className="font-semibold tracking-[0.32px]">
                       {getDiscountDisplayText()}
+                    </span>
+                  </div>
+                )}
+
+                {order.deliveryFee > 0 && (
+                  <div className="flex items-center justify-between text-[#23252A]">
+                    <span className="font-medium leading-[17.60px]">{t("Delivery Fees")}:</span>
+                    <span className="font-semibold tracking-[0.32px] text-[#333333]">
+                      {formatCurrency(order.deliveryFee)}
                     </span>
                   </div>
                 )}

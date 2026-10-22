@@ -10,7 +10,6 @@ export interface AddTableFormData {
 
 export interface ReservationFormData {
   name: string;
-  email: string;
   phone: string;
   people: string;
   date: string;

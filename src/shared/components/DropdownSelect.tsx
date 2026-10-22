@@ -122,13 +122,16 @@ const DropdownSelect = ({
             return (
               <DropdownMenuItem
                 key={option.value}
+                disabled={option.disabled}
                 className={cn(
                   "flex h-10 w-full items-center rounded-[12px] px-3.5 py-2 text-[14px] font-medium tracking-[0.24px] cursor-pointer transition-colors outline-none",
-                  isOptSelected
-                    ? isLightSelection
-                      ? "bg-[#F5F0EA] text-black font-semibold cursor-default data-highlighted:bg-[#F5F0EA] data-highlighted:text-black"
-                      : "bg-[#8F6900] text-white font-semibold cursor-default data-highlighted:bg-[#8F6900] data-highlighted:text-white"
-                    : "text-[#28293D] hover:bg-[#FAFAF7] data-highlighted:bg-[#FAFAF7] data-highlighted:text-[#28293D]"
+                  option.disabled
+                    ? "cursor-not-allowed text-black/20 text-[12px] tracking-[0.24px] data-disabled:opacity-100 data-disabled:pointer-events-none"
+                    : isOptSelected
+                      ? isLightSelection
+                        ? "bg-[#F5F0EA] text-black font-semibold cursor-default data-highlighted:bg-[#F5F0EA] data-highlighted:text-black"
+                        : "bg-[#8F6900] text-white font-semibold cursor-default data-highlighted:bg-[#8F6900] data-highlighted:text-white"
+                      : "text-[#28293D] hover:bg-[#FAFAF7] data-highlighted:bg-[#FAFAF7] data-highlighted:text-[#28293D]"
                 )}
                 onSelect={() => onSelect(option.value)}
               >

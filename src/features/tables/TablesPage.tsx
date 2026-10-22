@@ -151,18 +151,16 @@ const TablesPage = () => {
         ? t("No reservations match your search.")
         : t("No reservations yet.");
 
-  // A table someone is physically sitting at right now can't take a new
-  // reservation at all (the backend rejects it with 409 regardless) — drop
-  // it from the picker entirely instead of only catching the mistake after
-  // the staff member already picked it and hit confirm.
+  // Keep occupied tables visible so staff can see why a table can't be
+  // picked, but render them disabled/shadowed instead of allowing a
+  // reservation the backend would reject with 409.
   const tableOptions = useMemo(
     () =>
-      tables
-        .filter((tbl) => tbl.status !== "occupied")
-        .map((tbl) => ({
-          value: tbl._id,
-          label: `${t("Table")} ${tbl.number} (${tbl.capacity} ${t("ppl")})`,
-        })),
+      tables.map((tbl) => ({
+        value: tbl._id,
+        label: `${t("Table")} ${tbl.number} (${tbl.capacity} ${t("ppl")})`,
+        disabled: tbl.status === "occupied",
+      })),
     [tables, t],
   );
 
@@ -177,7 +175,11 @@ const TablesPage = () => {
 
   const handleToggleStatus = (table: Table) => {
     const newStatus = table.status === "available" ? "occupied" : "available";
-    updateTableStatus({ tableId: table._id, status: newStatus });
+    updateTableStatus({
+      tableId: table._id,
+      status: newStatus,
+      reservationDate,
+    });
   };
 
   const handleConfirmDelete = () => {
@@ -205,7 +207,6 @@ const TablesPage = () => {
     createReservation({
       customerName: data.name.trim(),
       phone: data.phone.trim(),
-      customerEmail: data.email.trim() || undefined,
       date: data.date,
       time: convertTo24Hour(data.time),
       numberOfPeople: Number(data.people) || 0,

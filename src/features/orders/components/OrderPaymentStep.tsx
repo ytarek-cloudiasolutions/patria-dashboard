@@ -191,20 +191,20 @@ const OrderPaymentStep = ({
               <span className="font-semibold">{subtotal.toFixed(2)}</span>
             </span>
           </div>
-          {discountAmount > 0 && (
-            <div className="flex items-center justify-between text-[16px] text-[#059B5A]">
-              <span className="font-medium">{t("Discount")}:</span>
-              <span>
-                <span className="font-semibold">{discountDisplay}</span>
-              </span>
-            </div>
-          )}
           {tax > 0 && (
             <div className="flex items-center justify-between text-[16px]">
               <span className="font-medium text-[#23252A]">{t("Tax (14%)")}:</span>
               <span className="text-[#333333]">
                 <span className="font-medium">EGP </span>
                 <span className="font-semibold">{tax.toFixed(2)}</span>
+              </span>
+            </div>
+          )}
+          {discountAmount > 0 && (
+            <div className="flex items-center justify-between text-[16px] text-[#059B5A]">
+              <span className="font-medium">{t("Discount")}:</span>
+              <span>
+                <span className="font-semibold">{discountDisplay}</span>
               </span>
             </div>
           )}

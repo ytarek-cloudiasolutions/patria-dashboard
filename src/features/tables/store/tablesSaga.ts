@@ -96,6 +96,17 @@ function* handleUpdateTableStatus(
         message: response.message || "Status updated successfully",
       }),
     );
+
+    // A table status change can affect its reservations, so re-run the
+    // regular reservations fetch (same parsing/loading state as the page)
+    // to keep both views in sync.
+    if (action.payload.reservationDate) {
+      yield put(
+        tablesActions.getReservationsRequest({
+          date: action.payload.reservationDate,
+        }),
+      );
+    }
   } catch (error) {
     const errorMessage = getTableErrorMessage(error);
     yield call(showErrorToast, errorMessage);

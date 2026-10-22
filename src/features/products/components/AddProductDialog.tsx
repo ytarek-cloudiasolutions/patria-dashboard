@@ -206,24 +206,20 @@ const AddProductDialog = ({
             e.name.toLowerCase().trim() === ing.name.toLowerCase().trim()
         );
         const isAct = saved ? (saved.isActive ?? saved.active ?? true) : true;
-        // ing.price is the cost of ing.quantity units as stocked (e.g. EGP 70
-        // for 100g) — NOT a per-unit price. The price shown here is always
-        // DERIVED from quantity (there's no manual price input in this UI —
-        // see the Price <span> below, and updateExtraQuantity already
-        // recomputes it whenever quantity changes). This branch used to
-        // trust `saved.price` verbatim for an already-saved extra instead
-        // of re-deriving it, so reopening Edit Product kept showing
-        // whatever price had been stored previously (often the ingredient's
-        // full raw price from before this calculation existed) until the
-        // admin nudged the quantity stepper to force a recompute. Always
-        // deriving here means the price shown on open already matches the
-        // saved quantity, with no manual step required.
-        const unitPrice = ing.quantity ? (Number(ing.price) || 0) / ing.quantity : 0;
+        // An ingredient's price is its per-unit rate (e.g. EGP 0.35 per g),
+        // so a saved extra from the backend already holds the correct
+        // quantity-adjusted price. Only derive it for a newly-targeted
+        // ingredient that has no saved extra yet.
         const defaultQty = saved?.quantity ?? 1;
+        const basePrice = Number(ing.price) || 0;
+        const price =
+          saved?.price != null
+            ? Number(saved.price)
+            : Math.round(basePrice * defaultQty * 100) / 100;
         return {
           id: ing.id,
           name: ing.name,
-          price: Math.round(unitPrice * defaultQty * 100) / 100,
+          price,
           active: isAct,
           isActive: isAct,
           quantity: defaultQty,
@@ -476,15 +472,12 @@ const AddProductDialog = ({
       form.extras.map((e) => (e.id === id ? { ...e, ...patch } : e)),
     );
 
-  // ing.price is the cost of ing.quantity units as stocked (e.g. EGP 70 for
-  // 100g), not a per-unit price — quantity changes on an "Extras Included"
-  // row must recompute price from that ratio, not leave the ingredient's
-  // full base price untouched regardless of how much is actually used.
+  // An ingredient's price is its per-unit rate (e.g. EGP 0.35 per g), so
+  // quantity changes on an "Extras Included" row must multiply by that
+  // rate — not divide it by the ingredient's stock quantity.
   const updateExtraQuantity = (id: string, quantity: number) => {
     const ing = ingredients.find((i) => String((i as any).id) === String(id));
-    const unitPrice = ing && (ing as any).quantity
-      ? (Number((ing as any).price) || 0) / (ing as any).quantity
-      : undefined;
+    const unitPrice = ing ? Number((ing as any).price) || 0 : undefined;
     updateExtra(id, {
       quantity,
       ...(unitPrice !== undefined ? { price: Math.round(unitPrice * quantity * 100) / 100 } : {}),
@@ -1198,7 +1191,7 @@ const AddProductDialog = ({
                                   isSelected ? "text-black" : "text-[#8B8B8B]"
                                 )}
                               >
-                                {Number(extra.price || 85.2).toFixed(2)}
+                                {Number(extra.price ?? 0).toFixed(2)}
                               </span>
                             </div>
                           </div>

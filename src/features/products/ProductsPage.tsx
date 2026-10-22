@@ -457,9 +457,9 @@ const ProductsPage = () => {
       // anything pulled from "Extras Included" (mapFromTargeted) — a truly
       // custom extra's id is its own saved subdocument id, which never
       // matches a real ingredient. Only send ingredientId when it's a real
-      // one, so the backend knows to recompute this extra's price from
-      // that ingredient's price/stockQty ratio instead of trusting
-      // whatever price this client display already shows.
+      // one, so the backend knows to recompute this extra's price from the
+      // ingredient's per-unit price instead of trusting whatever price this
+      // client display already shows.
       const matchedIngredient = ingredients.find((ing: any) => String(ing.id) === String(e.id));
 
       mappedExtras.push({

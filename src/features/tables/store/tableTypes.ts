@@ -47,6 +47,8 @@ export interface CreateTableRequest {
 export interface UpdateTableStatusRequest {
   tableId: string;
   status: TableStatus;
+  /** Currently viewed reservation date, used to refresh reservations after the table changes. */
+  reservationDate?: string;
 }
 
 export interface DeleteTableRequest {

@@ -41,7 +41,6 @@ const getCurrentTimeFormatted = () => {
 
 const INITIAL_FORM: ReservationFormData = {
   name: "",
-  email: "",
   phone: "",
   people: "",
   date: "",
@@ -154,39 +153,24 @@ const NewReservationDialog = ({
                 )}
               </div>
 
-              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+              <div>
                 <InputField
                   data={{
-                    id: "res-email",
-                    label: { htmlFor: "res-email", labelText: t("Email Address") },
-                    placeholder: t("Email Address"),
+                    id: "res-phone",
+                    label: { htmlFor: "res-phone", labelText: t("Phone Number") },
+                    placeholder: "01X XXXX XXXX",
+                    required: true,
                     inputProps: {
-                      type: "email",
-                      value: form.email,
-                      onChange: (e) => set("email", e.target.value),
+                      value: form.phone,
+                      onChange: (e) => set("phone", e.target.value),
                     },
                   }}
                 />
-                <div>
-                  <InputField
-                    data={{
-                      id: "res-phone",
-                      label: { htmlFor: "res-phone", labelText: t("Phone Number") },
-                      placeholder: "01X XXXX XXXX",
-                      
-                      required: true,
-                      inputProps: {
-                        value: form.phone,
-                        onChange: (e) => set("phone", e.target.value),
-                      },
-                    }}
-                  />
-                  {errors.phone && (
-                    <p className="mt-1 text-[13px] text-[#C90000]">
-                      {errors.phone}
-                    </p>
-                  )}
-                </div>
+                {errors.phone && (
+                  <p className="mt-1 text-[13px] text-[#C90000]">
+                    {errors.phone}
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-3 sm:items-start">

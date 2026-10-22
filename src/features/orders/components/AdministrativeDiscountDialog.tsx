@@ -48,7 +48,7 @@ const AdministrativeDiscountDialog = ({
     return Math.min(Math.max(raw, 0), total);
   }, [amount, mode, total]);
 
-  const totalAfterDiscount = Math.max(subtotal + tax - discount, 0);
+  const totalAfterDiscount = Math.max(total - discount, 0);
   const canApply = password.trim().length > 0 && discount > 0;
 
   const handleApply = () => {
