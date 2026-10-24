@@ -20,6 +20,7 @@ import DropdownSelect from "@/shared/components/DropdownSelect";
 import { Switch } from "@/shared/components/ui/switch";
 import { getRecipe } from "../api/recipeApi";
 import { getProducts } from "../api/productsApi";
+import { showErrorToast } from "@/shared/utils/toast";
 import { mapProduct } from "../utils/productMappers";
 import type { OptionRecipeItem } from "../types";
 import { cn } from "@/lib/utils";
@@ -159,8 +160,15 @@ const AddIngredientDialog = ({
     setExtraSearchQuery("");
   }, [open, editingIngredient]);
 
+  // If the real recipe fails to load for an existing ingredient,
+  // form.recipe is left at its stale initial empty array — saving must not
+  // be allowed to treat that as "the recipe was cleared" and delete the
+  // real one.
+  const [recipeFetchFailed, setRecipeFetchFailed] = useState(false);
+
   useEffect(() => {
     if (open && editingIngredient?.id) {
+      setRecipeFetchFailed(false);
       getRecipe(editingIngredient.id)
         .then((recipeRes: any) => {
           const recipeObj = recipeRes?.recipe || recipeRes;
@@ -205,9 +213,13 @@ const AddIngredientDialog = ({
         })
         .catch((err) => {
           console.warn("Failed to fetch recipe for ingredient:", err);
+          setRecipeFetchFailed(true);
+          showErrorToast(
+            t("Couldn't load this ingredient's current recipe — saving now would delete it. Reopen to try again, or check the recipe section before saving.")
+          );
         });
     }
-  }, [open, editingIngredient]);
+  }, [open, editingIngredient, t]);
 
   useEffect(() => {
     if (open && editingIngredient?.extraTargetProductIds?.length) {
@@ -423,6 +435,7 @@ const AddIngredientDialog = ({
       ...form,
       extraQuantity: form.extraQuantity || "0",
       extraTargetProductIds,
+      recipeFetchFailed,
     });
     onOpenChange(false);
   };

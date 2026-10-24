@@ -143,6 +143,11 @@ export interface ProductFormData {
   showInApp: boolean;
   showInPos: boolean;
   isInfiniteStock: boolean;
+  /** True when editing an existing product and its real recipe failed to
+   * load (network/server error) — `recipe` above is then just the stale
+   * initial empty array, not a confirmed "no recipe", so saving must NOT
+   * be allowed to overwrite/delete whatever recipe is actually stored. */
+  recipeFetchFailed?: boolean;
 }
 
 // --- Add Ingredient form ----------------------------------------------------
@@ -165,6 +170,10 @@ export interface IngredientFormData {
   isExtra: boolean;
   extraCategories: string[];
   extraTargetProductIds?: string[];
+  /** True when editing an existing ingredient and its real recipe failed to
+   * load — see ProductFormData.recipeFetchFailed for why this must block
+   * sending `recipe` on save. */
+  recipeFetchFailed?: boolean;
 }
 
 // --- Add Category form ------------------------------------------------------

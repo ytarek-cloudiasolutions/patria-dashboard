@@ -122,6 +122,14 @@ const productsSlice = createSlice({
         state.products = state.products.map((p) =>
           p.id === updatedProd.id ? updatedProd : p,
         );
+        // state.ingredients is a separate array (fetched once by
+        // getIngredients, see below) that this never touched — editing an
+        // ingredient's own fields (price, "Add as Extra", etc.) updated the
+        // Products tab's copy but left the Ingredients/Recipes tab showing
+        // the stale pre-edit version until a full page reload.
+        state.ingredients = state.ingredients.map((p) =>
+          p.id === updatedProd.id ? updatedProd : p,
+        );
       }
       state.successMessage = action.payload.message || "Product updated successfully";
     },
@@ -141,6 +149,14 @@ const productsSlice = createSlice({
     ) => {
       state.loading.delete = false;
       state.products = state.products.filter(
+        (p) => p.id !== action.payload.productId,
+      );
+      // Same gap as updateProductSuccess — deleting an ingredient from the
+      // Ingredients/Recipes tab (same deleteProduct action, kind:
+      // "ingredient") only ever removed it from state.products, never from
+      // this separate state.ingredients array, so it kept showing up in
+      // that tab's list looking exactly like the delete hadn't worked.
+      state.ingredients = state.ingredients.filter(
         (p) => p.id !== action.payload.productId,
       );
       state.successMessage = action.payload.message || "Product deleted successfully";
@@ -165,6 +181,9 @@ const productsSlice = createSlice({
       if (action.payload.product) {
         const updatedProd = mapProduct(action.payload.product);
         state.products = state.products.map((p) =>
+          p.id === updatedProd.id ? updatedProd : p,
+        );
+        state.ingredients = state.ingredients.map((p) =>
           p.id === updatedProd.id ? updatedProd : p,
         );
       }

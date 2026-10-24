@@ -483,22 +483,29 @@ const ProductsPage = () => {
     }
     formData.append("extras", JSON.stringify(mappedExtras));
 
-    const mappedRecipe = (data.recipe || []).map((r) => {
-      const matId =
-        typeof r.material === "object" && r.material !== null
-          ? String((r.material as any)._id || (r.material as any).id || "")
-          : String(r.material || (r as any).ingredientId || "");
-      return {
-        material: matId,
-        ingredientId: matId,
-        name: r.name || "",
-        price: Number(r.price) || 0,
-        quantity: Number(r.quantity) || 0,
-        unit: r.unit || "pcs",
-        ingredientUnit: r.ingredientUnit || r.unit || "pcs",
-      };
-    });
-    formData.append("recipe", JSON.stringify(mappedRecipe));
+    // If the product's real recipe failed to load when the edit dialog
+    // opened, form.recipe is just the stale initial empty array, not a
+    // confirmed "no recipe" — sending it here would make the saga call
+    // deleteRecipe and wipe out whatever recipe is actually stored. Leave
+    // the "recipe" field out entirely so the existing recipe is untouched.
+    if (!data.recipeFetchFailed) {
+      const mappedRecipe = (data.recipe || []).map((r) => {
+        const matId =
+          typeof r.material === "object" && r.material !== null
+            ? String((r.material as any)._id || (r.material as any).id || "")
+            : String(r.material || (r as any).ingredientId || "");
+        return {
+          material: matId,
+          ingredientId: matId,
+          name: r.name || "",
+          price: Number(r.price) || 0,
+          quantity: Number(r.quantity) || 0,
+          unit: r.unit || "pcs",
+          ingredientUnit: r.ingredientUnit || r.unit || "pcs",
+        };
+      });
+      formData.append("recipe", JSON.stringify(mappedRecipe));
+    }
 
     if (data.imageFile) {
       formData.append("images", data.imageFile);
@@ -564,22 +571,26 @@ const ProductsPage = () => {
     formData.append("variantGroups", JSON.stringify([]));
     formData.append("extras", JSON.stringify([]));
 
-    const mappedRecipe = (data.recipe || []).map((r) => {
-      const matId =
-        typeof r.material === "object" && r.material !== null
-          ? String((r.material as any)._id || (r.material as any).id || "")
-          : String(r.material || (r as any).ingredientId || "");
-      return {
-        material: matId,
-        ingredientId: matId,
-        name: r.name || "",
-        price: Number(r.price) || 0,
-        quantity: Number(r.quantity) || 0,
-        unit: r.unit || "pcs",
-        ingredientUnit: r.ingredientUnit || r.unit || "pcs",
-      };
-    });
-    formData.append("recipe", JSON.stringify(mappedRecipe));
+    // See the matching guard in handleSaveProduct — a failed recipe fetch
+    // must not result in sending an empty "recipe" that deletes the real one.
+    if (!data.recipeFetchFailed) {
+      const mappedRecipe = (data.recipe || []).map((r) => {
+        const matId =
+          typeof r.material === "object" && r.material !== null
+            ? String((r.material as any)._id || (r.material as any).id || "")
+            : String(r.material || (r as any).ingredientId || "");
+        return {
+          material: matId,
+          ingredientId: matId,
+          name: r.name || "",
+          price: Number(r.price) || 0,
+          quantity: Number(r.quantity) || 0,
+          unit: r.unit || "pcs",
+          ingredientUnit: r.ingredientUnit || r.unit || "pcs",
+        };
+      });
+      formData.append("recipe", JSON.stringify(mappedRecipe));
+    }
 
     if (data.imageFile) {
       formData.append("images", data.imageFile);

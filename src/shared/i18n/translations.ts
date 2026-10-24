@@ -87,6 +87,7 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   "Active Staff": "الموظفون النشطون",
   "Open Register": "الصناديق المفتوحة",
   "Pending POs": "أوامر الشراء المعلقة",
+  "Pending Purchase Orders": "أوامر الشراء المعلقة",
   "Restock Warnings": "تنبيهات إعادة التخزين",
   "POS vs Mobile": "نقاط البيع مقابل التطبيق",
   "Revenue Mix": "توزيع الإيرادات",

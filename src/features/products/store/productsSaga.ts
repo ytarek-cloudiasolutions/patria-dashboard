@@ -75,7 +75,20 @@ function* handleCreateProduct(
           yield call(saveRecipe, productId, { ingredients: ingredientsPayload });
         }
       } catch (recipeErr) {
+        // This used to only log to the console — the product itself still
+        // saved fine, so the "Product created successfully" toast fired
+        // regardless and nothing told staff the recipe silently failed to
+        // save (e.g. a circular ingredient chain, or an ingredient that no
+        // longer exists). The product then has no Recipe at all, so
+        // inventory never deducts anything when it's ordered — looking
+        // exactly like "stock isn't updating", with no error anywhere to
+        // explain why.
         console.error("Failed to save product recipe:", recipeErr);
+        const recipeErrorMessage = getProductErrorMessage(recipeErr);
+        yield call(
+          showErrorToast,
+          `Product saved, but its recipe failed to save (${recipeErrorMessage}) — stock won't deduct for it until the recipe is saved again.`,
+        );
       }
     }
 
@@ -120,7 +133,16 @@ function* handleUpdateProduct(
           yield call(deleteRecipe, productId);
         }
       } catch (recipeErr) {
+        // Same silent-failure gap as handleCreateProduct — the product
+        // itself still saved, so nothing told staff the recipe edit didn't
+        // take, and inventory keeps not deducting for this product with no
+        // visible reason why.
         console.error("Failed to update product recipe:", recipeErr);
+        const recipeErrorMessage = getProductErrorMessage(recipeErr);
+        yield call(
+          showErrorToast,
+          `Product saved, but its recipe failed to save (${recipeErrorMessage}) — stock won't deduct for it until the recipe is saved again.`,
+        );
       }
     }
 

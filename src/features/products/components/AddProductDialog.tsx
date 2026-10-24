@@ -23,6 +23,7 @@ import DropdownSelect from "@/shared/components/DropdownSelect";
 import InputField from "@/shared/components/InputField";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { api } from "@/config/api";
+import { showErrorToast } from "@/shared/utils/toast";
 import { PRODUCT_CATEGORIES } from "../data";
 import type {
   Ingredient,
@@ -176,6 +177,10 @@ const AddProductDialog = ({
   }, [recipeSearch, categories]);
 
   const fetchedProductIdRef = useRef<string | null>(null);
+  // If the real recipe fails to load for an existing product, `form.recipe`
+  // is left at its stale initial empty array — saving must not be allowed
+  // to treat that as "the recipe was cleared" and delete the real one.
+  const [recipeFetchFailed, setRecipeFetchFailed] = useState(false);
 
   useEffect(() => {
     if (!open) {
@@ -288,6 +293,7 @@ const AddProductDialog = ({
 
     if (editingProduct?.id && fetchedProductIdRef.current !== editingProduct.id) {
       fetchedProductIdRef.current = editingProduct.id;
+      setRecipeFetchFailed(false);
       getRecipe(editingProduct.id)
         .then((recipeRes: any) => {
           const recipeObj = recipeRes?.recipe || recipeRes;
@@ -331,9 +337,13 @@ const AddProductDialog = ({
         })
         .catch((err) => {
           console.error("Failed to fetch product recipe:", err);
+          setRecipeFetchFailed(true);
+          showErrorToast(
+            t("Couldn't load this product's current recipe — saving now would delete it. Reopen Edit Product to try again, or check the recipe tab before saving.")
+          );
         });
     }
-  }, [open, editingProduct, categories, ingredients]);
+  }, [open, editingProduct, categories, ingredients, t]);
 
   const set = <K extends keyof ProductFormData>(
     key: K,
@@ -496,7 +506,7 @@ const AddProductDialog = ({
       next.price = t("Enter a valid price");
     setErrors(next);
     if (Object.keys(next).length > 0) return;
-    onSave(form);
+    onSave({ ...form, recipeFetchFailed });
     onOpenChange(false);
   };
 

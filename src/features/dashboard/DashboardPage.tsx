@@ -243,7 +243,10 @@ const DashboardPage = () => {
           },
           {
             id: "pos",
-            label: "Pending POs",
+            // "POs" (Purchase Orders) reads too easily as "POS" at a
+            // glance — spell it out so it's never mistaken for pending
+            // orders in the POS module.
+            label: "Pending Purchase Orders",
             value: ov.pendingPOs ?? 0,
             icon: ShoppingBag,
             tone: "blue",
