@@ -244,7 +244,7 @@ const OrdersTable = ({
                       </div>
                     </TableCell>
 
-                    <TableCell className="py-4 text-center">
+                    <TableCell className="py-[18px] text-center">
                       <div className="flex justify-center">
                         <button
                           type="button"

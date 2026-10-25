@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Printer, Wallet } from "lucide-react";
+import { Printer, SquarePen, Wallet } from "lucide-react";
 
 import {
   Dialog,
@@ -9,7 +9,8 @@ import {
 import { Separator } from "@/shared/components/ui/separator";
 import OrdersStatusBadge from "./OrdersStatusBadge";
 import AdministrativeDiscountDialog from "./AdministrativeDiscountDialog";
-import type { Order } from "../types";
+import EditOrderDialog from "./EditOrderDialog";
+import type { Order, ProductOption } from "../types";
 import DefaultButton from "@/shared/components/DefaultButton";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { translatePaymentMethod } from "../utils";
@@ -23,6 +24,8 @@ interface OrderDetailsDialogProps {
   open: boolean;
   order: Order | null;
   onOpenChange: (open: boolean) => void;
+  /** Products available for editing the order's line items. */
+  products?: ProductOption[];
   /** Fired with the fresh backend order after a mutation (discount, mark-as-paid) so the caller can update its own copy. */
   onOrderUpdated?: (order: Order) => void;
 }
@@ -64,10 +67,12 @@ const OrderDetailsDialog = ({
   open,
   order,
   onOpenChange,
+  products = [],
   onOrderUpdated,
 }: OrderDetailsDialogProps) => {
   const { t } = useTranslation();
   const [isDiscountOpen, setIsDiscountOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
   const [adminDiscount, setAdminDiscount] = useState(0);
   const [appliedDiscountType, setAppliedDiscountType] = useState<"fixed" | "percentage" | null>(null);
   const [appliedDiscountValue, setAppliedDiscountValue] = useState<number | null>(null);
@@ -567,6 +572,17 @@ const OrderDetailsDialog = ({
 
           {/* Action buttons footer (shrink-0) */}
           <div className="shrink-0 flex flex-col gap-4 border-t border-[#CACBD4] pt-4 bg-white">
+            {order.status !== "On The Way" && order.status !== "Delivered" && (
+              <button
+                type="button"
+                onClick={() => setIsEditOpen(true)}
+                className="flex h-[56px] w-full cursor-pointer items-center justify-center gap-3 rounded-[5px] bg-[#F5F0EA] text-[16px] font-semibold text-[#8F6900]"
+              >
+                <SquarePen className="size-4 text-[#8F6900]" />
+                {t("Edit Order")}
+              </button>
+            )}
+
             <button
               type="button"
               onClick={() => setIsDiscountOpen(true)}
@@ -606,6 +622,15 @@ const OrderDetailsDialog = ({
         onOpenChange={setIsDiscountOpen}
         onApply={handleApplyDiscount}
       />
+
+      {isEditOpen && (
+        <EditOrderDialog
+          order={order}
+          products={products}
+          onOpenChange={setIsEditOpen}
+          onSaved={(updated) => onOrderUpdated?.(updated)}
+        />
+      )}
     </Dialog>
   );
 };

@@ -1446,6 +1446,13 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   "import data": "استيراد البيانات",
 
   // Orders module
+  "Edit Order": "تعديل الطلب",
+  "PAYMENT METHOD": "طريقة الدفع",
+  "No items": "لا توجد عناصر",
+  "Order updated": "تم تحديث الطلب",
+  "Failed to update order": "فشل تحديث الطلب",
+  "Decrease quantity": "تقليل الكمية",
+  "Increase quantity": "زيادة الكمية",
   "Add Products": "إضافة المنتجات",
   "Add product": "إضافة المنتج",
   "Add products to cart": "أضف المنتجات إلى السلة",

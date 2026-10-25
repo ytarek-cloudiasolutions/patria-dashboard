@@ -645,6 +645,7 @@ const OrdersPage = () => {
       <OrderDetailsDialog
         open={selectedOrder !== null}
         order={selectedOrder}
+        products={productOptions}
         onOpenChange={(open) => {
           if (!open) setSelectedOrder(null);
         }}
