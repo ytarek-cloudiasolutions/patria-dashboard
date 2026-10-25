@@ -1,3 +1,5 @@
+export type KitchenType = "barista" | "pastry" | "hot_food" | null;
+
 export interface Category {
   id: string;
   name: string;
@@ -5,6 +7,7 @@ export interface Category {
   imageUrl: string;
   itemCount: number;
   active: boolean;
+  kitchenType?: KitchenType;
 }
 
 export interface GetCategoryResponseItem {

@@ -11,6 +11,7 @@ export const mapCategory = (backendCat: any): Category => {
     imageUrl: backendCat.image || backendCat.imageUrl || DEFAULT_CATEGORY_IMAGE,
     itemCount: backendCat.productsCount ?? backendCat.itemCount ?? 0,
     active: backendCat.isActive ?? backendCat.active ?? true,
+    kitchenType: backendCat.kitchenType ?? null,
   };
 };
 

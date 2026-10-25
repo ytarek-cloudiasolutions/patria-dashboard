@@ -1,45 +1,34 @@
 import { cn } from "@/lib/utils";
-import ActionButton from "@/shared/components/ActionButton";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import {
-  ChefHat,
-  Croissant,
   ChevronRight,
   ChevronLeft,
+  SquarePen,
   Trash2,
-  Coffee,
   Utensils,
   Info,
 } from "lucide-react";
 import { useTranslation } from "@/shared/i18n/useTranslation";
-import type { Kitchen, KitchenIcon } from "../types";
+import type { Kitchen } from "../types";
+import { getKitchenIcon } from "../icons";
 import { Button } from "@/shared/components/ui/button";
 
 interface KitchenCardProps {
   kitchen: Kitchen;
   onOpenKitchen: (kitchenId: string) => void;
+  onEditKitchen?: (kitchen: Kitchen) => void;
   onDeleteKitchen: (kitchen: Kitchen) => void;
 }
-
-const iconMap: Record<KitchenIcon, React.ReactNode> = {
-  hot_food: <ChefHat className="size-6" />,
-  pastry: <Croissant className="size-6" />,
-  barista: <Coffee className="size-6" />,
-};
-
-const iconBackgroundMap: Record<KitchenIcon, string> = {
-  hot_food: "#FEECEC",
-  pastry: "#F3E9FA",
-  barista: "#FE9A001A",
-};
 
 const KitchenCard = ({
   kitchen,
   onOpenKitchen,
+  onEditKitchen,
   onDeleteKitchen,
 }: KitchenCardProps) => {
   const { t, dir } = useTranslation();
-  const iconBackground = iconBackgroundMap[kitchen.icon];
+  const KitchenIconComponent = getKitchenIcon(kitchen.icon);
+  const iconBackground = `${kitchen.color.slice(0, 7)}1A`;
 
   const isBusy = kitchen.status?.toLowerCase() === "busy";
   const badgeText = isBusy ? "Busy" : "Active";
@@ -61,7 +50,7 @@ const KitchenCard = ({
               backgroundColor: iconBackground,
             }}
           >
-            {iconMap[kitchen.icon]}
+            <KitchenIconComponent className="size-6" />
           </div>
 
           <span
@@ -109,15 +98,24 @@ const KitchenCard = ({
             {t("Open Kitchen")}
             {dir === "rtl" ? <ChevronLeft className="size-4.5" /> : <ChevronRight className="size-4.5" />}
           </Button>
-          <ActionButton
-            data={{
-              icon: <Trash2 className="size-6" />,
-              iconColor: "text-white",
-              ariaLabel: `Delete ${kitchen.name}`,
-              className: "h-14 w-16 rounded-[8px] bg-[#C90000] hover:bg-[#C90000]/90",
-              onClick: () => onDeleteKitchen(kitchen),
-            }}
-          />
+          <div className="flex items-center gap-3.5">
+            <button
+              type="button"
+              aria-label={`Edit ${kitchen.name}`}
+              onClick={() => onEditKitchen?.(kitchen)}
+              className="flex size-5 cursor-pointer items-center justify-center text-black transition-opacity hover:opacity-70"
+            >
+              <SquarePen className="size-4.5" />
+            </button>
+            <button
+              type="button"
+              aria-label={`Delete ${kitchen.name}`}
+              onClick={() => onDeleteKitchen(kitchen)}
+              className="flex size-5 cursor-pointer items-center justify-center text-[#C90000] transition-opacity hover:opacity-70"
+            >
+              <Trash2 className="size-4.5" />
+            </button>
+          </div>
         </div>
       </CardContent>
     </Card>

@@ -1,6 +1,8 @@
+import type { KitchenIconId } from "./icons";
+
 export type KitchenStatus = "active" | "busy" | "Active" | "Busy" | string;
 
-export type KitchenIcon = "hot_food" | "pastry" | "barista";
+export type KitchenIcon = KitchenIconId;
 
 export interface Kitchen {
   id: string;
@@ -13,6 +15,7 @@ export interface Kitchen {
   requests: number;
   detailActiveOrders: number;
   lowStock: number;
+  printer?: string;
 }
 
 export type OrderType = "takeaway" | "dine-in";

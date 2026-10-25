@@ -6,11 +6,17 @@ import {
   DialogTitle,
 } from "@/shared/components/ui/dialog";
 import { Button } from "@/shared/components/ui/button";
+import { Label } from "@/shared/components/ui/label";
 import { Separator } from "@/shared/components/ui/separator";
 import DefaultButton from "@/shared/components/DefaultButton";
+import DropdownSelect from "@/shared/components/DropdownSelect";
 import InputField from "@/shared/components/InputField";
 import { useTranslation } from "@/shared/i18n/useTranslation";
-import type { CategoryFormData, Category } from "../types";
+import {
+  getKitchenStations,
+  type KitchenStation,
+} from "@/features/kitchen/api/kitchenApi";
+import type { CategoryFormData, Category, KitchenType } from "../types";
 import UploadDropzone from "./UploadDropzone";
 
 const FORM_ID = "add-category-form";
@@ -36,7 +42,17 @@ const AddCategoryDialog = ({
   const [imageUrl, setImageUrl] = useState<string | undefined>(undefined);
   const [imageFile, setImageFile] = useState<File | undefined>(undefined);
   const [removeImage, setRemoveImage] = useState(false);
+  const [kitchenType, setKitchenType] = useState<KitchenType>(null);
+  const [kitchenStations, setKitchenStations] = useState<KitchenStation[]>([]);
+  const [isKitchenOpen, setIsKitchenOpen] = useState(false);
   const [errors, setErrors] = useState<{ name?: string; nameAr?: string }>({});
+
+  useEffect(() => {
+    if (!open) return;
+    getKitchenStations()
+      .then((stations) => setKitchenStations(stations || []))
+      .catch(() => setKitchenStations([]));
+  }, [open]);
 
   useEffect(() => {
     if (open) {
@@ -46,13 +62,16 @@ const AddCategoryDialog = ({
         setImageUrl(editingCategory.imageUrl || undefined);
         setImageFile(undefined);
         setRemoveImage(false);
+        setKitchenType(editingCategory.kitchenType ?? null);
       } else {
         setName("");
         setNameAr("");
         setImageUrl(undefined);
         setImageFile(undefined);
         setRemoveImage(false);
+        setKitchenType(null);
       }
+      setIsKitchenOpen(false);
       setErrors({});
     }
   }, [open, editingCategory]);
@@ -75,7 +94,7 @@ const AddCategoryDialog = ({
       imageUrl: removeImage ? undefined : imageUrl,
       imageFile,
       removeImage,
-      kitchenType: editingCategory?.kitchenType,
+      kitchenType: kitchenType ?? undefined,
     });
     onOpenChange(false);
   };
@@ -94,6 +113,9 @@ const AddCategoryDialog = ({
         showCloseButton={false}
         className="w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-[696px]"
       >
+        {isKitchenOpen && (
+          <div className="pointer-events-none fixed inset-0 z-60 bg-black/40" />
+        )}
         <div className="flex flex-col">
           <div className="px-5 pt-5 sm:px-7 sm:pt-7">
             <DialogTitle className="text-[20px] font-semibold text-[#28293D] sm:text-[22px]">
@@ -182,6 +204,25 @@ const AddCategoryDialog = ({
                   <p className="mt-1 text-[13px] text-[#C90000]">{errors.nameAr}</p>
                 )}
               </div>
+            </div>
+
+            <div className="flex flex-col gap-2.5">
+              <Label className="text-[16px] font-medium text-black">
+                {t("Select Kitchen")}
+              </Label>
+              <DropdownSelect
+                options={kitchenStations.map((station) => ({
+                  label: station.name,
+                  value: station.kitchenType,
+                }))}
+                selected={kitchenType ?? ""}
+                onSelect={(value) => setKitchenType(value as KitchenType)}
+                onOpenChange={setIsKitchenOpen}
+                placeholder={t("-- Select Kitchen --")}
+                align="start"
+                className="md:w-full"
+                contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
+              />
             </div>
           </form>
 
