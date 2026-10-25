@@ -374,7 +374,7 @@ const OrderDetailsDialog = ({
 
               {/* Address (for Application & Call orders) vs Order Type (for POS orders) */}
               {!isPosOrder ? (
-                <div className="flex items-center gap-1.5">
+                <div className="flex flex-col gap-1">
                   <span className="text-[12px] font-semibold uppercase tracking-[0.24px] text-[#8B8B8B]">
                     {t("ADDRESS")}:
                   </span>
