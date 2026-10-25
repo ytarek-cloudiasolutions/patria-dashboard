@@ -1,5 +1,6 @@
 import { Badge } from "@/shared/components/ui/badge";
 import { useTranslation } from "@/shared/i18n/useTranslation";
+import { cn } from "@/lib/utils";
 import type { OrderStatus } from "../types";
 
 type StatusStyle = {
@@ -43,15 +44,21 @@ const STATUS_STYLES: Record<OrderStatus, StatusStyle> = {
 
 interface OrdersStatusBadgeProps {
   status: OrderStatus;
+  className?: string;
 }
 
-const OrdersStatusBadge = ({ status }: OrdersStatusBadgeProps) => {
+const OrdersStatusBadge = ({ status, className }: OrdersStatusBadgeProps) => {
   const { t } = useTranslation();
   const style = STATUS_STYLES[status];
 
   return (
     <Badge
-      className={`h-5 w-28 justify-center whitespace-nowrap rounded-[999px] border px-3 text-center font-semibold text-[11px] ${style.bg} ${style.text}`}
+      className={cn(
+        "h-5 w-28 justify-center whitespace-nowrap rounded-[999px] border px-3 text-center font-semibold text-[11px]",
+        style.bg,
+        style.text,
+        className,
+      )}
       style={{ borderColor: style.borderColor }}
     >
       {t(status)}

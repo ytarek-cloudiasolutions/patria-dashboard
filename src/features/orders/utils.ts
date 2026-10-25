@@ -56,6 +56,10 @@ export const cartToOrderItems = (cart: CartLineItem[]): OrderLineItem[] =>
       name: e.name,
       price: e.price,
     })),
+    excludedIngredients:
+      line.excludedIngredients && line.excludedIngredients.length > 0
+        ? line.excludedIngredients
+        : undefined,
     note: [
       line.specialRequest,
       ...line.variantSelections.map((v) => `${v.groupName}: ${v.optionName}`),

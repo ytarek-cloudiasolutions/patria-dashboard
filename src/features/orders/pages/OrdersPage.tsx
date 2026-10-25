@@ -415,6 +415,7 @@ const OrdersPage = () => {
       notes: item.note || undefined,
       selectedVariants: item.selectedVariants,
       selectedExtras: item.selectedExtras,
+      excludedIngredients: item.excludedIngredients,
     }));
 
     const createRequest: CreateOrderRequest = {

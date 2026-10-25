@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   Banknote,
   Check,
@@ -26,6 +26,10 @@ import { cn } from "@/lib/utils";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { showSuccessToast, showErrorToast } from "@/shared/utils/toast";
 import { api } from "@/config/api";
+import {
+  getRecipeItems,
+  type RecipeItem,
+} from "@/features/products/api/recipeApi";
 import OrdersStatusBadge from "./OrdersStatusBadge";
 import ProductCustomizationModal from "./ProductCustomizationModal";
 import { mapOrderStatusToBackend } from "../utils/orderMappers";
@@ -90,6 +94,8 @@ const EditOrderDialog = ({
   const [editingItemId, setEditingItemId] = useState<string | number | null>(
     null,
   );
+  const [editingRecipe, setEditingRecipe] = useState<RecipeItem[]>([]);
+  const editRequestRef = useRef(0);
   const [isStatusOpen, setIsStatusOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -164,7 +170,10 @@ const EditOrderDialog = ({
     editingItemId === null
       ? null
       : items.find((item) => item.id === editingItemId) ?? null;
-  const editingProduct = editingItem ? getProduct(editingItem) ?? null : null;
+  const baseEditingProduct = editingItem ? getProduct(editingItem) ?? null : null;
+  const editingProduct = baseEditingProduct
+    ? { ...baseEditingProduct, recipe: editingRecipe }
+    : null;
 
   const editingLine: CartLineItem | null =
     editingItem && editingProduct
@@ -187,8 +196,22 @@ const EditOrderDialog = ({
             price: extra.price,
           })),
           specialRequest: editingItem.note,
+          excludedIngredients: editingItem.excludedIngredients,
         }
       : null;
+
+  const startEditItem = async (itemId: string | number) => {
+    const item = items.find((candidate) => candidate.id === itemId);
+    const product = item ? getProduct(item) : null;
+    if (!product) return;
+
+    const requestId = ++editRequestRef.current;
+    const recipe = await getRecipeItems(String(product.id));
+    if (requestId !== editRequestRef.current) return;
+
+    setEditingRecipe(recipe);
+    setEditingItemId(itemId);
+  };
 
   const handleCustomized = (line: CartLineItem) => {
     setItems((previous) =>
@@ -207,6 +230,7 @@ const EditOrderDialog = ({
                 name: extra.name,
                 price: extra.price,
               })),
+              excludedIngredients: line.excludedIngredients,
               note: line.specialRequest,
             }
           : item,
@@ -245,6 +269,7 @@ const EditOrderDialog = ({
             name: extra.name,
             price: extra.price,
           })),
+          excludedIngredients: item.excludedIngredients,
         })),
       });
       onSaved(updatedOrder);
@@ -489,7 +514,7 @@ const EditOrderDialog = ({
                   {product && (
                     <button
                       type="button"
-                      onClick={() => setEditingItemId(item.id)}
+                      onClick={() => startEditItem(item.id)}
                       className="flex h-10 cursor-pointer items-center justify-center gap-3 rounded-[5px] text-xs font-semibold leading-4 tracking-tight text-primary"
                     >
                       <SquarePen className="size-4" />

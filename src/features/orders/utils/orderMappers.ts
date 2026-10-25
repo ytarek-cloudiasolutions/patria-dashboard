@@ -137,6 +137,25 @@ export const mapOrder = (o: any): Order => {
       }
     }
 
+    const rawExcluded = item.excludedIngredients || item.excluded_ingredients || [];
+    const excludedIngredients = (Array.isArray(rawExcluded) ? rawExcluded : [])
+      .map((excluded: any) =>
+        typeof excluded === "string"
+          ? { productId: "", name: excluded }
+          : {
+              productId: String(
+                excluded?.productId?._id ||
+                  excluded?.productId?.id ||
+                  excluded?.productId ||
+                  excluded?.id ||
+                  excluded?._id ||
+                  "",
+              ),
+              name: excluded?.name || excluded?.productName || "",
+            },
+      )
+      .filter((excluded: { productId: string; name: string }) => excluded.name || excluded.productId);
+
     return {
       id: product._id || product.id || String(idx),
       productId: product._id || product.id,
@@ -146,6 +165,7 @@ export const mapOrder = (o: any): Order => {
       note: unmatchedNotes.join(", "),
       selectedVariants,
       selectedExtras,
+      excludedIngredients: excludedIngredients.length > 0 ? excludedIngredients : undefined,
     };
   });
 
@@ -222,6 +242,13 @@ export const mapOrder = (o: any): Order => {
       ? "Paid"
       : "Charged to tab");
 
+  const creator =
+    (o.staffId && typeof o.staffId === "object" ? o.staffId : null) ||
+    (o.createdBy && typeof o.createdBy === "object" ? o.createdBy : null);
+  const createdByName =
+    creator?.name || creator?.fullName || o.createdByName || undefined;
+  const createdByRole = creator?.role || o.createdByRole || undefined;
+
   return {
     id: o._id || o.id,
     orderId: o.orderId || null,
@@ -232,6 +259,9 @@ export const mapOrder = (o: any): Order => {
     zone,
     date: dateStr,
     time: timeStr,
+    createdAt: o.createdAt || undefined,
+    createdByName,
+    createdByRole,
     // `||` treats a legitimately-zero total (e.g. a coupon/discount that
     // fully covers the subtotal — a real, correct $0 order) as "missing"
     // and falls back to the pre-discount subtotal instead, showing the

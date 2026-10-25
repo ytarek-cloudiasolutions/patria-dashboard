@@ -56,6 +56,10 @@ import { useShifts } from "@/features/shifts/hooks/useShifts";
 import { showSuccessToast, showErrorToast } from "@/shared/utils/toast";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { api } from "@/config/api";
+import {
+  getRecipeItems,
+  type RecipeItem,
+} from "@/features/products/api/recipeApi";
 
 const PosPage = () => {
   const { t } = useTranslation();
@@ -134,6 +138,13 @@ const PosPage = () => {
   const [customizeProduct, setCustomizeProduct] = useState<PosProduct | null>(null);
   const [editingLine, setEditingLine] = useState<CartItem | null>(null);
   const [isCustomizeOpen, setCustomizeOpen] = useState(false);
+  /**
+   * Recipe ingredients keyed by product id. The POS product payload doesn't
+   * include recipes, so we look them up from `/recipes/{productId}` as soon
+   * as a product is chosen and reuse the result for the rest of the session.
+   */
+  const recipeCacheRef = useRef<Record<string, RecipeItem[]>>({});
+  const customizeRequestRef = useRef(0);
   const [isPaymentOpen, setPaymentOpen] = useState(false);
   const [isReceiptOpen, setReceiptOpen] = useState(false);
   const [isOrderConfirmedOpen, setOrderConfirmedOpen] = useState(false);
@@ -522,15 +533,34 @@ const PosPage = () => {
 
   // --- Product customization ------------------------------------------------
 
-  const openCustomize = (product: PosProduct) => {
-    setCustomizeProduct(product);
+  /** Recipe lookup triggered whenever a product is chosen in the POS grid. */
+  const loadProductRecipe = useCallback(async (productId: string) => {
+    const cached = recipeCacheRef.current[productId];
+    if (cached) return cached;
+
+    const recipeItems = await getRecipeItems(productId);
+    recipeCacheRef.current[productId] = recipeItems;
+    return recipeItems;
+  }, []);
+
+  const openCustomize = async (product: PosProduct) => {
+    const requestId = ++customizeRequestRef.current;
+    const recipe = await loadProductRecipe(product.id);
+    if (requestId !== customizeRequestRef.current) return;
+
+    setCustomizeProduct({ ...product, recipe });
     setEditingLine(null);
     setCustomizeOpen(true);
   };
 
-  const openEdit = (lineId: string) => {
+  const openEdit = async (lineId: string) => {
     const line = cartItems.find((item) => item.lineId === lineId);
     if (!line) return;
+
+    const requestId = ++customizeRequestRef.current;
+    const recipe = await loadProductRecipe(line.productId);
+    if (requestId !== customizeRequestRef.current) return;
+
     setCustomizeProduct({
       id: line.productId,
       name: line.name,
@@ -538,6 +568,7 @@ const PosPage = () => {
       category: "",
       imageUrl: "",
       extras: line.extras.map(({ id, name, price }) => ({ id, name, price })),
+      recipe,
     });
     setEditingLine(line);
     setCustomizeOpen(true);

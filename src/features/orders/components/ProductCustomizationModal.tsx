@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, ArrowRight, Minus, Plus } from "lucide-react";
+import { ChevronDown, Minus, Plus } from "lucide-react";
 
 import {
   Dialog,
@@ -29,11 +29,28 @@ const ProductCustomizationModal = ({
   // groupId -> optionId
   const [variantChoice, setVariantChoice] = useState<Record<string | number, string | number>>({});
   const [extraIds, setExtraIds] = useState<(string | number)[]>([]);
+  const [recipeSelection, setRecipeSelection] = useState<Record<string, boolean>>({});
+  const [isRecipeOpen, setIsRecipeOpen] = useState(true);
   const [specialRequest, setSpecialRequest] = useState("");
   const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
     if (!product) return;
+
+    setIsRecipeOpen(true);
+
+    // Recipe ingredients start selected; restore the exclusions of a line
+    // that is being edited.
+    const excludedIds = new Set(
+      (editingLine?.excludedIngredients ?? []).map((item) => item.productId),
+    );
+    const recipeChoices: Record<string, boolean> = {};
+    (product.recipe ?? []).forEach((item, index) => {
+      const itemKey = String(item.id || item.material || index);
+      const materialId = String(item.material || item.id || "");
+      recipeChoices[itemKey] = !excludedIds.has(materialId);
+    });
+    setRecipeSelection(recipeChoices);
 
     if (editingLine) {
       const choice: Record<string | number, string | number> = {};
@@ -75,7 +92,10 @@ const ProductCustomizationModal = ({
 
   if (!product) return null;
 
+  const recipeItems = product.recipe ?? [];
+  const hasRecipe = recipeItems.length > 0;
   const hasExtras = Boolean(product.extras && product.extras.length > 0);
+  const hasOptions = hasExtras || hasRecipe;
 
   const variantSelections = (product.variantGroups ?? [])
     .map((group) => {
@@ -99,6 +119,15 @@ const ProductCustomizationModal = ({
   );
 
   const handleSubmit = () => {
+    const excludedIngredients = recipeItems.flatMap((item, index) => {
+      const itemKey = String(item.id || item.material || index);
+      if (recipeSelection[itemKey] !== false) return [];
+      const ingredientId = String(item.material || item.id || "");
+      return ingredientId
+        ? [{ productId: ingredientId, name: item.name || "" }]
+        : [];
+    });
+
     onSubmit({
       uid: editingLine?.uid ?? nextLineUid(),
       productId: product.id,
@@ -109,6 +138,8 @@ const ProductCustomizationModal = ({
       variantSelections,
       extras: selectedExtras,
       specialRequest: specialRequest.trim() || undefined,
+      excludedIngredients:
+        excludedIngredients.length > 0 ? excludedIngredients : undefined,
     });
     onClose();
   };
@@ -120,9 +151,15 @@ const ProductCustomizationModal = ({
         : [...previous, id],
     );
 
+  const toggleRecipeItem = (key: string) =>
+    setRecipeSelection((previous) => ({
+      ...previous,
+      [key]: !previous[key],
+    }));
+
   const submitLabel = editingLine
     ? t("Update product")
-    : hasExtras
+    : hasOptions
       ? t("Add product to cart")
       : t("Add product");
 
@@ -130,11 +167,11 @@ const ProductCustomizationModal = ({
     <Dialog open={product !== null} onOpenChange={(open) => !open && onClose()}>
       <DialogContent
         showCloseButton={false}
-        className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[12px] border border-[#CACBD4] bg-white p-6 ring-0 shadow-[0px_4px_6px_-4px_rgba(0,0,0,0.10),0px_10px_15px_-3px_rgba(0,0,0,0.10)] sm:max-w-[575px]"
+        className="flex max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-[12px] border border-[#CACBD4] bg-white p-6 ring-0 shadow-[0px_4px_6px_-4px_rgba(0,0,0,0.10),0px_10px_15px_-3px_rgba(0,0,0,0.10)] sm:max-w-[575px]"
       >
-        <div className="flex max-h-[calc(100vh-2rem)] flex-col gap-6">
+        <div className="flex min-h-0 flex-1 flex-col gap-6">
           {/* Header */}
-          {hasExtras ? (
+          {hasOptions ? (
             <div className="flex flex-col gap-1 rounded-[16px] border border-[#CACBD4] bg-[#FAFAF7] px-6 py-4">
               <DialogTitle className="text-[16px] font-semibold tracking-[0.32px] text-[#333333] leading-[17.12px]">
                 {product.name}
@@ -154,92 +191,170 @@ const ProductCustomizationModal = ({
             </div>
           )}
 
-          <div className="flex-1 space-y-6 overflow-y-auto pr-1">
+          <div className="min-h-0 flex-1 space-y-6 overflow-y-auto pr-1">
             {/* Variant groups */}
             {product.variantGroups?.map((group) => (
-              <div key={group.id} className="flex flex-col gap-2.5">
-                <p className="text-[16px] font-semibold text-black">
+              <div key={group.id} className="flex flex-col gap-3">
+                <p className="flex items-center gap-1 text-[14px] font-semibold tracking-[0.28px] text-[#28293D]">
                   {t(group.name)}
-                  {group.required && <span className="text-black"> *</span>}
+                  {group.required && (
+                    <span className="text-[12px] font-semibold text-[#C90000]">*</span>
+                  )}
                 </p>
-                <div className="flex items-center gap-3">
-                  {group.options.map((option) => {
-                    const active = variantChoice[group.id] === option.id;
-                    return (
-                      <button
-                        key={option.id}
-                        type="button"
-                        onClick={() =>
-                          setVariantChoice((previous) => ({
-                            ...previous,
-                            [group.id]: option.id,
-                          }))
-                        }
-                        style={{
-                          borderRadius: "4px",
-                          border: active
-                            ? "4px solid rgba(98, 79, 28, 0.50)"
-                            : "4px solid #E5E5E5",
-                          background: active ? "#F5F0EA" : "#FAFAF7",
-                        }}
-                        className="flex flex-1 items-center justify-center py-3.5 px-2 text-center cursor-pointer"
-                      >
-                        <span className="text-[14px] tracking-[0.28px]">
-                          <span className={active ? "font-medium text-[#8F6900]" : "font-medium text-[#333333]"}>
+                <div className="overflow-hidden rounded-[16px] border border-[#CACBD4] bg-[#FAFAF7] p-3">
+                  <div className="grid grid-cols-3 gap-2 px-0.5 py-2">
+                    {group.options.map((option) => {
+                      const active = variantChoice[group.id] === option.id;
+                      return (
+                        <button
+                          key={option.id}
+                          type="button"
+                          onClick={() =>
+                            setVariantChoice((previous) => ({
+                              ...previous,
+                              [group.id]: option.id,
+                            }))
+                          }
+                          className={cn(
+                            "flex w-full flex-col items-center justify-center gap-2 rounded-[5px] px-6 py-4 text-center transition-colors cursor-pointer",
+                            active
+                              ? "bg-[#F5F0EA] outline outline-2 outline-offset-[-2px] outline-[#4A3F33]"
+                              : "bg-white outline outline-[1.5px] outline-offset-[-1.5px] outline-[#CACBD4]",
+                          )}
+                        >
+                          <span
+                            className={cn(
+                              "text-[14px] font-medium leading-4 tracking-[0.28px]",
+                              active ? "text-black" : "text-[#595959]",
+                            )}
+                          >
                             {t(option.name)}
-                          </span>{" "}
-                          <span className={active ? "font-bold text-[#8F6900]" : "font-medium text-[#333333]"}>
-                            +{option.price > 0 ? `EGP ${option.price}` : `EGP 0`}
                           </span>
-                        </span>
-                      </button>
-                    );
-                  })}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             ))}
 
+            {/* Recipe / Customize Product */}
+            {hasRecipe && (
+              <div className="overflow-hidden rounded-[16px] bg-[#FAFAF7] p-4 outline outline-1 outline-offset-[-1px] outline-[#CACBD4]">
+                <button
+                  type="button"
+                  onClick={() => setIsRecipeOpen((previous) => !previous)}
+                  className="flex w-full items-center justify-between gap-4 cursor-pointer"
+                >
+                  <div className="flex flex-col items-start gap-2 text-left">
+                    <span className="text-[14px] font-semibold leading-4 tracking-[0.28px] text-[#28293D]">
+                      {t("Customize Product")}
+                    </span>
+                    <span className="text-[10px] font-medium leading-3 tracking-[0.2px] text-[#595959]">
+                      {t("Remove any item in your product")}
+                    </span>
+                  </div>
+                  <ChevronDown
+                    className={cn(
+                      "size-6 shrink-0 text-black transition-transform duration-200",
+                      isRecipeOpen && "rotate-180",
+                    )}
+                  />
+                </button>
+
+                {isRecipeOpen && (
+                  <div className="mt-3.5 flex flex-col gap-2.5 rounded-[16px] border border-[#8F6900] bg-[#FAFAF7] p-4">
+                    {recipeItems.map((item, index) => {
+                      const itemKey = String(item.id || item.material || index);
+                      const isChecked = recipeSelection[itemKey] ?? true;
+                      const qtyStr = item.quantity
+                        ? `${item.quantity} ${item.unit || "g"}`
+                        : "";
+
+                      return (
+                        <div key={itemKey} className="flex flex-col gap-2.5">
+                          <label className="flex cursor-pointer items-center justify-between gap-2.5">
+                            <span className="flex flex-1 items-center gap-1.5">
+                              <Checkbox
+                                checked={isChecked}
+                                onCheckedChange={() => toggleRecipeItem(itemKey)}
+                                className={cn(
+                                  "size-5 rounded-[6px] border bg-white transition-shadow",
+                                  isChecked
+                                    ? "border-[#8F6900] bg-[#8F6900] text-white ring-4 ring-[#8F6900]/10 data-checked:border-[#8F6900] data-checked:bg-[#8F6900] data-checked:text-white"
+                                    : "border-[#CACBD4]",
+                                )}
+                              />
+                              <span className="flex-1 text-[14px] font-medium leading-4 tracking-[0.28px] text-[#28293D]">
+                                {t(item.name)}
+                              </span>
+                            </span>
+                            {qtyStr && (
+                              <span className="shrink-0 text-[12px] font-medium tracking-[0.24px] text-black">
+                                {qtyStr}
+                              </span>
+                            )}
+                          </label>
+                          {index < recipeItems.length - 1 && (
+                            <div className="h-px w-full bg-[#CACBD4]" />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Extras */}
             {hasExtras && (
-              <div className="flex flex-col gap-2.5">
-                <p className="text-[14px] font-medium text-[#28293D] tracking-[0.28px]">
+              <div className="flex flex-col gap-3">
+                <p className="flex items-center gap-1 text-[14px] font-medium tracking-[0.28px] text-[#333333]">
                   {t("Extras")}{" "}
-                  <span className="text-[13px] font-medium text-[#595959]">
+                  <span className="text-[12px] font-medium text-[#8B8B8B]">
                     ({t("Optional")})
                   </span>
                 </p>
-                <div className="flex flex-col gap-2 rounded-[16px] border border-[#CACBD4] bg-[#FAFAF7] p-3">
-                  {product.extras?.map((extra) => {
-                    const isChecked = extraIds.includes(extra.id);
-                    return (
-                      <label
-                        key={extra.id}
-                        className="flex cursor-pointer items-center justify-between gap-3 px-0.5 py-1"
-                      >
-                        <span className="flex items-center gap-2">
-                          <div
-                            className={cn(
-                              "rounded-[10px] p-1 transition-colors",
-                              isChecked ? "bg-[#624F1C1A]" : ""
-                            )}
-                          >
-                            <Checkbox
-                              checked={isChecked}
-                              onCheckedChange={() => toggleExtra(extra.id)}
-                              className="h-5 w-5 rounded-[5.99px] border-[#8F6900] data-[state=checked]:bg-[#8F6900] cursor-pointer"
-                            />
-                          </div>
-                          <span className="text-[13px] font-medium tracking-[0.26px] text-[#333333]">
-                            {extra.name}
-                          </span>
-                        </span>
-                        <span className="text-[13px] tracking-[0.26px] text-black">
-                          <span className="font-medium">EGP </span>
-                          <span className="font-semibold">{extra.price.toFixed(2)}</span>
-                        </span>
-                      </label>
-                    );
-                  })}
+                <div className="flex flex-col gap-3 overflow-hidden rounded-[16px] border border-[#CACBD4] bg-[#FAFAF7] px-3 pb-1.5 pt-3">
+                  <p className="text-[12px] font-medium tracking-[0.24px] text-black">
+                    {t("Select extras for this product")}
+                  </p>
+                  <div className="h-px w-full bg-[#CACBD4]" />
+                  <div className="flex flex-col gap-2 px-0.5 py-2">
+                    {product.extras?.map((extra, index) => {
+                      const isChecked = extraIds.includes(extra.id);
+                      return (
+                        <div key={extra.id} className="flex flex-col gap-2">
+                          <label className="flex min-h-6 cursor-pointer items-center justify-between gap-3">
+                            <span className="flex flex-1 items-center gap-1.5">
+                              <Checkbox
+                                checked={isChecked}
+                                onCheckedChange={() => toggleExtra(extra.id)}
+                                className={cn(
+                                  "size-5 rounded-[6px] border bg-white transition-shadow",
+                                  isChecked
+                                    ? "border-[#8F6900] bg-[#8F6900] text-white ring-4 ring-[#8F6900]/10 data-checked:border-[#8F6900] data-checked:bg-[#8F6900] data-checked:text-white"
+                                    : "border-[#CACBD4]",
+                                )}
+                              />
+                              <span className="text-[13px] font-medium leading-4 tracking-[0.26px] text-[#28293D]">
+                                {t(extra.name)}
+                              </span>
+                            </span>
+                            <span className="shrink-0 text-[13px] font-medium tracking-[0.26px] text-black">
+                              EGP{" "}
+                              <span className="font-semibold">
+                                {extra.price.toFixed(2)}
+                              </span>
+                            </span>
+                          </label>
+                          {index < (product.extras?.length ?? 0) - 1 && (
+                            <div className="h-px w-full bg-[#CACBD4]" />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             )}
@@ -247,12 +362,12 @@ const ProductCustomizationModal = ({
             {/* Special Instructions / Special Request */}
             <div className="flex flex-col gap-2.5">
               <label className="text-[16px] font-medium text-black">
-                {hasExtras ? t("Special Instructions") : t("Special Request")}{" "}
+                {hasOptions ? t("Special Instructions") : t("Special Request")}{" "}
                 <span className="text-[13px] font-medium text-[#595959]">
                   ({t("Optional")})
                 </span>
               </label>
-              {hasExtras ? (
+              {hasOptions ? (
                 <textarea
                   value={specialRequest}
                   onChange={(event) => setSpecialRequest(event.target.value)}
@@ -310,7 +425,7 @@ const ProductCustomizationModal = ({
           </div>
 
           {/* Footer Actions */}
-          <div className="flex items-center justify-end gap-4 border-t border-[#CACBD4] pt-6">
+          <div className="flex shrink-0 items-center justify-end gap-4 border-t border-[#CACBD4] pt-6">
             <button
               type="button"
               onClick={onClose}

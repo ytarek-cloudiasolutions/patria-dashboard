@@ -1,3 +1,5 @@
+import type { RecipeItem } from "@/features/products/api/recipeApi";
+
 export type OrderStatus =
   | "Pending"
   | "Confirmed"
@@ -21,6 +23,11 @@ export type OrderCategory =
 
 export type PaymentState = "Paid" | "Waiting for payment" | "None";
 
+export interface RecipeExclusion {
+  productId: string;
+  name: string;
+}
+
 export interface OrderLineItem {
   id: string | number;
   productId?: string | number;
@@ -37,6 +44,7 @@ export interface OrderLineItem {
     name: string;
     price: number;
   }[];
+  excludedIngredients?: RecipeExclusion[];
 }
 
 export interface Order {
@@ -50,6 +58,9 @@ export interface Order {
   zone?: string;
   date: string;
   time: string;
+  createdAt?: string;
+  createdByName?: string;
+  createdByRole?: string;
   total: number;
   /** Total before any discount/points redemption (subtotal + tax). */
   gross?: number;
@@ -119,6 +130,7 @@ export interface ProductOption {
   customizable?: boolean;
   variantGroups?: ProductVariantGroup[];
   extras?: ProductExtra[];
+  recipe?: RecipeItem[];
 }
 
 /** A configured product sitting in the order builder cart. */
@@ -134,6 +146,7 @@ export interface CartLineItem {
   variantSelections: { groupName: string; optionName: string; price: number }[];
   extras: { name: string; price: number }[];
   specialRequest?: string;
+  excludedIngredients?: RecipeExclusion[];
 }
 
 /** A delivery zone available when taking a phone/call order. */

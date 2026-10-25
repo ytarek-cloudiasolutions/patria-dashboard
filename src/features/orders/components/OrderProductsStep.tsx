@@ -1,9 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Minus, Plus, SquarePen, X, Check } from "lucide-react";
 
 import SearchInputField from "@/shared/components/SearchInputField";
 import { Badge } from "@/shared/components/ui/badge";
 import { useTranslation } from "@/shared/i18n/useTranslation";
+import {
+  getRecipeItems,
+  type RecipeItem,
+} from "@/features/products/api/recipeApi";
 import type { CartLineItem, ProductOption } from "../types";
 import { cartSubtotal, formatCurrency, nextLineUid } from "../utils";
 import ProductCustomizationModal from "./ProductCustomizationModal";
@@ -27,6 +31,18 @@ const OrderProductsStep = ({
   const [customizing, setCustomizing] = useState<ProductOption | null>(null);
   const [editingLine, setEditingLine] = useState<CartLineItem | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const recipeCacheRef = useRef<Record<string, RecipeItem[]>>({});
+  const customizeRequestRef = useRef(0);
+
+  /** Check whether the chosen product has a recipe before opening its modal. */
+  const loadProductRecipe = async (productId: string) => {
+    const cached = recipeCacheRef.current[productId];
+    if (cached) return cached;
+
+    const recipeItems = await getRecipeItems(productId);
+    recipeCacheRef.current[productId] = recipeItems;
+    return recipeItems;
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -43,10 +59,16 @@ const OrderProductsStep = ({
     );
   }, [productOptions, searchQuery]);
 
-  const handleProductClick = (product: ProductOption) => {
-    if (product.customizable) {
+  const handleProductClick = async (product: ProductOption) => {
+    const requestId = ++customizeRequestRef.current;
+    const recipe = await loadProductRecipe(String(product.id));
+    if (requestId !== customizeRequestRef.current) return;
+
+    // A recipe means the product can be customized even if it has no
+    // variants/extras, so the recipe check decides here too.
+    if (product.customizable || recipe.length > 0) {
       setEditingLine(null);
-      setCustomizing(product);
+      setCustomizing({ ...product, recipe });
       return;
     }
 
@@ -109,11 +131,16 @@ const OrderProductsStep = ({
   const removeLine = (uid: string) =>
     onCartChange(cart.filter((line) => line.uid !== uid));
 
-  const startEdit = (line: CartLineItem) => {
+  const startEdit = async (line: CartLineItem) => {
     const product = productOptions.find((item) => item.id === line.productId);
     if (!product) return;
+
+    const requestId = ++customizeRequestRef.current;
+    const recipe = await loadProductRecipe(String(product.id));
+    if (requestId !== customizeRequestRef.current) return;
+
     setEditingLine(line);
-    setCustomizing(product);
+    setCustomizing({ ...product, recipe });
   };
 
   const subtotal = cartSubtotal(cart);
