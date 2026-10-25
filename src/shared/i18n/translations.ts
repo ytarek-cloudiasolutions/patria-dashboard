@@ -1062,6 +1062,7 @@ export const AR_TRANSLATIONS: Record<string, string> = {
 
   // Users & Permissions module
   "User Roles & Module Permissions": "أدوار المستخدمين وصلاحيات الوحدات",
+  "Notifications, WhatsApp, offers, and coupons": "الإشعارات وواتساب والعروض والكوبونات",
   "Create New User Account": "إنشاء حساب مستخدم جديد",
   "Search users...": "البحث عن المستخدمين...",
   "All Roles": "كل الأدوار",

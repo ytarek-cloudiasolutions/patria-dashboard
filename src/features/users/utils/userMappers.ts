@@ -7,6 +7,7 @@ export const mapUserRole = (role: string): UserRole => {
     norm === "superadmin" ||
     norm === "admin" ||
     norm === "manager" ||
+    norm === "marketing" ||
     norm === "cashier" ||
     norm === "kitchen" ||
     norm === "staff"

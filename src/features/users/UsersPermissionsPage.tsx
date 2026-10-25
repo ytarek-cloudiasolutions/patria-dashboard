@@ -40,6 +40,7 @@ const DELETE_TYPE_BY_ROLE: Record<
   superadmin: "admin",
   admin: "admin",
   manager: "manager",
+  marketing: "staff",
   cashier: "staff",
   kitchen: "staff",
   staff: "staff",

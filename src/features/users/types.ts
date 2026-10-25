@@ -1,4 +1,4 @@
-export type UserRole = "superadmin" | "admin" | "manager" | "cashier" | "kitchen" | "staff";
+export type UserRole = "superadmin" | "admin" | "manager" | "marketing" | "cashier" | "kitchen" | "staff";
 
 export type UsersTab = "users" | "app";
 

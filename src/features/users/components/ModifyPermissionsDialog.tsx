@@ -132,26 +132,28 @@ const ModifyPermissionsDialog = ({
                       key={option.value}
                       onClick={() => handleRoleChange(option.value)}
                       className={cn(
-                        "flex flex-1 cursor-pointer flex-col items-center justify-center gap-1 rounded-[4px] p-3.5 text-center transition-all",
+                        "flex flex-1 cursor-pointer flex-col items-center justify-center gap-2 rounded-[4px] px-2 py-3.5 text-center transition-all",
                         isActive
-                          ? "border-4 border-[rgba(98,79,28,0.50)] bg-[#F5F0EA]"
-                          : "border-[1.5px] border-[#E5E5E5] bg-[#FAFAF7] hover:border-[#CACBD4] hover:bg-[#F5F0EA]/40",
+                          ? "bg-[#F5F0EA] outline outline-4 outline-[rgba(98,79,28,0.50)]"
+                          : "bg-[#FAFAF7] outline outline-4 outline-offset-[-4px] outline-[#E5E5E5] hover:outline-[#CACBD4]",
                       )}
                     >
                       <span
                         className={cn(
-                          "text-[14px]",
+                          "text-sm leading-4",
                           isActive
-                            ? "font-bold text-[#8F6900]"
-                            : "font-semibold text-[#333333]",
+                            ? "font-semibold text-[#8F6900]"
+                            : "font-medium text-[#333333]",
                         )}
                       >
                         {t(option.label)}
                       </span>
                       <span
                         className={cn(
-                          "text-[12px]",
-                          isActive ? "text-[#8F6900]" : "text-[#8B8B8B]",
+                          "text-[10px] leading-3",
+                          isActive
+                            ? "font-medium text-[#8F6900]"
+                            : "font-normal text-[#8B8B8B]",
                         )}
                       >
                         {t(option.description)}
