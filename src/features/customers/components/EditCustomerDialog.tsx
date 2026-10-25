@@ -142,16 +142,20 @@ const EditCustomerDialog = ({
                       {customer.name}
                     </p>
 
-                    <div className="mt-4 flex flex-wrap gap-x-8 gap-y-2 text-[12px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
-                      <div>
-                        <p>{t("LTV")}</p>
-                        <p className="mt-1 text-[14px] font-semibold normal-case tracking-normal text-[#059B5A]">
+                    <div className="mt-4 flex flex-wrap items-start gap-x-8 gap-y-2">
+                      <div className="flex flex-col items-start gap-1">
+                        <p className="text-xs font-normal uppercase leading-3 tracking-tight text-[#595959]">
+                          {t("LTV")}
+                        </p>
+                        <p className="text-base font-normal leading-6 tracking-tight text-primary">
                           {formatEgp(customer.lifetimeValue)}
                         </p>
                       </div>
-                      <div>
-                        <p>{t("Orders")}</p>
-                        <p className="mt-1 text-[14px] font-semibold normal-case tracking-normal text-[#059B5A]">
+                      <div className="flex flex-col items-start gap-1">
+                        <p className="text-xs font-normal uppercase leading-3 tracking-tight text-[#595959]">
+                          {t("Orders")}
+                        </p>
+                        <p className="text-base font-normal leading-6 tracking-tight text-black">
                           {customer.orderCount}
                         </p>
                       </div>
