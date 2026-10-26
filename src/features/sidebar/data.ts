@@ -23,6 +23,7 @@ import {
   BarChart3,
   Landmark,
   HelpCircle,
+  Megaphone,
 } from "lucide-react";
 import type { NavSection } from "./types";
 
@@ -42,6 +43,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { label: "Products", href: "/products", icon: Coffee },
       { label: "Offers", href: "/offers", icon: Tag },
       { label: "Coupons", href: "/coupons", icon: Ticket },
+      { label: "Marketing Center", href: "/marketing", icon: Megaphone },
       { label: "Inventory", href: "/inventory", icon: Box },
     ],
   },

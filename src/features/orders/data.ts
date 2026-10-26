@@ -16,6 +16,7 @@ export const ORDER_STATUS_OPTIONS: OrderStatus[] = [
   "Preparing",
   "On The Way",
   "Delivered",
+  "Completed",
   "Cancelled",
 ];
 
@@ -26,6 +27,7 @@ export const ORDER_STATUS_FILTER_OPTIONS: OrderStatusFilter[] = [
   "Preparing",
   "On The Way",
   "Delivered",
+  "Completed",
   "Cancelled",
 ];
 

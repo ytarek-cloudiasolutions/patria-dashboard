@@ -572,7 +572,9 @@ const OrderDetailsDialog = ({
 
           {/* Action buttons footer (shrink-0) */}
           <div className="shrink-0 flex flex-col gap-4 border-t border-[#CACBD4] pt-4 bg-white">
-            {order.status !== "On The Way" && order.status !== "Delivered" && (
+            {order.status !== "On The Way" &&
+              order.status !== "Delivered" &&
+              order.status !== "Completed" && (
               <button
                 type="button"
                 onClick={() => setIsEditOpen(true)}

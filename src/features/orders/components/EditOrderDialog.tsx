@@ -47,6 +47,7 @@ const ORDER_STATUSES: OrderStatus[] = [
   "Preparing",
   "On The Way",
   "Delivered",
+  "Completed",
   "Cancelled",
 ];
 

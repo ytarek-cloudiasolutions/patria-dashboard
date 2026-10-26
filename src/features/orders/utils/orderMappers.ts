@@ -1,6 +1,9 @@
 import type { Order, OrderStatus, OrderSource, PaymentState } from "../types";
 
-export const mapOrderStatus = (backendStatus: string): OrderStatus => {
+export const mapOrderStatus = (
+  backendStatus: string,
+  source?: OrderSource,
+): OrderStatus => {
   const status = (backendStatus || "").toLowerCase();
   switch (status) {
     case "pending":
@@ -14,12 +17,13 @@ export const mapOrderStatus = (backendStatus: string): OrderStatus => {
     case "delivered":
     // The driver app's "mark delivered" flow sets the order to 'completed'
     // (see driverController.updateOrderStatus), and dine-in POS orders can
-    // land on 'served' — both are terminal/delivered states in the UI.
+    // land on 'served' — both are terminal states in the UI. POS orders use
+    // "Completed" so the POS tab mirrors its own lifecycle statuses.
     // Without these, a driver completing delivery looked like it "didn't
     // update" the dashboard (it silently fell through to "Pending" below).
     case "completed":
     case "served":
-      return "Delivered";
+      return source === "pos" ? "Completed" : "Delivered";
     case "cancelled":
     case "canceled":
       return "Cancelled";
@@ -40,6 +44,8 @@ export const mapOrderStatusToBackend = (uiStatus: OrderStatus): string => {
       return "ready";
     case "Delivered":
       return "delivered";
+    case "Completed":
+      return "completed";
     case "Cancelled":
       return "cancelled";
     default:
@@ -277,7 +283,7 @@ export const mapOrder = (o: any): Order => {
     discountValue: o.discountValue ?? undefined,
     deliveryFee: o.deliveryFee || 0,
     tax: o.tax || 0,
-    status: mapOrderStatus(o.status),
+    status: mapOrderStatus(o.status, resolvedSource),
     category,
     source: resolvedSource,
     paymentMethod: o.paymentMethod || "Cash on delivery",

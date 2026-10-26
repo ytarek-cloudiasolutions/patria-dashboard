@@ -6,6 +6,7 @@ export type OrderStatus =
   | "Preparing"
   | "On The Way"
   | "Delivered"
+  | "Completed"
   | "Cancelled";
 
 export type OrderSource = "application" | "pos" | "call" | "staff";

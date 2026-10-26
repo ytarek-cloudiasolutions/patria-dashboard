@@ -26,6 +26,8 @@ export const ROUTE_ACCESS: Record<string, UserRole[]> = {
   "/products": ALL_ROLES,
   "/offers": ["admin", "manager", "marketing", "superadmin"],
   "/coupons": ["admin", "manager", "marketing", "superadmin"],
+  "/marketing": ["admin", "manager", "marketing", "superadmin"],
+  "/marketing-center": ["admin", "manager", "marketing", "superadmin"],
   "/customers": ["cashier", "admin", "manager", "marketing", "superadmin"],
   "/suppliers": ["admin", "manager", "superadmin"],
   "/purchasing": ["admin", "manager", "superadmin"],

@@ -35,6 +35,11 @@ const STATUS_STYLES: Record<OrderStatus, StatusStyle> = {
     text: "text-[#059B5A]",
     borderColor: "#059B5A",
   },
+  Completed: {
+    bg: "bg-[#E2F4ED]",
+    text: "text-[#059B5A]",
+    borderColor: "#059B5A",
+  },
   Cancelled: {
     bg: "bg-[#C90000]",
     text: "text-white",

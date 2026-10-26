@@ -305,7 +305,9 @@ const OrdersPage = () => {
         o.status === "Confirmed" ||
         o.status === "On The Way"
     ).length;
-    const delivered = filteredOrders.filter((o) => o.status === "Delivered").length;
+    const delivered = filteredOrders.filter(
+      (o) => o.status === "Delivered" || o.status === "Completed",
+    ).length;
 
     return { revenue, totalOrders, pending, delivered };
   }, [activeSource, filteredOrders, pagination]);

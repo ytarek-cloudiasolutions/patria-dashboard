@@ -167,7 +167,7 @@ const ordersSlice = createSlice({
           return {
             ...o,
             driver: driverName ?? o.driver,
-            status: status ? mapOrderStatus(status) : o.status,
+            status: status ? mapOrderStatus(status, o.source) : o.status,
           };
         }
         return o;
@@ -176,7 +176,7 @@ const ordersSlice = createSlice({
         state.selectedOrder = {
           ...state.selectedOrder,
           driver: driverName ?? state.selectedOrder.driver,
-          status: status ? mapOrderStatus(status) : state.selectedOrder.status,
+          status: status ? mapOrderStatus(status, state.selectedOrder.source) : state.selectedOrder.status,
         };
       }
     },

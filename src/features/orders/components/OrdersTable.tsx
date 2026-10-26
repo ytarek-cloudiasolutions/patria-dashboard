@@ -41,8 +41,10 @@ interface OrdersTableProps {
 }
 
 const POS_ORDER_STATUS_OPTIONS: OrderStatus[] = [
+  "Pending",
   "Preparing",
   "Confirmed",
+  "Completed",
   "Cancelled",
 ];
 

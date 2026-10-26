@@ -16,6 +16,7 @@ import DashboardPage from "@/features/dashboard/DashboardPage";
 
 import OffersPage from "@/features/offers/OffersPage";
 import CouponsPage from "@/features/coupons/CouponsPage";
+import MarketingPage from "@/features/marketing/MarketingPage";
 import InventoryPage from "@/features/inventory/InventoryPage";
 
 import LocationsPage from "@/features/locations/LocationsPage";
@@ -120,6 +121,22 @@ export const router = createBrowserRouter([
         element: (
           <RoleRoute path="/coupons">
             <CouponsPage />
+          </RoleRoute>
+        ),
+      },
+      {
+        path: "/marketing",
+        element: (
+          <RoleRoute path="/marketing">
+            <MarketingPage />
+          </RoleRoute>
+        ),
+      },
+      {
+        path: "/marketing-center",
+        element: (
+          <RoleRoute path="/marketing-center">
+            <MarketingPage />
           </RoleRoute>
         ),
       },
