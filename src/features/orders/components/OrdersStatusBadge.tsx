@@ -11,14 +11,14 @@ type StatusStyle = {
 
 const STATUS_STYLES: Record<OrderStatus, StatusStyle> = {
   Pending: {
-    bg: "bg-[#FFF7E6]",
+    bg: "bg-[#FFF4DA]",
     text: "text-[#C7861E]",
     borderColor: "#C7861E",
   },
   Confirmed: {
-    bg: "bg-[#E2F4ED]",
-    text: "text-[#059B5A]",
-    borderColor: "#059B5A",
+    bg: "bg-[#EDF4FB]",
+    text: "text-[#004EF9]",
+    borderColor: "#004EF9",
   },
   Preparing: {
     bg: "bg-[#F5F0EA]",
@@ -26,9 +26,9 @@ const STATUS_STYLES: Record<OrderStatus, StatusStyle> = {
     borderColor: "#725400",
   },
   "On The Way": {
-    bg: "bg-[#F4E8FF]",
-    text: "text-[#8B16FF]",
-    borderColor: "#8B16FF",
+    bg: "bg-[#F3E9FA]",
+    text: "text-[#7E00D7]",
+    borderColor: "#7E00D7",
   },
   Delivered: {
     bg: "bg-[#E2F4ED]",
