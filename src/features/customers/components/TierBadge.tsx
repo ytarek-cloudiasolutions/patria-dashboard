@@ -35,7 +35,7 @@ const TierBadge = ({ tier, className }: TierBadgeProps) => {
   return (
     <Badge
       className={cn(
-        "px-2.5 py-0.5 text-[11px] font-semibold border rounded-[30px] tracking-[0.22px] uppercase justify-center items-center gap-1 shrink-0 shadow-none",
+        "px-2.5 py-0.5 text-[11px] font-semibold border rounded-[30px] tracking-[0.22px] uppercase justify-center items-center gap-1 shrink-0 shadow-none transition-transform duration-150 hover:scale-105",
         TIER_STYLES[normalized],
         className
       )}

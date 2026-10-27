@@ -101,7 +101,7 @@ const OrderDetailsDialog = ({ order, isOpen, onOpenChange }: OrderDetailsDialogP
             {order.items.map((item, idx) => (
               <div
                 key={idx}
-                className="flex flex-col gap-2 rounded-[10px] border border-[#E5E5E5] bg-white p-4"
+                className="flex flex-col gap-2 rounded-[10px] border border-[#E5E5E5] bg-white p-4 transition-all duration-200 hover:border-[#8F6900]/30 hover:shadow-2xs"
               >
                 <div className="text-[15px] font-semibold text-[#333333]">
                   <span>{item.quantity}X </span>
@@ -125,7 +125,7 @@ const OrderDetailsDialog = ({ order, isOpen, onOpenChange }: OrderDetailsDialogP
           <DialogClose asChild>
             <button
               type="button"
-              className="flex h-14 items-center justify-center rounded-[5px] border border-primary bg-white px-[30px] py-4 text-[16px] font-semibold text-primary transition hover:bg-[#F5F0EA]/30 cursor-pointer"
+              className="flex h-14 items-center justify-center rounded-[5px] border border-primary bg-white px-[30px] py-4 text-[16px] font-semibold text-primary transition-all duration-150 hover:bg-[#F5F0EA]/30 active:scale-[0.98] cursor-pointer"
             >
               {t("Cancel")}
             </button>

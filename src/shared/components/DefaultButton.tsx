@@ -13,7 +13,7 @@ const DefaultButton = ({ data }: { data: ButtonProps }) => {
       disabled={data.disabled}
       className={cn(
         // base responsive layout
-        "flex items-center justify-center gap-2 sm:gap-3",
+        "group flex items-center justify-center gap-2 sm:gap-3",
         "h-12 sm:h-14",
         !data.className?.includes("p-") &&
           !data.className?.includes("px-") &&

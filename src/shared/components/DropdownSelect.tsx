@@ -59,9 +59,9 @@ const DropdownSelect = ({
         <Button
           variant="outline"
           className={cn(
-            "h-12 w-full justify-between rounded-[12px] border-[#E5E5E5]",
-            "bg-white px-4 py-3 text-[14px] font-medium cursor-pointer",
-            "hover:bg-white data-[state=open]:bg-white",
+            "group h-12 w-full justify-between rounded-[12px] border-[#E5E5E5]",
+            "bg-white px-4 py-3 text-[14px] font-medium cursor-pointer transition-all duration-200 ease-out",
+            "hover:bg-[#FAFAF7] hover:border-[#8F6900]/40 data-[state=open]:bg-white data-[state=open]:border-primary",
             "focus-visible:border-[#E5E5E5] focus-visible:ring-0",
             className
           )}
@@ -69,7 +69,7 @@ const DropdownSelect = ({
           <span className={cn("truncate", isSelected ? "text-[#333333]" : "text-[#8B8B8B]")}>
             {selectedLabel}
           </span>
-          <ChevronDown className="ml-2 size-5 shrink-0 text-[#333333]" />
+          <ChevronDown className="ml-2 size-5 shrink-0 text-[#333333] transition-transform duration-200 ease-out group-data-[state=open]:rotate-180" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent

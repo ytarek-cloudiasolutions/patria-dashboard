@@ -100,18 +100,18 @@ const RowActions = ({
         disabled={isMutating || togglingProductId !== null}
         onClick={() => onEdit(product)}
         aria-label={`Edit ${product.name}`}
-        className="cursor-pointer text-[#000000] disabled:opacity-50"
+        className="group/edit cursor-pointer text-[#000000] disabled:opacity-50 transition-transform duration-150 active:scale-90"
       >
-        <SquarePen className="size-4.5" />
+        <SquarePen className="size-4.5 transition-transform duration-150 group-hover/edit:scale-115" />
       </button>
       <button
         type="button"
         disabled={isMutating || togglingProductId !== null}
         onClick={() => onDelete(product)}
         aria-label={`Delete ${product.name}`}
-        className="cursor-pointer text-[#C90000] disabled:opacity-50"
+        className="group/del cursor-pointer text-[#C90000] disabled:opacity-50 transition-transform duration-150 active:scale-90"
       >
-        <Trash2 className="size-4.5" />
+        <Trash2 className="size-4.5 transition-transform duration-150 group-hover/del:scale-115" />
       </button>
     </div>
   );
@@ -121,7 +121,7 @@ const ProductThumb = ({ product }: { product: Product }) => (
   <img
     src={product.imageUrl}
     alt=""
-    className="size-12 shrink-0 rounded-[10px] object-cover"
+    className="size-12 shrink-0 rounded-[10px] object-cover transition-transform duration-200 hover:scale-105"
   />
 );
 

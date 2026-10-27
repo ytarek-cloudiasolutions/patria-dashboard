@@ -80,7 +80,7 @@ const ExpectedShortagesTable = ({ items }: ExpectedShortagesTableProps) => {
               </TableRow>
             ) : (
               items.map((item) => (
-                <TableRow key={item.id}>
+                <TableRow key={item.id} className="transition-colors duration-150 hover:bg-[#F9F9F9]">
                   <TableCell className="ps-5 py-4">
                     <span className="text-[14px] font-normal text-[#333333]">
                       {item.name}
@@ -103,7 +103,7 @@ const ExpectedShortagesTable = ({ items }: ExpectedShortagesTableProps) => {
 
                   <TableCell className="text-center">
                     <Badge
-                      className={`h-6 px-3 rounded-[30px] text-[11px] font-normal border ${getDaysRemainingStyle(
+                      className={`h-6 px-3 rounded-[30px] text-[11px] font-normal border transition-transform duration-150 hover:scale-105 ${getDaysRemainingStyle(
                         item.daysRemaining,
                       )}`}
                     >
@@ -121,7 +121,7 @@ const ExpectedShortagesTable = ({ items }: ExpectedShortagesTableProps) => {
 
                   <TableCell className="pe-5 text-center">
                     <Badge
-                      className={`h-6 px-3 rounded-[30px] text-[11px] font-normal border gap-1 ${
+                      className={`h-6 px-3 rounded-[30px] text-[11px] font-normal border gap-1 transition-transform duration-150 hover:scale-105 ${
                         URGENCY_STYLES[item.urgencyLevel]
                       }`}
                     >

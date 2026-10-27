@@ -26,7 +26,7 @@ const ReservationStatusBadge = ({ status }: { status: ReservationStatus }) => {
   return (
     <Badge
       className={cn(
-        "h-6 w-28 justify-center rounded-full border px-3 py-0 text-[11px] font-semibold capitalize",
+        "h-6 w-28 justify-center rounded-full border px-3 py-0 text-[11px] font-semibold capitalize transition-transform duration-200 ease-out select-none group-hover:scale-105",
         RESERVATION_STATUS_STYLES[status],
       )}
     >

@@ -128,7 +128,7 @@ const EditCustomerDialog = ({
                 <div className="flex items-start gap-3">
                   <Avatar
                     size="lg"
-                    className="bg-[#7A6518] text-white ring-2 ring-white"
+                    className="bg-[#7A6518] text-white ring-2 ring-white transition-transform duration-200 hover:scale-105"
                   >
                     <AvatarFallback className="bg-[#7A6518] text-[14px] font-semibold text-white">
                       {getInitials(customer.name)}
@@ -223,7 +223,7 @@ const EditCustomerDialog = ({
               <Button
                 form="edit-customer-form"
                 type="submit"
-                className="flex h-12 cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:gap-3 sm:px-7.5 sm:text-[16px]"
+                className="flex h-12 cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:gap-3 sm:px-7.5 sm:text-[16px] transition-all duration-200 hover:opacity-90 hover:shadow-xs active:scale-[0.98]"
               >
                 {t("Save Edits")}
               </Button>

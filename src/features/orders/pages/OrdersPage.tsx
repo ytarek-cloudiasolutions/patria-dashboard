@@ -476,21 +476,22 @@ const OrdersPage = () => {
                 buttonText: `${t("Delete")} (${selectedIds.length}) ${t("Order")}`,
                 icon: <Trash2 className="size-4.5" />,
                 onClick: () => setIsBulkDeleteOpen(true),
-                className: "bg-[#C90000] text-white hover:bg-[#C90000]",
+                className: "bg-[#C90000] text-white hover:bg-[#C90000] transition-all duration-200 hover:shadow-xs active:scale-[0.98]",
               }}
             />
           )}
           <DefaultButton
             data={{
               buttonText: t("New Call Order"),
-              icon: <Plus className="size-4.5" />,
+              icon: <Plus className="size-4.5 transition-transform duration-200 group-hover:rotate-90" />,
               onClick: () => setIsCallDialogOpen(true),
+              className: "transition-all duration-200 hover:shadow-xs active:scale-[0.98] group",
             }}
           />
         </div>
       </div>
 
-      <div className="space-y-4 sm:space-y-6">
+      <div className="space-y-4 sm:space-y-6 animate-in fade-in-50 duration-300">
         <OrdersFilters
           searchValue={searchValue}
           selectedStatus={selectedStatus}
@@ -614,7 +615,7 @@ const OrdersPage = () => {
               type="button"
               disabled={currentPage === 1}
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              className="flex size-9 items-center justify-center rounded-[8px] border border-[#E5E5E5] bg-white text-[#28293D] hover:bg-[#F5F0EA] disabled:opacity-50 disabled:hover:bg-white cursor-pointer"
+              className="flex size-9 items-center justify-center rounded-[8px] border border-[#E5E5E5] bg-white text-[#28293D] hover:bg-[#F5F0EA] disabled:opacity-50 disabled:hover:bg-white cursor-pointer transition-all duration-150 hover:shadow-2xs active:scale-95"
             >
               &lt;
             </button>
@@ -624,10 +625,10 @@ const OrdersPage = () => {
                 type="button"
                 onClick={() => setCurrentPage(p)}
                 className={cn(
-                  "flex size-9 items-center justify-center rounded-[8px] text-[14px] font-semibold transition-colors cursor-pointer",
+                  "flex size-9 items-center justify-center rounded-[8px] text-[14px] font-semibold transition-all duration-150 cursor-pointer active:scale-95",
                   p === currentPage
-                    ? "bg-primary text-white"
-                    : "border border-[#E5E5E5] bg-white text-[#28293D] hover:bg-[#F5F0EA]"
+                    ? "bg-primary text-white shadow-2xs"
+                    : "border border-[#E5E5E5] bg-white text-[#28293D] hover:bg-[#F5F0EA] hover:shadow-2xs"
                 )}
               >
                 {p}
@@ -637,7 +638,7 @@ const OrdersPage = () => {
               type="button"
               disabled={currentPage === (pagination.totalPages || pagination.pages || 1)}
               onClick={() => setCurrentPage((p) => Math.min(pagination.totalPages || pagination.pages || 1, p + 1))}
-              className="flex size-9 items-center justify-center rounded-[8px] border border-[#E5E5E5] bg-white text-[#28293D] hover:bg-[#F5F0EA] disabled:opacity-50 disabled:hover:bg-white cursor-pointer"
+              className="flex size-9 items-center justify-center rounded-[8px] border border-[#E5E5E5] bg-white text-[#28293D] hover:bg-[#F5F0EA] disabled:opacity-50 disabled:hover:bg-white cursor-pointer transition-all duration-150 hover:shadow-2xs active:scale-95"
             >
               &gt;
             </button>

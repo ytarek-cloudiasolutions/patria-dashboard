@@ -411,14 +411,14 @@ const WhatsAppBroadcastDialog = ({
                   type: "button",
                   onClick: () => handleOpenChange(false),
                   className:
-                    "w-full sm:w-auto border-[#8F6900] text-[#8F6900] hover:bg-white hover:text-[#8F6900]",
+                    "w-full sm:w-auto border-[#8F6900] text-[#8F6900] hover:bg-[#F5F0EA]/30 hover:text-[#8F6900] transition-all duration-200 active:scale-[0.98]",
                 }}
               />
               <Button
                 type="button"
                 disabled={isSending}
                 onClick={handleSubmit}
-                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] bg-[#8F6900] px-7.5 text-[16px] font-semibold text-white hover:bg-[#7a5b00] disabled:opacity-50 sm:h-14 sm:w-auto"
+                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] bg-[#8F6900] px-7.5 text-[16px] font-semibold text-white hover:bg-[#7a5b00] hover:shadow-xs active:scale-[0.98] transition-all duration-200 disabled:opacity-50 sm:h-14 sm:w-auto"
               >
                 {t("Send Message")}
               </Button>

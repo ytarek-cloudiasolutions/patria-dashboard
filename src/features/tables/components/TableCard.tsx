@@ -28,10 +28,13 @@ const TableCard = ({
   const isAvailable = table.status === "available";
 
   return (
-    <div className="flex w-[166px] flex-col items-center justify-start gap-[12px] overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white px-[30px] py-[24px] shadow-[0px_1px_2px_-1px_rgba(0,0,0,0.10),0px_1px_3px_rgba(0,0,0,0.10)]">
+    <div className="group/card flex w-[166px] flex-col items-center justify-start gap-[12px] overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white px-[30px] py-[24px] shadow-[0px_1px_2px_-1px_rgba(0,0,0,0.10),0px_1px_3px_rgba(0,0,0,0.10)] transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-md hover:border-[#8F6900]/30">
       <Armchair
         size={24}
-        className={isAvailable ? "text-[#059B5A]" : "text-[#C90000]"}
+        className={cn(
+          "transition-transform duration-300 ease-out group-hover/card:scale-110",
+          isAvailable ? "text-[#059B5A]" : "text-[#C90000]"
+        )}
       />
       <div className="flex flex-col items-center justify-start gap-[8px]">
         <div className="inline-flex items-center justify-center gap-[8px]">
@@ -61,7 +64,7 @@ const TableCard = ({
             }
           }}
           className={cn(
-            "flex cursor-pointer items-center justify-center gap-[12px] rounded-[5px] border-none p-[8px] text-[10px] font-semibold transition-opacity select-none",
+            "flex cursor-pointer items-center justify-center gap-[12px] rounded-[5px] border-none p-[8px] text-[10px] font-semibold transition-all duration-200 select-none active:scale-95",
             isAvailable
               ? "bg-[#E2F4ED] text-[#059B5A] hover:bg-[#d0eddf]"
               : "bg-[#C90000] text-white hover:bg-[#b00000]",
@@ -78,17 +81,17 @@ const TableCard = ({
           type="button"
           aria-label={`Delete table ${table.number}`}
           onClick={() => onDelete(table)}
-          className="flex cursor-pointer items-center justify-center gap-[12px] rounded-[8px] py-[8px] text-[#C90000] hover:bg-[#FFF0F0]"
+          className="group/del flex cursor-pointer items-center justify-center gap-[12px] rounded-[8px] py-[8px] text-[#C90000] hover:bg-[#FFF0F0] transition-all duration-150 active:scale-90"
         >
-          <Trash2 size={14} />
+          <Trash2 size={14} className="transition-transform duration-150 group-hover/del:scale-115" />
         </button>
         <button
           type="button"
           aria-label={`View orders for table ${table.number}`}
           onClick={() => onViewOrders(table)}
-          className="flex cursor-pointer items-center justify-center gap-[12px] rounded-[8px] py-[8px] text-[#3574FF] hover:bg-[#EDF4FB]"
+          className="group/cal flex cursor-pointer items-center justify-center gap-[12px] rounded-[8px] py-[8px] text-[#3574FF] hover:bg-[#EDF4FB] transition-all duration-150 active:scale-90"
         >
-          <CalendarDays size={14} />
+          <CalendarDays size={14} className="transition-transform duration-150 group-hover/cal:scale-115" />
         </button>
       </div>
     </div>

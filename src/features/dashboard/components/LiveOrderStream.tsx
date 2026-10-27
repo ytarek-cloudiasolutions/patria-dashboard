@@ -24,7 +24,7 @@ const LiveOrderStream = ({ orders, onOrderClick }: LiveOrderStreamProps) => {
   const StreamIcon = ORDER_STREAM_ICON;
 
   return (
-    <section className="overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white">
+    <section className="group/stream overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white transition-shadow duration-300 hover:shadow-xs">
       <div className="flex min-h-14 flex-wrap items-center justify-between gap-2 bg-[#F3EFE8] px-4 py-3">
         <h2 className="text-[18px] font-bold text-[#333333]">
           {t("Live Order Stream")}
@@ -32,7 +32,7 @@ const LiveOrderStream = ({ orders, onOrderClick }: LiveOrderStreamProps) => {
         <button
           type="button"
           onClick={() => navigate("/orders")}
-          className="text-[16px] font-semibold text-primary cursor-pointer"
+          className="text-[16px] font-semibold text-primary cursor-pointer transition-all duration-200 hover:opacity-80 active:scale-95"
         >
           {t("View History")}
         </button>
@@ -45,9 +45,9 @@ const LiveOrderStream = ({ orders, onOrderClick }: LiveOrderStreamProps) => {
             onClick={() => onOrderClick?.(order.id)}
             role="button"
             tabIndex={0}
-            className="flex min-h-16 items-center gap-2.5 rounded-[16px] border border-[#E5E5E5] bg-white px-3 py-3 sm:min-h-19 sm:gap-3 cursor-pointer transition-colors hover:border-[#8F6900]/40 hover:bg-[#FAFAF7]"
+            className="group/order flex min-h-16 items-center gap-2.5 rounded-[16px] border border-[#E5E5E5] bg-white px-3 py-3 sm:min-h-19 sm:gap-3 cursor-pointer transition-all duration-200 ease-out hover:border-[#8F6900]/50 hover:bg-[#FAFAF7] hover:shadow-xs hover:-translate-y-0.5 active:scale-[0.99]"
           >
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-[13px] font-bold text-white sm:size-10">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-[13px] font-bold text-white sm:size-10 transition-transform duration-200 ease-out group-hover/order:scale-105">
               {order.initials}
             </div>
 
@@ -68,7 +68,7 @@ const LiveOrderStream = ({ orders, onOrderClick }: LiveOrderStreamProps) => {
               <span
                 className={`${
                   statusStyles[order.status]
-                } mt-1.5 inline-flex h-5 items-center justify-center rounded-full border px-2 text-[10px] font-semibold`}
+                } mt-1.5 inline-flex h-5 items-center justify-center rounded-full border px-2 text-[10px] font-semibold transition-transform duration-200 ease-out group-hover/order:scale-105`}
               >
                 {t(order.status)}
               </span>

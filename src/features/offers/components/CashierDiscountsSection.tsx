@@ -146,7 +146,7 @@ const CashierDiscountsSection = () => {
   };
 
   return (
-    <div className="w-full rounded-[16px] border border-[#E5E5E5] bg-white overflow-hidden my-6">
+    <div className="w-full rounded-[16px] border border-[#E5E5E5] bg-white overflow-hidden my-6 transition-shadow duration-300 hover:shadow-xs">
       {/* Top Header & Form Container */}
       <div className="p-5 sm:p-6 flex flex-col gap-6">
         {/* Header Row with Zap Icon & Description */}
@@ -174,7 +174,7 @@ const CashierDiscountsSection = () => {
               {t("Discount Name")}{" "}
               <span className="text-[#C90000]">*</span>
             </label>
-            <div className="h-[50px] px-3 bg-white rounded-[12px] border border-[#E5E5E5] flex items-center focus-within:border-[#8F6900] transition-colors">
+            <div className="h-[50px] px-3 bg-white rounded-[12px] border border-[#E5E5E5] flex items-center focus-within:border-[#8F6900] focus-within:ring-2 focus-within:ring-[#8F6900]/10 transition-all duration-200">
               <input
                 type="text"
                 placeholder={t("Full Name")}
@@ -190,7 +190,7 @@ const CashierDiscountsSection = () => {
             <label className="text-[16px] font-medium font-montserrat text-black">
               {t("Value%")}
             </label>
-            <div className="h-[50px] px-3 bg-white rounded-[12px] border border-[#E5E5E5] flex items-center focus-within:border-[#8F6900] transition-colors">
+            <div className="h-[50px] px-3 bg-white rounded-[12px] border border-[#E5E5E5] flex items-center focus-within:border-[#8F6900] focus-within:ring-2 focus-within:ring-[#8F6900]/10 transition-all duration-200">
               <input
                 type="text"
                 placeholder={t("e.g. 20")}
@@ -228,7 +228,7 @@ const CashierDiscountsSection = () => {
             type="button"
             disabled={isSubmitting}
             onClick={handleAddDiscount}
-            className="h-[48px] px-[26px] bg-[#F5F0EA] text-[#8F6900] font-semibold text-[16px] font-montserrat rounded-[5px] cursor-pointer whitespace-nowrap disabled:opacity-50 flex items-center justify-center gap-2"
+            className="h-[48px] px-[26px] bg-[#F5F0EA] text-[#8F6900] font-semibold text-[16px] font-montserrat rounded-[5px] cursor-pointer whitespace-nowrap disabled:opacity-50 flex items-center justify-center gap-2 transition-all duration-200 hover:bg-[#ebdcc8] hover:shadow-xs active:scale-[0.98]"
           >
             {isSubmitting && <Loader2 className="size-4 animate-spin" />}
             {t("Add Discount")}
@@ -260,7 +260,7 @@ const CashierDiscountsSection = () => {
           discounts.map((discount) => (
             <div
               key={discount.id}
-              className="px-6 py-3.5 grid grid-cols-12 items-center min-h-[58px] hover:bg-neutral-50/50 transition-colors"
+              className="px-6 py-3.5 grid grid-cols-12 items-center min-h-[58px] hover:bg-[#FAFAF8] transition-colors duration-150"
             >
               {/* Discount Name */}
               <div className="col-span-4 text-start text-[12px] font-bold font-montserrat text-[#333333] tracking-[0.24px]">
@@ -306,9 +306,9 @@ const CashierDiscountsSection = () => {
                   type="button"
                   onClick={() => setDeletingDiscount(discount)}
                   title={t("Delete")}
-                  className="p-1 hover:opacity-75 transition-opacity text-[#C90000] cursor-pointer"
+                  className="group/del p-1 hover:opacity-100 text-[#C90000] cursor-pointer transition-transform duration-150 active:scale-90"
                 >
-                  <Trash2 className="size-[18px]" />
+                  <Trash2 className="size-[18px] transition-transform duration-150 group-hover/del:scale-115" />
                 </button>
               </div>
             </div>

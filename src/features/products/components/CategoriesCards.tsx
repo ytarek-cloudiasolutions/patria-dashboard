@@ -65,7 +65,7 @@ const CategoriesCards = ({
           <div
             key={category.id}
             onClick={() => onCardClick?.(category)}
-            className="group relative flex items-center justify-between rounded-xl border-2 border-[#E5E5E5] bg-white px-3 py-6 sm:px-4 gap-4 transition-all duration-200 hover:shadow-md cursor-pointer min-w-0"
+            className="group relative flex items-center justify-between rounded-xl border-2 border-[#E5E5E5] bg-white px-3 py-6 sm:px-4 gap-4 transition-all duration-200 ease-out hover:shadow-md hover:-translate-y-0.5 hover:border-[#8F6900]/30 cursor-pointer min-w-0"
           >
             {/* Left Content (Checkbox + Image + Name & Count) */}
             <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -132,9 +132,9 @@ const CategoriesCards = ({
                     onDelete(category);
                   }}
                   aria-label={`Delete ${category.name}`}
-                  className="cursor-pointer text-[#C90000] disabled:opacity-50 hover:opacity-80 transition-opacity p-0.5"
+                  className="group/del cursor-pointer text-[#C90000] disabled:opacity-50 hover:opacity-100 transition-all duration-150 active:scale-90 p-0.5"
                 >
-                  <Trash2 className="size-4 text-[#C90000]" />
+                  <Trash2 className="size-4 text-[#C90000] transition-transform duration-150 group-hover/del:scale-115" />
                 </button>
               )}
 
@@ -148,9 +148,9 @@ const CategoriesCards = ({
                     onEdit(category);
                   }}
                   aria-label={`Edit ${category.name}`}
-                  className="cursor-pointer text-[#28293D] hover:text-[#8F6900] disabled:opacity-50 transition-colors p-0.5"
+                  className="group/edit cursor-pointer text-[#28293D] hover:text-[#8F6900] disabled:opacity-50 transition-all duration-150 active:scale-90 p-0.5"
                 >
-                  <SquarePen className="size-4 text-black" />
+                  <SquarePen className="size-4 text-black transition-transform duration-150 group-hover/edit:scale-115" />
                 </button>
               )}
             </div>

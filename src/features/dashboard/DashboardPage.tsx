@@ -341,14 +341,14 @@ const DashboardPage = () => {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-[60vh] w-full items-center justify-center">
+      <div className="flex min-h-[60vh] w-full items-center justify-center animate-in fade-in-50 duration-300">
         <LayoutDashboard className="size-16 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-4 sm:space-y-6 animate-in fade-in-50 duration-300">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-5 sm:mb-7">
         <HeaderLayout
           title={`${t("Welcome back")}, ${t("Admin")}`}
@@ -358,14 +358,14 @@ const DashboardPage = () => {
         <div className="flex items-center gap-2.5 sm:gap-3.5 flex-wrap sm:flex-nowrap">
           {!isPosView && (
             <>
-              <div className="flex h-12 sm:h-14 items-center rounded-[5px] border border-[#E1E1E5] bg-white px-3.5 sm:px-4 text-[14px] shrink-0">
+              <div className="flex h-12 sm:h-14 items-center rounded-[5px] border border-[#E1E1E5] bg-white px-3.5 sm:px-4 text-[14px] shrink-0 transition-all duration-200 hover:border-[#8F6900]/40 hover:shadow-2xs">
                 <DatePicker
                   value={dateRange.from}
                   onChange={(from) => setDateRange((prev) => ({ ...prev, from }))}
                   placeholder={t("From")}
                   popoverPlacement="bottom-right"
                   withBackdrop
-                  buttonClassName="border-0 bg-transparent h-auto p-0 shadow-none hover:bg-transparent text-[14px] font-semibold text-[#28293D] cursor-pointer w-auto inline-flex gap-1.5 [&>svg]:size-4.5 [&>svg]:text-primary"
+                  buttonClassName="border-0 bg-transparent h-auto p-0 shadow-none hover:bg-transparent text-[14px] font-semibold text-[#28293D] cursor-pointer w-auto inline-flex gap-1.5 [&>svg]:size-4.5 [&>svg]:text-primary transition-opacity hover:opacity-80 active:scale-95"
                 />
                 <span className="mx-2 h-4 w-px bg-[#E1E1E5]" />
                 <DatePicker
@@ -375,7 +375,7 @@ const DashboardPage = () => {
                   popoverPlacement="bottom-right"
                   minDate={dateRange.from || undefined}
                   withBackdrop
-                  buttonClassName="border-0 bg-transparent h-auto p-0 shadow-none hover:bg-transparent text-[14px] font-semibold text-[#28293D] cursor-pointer w-auto inline-flex gap-1.5 [&>svg]:size-4.5 [&>svg]:text-primary"
+                  buttonClassName="border-0 bg-transparent h-auto p-0 shadow-none hover:bg-transparent text-[14px] font-semibold text-[#28293D] cursor-pointer w-auto inline-flex gap-1.5 [&>svg]:size-4.5 [&>svg]:text-primary transition-opacity hover:opacity-80 active:scale-95"
                 />
               </div>
 
@@ -383,8 +383,8 @@ const DashboardPage = () => {
                 data={{
                   buttonText: t("Customer Notification"),
                   onClick: () => setIsNotificationOpen(true),
-                  icon: <Bell className="size-4 text-white" />,
-                  className: "h-12 sm:h-14 px-3.5 sm:px-4.5 text-xs sm:text-sm font-semibold shrink-0 whitespace-nowrap",
+                  icon: <Bell className="size-4 text-white transition-transform duration-200 ease-out group-hover:rotate-12 group-hover:scale-110 group-hover:animate-bell-ring" />,
+                  className: "group h-12 sm:h-14 px-3.5 sm:px-4.5 text-xs sm:text-sm font-semibold shrink-0 whitespace-nowrap transition-all duration-200 hover:shadow-xs active:scale-[0.98]",
                 }}
               />
             </>
@@ -395,22 +395,23 @@ const DashboardPage = () => {
             <button
               type="button"
               onClick={() => window.location.reload()}
-              className="size-14 p-4 bg-[#F5F0EA] rounded-lg inline-flex justify-center items-center gap-3 cursor-pointer shrink-0"
+              className="size-14 p-4 bg-[#F5F0EA] rounded-lg inline-flex justify-center items-center gap-3 cursor-pointer shrink-0 transition-all duration-200 ease-out hover:bg-[#EFEAE2] active:scale-90 group"
               title={t("Refresh")}
             >
               <div className="size-7 relative flex items-center justify-center">
-                <RefreshCw className="size-6 text-[#8F6900]" />
+                <RefreshCw className="size-6 text-[#8F6900] transition-transform duration-500 ease-out group-hover:rotate-180 group-active:rotate-360" />
               </div>
             </button>
           )}
 
-          <button
-            type="button"
-            onClick={handleToggleView}
-            className="flex h-12 sm:h-14 items-center justify-center rounded-[5px] bg-[#8F6900] px-4.5 sm:px-6 text-sm sm:text-[15px] font-semibold text-white cursor-pointer shrink-0 whitespace-nowrap"
-          >
-            {isPosView ? t("Admin View") : t("POS View")}
-          </button>
+          <DefaultButton
+            data={{
+              buttonText: isPosView ? t("Admin View") : t("POS View"),
+              onClick: handleToggleView,
+              className:
+                "border-0 bg-[#F5F0EA] text-primary hover:bg-[#F5F0EA] hover:text-primary shadow-none cursor-pointer transition-all duration-200 hover:shadow-xs active:scale-[0.98]",
+            }}
+          />
         </div>
       </div>
 

@@ -80,7 +80,7 @@ const CouponsTable = ({
             </TableRow>
           ) : (
             coupons.map((coupon) => (
-              <TableRow key={coupon.id}>
+              <TableRow key={coupon.id} className="transition-colors duration-150 hover:bg-[#FAFAF8]">
                 <TableCell className="ps-6 py-4">
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-[14px] text-[#28293D] tracking-wide">
@@ -88,11 +88,13 @@ const CouponsTable = ({
                     </span>
                     <button
                       onClick={() => handleCopy(coupon.code, coupon.id)}
-                      className="cursor-pointer text-[#8B8B8B] hover:text-[#28293D] transition-colors"
+                      className="group/copy cursor-pointer text-[#8B8B8B] transition-colors duration-150 hover:text-[#28293D] active:scale-90"
                       title="Copy code"
                     >
                       <Copy
-                        className={`size-3.5 ${copiedId === coupon.id ? "text-primary" : ""}`}
+                        className={`size-3.5 transition-transform duration-200 ${
+                          copiedId === coupon.id ? "scale-125 text-primary" : "group-hover/copy:scale-110"
+                        }`}
                       />
                     </button>
                   </div>
@@ -142,19 +144,21 @@ const CouponsTable = ({
                       onCheckedChange={(val) =>
                         onStatusChange?.(coupon.id, val)
                       }
-                      className="data-[state=checked]:bg-[#059B5A] ring-[#059B5A33]"
+                      className="data-[state=checked]:bg-[#059B5A] ring-[#059B5A33] transition-all duration-200 active:scale-95"
                     />
                     <button
                       onClick={() => onEdit?.(coupon)}
-                      className="cursor-pointer"
+                      aria-label={`Edit ${coupon.code}`}
+                      className="group/edit cursor-pointer transition-transform duration-150 active:scale-90"
                     >
-                      <SquarePen className="size-4.5 text-[#000000]" />
+                      <SquarePen className="size-4.5 text-[#000000] transition-transform duration-150 group-hover/edit:scale-115" />
                     </button>
                     <button
                       onClick={() => setDeletingCoupon(coupon)}
-                      className="cursor-pointer"
+                      aria-label={`Delete ${coupon.code}`}
+                      className="group/del cursor-pointer transition-transform duration-150 active:scale-90"
                     >
-                      <Trash2 className="size-4.5 text-[#C90000]" />
+                      <Trash2 className="size-4.5 text-[#C90000] transition-transform duration-150 group-hover/del:scale-115" />
                     </button>
                   </div>
                 </TableCell>

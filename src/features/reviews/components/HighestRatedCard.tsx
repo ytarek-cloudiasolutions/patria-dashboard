@@ -63,7 +63,7 @@ void Smile;
 const HighestRatedCard = ({ items }: HighestRatedCardProps) => {
   const { t } = useTranslation();
   return (
-    <Card className="overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white py-0 ring-0 shadow-sm">
+    <Card className="overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white py-0 ring-0 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 hover:border-[#D4D4D8]">
       {/* Tinted header */}
       <div className="flex items-center justify-between bg-[#F5F0EA] px-5 py-3 sm:px-6 sm:py-4">
         <h3 className="text-[15px] font-semibold text-[#28293D] sm:text-[16px]">
@@ -79,11 +79,11 @@ const HighestRatedCard = ({ items }: HighestRatedCardProps) => {
           return (
             <div
               key={item.label}
-              className="flex items-center justify-between rounded-[12px] border border-[#E5E5E5] bg-white px-4 py-3"
+              className="group/row flex items-center justify-between rounded-[12px] border border-[#E5E5E5] bg-white px-4 py-3 transition-all duration-200 hover:border-[#8F6900]/30 hover:bg-[#FAFAF8]"
             >
               <div className="flex items-center gap-3">
                 <span
-                  className={`flex size-8 items-center justify-center rounded-[10px] ${bg}`}
+                  className={`flex size-8 items-center justify-center rounded-[10px] ${bg} transition-transform duration-200 group-hover/row:scale-110`}
                   aria-hidden="true"
                 >
                   <Icon size={16} className={iconColor} />
@@ -92,7 +92,7 @@ const HighestRatedCard = ({ items }: HighestRatedCardProps) => {
                   {item.label}
                 </span>
               </div>
-              <Badge className="h-5 w-5 rounded-full bg-[#F5F0EA] p-0 text-[11px] font-semibold text-[#8B8B8B]">
+              <Badge className="h-5 w-5 rounded-full bg-[#F5F0EA] p-0 text-[11px] font-semibold text-[#8B8B8B] transition-transform duration-200 group-hover/row:scale-105">
                 {item.count}
               </Badge>
             </div>

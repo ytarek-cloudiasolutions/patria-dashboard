@@ -14,7 +14,7 @@ const StatusBadge = ({ status }: StatusBadgeProps) => {
   return (
     <Badge
       className={cn(
-        "h-7 px-3 py-1 text-[13px] font-semibold border rounded-full",
+        "h-7 px-3 py-1 text-[13px] font-semibold border rounded-full transition-transform duration-150 hover:scale-105",
         isActive
           ? "bg-[#E2F4ED] text-[#059B5A] border-current"
           : "bg-[#DCDCDC] text-[#23252A] border-[#595959]",

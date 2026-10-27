@@ -141,7 +141,7 @@ const LocationsPage = () => {
   }
 
   return (
-    <>
+    <section className="animate-in fade-in-50 duration-300">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <HeaderLayout
           title={t("Delivery Zones")}
@@ -150,9 +150,13 @@ const LocationsPage = () => {
         <DefaultButton
           data={{
             buttonText: t("Add Zone"),
-            icon: <Plus className="size-4.5" />,
+            icon: (
+              <Plus className="size-4.5 transition-transform duration-200 group-hover:rotate-90" />
+            ),
             onClick: handleOpenAdd,
             disabled: isFetchingLocations || isCreatingLocation,
+            className:
+              "bg-primary text-white hover:bg-primary cursor-pointer transition-all duration-200 hover:shadow-xs active:scale-[0.98] group",
           }}
         />
       </div>
@@ -183,7 +187,7 @@ const LocationsPage = () => {
         }}
         onConfirm={handleConfirmDelete}
       />
-    </>
+    </section>
   );
 };
 

@@ -52,6 +52,7 @@ const ZoneActions = ({
       disabled={isMutating}
       onCheckedChange={(checked) => onToggle(zone, checked)}
       aria-label={`Toggle ${zone.name}`}
+      className="transition-all duration-200 active:scale-95"
     />
     <ActionButton
       data={{
@@ -60,6 +61,7 @@ const ZoneActions = ({
         ariaLabel: `Edit ${zone.name}`,
         disabled: isMutating,
         onClick: () => onEdit(zone),
+        className: "shrink-0 transition-transform duration-150 hover:scale-115 active:scale-90",
       }}
     />
     <ActionButton
@@ -69,6 +71,7 @@ const ZoneActions = ({
         ariaLabel: `Delete ${zone.name}`,
         disabled: isMutating,
         onClick: () => onDelete(zone),
+        className: "shrink-0 transition-transform duration-150 hover:scale-115 active:scale-90",
       }}
     />
   </div>
@@ -90,7 +93,7 @@ const LocationsTable = ({
         {zones.map((zone) => (
           <div
             key={zone.id}
-            className="rounded-2xl border border-[#E5E5E5] bg-white px-4 py-4"
+            className="rounded-2xl border border-[#E5E5E5] bg-white px-4 py-4 transition-all duration-200 hover:shadow-md hover:border-[#8F6900]/30"
           >
             <div className="mb-3 flex items-start justify-between gap-3">
               <div className="min-w-0">

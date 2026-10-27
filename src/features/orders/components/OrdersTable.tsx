@@ -78,7 +78,7 @@ const OrdersTable = ({
   const hideDriver = isPos || isStaffTab;
 
   return (
-    <div className="w-full overflow-x-auto rounded-[16px] border border-[#E5E5E5]">
+    <div className="w-full overflow-x-auto rounded-[16px] border border-[#E5E5E5] bg-white transition-shadow duration-300 hover:shadow-xs">
       <Table className="min-w-[820px]">
         <colgroup>
           <col className="w-10" />
@@ -155,7 +155,7 @@ const OrdersTable = ({
                 <Fragment key={order.id}>
                   <TableRow
                     className={cn(
-                      "transition-colors",
+                      "transition-colors duration-150",
                       isNewOrder
                         ? "bg-[#F5F0EA] hover:bg-[#EFE6DC]"
                         : "hover:bg-gray-50/80"
@@ -190,10 +190,10 @@ const OrdersTable = ({
                       <button
                         type="button"
                         onClick={() => onViewOrder(order)}
-                        className="inline-flex items-center gap-1.5 text-[12px] font-bold text-[#333333] tracking-[0.24px] cursor-pointer"
+                        className="group/id inline-flex items-center gap-1.5 text-[12px] font-bold text-[#333333] tracking-[0.24px] cursor-pointer transition-colors duration-150 hover:text-primary active:scale-95"
                       >
                         #{order.orderId || order.id}
-                        <Info className="size-4 text-[#23252A]" />
+                        <Info className="size-4 text-[#23252A] transition-transform duration-200 ease-out group-hover/id:scale-110 group-hover/id:text-primary" />
                       </button>
                     </TableCell>
 
@@ -212,7 +212,7 @@ const OrdersTable = ({
                                 <img
                                   src={Whatsapp}
                                   alt="Whatsapp"
-                                  className="size-3.5"
+                                  className="size-3.5 transition-transform duration-150 hover:scale-125 cursor-pointer"
                                 />
                               </div>
                             )}
@@ -237,7 +237,7 @@ const OrdersTable = ({
                                 <img
                                   src={Whatsapp}
                                   alt="Whatsapp"
-                                  className="size-4"
+                                  className="size-4 transition-transform duration-150 hover:scale-125 cursor-pointer"
                                 />
                               </div>
                             )}
@@ -251,7 +251,7 @@ const OrdersTable = ({
                         <button
                           type="button"
                           onClick={() => onViewOrder(order)}
-                          className="inline-flex h-8 cursor-pointer items-center gap-2 rounded-[8px] border border-[#E5E5E5] bg-[#F5F0EA] px-3 text-[13px] text-[#333333] transition-colors hover:border-[#8F6900]/40 hover:bg-[#FAFAF7]"
+                          className="group/prod inline-flex h-8 cursor-pointer items-center gap-2 rounded-[8px] border border-[#E5E5E5] bg-[#F5F0EA] px-3 text-[13px] text-[#333333] transition-all duration-200 hover:border-[#8F6900]/40 hover:bg-[#FAFAF7] hover:shadow-2xs active:scale-95"
                         >
                           <span>
                             <span className="font-semibold">
@@ -259,7 +259,7 @@ const OrdersTable = ({
                             </span>{" "}
                             {t("Products")}
                           </span>
-                          <Info className="size-3.5 text-[#23252A]" />
+                          <Info className="size-3.5 text-[#23252A] transition-transform duration-200 ease-out group-hover/prod:scale-110" />
                         </button>
                       </div>
                     </TableCell>
@@ -298,18 +298,18 @@ const OrdersTable = ({
                             <DropdownMenuTrigger asChild>
                               <Button
                                 variant="ghost"
-                                className="h-6 border-transparent px-0 ring-0 hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 focus-visible:border-transparent focus-visible:ring-0 focus-visible:ring-offset-0 aria-expanded:bg-transparent aria-expanded:text-inherit data-[state=open]:bg-transparent cursor-pointer"
+                                className="group/staffstatus h-6 border-transparent px-0 ring-0 hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 focus-visible:border-transparent focus-visible:ring-0 focus-visible:ring-offset-0 aria-expanded:bg-transparent aria-expanded:text-inherit data-[state=open]:bg-transparent cursor-pointer transition-transform duration-150 active:scale-95"
                               >
                                 {((order.staffStatus || (order.paymentState === "Paid" ? "Paid" : "Charged to tab")) === "Charged to tab") ? (
-                                  <span className="inline-flex min-h-6 items-center justify-center rounded-[30px] outline outline-1 outline-offset-[-1px] outline-purple-700 bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-600 tracking-tight">
+                                  <span className="inline-flex min-h-6 items-center justify-center rounded-[30px] outline outline-1 outline-offset-[-1px] outline-purple-700 bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-600 tracking-tight transition-transform duration-200 group-hover/staffstatus:scale-105">
                                     {t("Charged to tab")}
                                   </span>
                                 ) : (
-                                  <span className="inline-flex min-h-6 items-center justify-center rounded-[30px] outline outline-1 outline-offset-[-1px] outline-[#059B5A] bg-[#E2F4ED] px-3 py-1 text-xs font-semibold text-[#059B5A] tracking-tight">
+                                  <span className="inline-flex min-h-6 items-center justify-center rounded-[30px] outline outline-1 outline-offset-[-1px] outline-[#059B5A] bg-[#E2F4ED] px-3 py-1 text-xs font-semibold text-[#059B5A] tracking-tight transition-transform duration-200 group-hover/staffstatus:scale-105">
                                     {t("Paid")}
                                   </span>
                                 )}
-                                <ChevronDown className="ml-2 size-4 text-[#28293D]" />
+                                <ChevronDown className="ml-2 size-4 text-[#28293D] transition-transform duration-200 ease-out group-data-[state=open]/staffstatus:rotate-180" />
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent
@@ -336,10 +336,10 @@ const OrdersTable = ({
                             <DropdownMenuTrigger asChild>
                               <Button
                                 variant="ghost"
-                                className="h-6 border-transparent px-0 ring-0 hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 focus-visible:border-transparent focus-visible:ring-0 focus-visible:ring-offset-0 aria-expanded:bg-transparent aria-expanded:text-inherit data-[state=open]:bg-transparent cursor-pointer"
+                                className="group/status h-6 border-transparent px-0 ring-0 hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 focus-visible:border-transparent focus-visible:ring-0 focus-visible:ring-offset-0 aria-expanded:bg-transparent aria-expanded:text-inherit data-[state=open]:bg-transparent cursor-pointer transition-transform duration-150 active:scale-95"
                               >
                                 <OrdersStatusBadge status={order.status} />
-                                <ChevronDown className="ml-2 size-4 text-[#000000]" />
+                                <ChevronDown className="ml-2 size-4 text-[#000000] transition-transform duration-200 ease-out group-data-[state=open]/status:rotate-180" />
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent
@@ -474,17 +474,17 @@ const DriverCell = ({ orderId, driver, onAssign, onOpenChange }: DriverCellProps
         {driver ? (
           <button
             type="button"
-            className="inline-flex h-8 cursor-pointer items-center justify-center rounded-full bg-[#E5E5E5] px-4 text-[13px] font-semibold text-[#23252A] border border-[#CCCCCC]"
+            className="inline-flex h-8 cursor-pointer items-center justify-center rounded-full bg-[#E5E5E5] px-4 text-[13px] font-semibold text-[#23252A] border border-[#CCCCCC] transition-all duration-200 hover:bg-[#DCDCDC] active:scale-95"
           >
             {driver}
           </button>
         ) : (
           <button
             type="button"
-            className="inline-flex h-8 cursor-pointer items-center justify-center gap-1.5 rounded-full border border-[#7E00D7] bg-[#F3E9FA] px-3.5 text-[13px] font-semibold text-[#9524E4] hover:bg-[#EBD8F7] transition-colors"
+            className="group/rider inline-flex h-8 cursor-pointer items-center justify-center gap-1.5 rounded-full border border-[#7E00D7] bg-[#F3E9FA] px-3.5 text-[13px] font-semibold text-[#9524E4] hover:bg-[#EBD8F7] transition-all duration-200 hover:shadow-2xs active:scale-95"
           >
             <span>{t("Rider")}</span>
-            <ChevronDown className="size-3.5 text-[#9524E4]" />
+            <ChevronDown className="size-3.5 text-[#9524E4] transition-transform duration-200 ease-out group-hover/rider:translate-y-0.5" />
           </button>
         )}
       </DropdownMenuTrigger>

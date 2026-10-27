@@ -95,14 +95,14 @@ const AppTopbar = ({
   const displayCount = unreadCount ?? propNotificationCount ?? 0;
 
   return (
-    <header className="flex h-16 items-center justify-between border-b border-white bg-white px-4 sm:h-21 sm:px-8 sm:pt-6">
+    <header className="flex h-16 items-center justify-between border-b border-white bg-white px-4 sm:h-21 sm:px-8 sm:pt-6 transition-all duration-300 ease-out">
       {/* Toggle sidebar */}
       <button
         onClick={toggleSidebar}
-        className="text-[#000000] transition-colors cursor-pointer"
+        className="group -m-1.5 flex items-center justify-center rounded-lg p-1.5 text-[#000000] transition-all duration-200 ease-out hover:bg-[#FAFAF7] hover:text-primary active:scale-90 cursor-pointer"
         aria-label="Toggle sidebar"
       >
-        <PanelIcon size={22} />
+        <PanelIcon size={22} className="transition-transform duration-200 ease-out group-hover:scale-105 group-active:scale-95" />
       </button>
 
       {/* Right section */}
@@ -111,10 +111,10 @@ const AppTopbar = ({
         <button
           onClick={toggleLanguage}
           aria-label="Toggle language"
-          className="flex h-8 items-center gap-1.5 rounded-[16px] bg-[#FAFAF7] px-2.5 text-[12px] font-semibold text-[#000000] cursor-pointer sm:h-9 sm:px-3 sm:text-[13px]"
+          className="group flex h-8 items-center gap-1.5 rounded-[16px] bg-[#FAFAF7] px-2.5 text-[12px] font-semibold text-[#000000] cursor-pointer sm:h-9 sm:px-3 sm:text-[13px] transition-all duration-200 ease-out hover:bg-[#F2F1EC] hover:shadow-2xs active:scale-95 select-none"
         >
-          <Languages size={18} />
-          {language === "en" ? "العربية" : "English"}
+          <Languages size={18} className="transition-transform duration-300 ease-out group-hover:rotate-12 group-hover:scale-110" />
+          <span className="transition-opacity duration-200">{language === "en" ? "العربية" : "English"}</span>
         </button>
 
         {/* Order Alarm Sound Mute / Unmute Toggle */}
@@ -123,12 +123,12 @@ const AppTopbar = ({
           onClick={handleToggleMute}
           aria-label={isMuted ? t("Unmute Order Alert Sound") : t("Mute Order Alert Sound")}
           title={isMuted ? t("Unmute Order Alert Sound") : t("Mute Order Alert Sound")}
-          className="flex h-8 w-8 items-center justify-center rounded-[16px] text-[#000000] bg-[#FAFAF7] cursor-pointer sm:h-9 sm:w-9 transition-colors"
+          className="group flex h-8 w-8 items-center justify-center rounded-[16px] text-[#000000] bg-[#FAFAF7] cursor-pointer sm:h-9 sm:w-9 transition-all duration-200 ease-out hover:bg-[#F2F1EC] hover:shadow-2xs active:scale-95"
         >
           {isMuted ? (
-            <VolumeX size={20} className="text-[#C90000]" />
+            <VolumeX size={20} className="text-[#C90000] transition-transform duration-200 ease-out group-hover:scale-110 group-active:scale-90" />
           ) : (
-            <Volume2 size={20} className="text-[#28293D]" />
+            <Volume2 size={20} className="text-[#28293D] transition-transform duration-200 ease-out group-hover:scale-110 group-active:scale-90" />
           )}
         </button>
 
@@ -137,11 +137,11 @@ const AppTopbar = ({
           type="button"
           onClick={() => setIsNotifOpen(true)}
           aria-label="Notifications"
-          className="relative flex h-8 w-8 items-center justify-center rounded-[16px] text-[#000000] bg-[#FAFAF7] cursor-pointer sm:h-9 sm:w-9"
+          className="group relative flex h-8 w-8 items-center justify-center rounded-[16px] text-[#000000] bg-[#FAFAF7] cursor-pointer sm:h-9 sm:w-9 transition-all duration-200 ease-out hover:bg-[#F2F1EC] hover:shadow-2xs active:scale-95"
         >
-          <Bell size={20} />
+          <Bell size={20} className="transition-transform duration-200 ease-out group-hover:animate-bell-ring" />
           {displayCount > 0 && (
-            <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#C90000] text-[8px] font-semibold text-white">
+            <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#C90000] text-[8px] font-semibold text-white transition-all duration-300 ease-out animate-in zoom-in-50">
               {displayCount}
             </span>
           )}
@@ -154,16 +154,16 @@ const AppTopbar = ({
         />
 
         {/* Admin info */}
-        <div className="flex items-center gap-2 sm:gap-3.25">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-[12px] font-bold text-white sm:h-9 sm:w-9 sm:text-[13px]">
+        <div className="group flex items-center gap-2 sm:gap-3.25 cursor-default select-none">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-[12px] font-bold text-white sm:h-9 sm:w-9 sm:text-[13px] transition-transform duration-200 ease-out group-hover:scale-105 active:scale-95">
             {displayInitials}
           </div>
           {/* Hide name/email on very small screens */}
           <div className="hidden sm:block">
-            <p className="text-[14px] font-semibold text-[#333333]">
+            <p className="text-[14px] font-semibold text-[#333333] transition-colors duration-200 group-hover:text-primary">
               {displayName}
             </p>
-            <p className="text-[12px] text-[#8B8B8B]">{displayEmail}</p>
+            <p className="text-[12px] text-[#8B8B8B] transition-colors duration-200">{displayEmail}</p>
           </div>
         </div>
       </div>

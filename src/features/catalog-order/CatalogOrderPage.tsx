@@ -115,7 +115,7 @@ const CatalogOrderPage = () => {
   };
 
   return (
-    <section className="w-full pb-10">
+    <section className="w-full pb-10 animate-in fade-in-50 duration-300">
       {/* Top Header */}
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <HeaderLayout
@@ -135,9 +135,9 @@ const CatalogOrderPage = () => {
           data-trailing-icon="False"
           data-type={isDirty ? "Primary" : "Disable"}
           className={cn(
-            "h-14 px-7 py-4 rounded-[5px] inline-flex justify-center items-center gap-3 select-none transition-all duration-200",
+            "group h-14 px-7 py-4 rounded-[5px] inline-flex justify-center items-center gap-3 select-none transition-all duration-200",
             isDirty
-              ? "bg-[#8F6900] hover:bg-[#785700] text-white cursor-pointer shadow-md active:scale-[0.98]"
+              ? "bg-[#8F6900] hover:bg-[#785700] hover:shadow-lg text-white cursor-pointer shadow-md active:scale-[0.98]"
               : "bg-[#DCDCDC] text-[#8B8B8B] cursor-not-allowed"
           )}
         >
@@ -150,8 +150,8 @@ const CatalogOrderPage = () => {
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
               className={cn(
-                "transition-colors",
-                isDirty ? "stroke-white" : "stroke-[#8B8B8B]"
+                "transition-all duration-200",
+                isDirty ? "stroke-white group-hover:scale-110" : "stroke-[#8B8B8B]"
               )}
             >
               <path

@@ -163,13 +163,13 @@ const KitchenDialog = ({
                 <button
                   type="button"
                   onClick={() => setIsIconPickerOpen(true)}
-                  className="flex cursor-pointer items-center gap-0.5 text-xs font-semibold leading-4 tracking-tight text-primary"
+                  className="group flex cursor-pointer items-center gap-0.5 text-xs font-semibold leading-4 tracking-tight text-primary transition-opacity hover:opacity-80 active:scale-95"
                 >
                   {t("See more icons")}
                   {dir === "rtl" ? (
-                    <ChevronLeft className="size-4" />
+                    <ChevronLeft className="size-4 transition-transform duration-200 group-hover:-translate-x-0.5" />
                   ) : (
-                    <ChevronRight className="size-4" />
+                    <ChevronRight className="size-4 transition-transform duration-200 group-hover:translate-x-0.5" />
                   )}
                 </button>
               </div>
@@ -208,13 +208,13 @@ const KitchenDialog = ({
                   type: "button",
                   onClick: () => onOpenChange(false),
                   className:
-                    "w-full sm:w-auto border-primary text-primary hover:bg-white hover:text-primary",
+                    "w-full sm:w-auto border-primary text-primary hover:bg-[#F5F0EA]/30 transition-all duration-200 active:scale-[0.98]",
                 }}
               />
               <Button
                 form={FORM_ID}
                 type="submit"
-                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
+                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px] transition-all duration-200 hover:shadow-xs active:scale-[0.98]"
               >
                 {editingKitchen ? t("Save") : t("Add New Kitchen")}
               </Button>

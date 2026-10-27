@@ -66,7 +66,7 @@ const CreateCouponDialog = ({
               <Button
                 form={FORM_ID}
                 type="submit"
-                className="flex h-12 cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:gap-3 sm:px-7.5 sm:text-[16px]"
+                className="flex h-12 cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:gap-3 sm:px-7.5 sm:text-[16px] transition-all duration-200 hover:opacity-90 hover:shadow-xs active:scale-[0.98]"
               >
                 {editingCoupon ? t("Update Coupon") : t("Create Coupon")}
               </Button>

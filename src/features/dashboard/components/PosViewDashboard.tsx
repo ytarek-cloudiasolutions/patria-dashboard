@@ -294,18 +294,18 @@ export const PosViewDashboard: React.FC<PosViewDashboardProps> = ({
             <button
               type="button"
               onClick={() => navigate("/pos")}
-              className="self-stretch h-12 px-6 py-3.5 bg-[#F5F0EA] rounded-[5px] inline-flex justify-between items-center cursor-pointer"
+              className="group/btn self-stretch h-12 px-6 py-3.5 bg-[#F5F0EA] rounded-[5px] inline-flex justify-between items-center cursor-pointer transition-all duration-200 ease-out hover:bg-[#EFEAE2] hover:shadow-2xs active:scale-[0.99]"
             >
               <span className="text-[#8F6900] text-base font-semibold font-['Montserrat'] leading-6">
                 {t("Open POS Screen")}
               </span>
-              <ArrowRight className="size-4 text-[#8F6900]" />
+              <ArrowRight className="size-4 text-[#8F6900] transition-transform duration-200 ease-out group-hover/btn:translate-x-1 rtl:group-hover/btn:-translate-x-1" />
             </button>
           </div>
         </div>
 
         {/* CARD 2: Product Availability */}
-        <div className="w-full rounded-2xl outline outline-1 outline-[#E5E5E5] flex flex-col justify-start items-start bg-white overflow-hidden">
+        <div className="w-full rounded-2xl outline outline-1 outline-[#E5E5E5] flex flex-col justify-start items-start bg-white overflow-hidden transition-shadow duration-300 hover:shadow-xs">
           {/* Header */}
           <div className="self-stretch h-24 px-4 py-3 bg-[#F5F0EA] rounded-tl-2xl rounded-tr-2xl flex justify-between items-center">
             <div className="w-[490px] max-w-[calc(100%-48px)] flex flex-col justify-start items-start gap-2">
@@ -353,12 +353,12 @@ export const PosViewDashboard: React.FC<PosViewDashboardProps> = ({
             <button
               type="button"
               onClick={() => setIsAvailabilityOpen(true)}
-              className="self-stretch h-12 px-6 py-3.5 bg-[#F5F0EA] rounded-[5px] inline-flex justify-between items-center cursor-pointer"
+              className="group/btn self-stretch h-12 px-6 py-3.5 bg-[#F5F0EA] rounded-[5px] inline-flex justify-between items-center cursor-pointer transition-all duration-200 ease-out hover:bg-[#EFEAE2] hover:shadow-2xs active:scale-[0.99]"
             >
               <span className="text-[#8F6900] text-base font-semibold font-['Montserrat'] leading-6">
                 {t("Manage Availability")}
               </span>
-              <ArrowRight className="size-4 text-[#8F6900]" />
+              <ArrowRight className="size-4 text-[#8F6900] transition-transform duration-200 ease-out group-hover/btn:translate-x-1 rtl:group-hover/btn:-translate-x-1" />
             </button>
           </div>
         </div>
@@ -439,18 +439,18 @@ export const PosViewDashboard: React.FC<PosViewDashboardProps> = ({
             <button
               type="button"
               onClick={() => navigate("/tables")}
-              className="self-stretch h-12 px-6 py-3.5 bg-[#F5F0EA] rounded-[5px] inline-flex justify-between items-center cursor-pointer"
+              className="group/btn self-stretch h-12 px-6 py-3.5 bg-[#F5F0EA] rounded-[5px] inline-flex justify-between items-center cursor-pointer transition-all duration-200 ease-out hover:bg-[#EFEAE2] hover:shadow-2xs active:scale-[0.99]"
             >
               <span className="text-[#8F6900] text-base font-semibold font-['Montserrat'] leading-6">
                 {t("Manage Tables")}
               </span>
-              <ArrowRight className="size-4 text-[#8F6900] rtl:rotate-180" />
+              <ArrowRight className="size-4 text-[#8F6900] rtl:rotate-180 transition-transform duration-200 ease-out group-hover/btn:translate-x-1 rtl:group-hover/btn:-translate-x-1" />
             </button>
           </div>
         </div>
 
         {/* CARD 4: Orders Management */}
-        <div className="w-full rounded-2xl outline outline-1 outline-[#E5E5E5] flex flex-col justify-start items-start bg-white overflow-hidden">
+        <div className="w-full rounded-2xl outline outline-1 outline-[#E5E5E5] flex flex-col justify-start items-start bg-white overflow-hidden transition-shadow duration-300 hover:shadow-xs">
           {/* Header */}
           <div className="self-stretch h-24 px-4 py-3 bg-[#F5F0EA] rounded-tl-2xl rounded-tr-2xl flex justify-between items-center">
             <div className="w-[490px] max-w-[calc(100%-48px)] flex flex-col justify-start items-start gap-2">
@@ -477,7 +477,7 @@ export const PosViewDashboard: React.FC<PosViewDashboardProps> = ({
 
             {/* 3 Stat boxes (Pending, Preparing, On The Way) */}
             <div className="self-stretch grid grid-cols-3 gap-3">
-              <div className="flex flex-col items-center justify-center gap-1.5 rounded-[16px] outline outline-1 outline-[#E5E5E5] bg-[#FAFAF7] p-3 text-center">
+              <div className="flex flex-col items-center justify-center gap-1.5 rounded-[16px] outline outline-1 outline-[#E5E5E5] bg-[#FAFAF7] p-3 text-center transition-all duration-200 ease-out hover:border-[#8F6900]/40 hover:shadow-2xs">
                 <div className="flex items-center gap-1.5 text-[11px] font-medium text-[#595959]">
                   <Clock className="size-3.5 text-[#595959]" />
                   <span>{t("Pending")}</span>
@@ -487,7 +487,7 @@ export const PosViewDashboard: React.FC<PosViewDashboardProps> = ({
                 </span>
               </div>
 
-              <div className="flex flex-col items-center justify-center gap-1.5 rounded-[16px] outline outline-1 outline-[#E5E5E5] bg-[#FAFAF7] p-3 text-center">
+              <div className="flex flex-col items-center justify-center gap-1.5 rounded-[16px] outline outline-1 outline-[#E5E5E5] bg-[#FAFAF7] p-3 text-center transition-all duration-200 ease-out hover:border-[#8F6900]/40 hover:shadow-2xs">
                 <div className="flex items-center gap-1.5 text-[11px] font-medium text-[#595959]">
                   <UtensilsCrossed className="size-3.5 text-[#595959]" />
                   <span>{t("Preparing")}</span>
@@ -497,7 +497,7 @@ export const PosViewDashboard: React.FC<PosViewDashboardProps> = ({
                 </span>
               </div>
 
-              <div className="flex flex-col items-center justify-center gap-1.5 rounded-[16px] outline outline-1 outline-[#E5E5E5] bg-[#FAFAF7] p-3 text-center">
+              <div className="flex flex-col items-center justify-center gap-1.5 rounded-[16px] outline outline-1 outline-[#E5E5E5] bg-[#FAFAF7] p-3 text-center transition-all duration-200 ease-out hover:border-[#8F6900]/40 hover:shadow-2xs">
                 <div className="flex items-center gap-1.5 text-[11px] font-medium text-[#595959]">
                   <ShoppingBag className="size-3.5 text-[#595959]" />
                   <span>{t("On The Way")}</span>
@@ -512,19 +512,19 @@ export const PosViewDashboard: React.FC<PosViewDashboardProps> = ({
             <button
               type="button"
               onClick={() => navigate("/orders")}
-              className="self-stretch h-12 px-6 py-3.5 bg-[#F5F0EA] rounded-[5px] inline-flex justify-between items-center cursor-pointer"
+              className="group/btn self-stretch h-12 px-6 py-3.5 bg-[#F5F0EA] rounded-[5px] inline-flex justify-between items-center cursor-pointer transition-all duration-200 ease-out hover:bg-[#EFEAE2] hover:shadow-2xs active:scale-[0.99]"
             >
               <span className="text-[#8F6900] text-base font-semibold font-['Montserrat'] leading-6">
                 {t("View Orders")}
               </span>
-              <ArrowRight className="size-4 text-[#8F6900]" />
+              <ArrowRight className="size-4 text-[#8F6900] transition-transform duration-200 ease-out group-hover/btn:translate-x-1 rtl:group-hover/btn:-translate-x-1" />
             </button>
           </div>
         </div>
       </div>
 
       {/* Recent Inbound Orders Section */}
-      <section className="overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white">
+      <section className="overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white transition-shadow duration-300 hover:shadow-xs">
         {/* Header */}
         <div className="flex min-h-[90px] flex-wrap items-center justify-between gap-3 bg-[#F5F0EA] px-4 py-3">
           <div className="flex flex-col gap-1.5">
@@ -538,7 +538,7 @@ export const PosViewDashboard: React.FC<PosViewDashboardProps> = ({
           <button
             type="button"
             onClick={() => navigate("/orders")}
-            className="text-[16px] font-semibold text-[#8F6900] transition-opacity hover:opacity-80 hover:underline"
+            className="text-[16px] font-semibold text-[#8F6900] transition-all duration-200 hover:opacity-80 active:scale-95"
           >
             {t("View All Orders")}
           </button>
@@ -552,11 +552,11 @@ export const PosViewDashboard: React.FC<PosViewDashboardProps> = ({
               onClick={() => onOrderClick?.(order.id)}
               role={onOrderClick ? "button" : undefined}
               tabIndex={onOrderClick ? 0 : undefined}
-              className="flex items-center justify-between gap-3 rounded-[16px] border border-[#E5E5E5] bg-[#FAFAF7] p-3 transition-all hover:border-[#8F6900]/40 hover:bg-white cursor-pointer"
+              className="group/order flex items-center justify-between gap-3 rounded-[16px] border border-[#E5E5E5] bg-[#FAFAF7] p-3 transition-all duration-200 ease-out hover:border-[#8F6900]/50 hover:bg-white hover:shadow-xs hover:-translate-y-0.5 active:scale-[0.99] cursor-pointer"
             >
               {/* Left: Avatar + Customer info */}
               <div className="flex min-w-0 flex-1 items-center gap-2.5">
-                <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#8F6900] text-[13px] font-bold text-white">
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#8F6900] text-[13px] font-bold text-white transition-transform duration-200 ease-out group-hover/order:scale-105">
                   {order.initials}
                 </div>
                 <div className="min-w-0">

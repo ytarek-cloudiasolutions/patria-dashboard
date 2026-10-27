@@ -66,7 +66,7 @@ const CustomerActions = ({
       type="button"
       onClick={() => onWhatsApp(customer)}
       aria-label={`Message ${customer.name} on WhatsApp`}
-      className="flex cursor-pointer items-center justify-center shrink-0"
+      className="flex cursor-pointer items-center justify-center shrink-0 transition-transform duration-150 hover:scale-115 active:scale-90"
     >
       <img src={WhatsAppIcon} alt="" className="size-5 shrink-0" />
     </button>
@@ -76,7 +76,7 @@ const CustomerActions = ({
         iconColor: "text-[#000000]",
         ariaLabel: `Edit ${customer.name}`,
         onClick: () => onEdit(customer),
-        className: "shrink-0",
+        className: "shrink-0 transition-transform duration-150 hover:scale-115 active:scale-90",
       }}
     />
     <ActionButton
@@ -85,7 +85,7 @@ const CustomerActions = ({
         iconColor: "text-[#C90000]",
         ariaLabel: `Delete ${customer.name}`,
         onClick: () => onDelete(customer),
-        className: "shrink-0",
+        className: "shrink-0 transition-transform duration-150 hover:scale-115 active:scale-90",
       }}
     />
   </div>
@@ -105,7 +105,7 @@ const CustomersTable = ({
         {customers.map((customer) => (
           <div
             key={customer.id}
-            className="rounded-2xl border border-[#E5E5E5] bg-white px-4 py-4"
+            className="rounded-2xl border border-[#E5E5E5] bg-white px-4 py-4 transition-all duration-200 hover:shadow-md hover:border-[#8F6900]/30"
           >
             <div className="mb-3 flex items-start justify-between gap-3">
               <div className="min-w-0">

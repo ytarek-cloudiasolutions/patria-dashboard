@@ -12,6 +12,7 @@ import InputField from "@/shared/components/InputField";
 import DatePicker from "@/shared/components/DatePicker";
 import ChevronDown from "@/assets/icons/chevronDown.svg";
 import { useTranslation } from "@/shared/i18n/useTranslation";
+import { cn } from "@/lib/utils";
 import type { Coupon } from "../types";
 
 interface CreateCouponFormProps {
@@ -151,7 +152,7 @@ const CreateCouponForm = ({
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="outline"
-                  className="h-12.5 w-full cursor-pointer justify-between overflow-hidden rounded-lg border-input bg-white px-4 text-[16px] font-normal text-[#000000] focus-visible:border-input focus-visible:ring-0"
+                  className="h-12.5 w-full cursor-pointer justify-between overflow-hidden rounded-lg border-input bg-white px-4 text-[16px] font-normal text-[#000000] focus-visible:border-input focus-visible:ring-0 transition-colors hover:border-[#8F6900]/40"
                 >
                   <span className="truncate">
                     {discountType === "percentage"
@@ -161,7 +162,10 @@ const CreateCouponForm = ({
                   <img
                     src={ChevronDown}
                     alt=""
-                    className="ml-2 w-5 h-2.75 shrink-0"
+                    className={cn(
+                      "ml-2 w-5 h-2.75 shrink-0 transition-transform duration-200",
+                      isDiscountMenuOpen && "rotate-180"
+                    )}
                   />
                 </Button>
               </DropdownMenuTrigger>
@@ -172,21 +176,23 @@ const CreateCouponForm = ({
                 <DropdownMenuGroup>
                   <DropdownMenuItem
                     onClick={() => setDiscountType("percentage")}
-                    className={`cursor-pointer ${
+                    className={cn(
+                      "cursor-pointer transition-colors duration-150",
                       discountType === "percentage"
                         ? "bg-primary text-white rounded-[16px]"
-                        : ""
-                    }`}
+                        : "hover:bg-[#F5F0EA] rounded-[16px]"
+                    )}
                   >
                     {t("Percentage %")}
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => setDiscountType("fixed")}
-                    className={`cursor-pointer ${
+                    className={cn(
+                      "cursor-pointer transition-colors duration-150",
                       discountType === "fixed"
                         ? "bg-primary text-white rounded-[16px]"
-                        : ""
-                    }`}
+                        : "hover:bg-[#F5F0EA] rounded-[16px]"
+                    )}
                   >
                     {t("Fixed Price (EGP)")}
                   </DropdownMenuItem>
@@ -327,10 +333,17 @@ const CreateCouponForm = ({
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
-                className="h-12.5 w-full cursor-pointer justify-between overflow-hidden rounded-lg border-input bg-white px-4 text-[16px] font-normal text-[#000000] focus-visible:border-input focus-visible:ring-0"
+                className="h-12.5 w-full cursor-pointer justify-between overflow-hidden rounded-lg border-input bg-white px-4 text-[16px] font-normal text-[#000000] focus-visible:border-input focus-visible:ring-0 transition-colors hover:border-[#8F6900]/40"
               >
                 <span>{isActive ? t("Active") : t("Inactive")}</span>
-                <img src={ChevronDown} alt="" className="ml-2 w-5 h-2.75 shrink-0" />
+                <img
+                  src={ChevronDown}
+                  alt=""
+                  className={cn(
+                    "ml-2 w-5 h-2.75 shrink-0 transition-transform duration-200",
+                    isStatusMenuOpen && "rotate-180"
+                  )}
+                />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
@@ -340,17 +353,23 @@ const CreateCouponForm = ({
               <DropdownMenuGroup>
                 <DropdownMenuItem
                   onClick={() => setIsActive(true)}
-                  className={`cursor-pointer ${
-                    isActive ? "bg-primary text-white rounded-[16px]" : ""
-                  }`}
+                  className={cn(
+                    "cursor-pointer transition-colors duration-150",
+                    isActive
+                      ? "bg-primary text-white rounded-[16px]"
+                      : "hover:bg-[#F5F0EA] rounded-[16px]"
+                  )}
                 >
                   {t("Active")}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => setIsActive(false)}
-                  className={`cursor-pointer ${
-                    !isActive ? "bg-primary text-white rounded-[16px]" : ""
-                  }`}
+                  className={cn(
+                    "cursor-pointer transition-colors duration-150",
+                    !isActive
+                      ? "bg-primary text-white rounded-[16px]"
+                      : "hover:bg-[#F5F0EA] rounded-[16px]"
+                  )}
                 >
                   {t("Inactive")}
                 </DropdownMenuItem>

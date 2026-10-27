@@ -107,7 +107,7 @@ const InventoryBulkActionBar = ({
           type="button"
           onClick={() => setMode("set")}
           className={cn(
-            "h-10 px-3 rounded-[5px] text-[12px] font-semibold transition-all cursor-pointer",
+            "h-10 px-3 rounded-[5px] text-[12px] font-semibold transition-all duration-150 cursor-pointer active:scale-95",
             mode === "set"
               ? "bg-[#8F6900] text-white shadow-sm"
               : "bg-transparent text-black hover:bg-neutral-100"
@@ -119,7 +119,7 @@ const InventoryBulkActionBar = ({
           type="button"
           onClick={() => setMode("add")}
           className={cn(
-            "h-10 px-3 rounded-[5px] text-[12px] font-semibold transition-all cursor-pointer",
+            "h-10 px-3 rounded-[5px] text-[12px] font-semibold transition-all duration-150 cursor-pointer active:scale-95",
             mode === "add"
               ? "bg-[#8F6900] text-white shadow-sm"
               : "bg-transparent text-black hover:bg-neutral-100"
@@ -159,11 +159,11 @@ const InventoryBulkActionBar = ({
       {/* 5. Set as infinite qty checkbox */}
       <div
         onClick={handleToggleInfinite}
-        className="flex items-center gap-2 cursor-pointer shrink-0 select-none py-1"
+        className="flex items-center gap-2 cursor-pointer shrink-0 select-none py-1 group/inf"
       >
         <div
           className={cn(
-            "size-5 rounded-[6px] transition-all flex items-center justify-center shrink-0",
+            "size-5 rounded-[6px] transition-all duration-150 flex items-center justify-center shrink-0 active:scale-90 group-hover/inf:border-[#725400]",
             isInfinite
               ? "bg-[#8F6900] border border-[#8F6900] text-white ring-2 ring-[#8F6900]/20"
               : "bg-white border border-[#8F6900]"
@@ -171,7 +171,7 @@ const InventoryBulkActionBar = ({
         >
           {isInfinite && <Check className="size-3.5 stroke-[3] text-white" />}
         </div>
-        <span className="text-[14px] sm:text-[15px] font-medium text-[#333333]">
+        <span className="text-[14px] sm:text-[15px] font-medium text-[#333333] transition-colors group-hover/inf:text-[#8F6900]">
           {t("Set as infinite qty")}
         </span>
       </div>
@@ -182,9 +182,9 @@ const InventoryBulkActionBar = ({
         disabled={!isButtonActive || isLoading}
         onClick={handleActionClick}
         className={cn(
-          "h-12 px-4 py-3 rounded-[5px] flex items-center justify-center gap-2.5 transition-all shrink-0 font-semibold text-[14px] sm:text-[15px]",
+          "group h-12 px-4 py-3 rounded-[5px] flex items-center justify-center gap-2.5 transition-all duration-200 shrink-0 font-semibold text-[14px] sm:text-[15px]",
           isButtonActive && !isLoading
-            ? "bg-[#8F6900] text-white hover:bg-[#725400] cursor-pointer shadow-sm active:scale-[0.98]"
+            ? "bg-[#8F6900] text-white hover:bg-[#725400] cursor-pointer shadow-sm hover:shadow-xs active:scale-[0.98]"
             : "bg-[#DCDCDC] text-[#8B8B8B] cursor-not-allowed pointer-events-none"
         )}
       >
@@ -193,8 +193,8 @@ const InventoryBulkActionBar = ({
         ) : (
           <Save
             className={cn(
-              "size-4.5 shrink-0",
-              isButtonActive ? "text-white" : "text-[#8B8B8B]"
+              "size-4.5 shrink-0 transition-transform duration-200",
+              isButtonActive ? "text-white group-hover:scale-110" : "text-[#8B8B8B]"
             )}
           />
         )}

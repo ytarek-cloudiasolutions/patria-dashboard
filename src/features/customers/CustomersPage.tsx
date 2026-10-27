@@ -136,7 +136,7 @@ const CustomersPage = () => {
   }
 
   return (
-    <>
+    <section className="animate-in fade-in-50 duration-300">
       {/* Scrim/backdrop overlay when the tier filter dropdown is open */}
       {isTierFilterOpen && (
         <div className="pointer-events-none fixed inset-0 z-40 bg-black/40" />
@@ -203,7 +203,7 @@ const CustomersPage = () => {
         }}
         onConfirm={handleConfirmDelete}
       />
-    </>
+    </section>
   );
 };
 

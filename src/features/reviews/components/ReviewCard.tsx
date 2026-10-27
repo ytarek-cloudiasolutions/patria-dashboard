@@ -27,7 +27,7 @@ const ReviewCard = ({
   const accent = ratingAccent(review.rating);
 
   return (
-    <Card className="relative h-full overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white py-0 ring-0 shadow-sm">
+    <Card className="relative h-full overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white py-0 ring-0 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 hover:border-[#8F6900]/30">
       <span
         aria-hidden="true"
         className={cn("absolute inset-y-0 left-0 w-1", accent.stripe)}
@@ -64,13 +64,13 @@ const ReviewCard = ({
             aria-hidden="true"
             className="inline-block size-0.5 shrink-0 rounded-full bg-[#595959]"
           />
-          <Badge className="h-5 shrink-0 rounded-full border border-current bg-[#EDF4FB] px-2 text-[10px] font-semibold tracking-wide text-[#004EF9]">
+          <Badge className="h-5 shrink-0 rounded-full border border-current bg-[#EDF4FB] px-2 text-[10px] font-semibold tracking-wide text-[#004EF9] transition-transform duration-150 hover:scale-105">
             {review.orderType}
           </Badge>
         </div>
 
         {/* Comment */}
-        <div className="break-words rounded-[10px] bg-white border border-[#E5E5E5] p-3 text-[13px] text-[#000000]">
+        <div className="break-words rounded-[10px] bg-white border border-[#E5E5E5] p-3 text-[13px] text-[#000000] transition-colors duration-200 hover:border-[#D4D4D8]">
           "{review.comment}"
         </div>
 
@@ -80,7 +80,7 @@ const ReviewCard = ({
             {review.categories.map((category) => (
               <Badge
                 key={category}
-                className="h-9.75 rounded-lg border-2 border-[#CACBD4] bg-[#F5F0EA] px-2 py-3.5 text-[11px] font-medium text-[#333333]"
+                className="h-9.75 rounded-lg border-2 border-[#CACBD4] bg-[#F5F0EA] px-2 py-3.5 text-[11px] font-medium text-[#333333] transition-transform duration-150 hover:scale-105"
               >
                 {category}
               </Badge>
@@ -108,6 +108,8 @@ const ReviewCard = ({
                   ? `Show review from ${review.customerName}`
                   : `Hide review from ${review.customerName}`,
                 onClick: () => onToggleVisibility(review),
+                className:
+                  "shrink-0 transition-transform duration-150 hover:scale-115 active:scale-90",
               }}
             />
             <ActionButton
@@ -116,6 +118,8 @@ const ReviewCard = ({
                 iconColor: "text-[#C90000]",
                 ariaLabel: `Delete review from ${review.customerName}`,
                 onClick: () => onDelete(review),
+                className:
+                  "shrink-0 transition-transform duration-150 hover:scale-115 active:scale-90",
               }}
             />
           </div>

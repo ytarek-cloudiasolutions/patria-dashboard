@@ -56,7 +56,7 @@ const StockStatusTable = ({
                 onClick={onToggleSelectAll}
                 aria-label="Select all rows"
                 className={cn(
-                  "size-5 rounded-[6px] border flex items-center justify-center transition-colors cursor-pointer",
+                  "size-5 rounded-[6px] border flex items-center justify-center transition-all duration-150 active:scale-90 cursor-pointer",
                   isAllSelected || isIndeterminate
                     ? "bg-[#8F6900] border-[#8F6900] text-white"
                     : "border-[#BDBDBD] bg-white hover:border-[#8F6900]"
@@ -106,7 +106,7 @@ const StockStatusTable = ({
               <TableRow
                 key={item.id}
                 className={cn(
-                  "transition-colors border-b-0 border-0",
+                  "transition-colors duration-150 border-b-0 border-0",
                   isSelected ? "bg-[#FAF7F2] hover:bg-[#F5EFE6]" : "hover:bg-[#F9F9F9]"
                 )}
               >
@@ -118,7 +118,7 @@ const StockStatusTable = ({
                       onClick={() => onToggleSelect(item.id)}
                       aria-label={`Select ${item.name}`}
                       className={cn(
-                        "size-5 rounded-[6px] border flex items-center justify-center transition-colors cursor-pointer",
+                        "size-5 rounded-[6px] border flex items-center justify-center transition-all duration-150 active:scale-90 cursor-pointer",
                         isSelected
                           ? "bg-[#8F6900] border-[#8F6900] text-white"
                           : "border-[#BDBDBD] bg-white hover:border-[#8F6900]"
@@ -136,7 +136,7 @@ const StockStatusTable = ({
                       <img
                         src={item.image}
                         alt={item.name}
-                        className="size-10 rounded-[8px] object-cover shrink-0"
+                        className="size-10 rounded-[8px] object-cover shrink-0 transition-transform duration-200 hover:scale-105"
                       />
                     )}
                     <span className="text-[14px] font-normal text-[#333333]">
@@ -147,7 +147,7 @@ const StockStatusTable = ({
 
                 {/* Category */}
                 <TableCell className="text-center">
-                  <Badge className="h-6 px-3 rounded-[30px] text-[12px] font-normal border border-[#624f1c] bg-[#8f6900] text-white">
+                  <Badge className="h-6 px-3 rounded-[30px] text-[12px] font-normal border border-[#624f1c] bg-[#8f6900] text-white transition-transform duration-150 hover:scale-105">
                     {item.category}
                   </Badge>
                 </TableCell>
@@ -179,7 +179,7 @@ const StockStatusTable = ({
                 {/* Status */}
                 <TableCell className="pe-5 text-center">
                   <Badge
-                    className={`h-6 px-3 rounded-[30px] text-[12px] font-normal border ${
+                    className={`h-6 px-3 rounded-[30px] text-[12px] font-normal border transition-transform duration-150 hover:scale-105 ${
                       STATUS_STYLES[item.status] ?? ""
                     }`}
                   >

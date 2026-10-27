@@ -364,7 +364,7 @@ const OrderDetailsDialog = ({
                         <button
                           type="button"
                           onClick={handleMarkAsPaid}
-                          className="inline-flex cursor-pointer items-center rounded-full border border-[#C7861E] bg-[rgba(254,154,0,0.10)] px-3 py-0.5 text-[13px] font-semibold tracking-[0.26px] text-[#C7861E]"
+                          className="inline-flex cursor-pointer items-center rounded-full border border-[#C7861E] bg-[rgba(254,154,0,0.10)] px-3 py-0.5 text-[13px] font-semibold tracking-[0.26px] text-[#C7861E] transition-all duration-200 hover:brightness-95 hover:shadow-2xs active:scale-95"
                           title={t("Mark as Paid")}
                         >
                           {t("Pending")} · {t("Mark as Paid")}
@@ -578,9 +578,9 @@ const OrderDetailsDialog = ({
               <button
                 type="button"
                 onClick={() => setIsEditOpen(true)}
-                className="flex h-[56px] w-full cursor-pointer items-center justify-center gap-3 rounded-[5px] bg-[#F5F0EA] text-[16px] font-semibold text-[#8F6900]"
+                className="group/btn flex h-[56px] w-full cursor-pointer items-center justify-center gap-3 rounded-[5px] bg-[#F5F0EA] text-[16px] font-semibold text-[#8F6900] transition-all duration-200 ease-out hover:bg-[#EFEAE2] hover:shadow-xs active:scale-[0.99]"
               >
-                <SquarePen className="size-4 text-[#8F6900]" />
+                <SquarePen className="size-4 text-[#8F6900] transition-transform duration-200 ease-out group-hover/btn:scale-110" />
                 {t("Edit Order")}
               </button>
             )}
@@ -588,9 +588,9 @@ const OrderDetailsDialog = ({
             <button
               type="button"
               onClick={() => setIsDiscountOpen(true)}
-              className="flex h-[56px] w-full cursor-pointer items-center justify-center gap-3 rounded-[5px] border border-[#8F6900] bg-white text-[16px] font-semibold text-[#8F6900]"
+              className="group/btn flex h-[56px] w-full cursor-pointer items-center justify-center gap-3 rounded-[5px] border border-[#8F6900] bg-white text-[16px] font-semibold text-[#8F6900] transition-all duration-200 ease-out hover:bg-[#F5F0EA] hover:shadow-xs active:scale-[0.99]"
             >
-              <Wallet className="size-[18px] text-[#8F6900]" />
+              <Wallet className="size-[18px] text-[#8F6900] transition-transform duration-200 ease-out group-hover/btn:scale-110" />
               {t("Administrative discount application")}
             </button>
 
@@ -598,17 +598,17 @@ const OrderDetailsDialog = ({
               <button
                 type="button"
                 onClick={() => handlePrint("customer")}
-                className="flex h-[56px] flex-1 cursor-pointer items-center justify-center gap-3 rounded-[5px] border border-[#8F6900] bg-white text-[16px] font-semibold text-[#8F6900]"
+                className="group/btn flex h-[56px] flex-1 cursor-pointer items-center justify-center gap-3 rounded-[5px] border border-[#8F6900] bg-white text-[16px] font-semibold text-[#8F6900] transition-all duration-200 ease-out hover:bg-[#F5F0EA] hover:shadow-xs active:scale-[0.98]"
               >
-                <Printer className="size-[18px] text-[#8F6900]" />
+                <Printer className="size-[18px] text-[#8F6900] transition-transform duration-200 ease-out group-hover/btn:scale-110" />
                 {t("Print Customer Receipt")}
               </button>
               <button
                 type="button"
                 onClick={() => handlePrint("kitchen")}
-                className="flex h-[56px] flex-1 cursor-pointer items-center justify-center gap-3 rounded-[5px] bg-[#8F6900] text-[16px] font-semibold text-white"
+                className="group/btn flex h-[56px] flex-1 cursor-pointer items-center justify-center gap-3 rounded-[5px] bg-[#8F6900] text-[16px] font-semibold text-white transition-all duration-200 ease-out hover:opacity-95 hover:shadow-xs active:scale-[0.98]"
               >
-                <Printer className="size-[18px] text-white" />
+                <Printer className="size-[18px] text-white transition-transform duration-200 ease-out group-hover/btn:scale-110" />
                 {t("Print Kitchen Receipt")}
               </button>
             </div>

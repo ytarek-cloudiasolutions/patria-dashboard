@@ -171,7 +171,7 @@ const OffersPage = () => {
   }
 
   return (
-    <>
+    <section className="animate-in fade-in-50 duration-300">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <HeaderLayout
           title={t("Promotional Offers")}
@@ -182,16 +182,17 @@ const OffersPage = () => {
             data={{
               buttonText: t("WhatsApp Broadcast"),
               onClick: handleOpenGlobalBroadcast,
-              icon: <img src={WhatsAppIcon} alt="" className="size-4.5" />,
+              icon: <img src={WhatsAppIcon} alt="" className="size-4.5 transition-transform duration-200 group-hover/wa:scale-110" />,
               className:
-                "bg-[#E2F4ED] text-[#059B5A] border border-[#059B5A]",
+                "group/wa bg-[#E2F4ED] text-[#059B5A] border border-[#059B5A] hover:bg-[#d0eddf] hover:shadow-xs active:scale-[0.98] transition-all duration-200",
             }}
           />
           <DefaultButton
             data={{
               buttonText: t("Create Offer"),
               onClick: handleOpenCreateDialog,
-              icon: <Plus className="size-4.5" />,
+              icon: <Plus className="size-4.5 transition-transform duration-200 group-hover/create:rotate-90" />,
+              className: "group/create hover:shadow-xs active:scale-[0.98] transition-all duration-200",
             }}
           />
         </div>
@@ -239,7 +240,7 @@ const OffersPage = () => {
         onOpenChange={setIsBroadcastDialogOpen}
         offer={broadcastOffer}
       />
-    </>
+    </section>
   );
 };
 

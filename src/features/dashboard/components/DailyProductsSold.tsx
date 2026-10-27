@@ -51,7 +51,7 @@ const DailyProductsSold = ({
   const shownProducts = totalProducts ?? displayProducts.length;
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-[#E5E5E5] bg-white">
+    <section className="group/daily overflow-hidden rounded-2xl border border-[#E5E5E5] bg-white transition-shadow duration-300 hover:shadow-xs">
       <div className="space-y-4 px-4 py-6">
         <div>
           <h2 className="text-lg font-bold tracking-tight text-[#333333]">
@@ -62,10 +62,10 @@ const DailyProductsSold = ({
           </p>
         </div>
 
-        <div className="flex items-center justify-between gap-4 rounded-xl border border-[#CDD0D8] bg-[#F5F0EA] px-4 py-4 sm:px-6">
+        <div className="group/best flex items-center justify-between gap-4 rounded-xl border border-[#CDD0D8] bg-[#F5F0EA] px-4 py-4 sm:px-6 transition-all duration-200 ease-out hover:border-[#8F6900]/40 hover:shadow-xs">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white">
-              <Trophy className="size-6 text-[#8F6900]" />
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-2xs">
+              <Trophy className="size-6 text-[#8F6900] transition-transform duration-300 ease-out group-hover/best:scale-110 group-hover/best:rotate-6" />
             </div>
             <div className="min-w-0">
               <p className="text-xs font-medium tracking-tight text-black">{t("Best Seller")}</p>
@@ -89,19 +89,19 @@ const DailyProductsSold = ({
         {displayProducts.map((product, index) => (
           <div
             key={product.id}
-            className={`grid grid-cols-[minmax(150px,1fr)_minmax(180px,1.7fr)_minmax(88px,.45fr)] items-center gap-4 py-4 ${
+            className={`group/row grid grid-cols-[minmax(150px,1fr)_minmax(180px,1.7fr)_minmax(88px,.45fr)] items-center gap-4 py-4 px-2 -mx-2 rounded-lg transition-colors duration-150 hover:bg-[#FAFAF7] ${
               index < displayProducts.length - 1 ? "border-b border-[#CDD0D8]" : ""
             }`}
           >
-            <p className="truncate text-sm font-semibold tracking-tight text-black">{product.name}</p>
+            <p className="truncate text-sm font-semibold tracking-tight text-black transition-transform duration-150 ease-out group-hover/row:translate-x-0.5 rtl:group-hover/row:-translate-x-0.5">{product.name}</p>
             <div className="flex items-center gap-2.5">
               <div className="h-5 flex-1 overflow-hidden rounded-md bg-[#E5E5E5]">
                 <div
-                  className="h-full rounded-md bg-[#8F6900] transition-[width] duration-500"
+                  className="h-full rounded-md bg-[#8F6900] transition-all duration-700 ease-out"
                   style={{ width: `${(product.quantity / maxQuantity) * 100}%` }}
                 />
               </div>
-              <span className="w-3 text-xs font-semibold text-black">{product.quantity}</span>
+              <span className="w-3 text-xs font-semibold text-black transition-transform duration-150 group-hover/row:scale-105">{product.quantity}</span>
             </div>
             <p className="text-right text-sm font-bold tracking-tight text-black">EGP {formatAmount(product.revenue)}</p>
           </div>

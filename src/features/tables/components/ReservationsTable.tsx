@@ -107,13 +107,13 @@ const RowActions = ({
               )
             }
             className={cn(
-              "flex size-9 cursor-pointer items-center justify-center rounded-[10px] transition-opacity",
+              "group/act flex size-9 cursor-pointer items-center justify-center rounded-[10px] transition-all duration-200 hover:shadow-2xs active:scale-95",
               bg,
               color,
               isLoading && "pointer-events-none opacity-50",
             )}
           >
-            <Icon size={18} />
+            <Icon size={18} className="transition-transform duration-200 ease-out group-hover/act:scale-115" />
           </button>
         );
       })}
@@ -147,7 +147,7 @@ const ReservationsTable = ({
               <div
                 key={r._id}
                 className={cn(
-                  "rounded-2xl border border-[#E5E5E5] bg-white px-4 py-4 transition-opacity",
+                  "rounded-2xl border border-[#E5E5E5] bg-white px-4 py-4 transition-all duration-200 hover:shadow-2xs hover:border-[#8F6900]/30",
                   isRowLoading && "opacity-80",
                 )}
               >
@@ -203,7 +203,7 @@ const ReservationsTable = ({
       </div>
 
       {/* Desktop table */}
-      <div className="hidden md:block">
+      <div className="hidden md:block rounded-[16px] border border-[#E5E5E5] bg-white transition-shadow duration-300 hover:shadow-xs overflow-hidden">
         <Table className="min-w-175">
           <TableHeader>
             <TableRow>
@@ -233,7 +233,7 @@ const ReservationsTable = ({
                   <TableRow
                     key={r._id}
                     className={cn(
-                      "hover:bg-[#FAFAF8] transition-opacity",
+                      "hover:bg-[#FAFAF8] transition-colors duration-150",
                       isRowLoading && "opacity-80",
                     )}
                   >

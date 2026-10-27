@@ -195,7 +195,7 @@ const ReviewsPage = () => {
   }
 
   return (
-    <>
+    <section className="animate-in fade-in-50 duration-300">
       {isScrimActive && (
         <div className="pointer-events-none fixed inset-0 z-40 bg-black/40" />
       )}
@@ -282,7 +282,7 @@ const ReviewsPage = () => {
         }}
         onConfirm={handleConfirmDelete}
       />
-    </>
+    </section>
   );
 };
 

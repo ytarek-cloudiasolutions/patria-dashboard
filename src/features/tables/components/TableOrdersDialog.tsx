@@ -125,7 +125,7 @@ const TableOrdersDialog = ({ table, onOpenChange }: TableOrdersDialogProps) => {
                 return (
                   <div
                     key={order.id}
-                    className="flex w-full flex-col gap-3 rounded-2xl border border-[#E5E5E5] bg-[#FAFAF7] px-6 py-4"
+                    className="flex w-full flex-col gap-3 rounded-2xl border border-[#E5E5E5] bg-[#FAFAF7] px-6 py-4 transition-all duration-200 hover:border-[#8F6900]/40 hover:shadow-2xs"
                   >
                     <div className="flex items-center justify-between gap-3">
                       <span className="text-sm font-semibold tracking-tight text-[#28293D]">
@@ -207,7 +207,7 @@ const TableOrdersDialog = ({ table, onOpenChange }: TableOrdersDialogProps) => {
             <button
               type="button"
               onClick={() => onOpenChange(false)}
-              className="inline-flex h-[56px] cursor-pointer items-center justify-center gap-[12px] rounded-[5px] border border-[#8F6900] px-[30px] py-[16px] text-[16px] font-semibold leading-[24px] text-[#8F6900] transition-colors hover:bg-[#8F6900]/5"
+              className="inline-flex h-[56px] cursor-pointer items-center justify-center gap-[12px] rounded-[5px] border border-[#8F6900] px-[30px] py-[16px] text-[16px] font-semibold leading-[24px] text-[#8F6900]"
             >
               {t("Cancel")}
             </button>

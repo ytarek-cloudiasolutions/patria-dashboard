@@ -34,6 +34,7 @@ const SupplierActions = ({
         iconColor: "text-[#000000]",
         ariaLabel: `Edit ${supplier.name}`,
         onClick: () => onEdit(supplier),
+        className: "shrink-0 transition-transform duration-150 hover:scale-115 active:scale-90",
       }}
     />
     <ActionButton
@@ -42,6 +43,7 @@ const SupplierActions = ({
         iconColor: "text-[#C90000]",
         ariaLabel: `Delete ${supplier.name}`,
         onClick: () => onDelete(supplier),
+        className: "shrink-0 transition-transform duration-150 hover:scale-115 active:scale-90",
       }}
     />
   </div>
@@ -69,7 +71,7 @@ const SuppliersTable = ({
         {suppliers.map((supplier) => (
           <div
             key={supplier.id}
-            className="rounded-2xl border border-[#E5E5E5] bg-white px-4 py-4"
+            className="rounded-2xl border border-[#E5E5E5] bg-white px-4 py-4 transition-all duration-200 hover:shadow-md hover:border-[#8F6900]/30"
           >
             <div className="mb-3 flex items-start justify-between gap-3">
               <div className="min-w-0">

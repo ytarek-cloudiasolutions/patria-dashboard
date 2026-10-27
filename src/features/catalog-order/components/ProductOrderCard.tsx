@@ -71,7 +71,7 @@ export const ProductOrderCard = ({
   };
 
   return (
-    <div className="flex-1 w-full lg:max-w-[673px] h-[785px] p-6 bg-white rounded-2xl shadow-lg border border-[#E5E5E5] flex flex-col gap-4 overflow-hidden">
+    <div className="flex-1 w-full lg:max-w-[673px] h-[785px] p-6 bg-white rounded-2xl shadow-lg border border-[#E5E5E5] flex flex-col gap-4 overflow-hidden transition-shadow duration-300 hover:shadow-xl">
       <div className="flex items-center gap-1.5 shrink-0">
         <img src="/images/catalog-order/reorder_products.svg" alt="" className="size-4" />
         <h2 className="text-black text-sm font-semibold tracking-tight">
@@ -80,9 +80,9 @@ export const ProductOrderCard = ({
       </div>
 
       <div className="shrink-0">
-        <div className="p-3.5 bg-white rounded-lg border border-[#CACBD4] flex items-center gap-2.5 focus-within:border-[#8F6900] transition-colors">
-          <label htmlFor={searchInputId} className="flex items-center">
-            <Search className="size-5 text-[#8B8B8B] shrink-0" />
+        <div className="group/search p-3.5 bg-white rounded-lg border border-[#CACBD4] flex items-center gap-2.5 focus-within:border-[#8F6900] focus-within:ring-2 focus-within:ring-[#8F6900]/10 transition-all duration-200">
+          <label htmlFor={searchInputId} className="flex items-center cursor-pointer">
+            <Search className="size-5 text-[#8B8B8B] group-focus-within/search:text-[#8F6900] shrink-0 transition-colors duration-200" />
           </label>
           <input
             id={searchInputId}
@@ -122,16 +122,16 @@ export const ProductOrderCard = ({
                 onDrop={(e) => handleDrop(e, item.id)}
                 onDragEnd={resetDrag}
                 className={cn(
-                  "flex w-full items-center justify-between px-1.5 py-2 rounded-2xl border transition-all duration-150 select-none",
+                  "group flex w-full items-center justify-between px-1.5 py-2 rounded-2xl border transition-all duration-200 select-none",
                   isTop
-                    ? "bg-[#F5F0EA] border-[#8F6900]"
-                    : "bg-[#F8F8F8] border-transparent hover:bg-[#F2EFE9]",
-                  draggedId === item.id && "opacity-40",
-                  dragOverId === item.id && draggedId !== item.id && "ring-2 ring-[#8F6900]",
+                    ? "bg-[#F5F0EA] border-[#8F6900] shadow-2xs"
+                    : "bg-[#F8F8F8] border-transparent hover:bg-[#F2EFE9] hover:border-[#8F6900]/30 hover:translate-x-0.5 rtl:hover:-translate-x-0.5",
+                  draggedId === item.id && "opacity-40 scale-95",
+                  dragOverId === item.id && draggedId !== item.id && "ring-2 ring-[#8F6900] scale-[1.01]",
                 )}
               >
                 <div className="flex items-center gap-1.5 min-w-0">
-                  <div className="size-4 shrink-0 flex items-center justify-center cursor-grab active:cursor-grabbing">
+                  <div className="size-4 shrink-0 flex items-center justify-center cursor-grab active:cursor-grabbing transition-transform duration-150 hover:scale-110 active:scale-95">
                     <img
                       src="/images/catalog-order/grip_vertical.svg"
                       alt=""
@@ -155,12 +155,12 @@ export const ProductOrderCard = ({
                       type="button"
                       onClick={(e) => moveToTop(item.id, e)}
                       title={t("Move to top")}
-                      className="size-4 flex items-center justify-center cursor-pointer hover:opacity-60 transition-opacity"
+                      className="group/top size-4 flex items-center justify-center cursor-pointer transition-all duration-150 active:scale-90 hover:opacity-100"
                     >
                       <img
                         src="/images/catalog-order/move_to_top.svg"
                         alt={t("Move to top")}
-                        className="size-4 pointer-events-none"
+                        className="size-4 pointer-events-none transition-transform duration-200 group-hover/top:-translate-y-0.5 group-hover/top:scale-110"
                       />
                     </button>
                   )}

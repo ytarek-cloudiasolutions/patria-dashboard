@@ -437,21 +437,21 @@ const PendingApprovalsWidget = ({
         type="button"
         onClick={handleToggleOpen}
         className={cn(
-          "flex h-[44px] w-full items-center justify-between gap-1.5 rounded-[12px] border-2 border-[#8F6900] bg-[#F5F0EA] px-2.5 transition-all cursor-pointer select-none",
+          "group flex h-[44px] w-full items-center justify-between gap-1.5 rounded-[12px] border-2 border-[#8F6900] bg-[#F5F0EA] px-2.5 transition-all duration-200 ease-out hover:shadow-xs active:scale-[0.99] cursor-pointer select-none",
           isOpen && "invisible pointer-events-none"
         )}
       >
         <div className="flex items-center gap-1.5 min-w-0">
-          <ShieldCheck className="size-5 text-[#8F6900] shrink-0" />
+          <ShieldCheck className="size-5 text-[#8F6900] shrink-0 transition-transform duration-200 ease-out group-hover:scale-110" />
           <span className="whitespace-nowrap text-[12px] font-semibold leading-6 text-[#8F6900]">
             {t("Pending Approvals")}
           </span>
-          <div className="flex size-5 shrink-0 items-center justify-center rounded-full bg-[#8F6900] text-[11px] font-bold text-white">
+          <div className="flex size-5 shrink-0 items-center justify-center rounded-full bg-[#8F6900] text-[11px] font-bold text-white transition-transform duration-200 ease-out group-hover:scale-105">
             {count}
           </div>
         </div>
 
-        <ChevronUp className="size-4 shrink-0 text-[#8F6900]" />
+        <ChevronUp className="size-4 shrink-0 text-[#8F6900] transition-transform duration-200 ease-out group-hover:-translate-y-0.5" />
       </button>
     </div>
   );

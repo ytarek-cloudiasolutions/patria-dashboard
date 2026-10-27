@@ -239,22 +239,24 @@ const TablesPage = () => {
           <DefaultButton
             data={{
               buttonText: t("New Reservation"),
-              icon: <CalendarPlus className="size-4.5 text-primary" />,
+              icon: <CalendarPlus className="size-4.5 text-primary transition-transform duration-200 ease-out group-hover:scale-110" />,
               onClick: () => setIsReservationOpen(true),
               className:
-                "border-0 bg-[#F5F0EA] text-primary hover:bg-[#F5F0EA] hover:text-primary shadow-none cursor-pointer",
+                "border-0 bg-[#F5F0EA] text-primary hover:bg-[#F5F0EA] hover:text-primary shadow-none cursor-pointer transition-all duration-200 hover:shadow-xs active:scale-[0.98] group",
             }}
           />
           <DefaultButton
             data={{
               buttonText: t("Add New Table"),
-              icon: <Plus className="size-4.5" />,
+              icon: <Plus className="size-4.5 transition-transform duration-200 group-hover:rotate-90" />,
               onClick: () => setIsAddTableOpen(true),
-              className: "bg-primary text-white hover:bg-primary cursor-pointer",
+              className: "bg-primary text-white hover:bg-primary cursor-pointer transition-all duration-200 hover:shadow-xs active:scale-[0.98] group",
             }}
           />
         </div>
       </div>
+
+      <div className="animate-in fade-in-50 duration-300">
 
       <div className="mb-5">
         <SearchInputField
@@ -307,9 +309,9 @@ const TablesPage = () => {
               type="button"
               aria-label={t("Clear reservation date filter")}
               onClick={() => setReservationDate(getTodayDateString())}
-              className="mt-2 inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-[8px] px-2 text-[13px] font-medium text-[#8B8B8B] hover:bg-[#F5F0EA] hover:text-[#28293D]"
+              className="mt-2 inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-[8px] px-2 text-[13px] font-medium text-[#8B8B8B] hover:bg-[#F5F0EA] hover:text-[#28293D] transition-all duration-150 active:scale-95 group"
             >
-              <X size={14} />
+              <X size={14} className="transition-transform duration-150 group-hover:rotate-90" />
               {t("Clear date")}
             </button>
           )}
@@ -329,6 +331,7 @@ const TablesPage = () => {
           onDropdownOpenChange={setIsDropdownOpen}
         />
       )}
+      </div>
 
       <AddTableDialog
         open={isAddTableOpen}

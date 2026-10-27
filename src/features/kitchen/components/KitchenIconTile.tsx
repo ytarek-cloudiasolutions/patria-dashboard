@@ -22,13 +22,13 @@ const KitchenIconTile = ({
       onClick={onClick}
       aria-pressed={selected}
       className={cn(
-        "flex w-28 cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-[5px] p-3 outline outline-2 -outline-offset-2 transition-colors",
+        "group flex w-28 cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-[5px] p-3 outline outline-2 -outline-offset-2 transition-all duration-200 active:scale-95",
         selected
           ? "bg-[#FAFAF7] outline-primary"
-          : "bg-[#F7F7F5] outline-[#E5E5E5] hover:outline-[#CACBD4]",
+          : "bg-[#F7F7F5] outline-[#E5E5E5] hover:outline-[#CACBD4] hover:scale-[1.02]",
       )}
     >
-      <Icon className="size-6 text-black" />
+      <Icon className="size-6 text-black transition-transform duration-200 group-hover:scale-110" />
       <span
         className={cn(
           "text-center text-xs leading-3 tracking-tight text-black",

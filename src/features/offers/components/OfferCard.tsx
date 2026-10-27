@@ -59,14 +59,14 @@ const OfferCard = ({
 
     return (
       <>
-        <div className="relative flex flex-col w-full h-[450px] overflow-hidden rounded-[20px] border border-[#E5E5E5] bg-white shadow-xs">
+        <div className="group/card relative flex flex-col w-full h-[450px] overflow-hidden rounded-[20px] border border-[#E5E5E5] bg-white shadow-xs transition-all duration-300 ease-out hover:shadow-md hover:-translate-y-1 hover:border-[#8F6900]/30">
           {/* Top Banner Image */}
           <div className="relative w-full h-[180px] shrink-0 overflow-hidden rounded-t-[19px] bg-[#F5F0EA]">
             {offer.offerImage ? (
               <img
                 src={offer.offerImage}
                 alt={offer.offerTitle}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition-transform duration-300 ease-out group-hover/card:scale-105"
               />
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center gap-1">
@@ -137,9 +137,9 @@ const OfferCard = ({
                     <button
                       type="button"
                       onClick={() => onBroadcast?.(offer)}
-                      className="flex items-center gap-[4px] rounded-[5px] bg-[#EDEDFF] p-2 text-[10px] font-semibold text-[#6A68FF] cursor-pointer"
+                      className="group/bc flex items-center gap-[4px] rounded-[5px] bg-[#EDEDFF] p-2 text-[10px] font-semibold text-[#6A68FF] cursor-pointer transition-all duration-150 hover:bg-[#E0E0FF] hover:shadow-xs active:scale-95"
                     >
-                      <Megaphone className="size-[18px] text-[#6A68FF]" />
+                      <Megaphone className="size-[18px] text-[#6A68FF] transition-transform duration-150 group-hover/bc:scale-110" />
                       <span>{t("Mass Broadcast")}</span>
                     </button>
                   )}
@@ -148,18 +148,18 @@ const OfferCard = ({
                     type="button"
                     onClick={() => onEdit?.(offer)}
                     title={t("Edit Banner")}
-                    className="cursor-pointer text-black"
+                    className="group/edit cursor-pointer text-black transition-transform duration-150 active:scale-90"
                   >
-                    <SquarePen className="size-[18px]" />
+                    <SquarePen className="size-[18px] transition-transform duration-150 group-hover/edit:scale-115" />
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setIsDeleteOpen(true)}
                     title={t("Delete Banner")}
-                    className="cursor-pointer text-[#C90000]"
+                    className="group/del cursor-pointer text-[#C90000] transition-transform duration-150 active:scale-90"
                   >
-                    <Trash2 className="size-[18px]" />
+                    <Trash2 className="size-[18px] transition-transform duration-150 group-hover/del:scale-115" />
                   </button>
                 </div>
               </div>
@@ -185,14 +185,14 @@ const OfferCard = ({
   // ──────────────────────────────────────────
   return (
     <>
-      <div className="relative flex flex-col w-full h-[450px] overflow-hidden rounded-[16px] border border-[#8B8B8B] bg-white [box-shadow:0px_1px_2px_-1px_rgba(0,0,0,0.10),0px_1px_3px_0px_rgba(0,0,0,0.10)]">
+      <div className="group/card relative flex flex-col w-full h-[450px] overflow-hidden rounded-[16px] border border-[#8B8B8B] bg-white [box-shadow:0px_1px_2px_-1px_rgba(0,0,0,0.10),0px_1px_3px_0px_rgba(0,0,0,0.10)] transition-all duration-300 ease-out hover:shadow-md hover:-translate-y-1 hover:border-[#8F6900]/50">
         {/* Banner Image + Status Badge */}
         <div className="relative w-full h-[156px] shrink-0 overflow-hidden rounded-t-[16px]">
           {offer.offerImage ? (
             <img
               src={offer.offerImage}
               alt={offer.offerTitle}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover transition-transform duration-300 ease-out group-hover/card:scale-105"
             />
           ) : (
             <div className="w-full h-full bg-[#F5F0EA] flex flex-col items-center justify-center gap-1">
@@ -306,9 +306,9 @@ const OfferCard = ({
                 <button
                   type="button"
                   onClick={() => onBroadcast?.(offer)}
-                  className="flex items-center gap-[4px] rounded-[5px] bg-[#EDEDFF] p-2 text-[10px] font-semibold text-[#6A68FF] cursor-pointer"
+                  className="group/bc flex items-center gap-[4px] rounded-[5px] bg-[#EDEDFF] p-2 text-[10px] font-semibold text-[#6A68FF] cursor-pointer transition-all duration-150 hover:bg-[#E0E0FF] hover:shadow-xs active:scale-95"
                 >
-                  <Megaphone className="size-[18px] text-[#6A68FF]" />
+                  <Megaphone className="size-[18px] text-[#6A68FF] transition-transform duration-150 group-hover/bc:scale-110" />
                   <span>{t("Mass Broadcast")}</span>
                 </button>
               )}
@@ -317,18 +317,18 @@ const OfferCard = ({
                 type="button"
                 onClick={() => onEdit?.(offer)}
                 title={t("Edit Offer")}
-                className="cursor-pointer text-black"
+                className="group/edit cursor-pointer text-black transition-transform duration-150 active:scale-90"
               >
-                <SquarePen className="size-[18px]" />
+                <SquarePen className="size-[18px] transition-transform duration-150 group-hover/edit:scale-115" />
               </button>
 
               <button
                 type="button"
                 onClick={() => setIsDeleteOpen(true)}
                 title={t("Delete Offer")}
-                className="cursor-pointer text-[#C90000]"
+                className="group/del cursor-pointer text-[#C90000] transition-transform duration-150 active:scale-90"
               >
-                <Trash2 className="size-[18px]" />
+                <Trash2 className="size-[18px] transition-transform duration-150 group-hover/del:scale-115" />
               </button>
             </div>
           </div>

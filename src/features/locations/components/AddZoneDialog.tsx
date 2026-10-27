@@ -55,7 +55,7 @@ const AddZoneDialog = ({
             <button
               type="button"
               onClick={() => onOpenChange(false)}
-              className="rounded-full p-1.5 text-[#8B8B8B] hover:bg-[#F5F0EA] hover:text-[#28293D] transition cursor-pointer"
+              className="rounded-full p-1.5 text-[#8B8B8B] hover:bg-[#F5F0EA] hover:text-[#28293D] transition-all duration-150 active:scale-90 hover:rotate-90 cursor-pointer"
             >
               <X className="size-5" />
             </button>
@@ -91,7 +91,7 @@ const AddZoneDialog = ({
                 form={FORM_ID}
                 type="submit"
                 disabled={isSaving}
-                className="flex h-12 cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:gap-3 sm:px-7.5 sm:text-[16px]"
+                className="flex h-12 cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:gap-3 sm:px-7.5 sm:text-[16px] transition-all duration-200 hover:opacity-90 hover:shadow-xs active:scale-[0.98]"
               >
                 {editingZone ? t("Update Zone") : t("Save Zone")}
               </Button>

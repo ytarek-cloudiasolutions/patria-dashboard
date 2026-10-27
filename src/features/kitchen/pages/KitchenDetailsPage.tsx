@@ -83,7 +83,7 @@ const ApiKitchenOrderCard = ({ order, onStatusChange, stationColor, onCardClick 
   return (
     <Card
       onClick={() => onCardClick(order)}
-      className="flex flex-col h-full rounded-2xl border border-[#E7E7EC] bg-white p-5 ring-0 cursor-pointer hover:shadow-md transition-shadow duration-200"
+      className="flex flex-col h-full rounded-2xl border border-[#E7E7EC] bg-white p-5 ring-0 cursor-pointer transition-all duration-200 hover:shadow-md hover:border-[#8F6900]/30 hover:-translate-y-0.5"
     >
       <CardContent className="flex flex-col flex-1 px-0 py-0">
         <div className="mb-3 flex items-center justify-between gap-3">
@@ -140,7 +140,7 @@ const ApiKitchenOrderCard = ({ order, onStatusChange, stationColor, onCardClick 
               e.stopPropagation();
               onStatusChange(order._id, next);
             }}
-            className="mt-auto w-full rounded-[8px] py-2 text-[13px] font-semibold text-white transition mb-3 cursor-pointer hover:opacity-90"
+            className="mt-auto w-full rounded-[8px] py-2 text-[13px] font-semibold text-white transition-all duration-150 mb-3 cursor-pointer hover:opacity-90 hover:shadow-xs active:scale-[0.98]"
             style={{ backgroundColor: stationColor }}
           >
             {t(`Mark as ${STATUS_STYLE[next]?.label ?? next}`)}
@@ -217,8 +217,15 @@ const KitchenDetailsPage = () => {
     return (
       <div className="space-y-4">
         <h2 className="text-[28px] font-bold text-[#303030]">{t("Kitchen not found")}</h2>
-        <Button onClick={() => navigate("/kitchen")}>
-          {dir === "rtl" ? <ArrowRight className="size-4" /> : <ArrowLeft className="size-4" />}
+        <Button
+          onClick={() => navigate("/kitchen")}
+          className="group transition-all duration-200 hover:shadow-xs active:scale-[0.98]"
+        >
+          {dir === "rtl" ? (
+            <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+          ) : (
+            <ArrowLeft className="size-4 transition-transform duration-200 group-hover:-translate-x-0.5" />
+          )}
           {t("Back to Kitchens")}
         </Button>
       </div>
@@ -232,16 +239,20 @@ const KitchenDetailsPage = () => {
     : "bg-[#E2F4ED] text-[#059B5A] border-[#059B5A]";
 
   return (
-    <section>
+    <section className="animate-in fade-in-50 duration-300">
       <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-wrap items-center gap-4 sm:gap-6">
           <Button
             size="icon"
             variant="ghost"
-            className="size-12 rounded-2xl bg-white cursor-pointer hover:bg-white"
+            className="group/back size-12 rounded-2xl bg-white cursor-pointer hover:bg-white hover:shadow-xs active:scale-95 transition-all duration-200"
             onClick={() => navigate("/kitchen")}
           >
-            {dir === "rtl" ? <ArrowRight className="size-5" /> : <ArrowLeft className="size-5" />}
+            {dir === "rtl" ? (
+              <ArrowRight className="size-5 transition-transform duration-200 group-hover/back:translate-x-0.5" />
+            ) : (
+              <ArrowLeft className="size-5 transition-transform duration-200 group-hover/back:-translate-x-0.5" />
+            )}
           </Button>
 
           <div className="flex items-center gap-3">
@@ -280,11 +291,11 @@ const KitchenDetailsPage = () => {
 
           <Button
             variant="outline"
-            className="flex items-center gap-2 border-[#E5E5E5] h-12 px-4 rounded-[8px] cursor-pointer"
+            className="group/refresh flex items-center gap-2 border-[#E5E5E5] h-12 px-4 rounded-[8px] cursor-pointer transition-all duration-200 hover:shadow-xs active:scale-[0.98]"
             onClick={fetchOrders}
             disabled={loading.fetch}
           >
-            <RefreshCw className={`size-4 ${loading.fetch ? "animate-spin" : ""}`} />
+            <RefreshCw className={`size-4 transition-transform duration-300 ${loading.fetch ? "animate-spin" : "group-hover/refresh:rotate-180"}`} />
             {t("Refresh")}
           </Button>
         </div>

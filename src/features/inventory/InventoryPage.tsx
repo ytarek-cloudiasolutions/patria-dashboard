@@ -12,6 +12,7 @@ import SearchInputField from "@/shared/components/SearchInputField";
 import TabItem from "@/shared/components/TabItem";
 import DefaultButton from "@/shared/components/DefaultButton";
 import DropdownSelect from "@/shared/components/DropdownSelect";
+import { cn } from "@/lib/utils";
 import { useInventory } from "./hooks/useInventory";
 import StockStatusTable from "./components/StockStatusTable";
 import ExpectedShortagesTable from "./components/ExpectedShortagesTable";
@@ -255,7 +256,7 @@ const InventoryPage = () => {
   }
 
   return (
-    <>
+    <section className="animate-in fade-in-50 duration-300">
       {/* Header */}
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
@@ -273,12 +274,16 @@ const InventoryPage = () => {
           <DefaultButton
             data={{
               onClick: syncInventory,
-              icon: <RefreshCw className="size-4" />,
+              icon: (
+                <RefreshCw className="size-4 transition-transform duration-500 group-hover:rotate-180" />
+              ),
               buttonText: t("synchronization"),
-              className:
+              className: cn(
+                "cursor-pointer transition-all duration-200 hover:shadow-xs active:scale-[0.98] group",
                 activeTab === "shortages"
                   ? ""
-                  : "bg-[#f5f0ea] text-[#8f6900]",
+                  : "bg-[#f5f0ea] text-[#8f6900] hover:bg-[#ebdcc9]"
+              ),
             }}
           />
 
@@ -286,10 +291,12 @@ const InventoryPage = () => {
             <DefaultButton
               data={{
                 onClick: handleSaveEdits,
-                icon: <Save className="size-4" />,
+                icon: (
+                  <Save className="size-4 transition-transform duration-200 group-hover:scale-110" />
+                ),
                 buttonText: t("Save Edits"),
                 className: hasAdjustments
-                  ? ""
+                  ? "cursor-pointer transition-all duration-200 hover:shadow-xs active:scale-[0.98] group"
                   : "bg-[#dcdcdc] text-[#8b8b8b] hover:bg-[#dcdcdc] pointer-events-none",
               }}
             />
@@ -388,7 +395,7 @@ const InventoryPage = () => {
 
       {/* Bulk Action Bar (Figma .frame-2147224183) */}
       {activeTab === "stock" && selectedItemIds.size > 0 && (
-        <div className="mb-4">
+        <div className="mb-4 animate-in fade-in-50 slide-in-from-top-2 duration-200">
           <InventoryBulkActionBar
             selectedCount={selectedItemIds.size}
             warehouses={warehouseOptions}
@@ -416,7 +423,7 @@ const InventoryPage = () => {
       ) : (
         <ExpectedShortagesTable items={filteredItems} />
       )}
-    </>
+    </section>
   );
 };
 

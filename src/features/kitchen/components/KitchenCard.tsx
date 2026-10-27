@@ -38,13 +38,13 @@ const KitchenCard = ({
 
   return (
     <Card
-      className="gap-8 rounded-2xl bg-white p-6 py-6 ring-0"
+      className="group/kitchen gap-8 rounded-2xl bg-white p-6 py-6 ring-0 transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-md"
       style={{ borderTop: `9px solid ${kitchen.color}` }}
     >
       <CardContent className="px-0 py-0">
         <div className="mb-6 flex items-center justify-between">
           <div
-            className="flex size-11.5 items-center justify-center rounded-[11.15px]"
+            className="flex size-11.5 items-center justify-center rounded-[11.15px] transition-transform duration-300 ease-out group-hover/kitchen:scale-105"
             style={{
               color: kitchen.color,
               backgroundColor: iconBackground,
@@ -55,7 +55,7 @@ const KitchenCard = ({
 
           <span
             className={cn(
-              "inline-flex items-center justify-center rounded-full border px-3 py-1 text-[13px] font-medium leading-none transition-colors",
+              "inline-flex items-center justify-center rounded-full border px-3 py-1 text-[13px] font-medium leading-none transition-all duration-200 select-none hover:scale-105",
               badgeClasses
             )}
           >
@@ -70,7 +70,7 @@ const KitchenCard = ({
 
         {/* Stats Section */}
         <div className="mt-6 grid grid-cols-2 gap-6">
-          <div className="rounded-lg border border-[#E5E5E5] bg-[#FAFAF7] p-3">
+          <div className="rounded-lg border border-[#E5E5E5] bg-[#FAFAF7] p-3 transition-colors duration-150 hover:border-[#8F6900]/30">
             <div className="mb-1 flex items-center gap-2 text-[12px] font-normal text-[#28293D]">
               <Utensils className="size-3" />
               {t("Active Orders")}
@@ -79,7 +79,7 @@ const KitchenCard = ({
               {kitchen.activeOrders}
             </p>
           </div>
-          <div className="rounded-lg border border-[#E5E5E5] bg-[#FAFAF7] p-3">
+          <div className="rounded-lg border border-[#E5E5E5] bg-[#FAFAF7] p-3 transition-colors duration-150 hover:border-[#8F6900]/30">
             <div className="mb-1 flex items-center gap-2 text-[12px] font-normal text-[#28293D]">
               <Info className="size-3" />
               {t("Requests")}
@@ -92,28 +92,32 @@ const KitchenCard = ({
 
         <div className="mt-6 flex items-center gap-6">
           <Button
-            className="h-14 flex-1 rounded-2xl bg-[#F5F0EA] text-[16px] font-semibold text-[#8F6900] cursor-pointer"
+            className="group/btn h-14 flex-1 rounded-2xl bg-[#F5F0EA] text-[16px] font-semibold text-[#8F6900] cursor-pointer transition-all duration-200 hover:shadow-xs active:scale-[0.98]"
             onClick={() => onOpenKitchen(kitchen.id)}
           >
             {t("Open Kitchen")}
-            {dir === "rtl" ? <ChevronLeft className="size-4.5" /> : <ChevronRight className="size-4.5" />}
+            {dir === "rtl" ? (
+              <ChevronLeft className="size-4.5 transition-transform duration-200 group-hover/btn:-translate-x-1" />
+            ) : (
+              <ChevronRight className="size-4.5 transition-transform duration-200 group-hover/btn:translate-x-1" />
+            )}
           </Button>
           <div className="flex items-center gap-3.5">
             <button
               type="button"
               aria-label={`Edit ${kitchen.name}`}
               onClick={() => onEditKitchen?.(kitchen)}
-              className="flex size-5 cursor-pointer items-center justify-center text-black transition-opacity hover:opacity-70"
+              className="group/edit flex size-5 cursor-pointer items-center justify-center text-black transition-all duration-150 hover:opacity-80 active:scale-90"
             >
-              <SquarePen className="size-4.5" />
+              <SquarePen className="size-4.5 transition-transform duration-150 group-hover/edit:scale-115" />
             </button>
             <button
               type="button"
               aria-label={`Delete ${kitchen.name}`}
               onClick={() => onDeleteKitchen(kitchen)}
-              className="flex size-5 cursor-pointer items-center justify-center text-[#C90000] transition-opacity hover:opacity-70"
+              className="group/del flex size-5 cursor-pointer items-center justify-center text-[#C90000] transition-all duration-150 hover:opacity-80 active:scale-90"
             >
-              <Trash2 className="size-4.5" />
+              <Trash2 className="size-4.5 transition-transform duration-150 group-hover/del:scale-115" />
             </button>
           </div>
         </div>

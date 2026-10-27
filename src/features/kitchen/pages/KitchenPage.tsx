@@ -132,7 +132,7 @@ const KitchenPage = () => {
   };
 
   return (
-    <section>
+    <section className="animate-in fade-in-50 duration-300">
       <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <HeaderLayout
           title={t("Kitchens")}
@@ -141,7 +141,8 @@ const KitchenPage = () => {
         <DefaultButton
           data={{
             buttonText: t("New Kitchen"),
-            icon: <Plus className="size-4.5" />,
+            icon: <Plus className="size-4.5 transition-transform duration-200 group-hover:rotate-90" />,
+            className: "group transition-all duration-200 hover:shadow-xs active:scale-[0.98]",
             onClick: () => {
               setEditingKitchen(null);
               setIsKitchenDialogOpen(true);

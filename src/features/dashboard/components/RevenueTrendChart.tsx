@@ -49,7 +49,7 @@ const RevenueTrendChart = ({ data }: RevenueTrendChartProps) => {
   const { t } = useTranslation();
 
   return (
-    <Card className="gap-0 overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white py-0 shadow-none">
+    <Card className="group gap-0 overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white py-0 shadow-none transition-shadow duration-300 hover:shadow-xs">
       <CardHeader className="flex flex-row items-center justify-between rounded-t-[16px] bg-[#F5F0EA] px-4 py-3 space-y-0">
         <div className="flex flex-col gap-1">
           <CardTitle className="text-[18px] font-bold leading-[19.26px] tracking-[0.36px] text-[#333333]">
@@ -59,7 +59,7 @@ const RevenueTrendChart = ({ data }: RevenueTrendChartProps) => {
             {t("Last 7 days")}
           </p>
         </div>
-        <Activity className="size-6 text-[#000000]" />
+        <Activity className="size-6 text-[#000000] transition-transform duration-300 ease-out group-hover:scale-110" />
       </CardHeader>
       <CardContent className="px-2 py-6 sm:px-4 sm:py-6" dir="ltr" style={{ direction: "ltr" }}>
         <ChartContainer
@@ -115,7 +115,9 @@ const RevenueTrendChart = ({ data }: RevenueTrendChartProps) => {
               dataKey="value"
               fill="url(#revenueFill)"
               stroke="transparent"
-              isAnimationActive={false}
+              isAnimationActive={true}
+              animationDuration={900}
+              animationEasing="ease-out"
             />
             <Line
               type="monotone"
@@ -125,7 +127,9 @@ const RevenueTrendChart = ({ data }: RevenueTrendChartProps) => {
               strokeDasharray="4 4"
               dot={{ r: 3.5, fill: "#8F6900", stroke: "#FFFFFF", strokeWidth: 1.5 }}
               activeDot={{ r: 5, fill: "#8F6900", stroke: "#FFFFFF", strokeWidth: 2 }}
-              isAnimationActive={false}
+              isAnimationActive={true}
+              animationDuration={900}
+              animationEasing="ease-out"
             />
           </AreaChart>
         </ChartContainer>

@@ -32,7 +32,7 @@ const ReservationStatusSelect = ({
           type="button"
           disabled={isLoading}
           className={cn(
-            "inline-flex cursor-pointer items-center gap-1.5 outline-none transition-opacity",
+            "group inline-flex cursor-pointer items-center gap-1.5 outline-none transition-all duration-150 active:scale-95",
             isLoading && "pointer-events-none opacity-60",
           )}
         >
@@ -40,7 +40,7 @@ const ReservationStatusSelect = ({
           {isLoading ? (
             <Loader2 size={16} className="animate-spin text-[#8B8B8B]" />
           ) : (
-            <ChevronDown className="size-4.5 text-[#000000]" />
+            <ChevronDown className="size-4.5 text-[#000000] transition-transform duration-200 ease-out group-data-[state=open]:rotate-180" />
           )}
         </button>
       </DropdownMenuTrigger>

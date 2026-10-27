@@ -13,7 +13,7 @@ const RatingDistributionCard = ({ rows }: RatingDistributionCardProps) => {
   const max = Math.max(...rows.map((r) => r.count), 1);
 
   return (
-    <Card className="overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white py-0 ring-0 shadow-sm">
+    <Card className="overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white py-0 ring-0 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 hover:border-[#D4D4D8]">
       {/* Tinted header */}
       <div className="flex items-center justify-between bg-[#F5F0EA] px-5 py-3 sm:px-6 sm:py-4">
         <h3 className="text-[15px] font-semibold text-[#28293D] sm:text-[16px]">
@@ -40,7 +40,7 @@ const RatingDistributionCard = ({ rows }: RatingDistributionCardProps) => {
                 }`}
               >
                 <div
-                  className="absolute inset-y-0 left-0 bg-[linear-gradient(90deg,#FFC76C_0%,#F68E0E_100%)]"
+                  className="absolute inset-y-0 left-0 bg-[linear-gradient(90deg,#FFC76C_0%,#F68E0E_100%)] transition-all duration-500 ease-out"
                   style={{ width: `${percent}%` }}
                 />
               </div>

@@ -13,7 +13,7 @@ const OverallRatingCard = ({
 }: OverallRatingCardProps) => {
   const { t } = useTranslation();
   return (
-    <Card className="w-full rounded-[16px] bg-[#F5F0EA] py-0 ring-0 sm:w-auto">
+    <Card className="w-full rounded-[16px] bg-[#F5F0EA] py-0 ring-0 sm:w-auto transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 cursor-default">
       <CardContent className="flex flex-col items-center justify-center gap-1 px-5 py-3 sm:px-6 sm:py-4">
         <p className="text-[22px] font-semibold leading-none text-[#8F6900] sm:text-[24px]">
           {averageRating.toFixed(1)}

@@ -774,7 +774,7 @@ const ProductsPage = () => {
   }
 
   return (
-    <>
+    <section className="animate-in fade-in-50 duration-300">
       {isCategoryFilterOpen && (
         <div className="pointer-events-none fixed inset-0 z-40 bg-black/40" />
       )}
@@ -786,35 +786,36 @@ const ProductsPage = () => {
           <DefaultButton
             data={{
               buttonText: t("import data"),
-              icon: <Upload className="size-[18px] text-[#9524E4]" />,
+              icon: <Upload className="size-[18px] text-[#9524E4] transition-transform duration-200 group-hover/import:-translate-y-0.5" />,
               onClick: () => setIsImportOpen(true),
               className:
-                "border border-[#7E00D7] bg-[#F3E9FA] text-[#9524E4] hover:bg-[#F3E9FA] hover:text-[#9524E4] hover:border-[#7E00D7] active:translate-y-0 shadow-none ring-0 focus:ring-0",
+                "group/import border border-[#7E00D7] bg-[#F3E9FA] text-[#9524E4] hover:bg-[#F3E9FA] hover:text-[#9524E4] hover:border-[#7E00D7] hover:shadow-xs active:scale-[0.98] transition-all duration-200 shadow-none ring-0 focus:ring-0",
             }}
           />
           {(isProducts || isRecipes || isCategories) && (
             <DefaultButton
               data={{
                 buttonText: t("Availability"),
-                icon: <SlidersHorizontal className="size-[18px]" />,
+                icon: <SlidersHorizontal className="size-[18px] transition-transform duration-200 group-hover/avail:scale-110" />,
                 onClick: () => setIsBulkAvailabilityOpen(true),
-                className: "border border-primary bg-white text-primary hover:bg-[#F5F0EA] hover:text-primary",
+                className: "group/avail border border-primary bg-white text-primary hover:bg-[#F5F0EA] hover:text-primary hover:shadow-xs active:scale-[0.98] transition-all duration-200",
               }}
             />
           )}
           <DefaultButton
             data={{
               buttonText: t("Scan Product"),
-              icon: <ScanBarcode className="size-[18px]" />,
+              icon: <ScanBarcode className="size-[18px] transition-transform duration-200 group-hover/scan:scale-110" />,
               onClick: () => setIsScanOpen(true),
               className:
-                "border-0 bg-[#F5F0EA] text-primary hover:bg-[#F5F0EA] hover:text-primary",
+                "group/scan border-0 bg-[#F5F0EA] text-primary hover:bg-[#F5F0EA] hover:text-primary hover:shadow-xs active:scale-[0.98] transition-all duration-200",
             }}
           />
           <DefaultButton
             data={{
               buttonText: primaryButton.text,
-              icon: <Plus className="size-4.5" />,
+              icon: <Plus className="size-4.5 transition-transform duration-200 group-hover:rotate-90" />,
+              className: "group hover:shadow-xs active:scale-[0.98] transition-all duration-200",
               onClick: primaryButton.onClick,
             }}
           />
@@ -859,7 +860,7 @@ const ProductsPage = () => {
                 onClick={() => setViewMode("table")}
                 aria-label={t("Table view")}
                 className={cn(
-                  "flex cursor-pointer items-center justify-center transition-all",
+                  "flex cursor-pointer items-center justify-center transition-all duration-150 active:scale-95",
                   viewMode === "table"
                     ? "rounded-[6px] bg-white px-3 py-1.5 shadow-xs"
                     : "p-1.5 text-black hover:opacity-80"
@@ -872,7 +873,7 @@ const ProductsPage = () => {
                 onClick={() => setViewMode("grid")}
                 aria-label={t("Grid view")}
                 className={cn(
-                  "flex cursor-pointer items-center justify-center transition-all",
+                  "flex cursor-pointer items-center justify-center transition-all duration-150 active:scale-95",
                   viewMode === "grid"
                     ? "rounded-[6px] bg-white px-3 py-1.5 shadow-xs"
                     : "p-1.5 text-black hover:opacity-80"
@@ -1005,7 +1006,7 @@ const ProductsPage = () => {
                 onClick={() => setViewMode("table")}
                 aria-label={t("Table view")}
                 className={cn(
-                  "flex cursor-pointer items-center justify-center transition-all",
+                  "flex cursor-pointer items-center justify-center transition-all duration-150 active:scale-95",
                   viewMode === "table"
                     ? "rounded-[6px] bg-white px-3 py-1.5 shadow-xs"
                     : "p-1.5 text-black hover:opacity-80"
@@ -1018,7 +1019,7 @@ const ProductsPage = () => {
                 onClick={() => setViewMode("grid")}
                 aria-label={t("Grid view")}
                 className={cn(
-                  "flex cursor-pointer items-center justify-center transition-all",
+                  "flex cursor-pointer items-center justify-center transition-all duration-150 active:scale-95",
                   viewMode === "grid"
                     ? "rounded-[6px] bg-white px-3 py-1.5 shadow-xs"
                     : "p-1.5 text-black hover:opacity-80"
@@ -1317,7 +1318,7 @@ const ProductsPage = () => {
         onOpenChange={(open) => !open && setReassignCategory(null)}
         onConfirm={handleReassignConfirm}
       />
-    </>
+    </section>
   );
 };
 

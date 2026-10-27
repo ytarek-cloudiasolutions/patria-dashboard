@@ -1202,14 +1202,14 @@ const CreateOfferDialog = ({
               <button
                 type="button"
                 onClick={() => onOpenChange(false)}
-                className="h-14 cursor-pointer rounded-[5px] border border-[#8F6900] px-[30px] text-[16px] font-semibold leading-6 tracking-[0.02em] text-[#8F6900] transition-colors hover:bg-[#F5F0EA]"
+                className="h-14 cursor-pointer rounded-[5px] border border-[#8F6900] px-[30px] text-[16px] font-semibold leading-6 tracking-[0.02em] text-[#8F6900]"
               >
                 {t("Cancel")}
               </button>
               <button
                 form={FORM_ID}
                 type="submit"
-                className="h-14 cursor-pointer rounded-[5px] bg-[#8F6900] px-[30px] text-[16px] font-semibold leading-6 tracking-[0.02em] text-white transition-opacity hover:opacity-90"
+                className="h-14 cursor-pointer rounded-[5px] bg-[#8F6900] px-[30px] text-[16px] font-semibold leading-6 tracking-[0.02em] text-white transition-all duration-200 hover:opacity-90 hover:shadow-xs active:scale-[0.98]"
               >
                 {t("Save offer")}
               </button>

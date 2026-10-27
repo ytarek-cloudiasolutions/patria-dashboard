@@ -34,13 +34,13 @@ const OverviewCard = ({ data }: { data: OverviewCardProps }) => {
   };
 
   return (
-    <Card className="py-0 rounded-[16px] border border-[#E5E5E5] ring-0 shadow-sm w-full">
+    <Card className="group py-0 rounded-[16px] border border-[#E5E5E5] ring-0 shadow-sm w-full transition-all duration-300 ease-out hover:shadow-md hover:-translate-y-0.5 hover:border-[#D4D4D8] cursor-default">
       <CardContent className="flex flex-1 justify-between items-center px-5 py-5 sm:px-6 sm:py-6">
         <div className="min-w-0 flex-1 pr-3">
           {data.trend && (
             <span
               className={cn(
-                "mb-[6.5px] inline-flex items-center justify-center gap-1 rounded-[30px] border px-2 py-[2px] text-[10px] font-semibold tracking-[0.20px] leading-none whitespace-nowrap shrink-0 max-w-fit",
+                "mb-[6.5px] inline-flex items-center justify-center gap-1 rounded-[30px] border px-2 py-[2px] text-[10px] font-semibold tracking-[0.20px] leading-none whitespace-nowrap shrink-0 max-w-fit transition-transform duration-200 ease-out group-hover:scale-[1.03]",
                 trendClassName
               )}
             >
@@ -55,9 +55,14 @@ const OverviewCard = ({ data }: { data: OverviewCardProps }) => {
           </p>
         </div>
         <Badge
-          className={`${data.badgeColor} shrink-0 w-11.5 h-11.5 rounded-[11.15px]`}
+          className={cn(
+            data.badgeColor,
+            "shrink-0 w-11.5 h-11.5 rounded-[11.15px] transition-transform duration-300 ease-out group-hover:scale-105"
+          )}
         >
-          <span className={`${data.iconColor}`}>{data.icon}</span>
+          <span className={cn(data.iconColor, "transition-transform duration-300 ease-out group-hover:scale-110")}>
+            {data.icon}
+          </span>
         </Badge>
       </CardContent>
     </Card>

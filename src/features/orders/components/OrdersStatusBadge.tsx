@@ -59,7 +59,7 @@ const OrdersStatusBadge = ({ status, className }: OrdersStatusBadgeProps) => {
   return (
     <Badge
       className={cn(
-        "h-5 w-28 justify-center whitespace-nowrap rounded-[999px] border px-3 text-center font-semibold text-[11px]",
+        "h-5 w-28 justify-center whitespace-nowrap rounded-[999px] border px-3 text-center font-semibold text-[11px] transition-transform duration-200 ease-out group-hover:scale-105 select-none",
         style.bg,
         style.text,
         className,

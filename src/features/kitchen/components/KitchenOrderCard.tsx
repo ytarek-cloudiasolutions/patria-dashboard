@@ -57,7 +57,7 @@ const KitchenOrderCard = ({ order }: KitchenOrderCardProps) => {
   const statusStyle = orderStatusStyle[order.status];
 
   return (
-    <Card className="flex flex-col h-full rounded-2xl border border-[#E7E7EC] bg-white p-6 py-6 ring-0">
+    <Card className="flex flex-col h-full rounded-2xl border border-[#E7E7EC] bg-white p-6 py-6 ring-0 transition-all duration-200 hover:shadow-md hover:border-[#8F6900]/30 hover:-translate-y-0.5">
       <CardContent className="flex flex-col flex-1 px-0 py-0">
         <div className="mb-[18px] flex items-center justify-between gap-3">
           <h3 className="text-[20px] leading-none font-bold text-[#333333]">

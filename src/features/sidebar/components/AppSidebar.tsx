@@ -74,9 +74,9 @@ const AppSidebar = ({
       {/* Header — Brand + POS button */}
       <SidebarHeader className="bg-white px-3 pt-6 sm:pt-8">
         {/* Brand */}
-        <div className="mb-4 flex items-center gap-3 sm:mb-4.5 sm:gap-4">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[5px] bg-primary sm:h-10 sm:w-10">
-            <Store size={22} className="text-white" />
+        <div className="group mb-4 flex items-center gap-3 sm:mb-4.5 sm:gap-4 cursor-default select-none">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[5px] bg-primary sm:h-10 sm:w-10 transition-transform duration-300 ease-out group-hover:scale-105">
+            <Store size={22} className="text-white transition-transform duration-300 ease-out group-hover:scale-110" />
           </div>
           <div className="min-w-0">
             <p className="truncate text-[17px] font-semibold text-[#333333] sm:text-[18px]">
@@ -91,9 +91,9 @@ const AppSidebar = ({
         {/* Open POS Button */}
         <button
           onClick={handleOpenPOS}
-          className="flex w-full items-center justify-center gap-2 rounded-[5px] bg-primary px-4 py-2.5 text-[12px] font-semibold text-white cursor-pointer sm:gap-3 sm:px-6 sm:py-3 transition-opacity hover:opacity-90"
+          className="group flex w-full items-center justify-center gap-2 rounded-[5px] bg-primary px-4 py-2.5 text-[12px] font-semibold text-white cursor-pointer sm:gap-3 sm:px-6 sm:py-3 transition-all duration-200 ease-out hover:opacity-95 hover:shadow-[0_4px_12px_rgba(143,105,0,0.22)] active:scale-[0.98]"
         >
-          <ShoppingCart size={17} className="shrink-0" />
+          <ShoppingCart size={17} className="shrink-0 transition-transform duration-200 ease-out group-hover:-translate-y-0.5 group-hover:scale-110 group-active:scale-95" />
           <span>{t("Open POS System")}</span>
         </button>
       </SidebarHeader>
@@ -120,16 +120,16 @@ const AppSidebar = ({
                         asChild
                         isActive={isActive}
                         className={cn(
-                          "flex w-full items-center gap-1.5 rounded-[16px] px-3 py-2 text-[12px] transition-colors cursor-pointer",
-                          "font-medium text-[#595959] hover:bg-[#F5F0EA]",
-                          "data-[active=true]:font-semibold data-[active=true]:bg-primary data-[active=true]:text-white",
+                          "group flex w-full items-center gap-1.5 rounded-[16px] px-3 py-2 text-[12px] transition-all duration-200 ease-out cursor-pointer active:scale-[0.98]",
+                          "font-medium text-[#595959] hover:bg-[#F5F0EA] hover:translate-x-1 rtl:hover:-translate-x-1",
+                          "data-[active=true]:font-semibold data-[active=true]:bg-primary data-[active=true]:text-white data-[active=true]:hover:translate-x-0 rtl:data-[active=true]:hover:translate-x-0 data-[active=true]:shadow-[0_2px_8px_rgba(143,105,0,0.2)]",
                         )}
                       >
                         <button onClick={() => handleNavigate(item.href)}>
                           <Icon
                             size={16}
                             className={cn(
-                              "shrink-0",
+                              "shrink-0 transition-transform duration-200 ease-out group-hover:scale-110 group-active:scale-95",
                               isActive ? "text-white" : "text-[#595959]",
                             )}
                           />
@@ -152,10 +152,10 @@ const AppSidebar = ({
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
-              className="flex w-full items-center gap-1.5 rounded-[16px] text-[12px] text-[#595959] hover:bg-[#F5F0EA] transition-colors cursor-pointer"
+              className="group flex w-full items-center gap-1.5 rounded-[16px] text-[12px] text-[#595959] hover:bg-[#F5F0EA] transition-all duration-200 ease-out hover:translate-x-1 rtl:hover:-translate-x-1 active:scale-[0.98] cursor-pointer"
             >
               <button onClick={handleLogout}>
-                <LogOut size={16} className="shrink-0" />
+                <LogOut size={16} className="shrink-0 transition-transform duration-200 ease-out group-hover:-translate-x-0.5 rtl:group-hover:translate-x-0.5 group-hover:scale-110" />
                 <span>{t("Logout")}</span>
               </button>
             </SidebarMenuButton>

@@ -57,7 +57,7 @@ const ProductsCards = ({
         return (
           <div
             key={product.id}
-            className="group relative flex flex-col justify-between rounded-[16px] border-2 border-[#E5E5E5] bg-white overflow-hidden transition-all duration-200 hover:shadow-md"
+            className="group relative flex flex-col justify-between rounded-[16px] border-2 border-[#E5E5E5] bg-white overflow-hidden transition-all duration-300 ease-out hover:shadow-md hover:-translate-y-1 hover:border-[#8F6900]/30"
           >
             {/* Top Image Container */}
             <div className="relative h-[160px] w-full bg-[#FAFAF7] overflow-hidden flex items-center justify-center border-b border-[#E5E5E5]/50">
@@ -139,9 +139,9 @@ const ProductsCards = ({
                     disabled={isMutating || togglingProductId !== null}
                     onClick={() => onEdit(product)}
                     aria-label={t("Edit product")}
-                    className="flex size-5 items-center justify-center text-black transition-opacity hover:opacity-80 disabled:opacity-50 cursor-pointer"
+                    className="group/edit flex size-5 items-center justify-center text-black transition-all duration-150 hover:opacity-100 disabled:opacity-50 cursor-pointer active:scale-90"
                   >
-                    <SquarePen className="size-4.5 text-black" />
+                    <SquarePen className="size-4.5 text-black transition-transform duration-150 group-hover/edit:scale-115" />
                   </button>
 
                   {/* Delete Button */}
@@ -151,9 +151,9 @@ const ProductsCards = ({
                       disabled={isMutating || togglingProductId !== null}
                       onClick={() => onDelete(product)}
                       aria-label={t("Delete product")}
-                      className="flex size-5 items-center justify-center text-[#C90000] transition-opacity hover:opacity-80 disabled:opacity-50 cursor-pointer"
+                      className="group/del flex size-5 items-center justify-center text-[#C90000] transition-all duration-150 hover:opacity-100 disabled:opacity-50 cursor-pointer active:scale-90"
                     >
-                      <Trash2 className="size-4.5 text-[#C90000]" />
+                      <Trash2 className="size-4.5 text-[#C90000] transition-transform duration-150 group-hover/del:scale-115" />
                     </button>
                   )}
                 </div>

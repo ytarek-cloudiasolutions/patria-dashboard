@@ -47,17 +47,17 @@ const RowActions = ({
       type="button"
       onClick={() => onEdit(ingredient)}
       aria-label={`Edit ${ingredient.name}`}
-      className="cursor-pointer text-[#000000]"
+      className="group/edit cursor-pointer text-[#000000] transition-transform duration-150 active:scale-90"
     >
-      <SquarePen className="size-4.5" />
+      <SquarePen className="size-4.5 transition-transform duration-150 group-hover/edit:scale-115" />
     </button>
     <button
       type="button"
       onClick={() => onDelete(ingredient)}
       aria-label={`Delete ${ingredient.name}`}
-      className="cursor-pointer text-[#C90000]"
+      className="group/del cursor-pointer text-[#C90000] transition-transform duration-150 active:scale-90"
     >
-      <Trash2 className="size-4.5" />
+      <Trash2 className="size-4.5 transition-transform duration-150 group-hover/del:scale-115" />
     </button>
   </div>
 );
@@ -66,7 +66,7 @@ const Thumb = ({ ingredient }: { ingredient: Ingredient }) => (
   <img
     src={ingredient.imageUrl}
     alt=""
-    className="size-12 shrink-0 rounded-[10px] object-cover"
+    className="size-12 shrink-0 rounded-[10px] object-cover transition-transform duration-200 hover:scale-105"
   />
 );
 

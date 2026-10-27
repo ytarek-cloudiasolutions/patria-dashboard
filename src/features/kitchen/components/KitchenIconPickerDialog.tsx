@@ -52,8 +52,8 @@ const KitchenIconPickerDialog = ({
           </div>
 
           <div className="flex flex-col gap-8 px-5 py-5 sm:px-7 sm:py-6">
-            <div className="flex h-12 items-center gap-2.5 rounded-lg bg-white px-3.5 outline outline-1 -outline-offset-1 outline-[#CACBD4]">
-              <Search className="size-5 shrink-0 text-[#8B8B8B]" />
+            <div className="flex h-12 items-center gap-2.5 rounded-lg bg-white px-3.5 outline outline-1 -outline-offset-1 outline-[#CACBD4] transition-all duration-200 focus-within:outline-primary focus-within:ring-2 focus-within:ring-primary/10">
+              <Search className="size-5 shrink-0 text-[#8B8B8B] transition-colors duration-200" />
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
@@ -90,7 +90,7 @@ const KitchenIconPickerDialog = ({
                   type: "button",
                   onClick: () => onOpenChange(false),
                   className:
-                    "w-full sm:w-auto border-primary text-primary hover:bg-white hover:text-primary",
+                    "w-full sm:w-auto border-primary text-primary hover:bg-[#F5F0EA]/30 transition-all duration-200 active:scale-[0.98]",
                 }}
               />
               <Button
@@ -99,7 +99,7 @@ const KitchenIconPickerDialog = ({
                   onSelect(selected);
                   onOpenChange(false);
                 }}
-                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
+                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px] transition-all duration-200 hover:shadow-xs active:scale-[0.98]"
               >
                 {t("Select Icon")}
               </Button>
