@@ -6,6 +6,7 @@ import RoleRoute from "@/features/auth/components/RoleRoute";
 
 import KitchenDetailsPage from "@/features/kitchen/pages/KitchenDetailsPage";
 import KitchenPage from "@/features/kitchen/pages/KitchenPage";
+import CatalogOrderPage from "@/features/catalog-order/CatalogOrderPage";
 
 
 import RequestsPage from "@/features/requests/RequestsPage";
@@ -96,6 +97,14 @@ export const router = createBrowserRouter([
         element: (
           <RoleRoute path="/kitchen">
             <KitchenDetailsPage />
+          </RoleRoute>
+        ),
+      },
+      {
+        path: "/catalog-order",
+        element: (
+          <RoleRoute path="/catalog-order">
+            <CatalogOrderPage />
           </RoleRoute>
         ),
       },

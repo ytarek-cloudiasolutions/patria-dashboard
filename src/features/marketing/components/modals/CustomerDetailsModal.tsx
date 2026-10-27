@@ -22,40 +22,6 @@ interface CustomerDetailsModalProps {
   onClose: () => void;
 }
 
-interface DashedCardProps {
-  children: React.ReactNode;
-  className?: string;
-}
-
-const DashedCard = ({ children, className }: DashedCardProps) => (
-  <div
-    className={cn(
-      "relative self-stretch px-3 py-2.5 flex flex-col items-start gap-2.5 rounded-[16px]",
-      className
-    )}
-  >
-    <svg
-      className="pointer-events-none absolute inset-0 size-full overflow-visible rounded-[16px]"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <rect
-        x="1"
-        y="1"
-        width="calc(100% - 2px)"
-        height="calc(100% - 2px)"
-        style={{ width: "calc(100% - 2px)", height: "calc(100% - 2px)" }}
-        rx="16"
-        ry="16"
-        fill="none"
-        stroke="#8F6900"
-        strokeWidth="1.5"
-        strokeDasharray="16 14"
-      />
-    </svg>
-    {children}
-  </div>
-);
-
 export const CustomerDetailsModal = ({
   isOpen,
   customer,
@@ -241,90 +207,97 @@ export const CustomerDetailsModal = ({
         </div>
 
         {/* Customer Purchasing Habits Container */}
-        <div className="self-stretch p-4 flex flex-col items-start gap-4 rounded-[16px] border border-[#E5E5E5] bg-[#FAFAF7] overflow-hidden">
-          {/* 1. MOST ORDERED */}
-          <div className="self-stretch flex flex-col items-start gap-3">
-            <div className="text-[#1A1A1A] text-xs font-semibold font-['Montserrat',sans-serif] uppercase leading-6">
-              {t("MOST ORDERED")}
-            </div>
-            <DashedCard>
-              {customer.mostOrderedProducts.map((p, idx) => (
-                <div key={p.id} className="self-stretch flex flex-col gap-2">
-                  <div
-                    className={cn(
-                      "self-stretch px-3 py-2 rounded-[12px] flex justify-between items-center overflow-hidden transition-colors",
-                      p.isTop
-                        ? "border border-[#CACBD4] bg-[#F5F0EA]"
-                        : "hover:bg-black/5"
-                    )}
-                  >
-                    <div className="flex items-center gap-3">
-                      {p.isTop && (
-                        <div className="flex items-center justify-center p-[5.189px] rounded-[9.645px] bg-[#F8F8F8] text-[#8F6900] shrink-0">
-                          <Trophy className="size-4" />
-                        </div>
+        <div className="rounded-2xl bg-[#F8F8F8] border border-[#CACBD4] p-4 sm:p-5 flex flex-col gap-6 overflow-hidden">
+          {/* Inner card with Most Ordered & Favorite Categories */}
+          <div className="w-full px-4 sm:px-6 py-4 bg-[#F8F8F8] rounded-2xl border border-[#CACBD4] flex flex-col gap-6 overflow-hidden">
+            {/* Most Ordered */}
+            <div className="flex flex-col gap-3">
+              <div className="text-[#1A1A1A] text-xs font-semibold font-['Montserrat',sans-serif] uppercase leading-6">
+                {t("MOST ORDERED")}
+              </div>
+              <div className="px-3 py-2.5 rounded-2xl border-2 border-dashed border-[#8F6900]/70 flex flex-col gap-2">
+                {customer.mostOrderedProducts.map((p, idx) => (
+                  <div key={p.id} className="flex flex-col gap-2">
+                    <div
+                      className={cn(
+                        "px-3 py-2 rounded-xl flex justify-between items-center overflow-hidden transition-colors",
+                        p.isTop
+                          ? "bg-[#F8F4EA] border border-[#CACBD4]"
+                          : "hover:bg-black/5"
                       )}
-                      <span className="text-[#1A1A1A] text-base font-medium font-['Montserrat',sans-serif] leading-4 tracking-tight">
-                        {p.name}
+                    >
+                      <div className="flex items-center gap-3">
+                        {p.isTop && (
+                          <div className="size-7 p-1 bg-[#F1E8D5] rounded-[8px] flex justify-center items-center text-[#8F6900] shrink-0">
+                            <Trophy className="size-4" />
+                          </div>
+                        )}
+                        <span className="text-[#1A1A1A] text-base font-medium font-['Montserrat',sans-serif] leading-4 tracking-tight">
+                          {p.name}
+                        </span>
+                      </div>
+                      <span className="text-[#1A1A1A] text-sm font-medium font-['Montserrat',sans-serif] leading-4 tracking-tight">
+                        {p.pieces} {t("Pcs")} • {p.ordersCount} {t("Orders")}
                       </span>
                     </div>
-                    <span className="text-[#1A1A1A] text-sm font-medium font-['Montserrat',sans-serif] leading-4 tracking-tight">
-                      {p.pieces} {t("Pcs")} • {p.ordersCount} {t("Orders")}
-                    </span>
-                  </div>
-                  {idx < customer.mostOrderedProducts.length - 1 && (
-                    <div className="self-stretch border-b border-[#CACBD4]" />
-                  )}
-                </div>
-              ))}
-            </DashedCard>
-          </div>
-
-          {/* 2. FAVORITE CATEGORIES */}
-          <div className="self-stretch flex flex-col items-start gap-3">
-            <div className="text-[#1A1A1A] text-xs font-semibold font-['Montserrat',sans-serif] uppercase leading-6">
-              {t("FAVORITE CATEGORIES")}
-            </div>
-            <DashedCard>
-              {customer.favoriteCategories.map((c, idx) => (
-                <div key={c.name} className="self-stretch flex flex-col gap-2">
-                  <div className="self-stretch px-3 py-2 rounded-[12px] flex justify-between items-center overflow-hidden">
-                    <span className="text-[#1A1A1A] text-base font-medium font-['Montserrat',sans-serif] leading-4 tracking-tight">
-                      {t(c.name)}
-                    </span>
-                    <span className="text-[#1A1A1A] text-sm font-medium font-['Montserrat',sans-serif] leading-4 tracking-tight">
-                      {c.count}
-                    </span>
-                  </div>
-                  {idx < customer.favoriteCategories.length - 1 && (
-                    <div className="self-stretch border-b border-[#CACBD4]" />
-                  )}
-                </div>
-              ))}
-            </DashedCard>
-          </div>
-
-          {/* 3. ORDERS TO */}
-          <div className="self-stretch flex flex-col items-start gap-3">
-            <div className="text-[#1A1A1A] text-xs font-semibold font-['Montserrat',sans-serif] uppercase leading-6">
-              {t("ORDERS TO")}
-            </div>
-            <div className="self-stretch px-3 py-2 flex flex-col justify-center items-center gap-2.5 rounded-[16px] border border-[#E5E5E5] bg-[#F5F0EA]">
-              <DashedCard>
-                {customer.ordersToZones.map((z) => (
-                  <div
-                    key={z.zoneName}
-                    className="self-stretch px-3 py-2 rounded-[12px] border border-[#CACBD4] bg-[#F5F0EA] flex justify-between items-center overflow-hidden"
-                  >
-                    <span className="text-[#1A1A1A] text-base font-medium font-['Montserrat',sans-serif] leading-4 tracking-tight">
-                      {z.zoneName}
-                    </span>
-                    <span className="text-[#1A1A1A] text-sm font-medium font-['Montserrat',sans-serif] leading-4 tracking-tight">
-                      {z.count}
-                    </span>
+                    {idx < customer.mostOrderedProducts.length - 1 && (
+                      <div className="border-b border-[#E5E5E5]" />
+                    )}
                   </div>
                 ))}
-              </DashedCard>
+              </div>
+            </div>
+
+            {/* Favorite Categories */}
+            <div className="flex flex-col gap-3">
+              <div className="text-[#1A1A1A] text-xs font-semibold font-['Montserrat',sans-serif] uppercase leading-6">
+                {t("FAVORITE CATEGORIES")}
+              </div>
+              <div className="px-3 py-2.5 rounded-2xl border-2 border-dashed border-[#8F6900]/70 flex flex-col gap-2">
+                {customer.favoriteCategories.map((c, idx) => (
+                  <div key={c.name} className="flex flex-col gap-2">
+                    <div className="px-3 py-2 rounded-xl flex justify-between items-center overflow-hidden">
+                      <span className="text-[#1A1A1A] text-base font-medium font-['Montserrat',sans-serif] leading-4 tracking-tight">
+                        {t(c.name)}
+                      </span>
+                      <span className="text-[#1A1A1A] text-sm font-medium font-['Montserrat',sans-serif] leading-4 tracking-tight">
+                        {c.count}
+                      </span>
+                    </div>
+                    {idx < customer.favoriteCategories.length - 1 && (
+                      <div className="border-b border-[#E5E5E5]" />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="border-b border-[#CACBD4]" />
+
+          {/* Orders To (Destinations) */}
+          <div className="flex flex-col gap-3">
+            <div className="text-[#595959] text-xs font-semibold font-['Montserrat',sans-serif] uppercase leading-4 tracking-tight">
+              {t("Orders To")}
+            </div>
+            <div className="px-3 py-2 bg-[#F8F4EA] rounded-2xl border border-[#CACBD4] flex flex-col justify-center items-center gap-2.5">
+              <div className="w-full px-3 py-2.5 rounded-2xl border-2 border-dashed border-[#8F6900]/70 flex flex-col gap-2">
+                {customer.ordersToZones.map((z, idx) => (
+                  <div key={z.zoneName} className="flex flex-col gap-2">
+                    <div className="px-3 py-2 rounded-xl flex justify-between items-center overflow-hidden">
+                      <span className="text-[#1A1A1A] text-base font-medium font-['Montserrat',sans-serif] leading-4 tracking-tight">
+                        {z.zoneName}
+                      </span>
+                      <span className="text-[#1A1A1A] text-sm font-medium font-['Montserrat',sans-serif] leading-4 tracking-tight">
+                        {z.count}
+                      </span>
+                    </div>
+                    {idx < customer.ordersToZones.length - 1 && (
+                      <div className="border-b border-[#E5E5E5]" />
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>

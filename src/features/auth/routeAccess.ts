@@ -23,6 +23,7 @@ export const ROUTE_ACCESS: Record<string, UserRole[]> = {
   "/orders": ["cashier", "staff", "kitchen", "admin", "manager", "superadmin"],
   "/tables": ["cashier", "admin", "manager", "superadmin"],
   "/kitchen": ["kitchen", "admin", "manager", "superadmin"],
+  "/catalog-order": ["admin", "manager", "superadmin"],
   "/products": ALL_ROLES,
   "/offers": ["admin", "manager", "marketing", "superadmin"],
   "/coupons": ["admin", "manager", "marketing", "superadmin"],

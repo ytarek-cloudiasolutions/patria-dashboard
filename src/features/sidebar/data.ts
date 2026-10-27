@@ -24,6 +24,7 @@ import {
   Landmark,
   HelpCircle,
   Megaphone,
+  List,
 } from "lucide-react";
 import type { NavSection } from "./types";
 
@@ -35,6 +36,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { label: "Orders", href: "/orders", icon: ShoppingBag },
       { label: "Tables", href: "/tables", icon: Armchair },
       { label: "Kitchen", href: "/kitchen", icon: ChefHat },
+      { label: "Catalog Order", href: "/catalog-order", icon: List },
     ],
   },
   {
@@ -43,7 +45,6 @@ export const NAV_SECTIONS: NavSection[] = [
       { label: "Products", href: "/products", icon: Coffee },
       { label: "Offers", href: "/offers", icon: Tag },
       { label: "Coupons", href: "/coupons", icon: Ticket },
-      { label: "Marketing Center", href: "/marketing", icon: Megaphone },
       { label: "Inventory", href: "/inventory", icon: Box },
     ],
   },
@@ -88,6 +89,7 @@ export const NAV_SECTIONS: NavSection[] = [
         href: "/shift-management",
         icon: Clock,
       },
+      { label: "Marketing Center", href: "/marketing", icon: Megaphone },
       {
         label: "WhatsApp Gateway",
         href: "/whatsapp-gateway",
