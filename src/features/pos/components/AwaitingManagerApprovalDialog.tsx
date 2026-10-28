@@ -71,7 +71,7 @@ const AwaitingManagerApprovalDialog = ({
               variant="outline"
               onClick={onCancelRequest}
               disabled={isLoading}
-              className="h-[56px] px-[30px] rounded-[5px] border border-[#8F6900] bg-white text-[16px] font-semibold text-[#8F6900] hover:bg-[#F5F0EA] cursor-pointer disabled:opacity-60"
+              className="h-[56px] px-[30px] rounded-[5px] border border-[#8F6900] bg-white text-[16px] font-semibold text-[#8F6900] active:scale-[0.98] transition-all duration-150 cursor-pointer disabled:opacity-60"
             >
               {t("Cancel Request")}
             </Button>

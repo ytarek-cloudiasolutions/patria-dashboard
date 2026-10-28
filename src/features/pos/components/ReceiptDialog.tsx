@@ -10,6 +10,7 @@ import { useTranslation } from "@/shared/i18n/useTranslation";
 import type { CartItem, CartTotals, OrderType } from "../types";
 import { formatEgp, lineTotal } from "../utils";
 import { generateCustomerReceiptHtml } from "@/features/orders/utils/customerReceipt";
+import { printHtmlInCurrentTab } from "@/shared/lib/printHtml";
 
 type ReceiptDialogProps = {
   open: boolean;
@@ -74,7 +75,8 @@ const ReceiptDialog = ({
       customerPhone: customerPhone,
       paymentMethod: "Cash",
       status: "paid",
-      subtotal: totals.subtotal + (totals.extras || 0),
+      subtotal: totals.subtotal,
+      extras: totals.extras,
       discount: discountAmt,
       discountName: discountInfo?.name ? `${discountInfo.value}% ${discountInfo.name}` : undefined,
       tax: totals.tax,
@@ -93,16 +95,7 @@ const ReceiptDialog = ({
       }),
     });
 
-    const win = window.open("", "_blank", "width=400,height=600");
-    if (win) {
-      win.document.write(customerReceiptHtml);
-      win.document.close();
-      win.focus();
-      setTimeout(() => {
-        win.print();
-        win.close();
-      }, 250);
-    }
+    printHtmlInCurrentTab(customerReceiptHtml);
   };
 
   return (
@@ -194,16 +187,16 @@ const ReceiptDialog = ({
         <DialogFooter className="mt-5 gap-3 border-t border-[#E1E1E1] bg-white px-0 pb-0 pt-5">
           <Button
             variant="outline"
-            className="h-12 flex-1 rounded-[8px] border-primary bg-white text-[13px] font-semibold text-primary cursor-pointer"
+            className="h-12 flex-1 rounded-[8px] border-primary bg-white text-[13px] font-semibold text-primary active:scale-[0.98] cursor-pointer"
             onClick={() => onOpenChange(false)}
           >
             {t("Close")}
           </Button>
           <Button
-            className="h-12 flex-1 rounded-[8px] bg-primary text-[13px] font-semibold text-white cursor-pointer"
+            className="group h-12 flex-1 rounded-[8px] bg-primary text-[13px] font-semibold text-white transition-all duration-150 hover:brightness-105 active:scale-[0.98] cursor-pointer"
             onClick={handlePrint}
           >
-            <Printer className="size-4" />
+            <Printer className="size-4 transition-transform duration-200 group-hover:scale-110" />
             {t("Print Receipt")}
           </Button>
         </DialogFooter>

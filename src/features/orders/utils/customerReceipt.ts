@@ -24,6 +24,7 @@ export interface CustomerReceiptData {
   status?: string;
   items: CustomerReceiptItem[];
   subtotal: number;
+  extras?: number;
   discount?: number;
   discountName?: string;
   tax?: number;
@@ -156,7 +157,14 @@ export function generateCustomerReceiptHtml(data: CustomerReceiptData): string {
 
   const discountVal = data.discount || 0;
   const deliveryFeeVal = data.deliveryFee || 0;
-  const taxVal = data.tax || 0;
+  const extrasVal = data.extras || 0;
+  const rawTax =
+    data.tax !== undefined
+      ? data.tax
+      : data.total > data.subtotal
+        ? Number((data.total - (data.subtotal + extrasVal - discountVal + deliveryFeeVal)).toFixed(2))
+        : 0;
+  const taxVal = Math.max(0, rawTax);
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -433,7 +441,13 @@ export function generateCustomerReceiptHtml(data: CustomerReceiptData): string {
           mods.push(...item.excluded.map((ex) => `No ${ex}`));
         }
         if (item.note) {
-          mods.push(`Note: ${item.note}`);
+          const cleanNote = item.note.trim();
+          const isRedundant =
+            item.options?.some((opt) => opt.trim().toLowerCase() === cleanNote.toLowerCase()) ||
+            /^(size|roast\s*level|grind\s*type|type):\s*[A-Za-z0-9_-]+$/i.test(cleanNote);
+          if (!isRedundant && cleanNote) {
+            mods.push(`Note: ${cleanNote}`);
+          }
         }
 
         return `
@@ -464,6 +478,24 @@ export function generateCustomerReceiptHtml(data: CustomerReceiptData): string {
       <span>EGP ${data.subtotal.toFixed(2)}</span>
     </div>
     ${
+      extrasVal > 0
+        ? `
+      <div class="total-row">
+        <span>Extras</span>
+        <span>EGP ${extrasVal.toFixed(2)}</span>
+      </div>`
+        : ""
+    }
+    ${
+      taxVal > 0
+        ? `
+      <div class="total-row">
+        <span>Tax (14%)</span>
+        <span>EGP ${taxVal.toFixed(2)}</span>
+      </div>`
+        : ""
+    }
+    ${
       discountVal > 0
         ? `
       <div class="total-row">
@@ -481,15 +513,6 @@ export function generateCustomerReceiptHtml(data: CustomerReceiptData): string {
       </div>`
         : ""
     }
-    ${
-      taxVal > 0
-        ? `
-      <div class="total-row">
-        <span>Tax</span>
-        <span>EGP ${taxVal.toFixed(2)}</span>
-      </div>`
-        : ""
-    }
     <div class="total-line-solid"></div>
 
     <div class="grand-total-row">
@@ -498,16 +521,6 @@ export function generateCustomerReceiptHtml(data: CustomerReceiptData): string {
     </div>
 
     <div class="total-line-thick"></div>
-
-    ${
-      data.guestCount && data.guestCount > 1 && data.costPerPerson
-        ? `
-      <div class="total-row" style="margin-top: 5px; font-size: 11.5px; font-weight: 700; color: #444;">
-        <span>Bill split (${data.guestCount} guests)</span>
-        <span>EGP ${data.costPerPerson.toFixed(2)} / person</span>
-      </div>`
-        : ""
-    }
   </div>
 
   <div class="receipt-footer">

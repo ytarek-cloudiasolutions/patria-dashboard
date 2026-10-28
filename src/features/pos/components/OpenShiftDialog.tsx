@@ -87,14 +87,14 @@ const OpenShiftDialog = ({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="h-[56px] px-[30px] py-4 rounded-[5px] border border-[#8F6900] bg-white text-[16px] font-semibold leading-[24px] text-[#8F6900] transition-colors hover:bg-[#8F6900]/5 cursor-pointer"
+              className="h-[56px] px-[30px] py-4 rounded-[5px] border border-[#8F6900] bg-white text-[16px] font-semibold leading-[24px] text-[#8F6900] transition-all duration-150 active:scale-[0.98] cursor-pointer"
             >
               {t("Cancel")}
             </Button>
             <Button
               type="submit"
               disabled={isLoading}
-              className="h-[56px] px-[30px] py-4 rounded-[5px] bg-[#8F6900] text-[16px] font-semibold leading-[24px] text-white transition-colors hover:bg-[#8F6900]/90 cursor-pointer disabled:opacity-60"
+              className="h-[56px] px-[30px] py-4 rounded-[5px] bg-[#8F6900] text-[16px] font-semibold leading-[24px] text-white transition-all duration-150 active:scale-[0.98] cursor-pointer disabled:opacity-60"
             >
               {isLoading ? t("Opening...") : t("Open Shift")}
             </Button>

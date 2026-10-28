@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from "@/shared/components/ui/dialog";
 import { useTranslation } from "@/shared/i18n/useTranslation";
-import type { PendingOrder } from "../types";
+import { type PendingOrder, extractCleanItemNotes } from "../types";
 import { api } from "@/config/api";
 
 type PendingOrdersDialogProps = {
@@ -46,31 +46,84 @@ const PendingOrdersDialog = ({
       })
       .then((res) => {
         const raw: any[] = res.data?.data ?? res.data?.orders ?? [];
-        const mapped: PendingOrder[] = raw.map((o) => ({
-          id: o._id,
-          table: o.address || o.customer?.address || (o.tableNumber ? `Table ${o.tableNumber}` : "?"),
-          itemCount: o.items?.length ?? 0,
-          time: o.createdAt
-            ? new Date(o.createdAt).toLocaleTimeString("en-US", {
-                hour: "2-digit",
-                minute: "2-digit",
-                second: "2-digit",
-              })
-            : "--",
-          total: o.total ?? 0,
-          guestCount: o.guestCount ?? o.customerCount ?? o.numberOfCustomers,
-          customerCount: o.customerCount ?? o.guestCount,
-          customerName: o.customerName || o.customer?.name,
-          customerPhone: o.customerPhone || o.customer?.phone,
-          notes: o.notes || o.note,
-          items: (o.items || []).map((item: any) => ({
+        const mapped: PendingOrder[] = raw.map((o) => {
+          const items = (o.items || []).map((item: any) => ({
             productId: item.productId?._id || item.product?._id || String(item.productId || ""),
             name: item.productId?.name || item.product?.name || item.name || "Unknown",
             qty: item.quantity || 1,
             unitPrice: item.price || item.productId?.price || 0,
-            instructions: item.notes || item.instructions || "",
-          })),
-        }));
+            instructions: extractCleanItemNotes(
+              item.notes || item.instructions,
+              (item.selectedVariants || []).map((v: any) => ({
+                group: v.group || v.groupName || "",
+                option: v.option || v.optionName || "",
+              })),
+            ),
+            extras: (item.selectedExtras || []).map((e: any) => ({
+              id: e._id || e.id || String(Math.random()),
+              name: e.name || "",
+              price: Number(e.price) || 0,
+              selected: true,
+            })),
+            variants: (item.selectedVariants || []).map((v: any) => ({
+              name: v.group || v.groupName || "",
+              option: v.option || v.optionName || "",
+              price: Number(v.priceAdjustment || v.price || 0),
+            })),
+          }));
+
+          const subtotal = items.reduce((sum: number, it: any) => sum + it.unitPrice * it.qty, 0);
+          const extrasTotal = items.reduce(
+            (sum: number, it: any) =>
+              sum +
+              it.extras.reduce(
+                (eSum: number, e: any) => eSum + (e.selected ? e.price : 0),
+                0,
+              ) * it.qty,
+            0,
+          );
+          const discountAmt = Number(o.discountAmount || o.discount || 0);
+          const discountVal = Number(o.discountValue || 0);
+          const serverTotal = Number(o.total);
+
+          const preTax = subtotal + extrasTotal;
+          const tax = preTax * 0.14;
+          const gross = preTax + tax;
+          const fallbackTotal = Math.max(0, gross - discountAmt);
+
+          // Server order.total is the authoritative total when present
+          const finalTotal =
+            Number.isFinite(serverTotal) && serverTotal > 0
+              ? serverTotal
+              : fallbackTotal;
+
+          return {
+            id: o._id,
+            table: o.address || o.customer?.address || (o.tableNumber ? `Table ${o.tableNumber}` : "?"),
+            itemCount: o.items?.length ?? 0,
+            time: o.createdAt
+              ? new Date(o.createdAt).toLocaleTimeString("en-US", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  second: "2-digit",
+                })
+              : "--",
+            total: finalTotal,
+            discount: discountAmt,
+            discountAmount: discountAmt,
+            discountValue: discountVal,
+            discountReason: o.discountReason || (discountVal > 0 ? `${discountVal}%` : undefined),
+            gross: Number(o.gross) || gross,
+            subtotal: Number(o.subtotal) || subtotal,
+            tax: Number(o.tax) || tax,
+            guestCount: o.guestCount ?? o.customerCount ?? o.numberOfCustomers,
+            customerCount: o.customerCount ?? o.guestCount,
+            customerName: o.customerName || o.customer?.name,
+            customerPhone: o.customerPhone || o.customer?.phone,
+            notes: o.notes || o.note,
+            items,
+          };
+        });
         setOrders(mapped);
       })
       .catch(() => setOrders([]))
@@ -120,7 +173,7 @@ const PendingOrdersDialog = ({
                   key={order.id}
                   type="button"
                   onClick={() => onSelectOrder(order)}
-                  className="flex w-full flex-col gap-3 rounded-[16px] border border-[#E5E5E5] bg-[#FAFAF7] px-6 py-4 text-start transition-colors hover:border-[#8F6900] cursor-pointer"
+                  className="flex w-full flex-col gap-3 rounded-[16px] border border-[#E5E5E5] bg-[#FAFAF7] px-6 py-4 text-start transition-all duration-200 hover:border-[#8F6900] hover:shadow-xs active:scale-[0.99] cursor-pointer"
                 >
                   <div className="flex items-center justify-between">
                     <p className="text-[14px] font-semibold tracking-[0.28px] text-black">
@@ -155,14 +208,14 @@ const PendingOrdersDialog = ({
             <Button
               type="button"
               variant="outline"
-              className="h-[56px] px-[30px] py-4 rounded-[5px] border border-[#8F6900] bg-white text-[16px] font-semibold text-[#8F6900] transition-colors hover:bg-[#F5F0EA] cursor-pointer"
+              className="h-[56px] px-[30px] py-4 rounded-[5px] border border-[#8F6900] bg-white text-[16px] font-semibold text-[#8F6900] transition-all duration-150 active:scale-[0.98] cursor-pointer"
               onClick={() => onOpenChange(false)}
             >
               {t("Cancel")}
             </Button>
             <Button
               type="button"
-              className="h-[56px] px-[30px] py-4 rounded-[5px] bg-[#8F6900] text-[16px] font-semibold text-white transition-colors hover:bg-[#8F6900]/90 cursor-pointer"
+              className="h-[56px] px-[30px] py-4 rounded-[5px] bg-[#8F6900] text-[16px] font-semibold text-white transition-all duration-150 active:scale-[0.98] cursor-pointer"
               onClick={onNewOrder}
             >
               {t("New Order")}

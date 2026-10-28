@@ -37,6 +37,14 @@ type PaymentDialogProps = {
   orderId?: string | null;
   onEnsureOrderId?: () => Promise<string | null>;
   onOpenChange: (open: boolean) => void;
+  onDiscountApplied?: (discountInfo: {
+    id?: string;
+    name: string;
+    value: number;
+    amount: number;
+    serverTotal?: number;
+    serverGross?: number;
+  } | null) => void;
   onConfirm: (
     method: PaymentMethod,
     discountInfo?: {
@@ -70,6 +78,7 @@ const PaymentDialog = ({
   orderId,
   onEnsureOrderId,
   onOpenChange,
+  onDiscountApplied,
   onConfirm,
 }: PaymentDialogProps) => {
   const { t } = useTranslation();
@@ -93,6 +102,7 @@ const PaymentDialog = ({
     useState<DiscountOfferItem | null>(null);
   const [appliedDiscount, setAppliedDiscount] =
     useState<DiscountOfferItem | null>(null);
+  const [serverDiscountOrder, setServerDiscountOrder] = useState<any | null>(null);
   const [requestId, setRequestId] = useState<string | null>(null);
   const [existingRequest, setExistingRequest] =
     useState<DiscountApprovalRequestItem | null>(null);
@@ -105,6 +115,7 @@ const PaymentDialog = ({
     setCashAmount("");
     setCardAmount("");
     setAppliedDiscount(null);
+    setServerDiscountOrder(null);
     setPendingApprovalOffer(null);
     setExistingRequest(null);
     setRequestId(null);
@@ -150,9 +161,53 @@ const PaymentDialog = ({
 
           if (match.status === "approved") {
             setAppliedDiscount(offerObj);
+            try {
+              const { getOrderById } = await import("@/features/orders/api/ordersApi");
+              const orderData: any = await getOrderById(String(orderId));
+              const o = orderData?.order || orderData?.data?.order || orderData?.data || orderData;
+              if (o && isMounted) {
+                setServerDiscountOrder(o);
+                onDiscountApplied?.({
+                  id: offerObj.id,
+                  name: offerObj.name,
+                  value: Number(o.discountValue) || offerObj.value || 0,
+                  amount: Number(o.discountAmount || o.discount) || 0,
+                  serverTotal: Number(o.total),
+                  serverGross: Number(o.gross),
+                });
+              }
+            } catch (e) {
+              console.error("Failed to load order details for approved discount:", e);
+            }
           } else if (match.status === "pending") {
             // Show Awaiting Manager Approval dialog until approved, rejected, or cancelled
             setIsAwaitingApprovalOpen(true);
+          }
+        } else if (orderId) {
+          try {
+            const { getOrderById } = await import("@/features/orders/api/ordersApi");
+            const orderData: any = await getOrderById(String(orderId));
+            const o = orderData?.order || orderData?.data?.order || orderData?.data || orderData;
+            if (o && isMounted && (Number(o.discountAmount) > 0 || Number(o.discount) > 0)) {
+              setServerDiscountOrder(o);
+              const discObj = {
+                id: o.discountId || "",
+                name: o.discountReason?.replace(/^Cashier discount:\s*/i, "") || "Discount",
+                value: Number(o.discountValue) || 0,
+                amount: Number(o.discountAmount || o.discount) || 0,
+                serverTotal: Number(o.total),
+                serverGross: Number(o.gross),
+              };
+              setAppliedDiscount({
+                id: discObj.id,
+                name: discObj.name,
+                value: discObj.value,
+                requiresApproval: false,
+              });
+              onDiscountApplied?.(discObj);
+            }
+          } catch (e) {
+            // Ignore
           }
         }
       } catch (err) {
@@ -165,7 +220,7 @@ const PaymentDialog = ({
     return () => {
       isMounted = false;
     };
-  }, [open, orderId, canApproveOrReject]);
+  }, [open, orderId, canApproveOrReject, onDiscountApplied]);
 
   // Real-time socket listener for instant approval/rejection updates
   useEffect(() => {
@@ -198,9 +253,32 @@ const PaymentDialog = ({
           setAppliedDiscount(offerToApply);
           setExistingRequest((prev) => (prev ? { ...prev, status: "approved" } : item));
           showSuccessToast(t("Discount request approved and applied"));
+
+          const ordIdToFetch = targetOrderId || orderId;
+          if (ordIdToFetch) {
+            import("@/features/orders/api/ordersApi")
+              .then(({ getOrderById }) => getOrderById(String(ordIdToFetch)))
+              .then((res: any) => {
+                const o = res?.order || res?.data?.order || res?.data || res;
+                if (o) {
+                  setServerDiscountOrder(o);
+                  onDiscountApplied?.({
+                    id: offerToApply.id,
+                    name: offerToApply.name || o.discountReason?.replace(/^Cashier discount:\s*/i, "") || "Discount",
+                    value: Number(o.discountValue) || offerToApply.value || 0,
+                    amount: Number(o.discountAmount || o.discount) || 0,
+                    serverTotal: Number(o.total),
+                    serverGross: Number(o.gross),
+                  });
+                }
+              })
+              .catch((e) => console.error("Error fetching order after approval:", e));
+          }
         } else if (status === "rejected" || status === "cancelled") {
           setIsAwaitingApprovalOpen(false);
           setAppliedDiscount(null);
+          setServerDiscountOrder(null);
+          onDiscountApplied?.(null);
           setExistingRequest((prev) => (prev ? { ...prev, status: "rejected" } : item));
           showErrorToast(t("Discount request was rejected or cancelled"));
         }
@@ -210,12 +288,32 @@ const PaymentDialog = ({
     return () => {
       unsubscribe();
     };
-  }, [open, requestId, existingRequest, orderId, pendingApprovalOffer, t]);
+  }, [open, requestId, existingRequest, orderId, pendingApprovalOffer, t, onDiscountApplied]);
 
-  const discountAmount = appliedDiscount
-    ? (total * appliedDiscount.value) / 100
-    : 0;
-  const finalTotal = Math.max(0, total - discountAmount);
+  const orderGross = serverDiscountOrder
+    ? Number(
+        serverDiscountOrder.gross ??
+        (serverDiscountOrder.subtotal != null && serverDiscountOrder.tax != null
+          ? Number(serverDiscountOrder.subtotal) + Number(serverDiscountOrder.tax)
+          : null) ??
+        serverDiscountOrder.subtotal ??
+        total
+      )
+    : total;
+
+  const discountAmount = serverDiscountOrder
+    ? Number(
+        serverDiscountOrder.discountAmount ??
+        serverDiscountOrder.discount ??
+        (appliedDiscount ? (orderGross * appliedDiscount.value) / 100 : 0)
+      )
+    : appliedDiscount
+      ? (total * appliedDiscount.value) / 100
+      : 0;
+
+  const finalTotal = serverDiscountOrder
+    ? Number(serverDiscountOrder.total ?? Math.max(0, orderGross - discountAmount))
+    : Math.max(0, total - discountAmount);
 
   // A pending discount request blocks payment for every order type — the
   // backend's PATCH /orders/:id/pay rejects it too (409), but disabling the
@@ -287,7 +385,19 @@ const PaymentDialog = ({
         broadcastDiscountEvent("cashier_discount_request", payload);
         broadcastDiscountEvent("discount_request_updated", payload);
       } else {
+        const orderData = res?.order || (res as any)?.data?.order || (res as any)?.data;
+        if (orderData) {
+          setServerDiscountOrder(orderData);
+        }
         setAppliedDiscount(offer);
+        onDiscountApplied?.({
+          id: offer.id,
+          name: offer.name || orderData?.discountReason?.replace(/^Cashier discount:\s*/i, "") || "Discount",
+          value: Number(orderData?.discountValue) || offer.value || 0,
+          amount: Number(orderData?.discountAmount || orderData?.discount) || ((orderGross * offer.value) / 100),
+          serverTotal: Number(orderData?.total),
+          serverGross: Number(orderData?.gross),
+        });
         showSuccessToast(t("Discount applied successfully"));
       }
     } catch (err: any) {
@@ -304,14 +414,58 @@ const PaymentDialog = ({
       const targetOrderId = await getOrFetchOrderId();
       if (targetOrderId) {
         if (requestId) {
-          await cashierDiscountsApi.approveDiscountRequest(requestId);
+          const appRes = await cashierDiscountsApi.approveDiscountRequest(requestId);
+          const o = appRes?.order || appRes?.data?.order || appRes?.data;
+          if (o && (Number(o.discountAmount) > 0 || Number(o.discount) > 0 || Number(o.total) > 0)) {
+            setServerDiscountOrder(o);
+            onDiscountApplied?.({
+              id: offer.id,
+              name: offer.name || o.discountReason?.replace(/^Cashier discount:\s*/i, "") || "Discount",
+              value: Number(o.discountValue) || offer.value || 0,
+              amount: Number(o.discountAmount || o.discount) || 0,
+              serverTotal: Number(o.total),
+              serverGross: Number(o.gross),
+            });
+          } else {
+            try {
+              const { getOrderById } = await import("@/features/orders/api/ordersApi");
+              const orderData: any = await getOrderById(String(targetOrderId));
+              const fetched = orderData?.order || orderData?.data?.order || orderData?.data || orderData;
+              if (fetched) {
+                setServerDiscountOrder(fetched);
+                onDiscountApplied?.({
+                  id: offer.id,
+                  name: offer.name || fetched.discountReason?.replace(/^Cashier discount:\s*/i, "") || "Discount",
+                  value: Number(fetched.discountValue) || offer.value || 0,
+                  amount: Number(fetched.discountAmount || fetched.discount) || 0,
+                  serverTotal: Number(fetched.total),
+                  serverGross: Number(fetched.gross),
+                });
+              }
+            } catch (e) {
+              console.error("Error fetching order after approve:", e);
+            }
+          }
           broadcastDiscountEvent("discount_request_approved", {
             request: { _id: requestId, id: requestId, status: "approved" },
             status: "approved",
             id: requestId,
+            orderId: targetOrderId,
           });
         } else {
-          await cashierDiscountsApi.applyCashierDiscount(offer.id, targetOrderId);
+          const res = await cashierDiscountsApi.applyCashierDiscount(offer.id, targetOrderId);
+          const o = res?.order || (res as any)?.data?.order || (res as any)?.data;
+          if (o) {
+            setServerDiscountOrder(o);
+            onDiscountApplied?.({
+              id: offer.id,
+              name: offer.name || o.discountReason?.replace(/^Cashier discount:\s*/i, "") || "Discount",
+              value: Number(o.discountValue) || offer.value || 0,
+              amount: Number(o.discountAmount || o.discount) || 0,
+              serverTotal: Number(o.total),
+              serverGross: Number(o.gross),
+            });
+          }
         }
       }
       setAppliedDiscount(offer);
@@ -365,8 +519,11 @@ const PaymentDialog = ({
     }
     setIsAwaitingApprovalOpen(false);
     setPendingApprovalOffer(null);
+    setAppliedDiscount(null);
+    setServerDiscountOrder(null);
     setExistingRequest(null);
     setRequestId(null);
+    onDiscountApplied?.(null);
     showErrorToast(t("Discount request cancelled"));
   };
 
@@ -377,7 +534,7 @@ const PaymentDialog = ({
         ? {
           id: appliedDiscount.id,
           name: appliedDiscount.name,
-          value: appliedDiscount.value,
+          value: serverDiscountOrder?.discountValue ?? appliedDiscount.value,
           discountAmount,
         }
         : undefined
@@ -412,14 +569,19 @@ const PaymentDialog = ({
                     <span className="font-normal">{t("Subtotal:")}</span>
                     <div className="flex items-center gap-1">
                       <span className="font-medium">{t("EGP")}</span>
-                      <span className="font-semibold">{total.toFixed(2)}</span>
+                      <span className="font-semibold">{orderGross.toFixed(2)}</span>
                     </div>
                   </div>
                   <div className="flex items-center justify-between text-[16px] text-[#23252A]">
                     <span className="font-normal">
                       {t("Discount ( ")}
-                      <span className="font-bold">{appliedDiscount.value}% </span>
-                      <span className="font-bold">{appliedDiscount.name}</span>
+                      <span className="font-bold">
+                        {serverDiscountOrder?.discountValue ?? appliedDiscount.value}%{" "}
+                      </span>
+                      <span className="font-bold">
+                        {appliedDiscount.name ||
+                          serverDiscountOrder?.discountReason?.replace(/^Cashier discount:\s*/i, "")}
+                      </span>
                       {t("):")}
                     </span>
                     <div className="flex items-center gap-1">
@@ -430,14 +592,22 @@ const PaymentDialog = ({
                 </div>
                 <div className="h-[50px] w-full px-3 bg-[#F8F8F8] rounded-[12px] border border-[#8F6900] flex items-center justify-between">
                   <div className="flex items-center text-[16px] text-black">
-                    <span className="font-semibold">{appliedDiscount.value}%</span>
-                    <span className="font-normal">&nbsp;- {appliedDiscount.name}</span>
+                    <span className="font-semibold">
+                      {serverDiscountOrder?.discountValue ?? appliedDiscount.value}%
+                    </span>
+                    <span className="font-normal">
+                      &nbsp;-{" "}
+                      {appliedDiscount.name ||
+                        serverDiscountOrder?.discountReason?.replace(/^Cashier discount:\s*/i, "")}
+                    </span>
                   </div>
                   <button
                     type="button"
                     onClick={() => {
                       setAppliedDiscount(null);
+                      setServerDiscountOrder(null);
                       setExistingRequest(null);
+                      onDiscountApplied?.(null);
                     }}
                     className="text-[16px] font-semibold text-[#C90000] hover:underline cursor-pointer"
                   >
@@ -474,9 +644,9 @@ const PaymentDialog = ({
                     type="button"
                     variant="outline"
                     onClick={() => setIsAwaitingApprovalOpen(true)}
-                    className="h-[36px] px-3 rounded-[6px] border border-[#8F6900] bg-white text-[12px] font-semibold text-[#8F6900] hover:bg-[#F5F0EA] flex items-center gap-1.5 cursor-pointer"
+                    className="group h-[36px] px-3 rounded-[6px] border border-[#8F6900] bg-white text-[12px] font-semibold text-[#8F6900] hover:bg-[#F5F0EA] active:scale-[0.98] transition-all duration-150 flex items-center gap-1.5 cursor-pointer"
                   >
-                    <Clock className="size-3.5" />
+                    <Clock className="size-3.5 transition-transform duration-200 group-hover:scale-110" />
                     <span>{t("Wait / View Request")}</span>
                   </Button>
                 </div>
@@ -509,14 +679,14 @@ const PaymentDialog = ({
                     key={option.method}
                     type="button"
                     className={cn(
-                      "flex flex-1 flex-col items-center justify-center gap-2 rounded-[5px] px-4 py-8 transition-all cursor-pointer select-none",
+                      "group/opt flex flex-1 flex-col items-center justify-center gap-2 rounded-[5px] px-4 py-8 transition-all duration-200 cursor-pointer select-none active:scale-95 hover:border-[#8F6900]/50",
                       isActive
-                        ? "border-2 border-[#8F6900] bg-[#F5F0EA]"
+                        ? "border-2 border-[#8F6900] bg-[#F5F0EA] shadow-xs"
                         : "border-2 border-[#E5E5E5] bg-[#FAFAF7]",
                     )}
                     onClick={() => setMethod(option.method)}
                   >
-                    <Icon className="size-6 text-black" />
+                    <Icon className="size-6 text-black transition-transform duration-200 group-hover/opt:scale-110" />
                     <span
                       className={cn(
                         "text-[18px] leading-[19.26px] tracking-[0.36px] text-black",
@@ -585,9 +755,9 @@ const PaymentDialog = ({
                 type="button"
                 variant="outline"
                 onClick={() => setIsSelectOfferOpen(true)}
-                className="h-[56px] w-full rounded-[5px] border border-[#8F6900] bg-white text-[16px] font-semibold text-[#8F6900] hover:bg-[#F5F0EA] flex items-center justify-center gap-2 cursor-pointer"
+                className="group h-[56px] w-full rounded-[5px] border border-[#8F6900] bg-white text-[16px] font-semibold text-[#8F6900] hover:bg-[#F5F0EA] active:scale-[0.99] transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer"
               >
-                <Tag className="size-4.5 text-[#8F6900]" />
+                <Tag className="size-4.5 text-[#8F6900] transition-transform duration-200 group-hover:scale-110" />
                 <span>{t("Apply Discount")}</span>
               </Button>
             </div>
@@ -596,14 +766,14 @@ const PaymentDialog = ({
               <Button
                 type="button"
                 variant="outline"
-                className="h-[56px] flex-1 px-[30px] py-4 rounded-[5px] border border-[#8F6900] bg-white text-[16px] font-semibold text-[#8F6900] transition-colors hover:bg-[#F5F0EA] cursor-pointer"
+                className="h-[56px] flex-1 px-[30px] py-4 rounded-[5px] border border-[#8F6900] bg-white text-[16px] font-semibold text-[#8F6900] active:scale-[0.98] cursor-pointer"
                 onClick={() => onOpenChange(false)}
               >
                 {t("Cancel")}
               </Button>
               <Button
                 type="button"
-                className="h-[56px] flex-1 px-[30px] py-4 rounded-[5px] bg-[#8F6900] text-[16px] font-semibold text-white transition-colors hover:bg-[#8F6900]/90 cursor-pointer disabled:opacity-60"
+                className="h-[56px] flex-1 px-[30px] py-4 rounded-[5px] bg-[#8F6900] text-[16px] font-semibold text-white active:scale-[0.98] cursor-pointer disabled:opacity-60"
                 disabled={isLoading || hasUnresolvedDiscountRequest}
                 onClick={handleConfirmPayment}
               >

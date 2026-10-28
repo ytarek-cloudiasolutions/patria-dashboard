@@ -92,10 +92,10 @@ const SelectDiscountOfferDialog = ({
               <div
                 key={offer.id}
                 onClick={() => setSelectedOfferId(offer.id)}
-                className={`w-full min-h-[50px] p-3 rounded-[12px] flex items-center justify-between gap-3 cursor-pointer transition-all select-none ${
+                className={`w-full min-h-[50px] p-3 rounded-[12px] flex items-center justify-between gap-3 cursor-pointer transition-all duration-200 select-none active:scale-[0.99] ${
                   isSelected
-                    ? "bg-[#F8F8F8] border-[1.25px] border-[#8F6900]"
-                    : "bg-white border border-[#E5E5E5]"
+                    ? "bg-[#F8F8F8] border-[1.25px] border-[#8F6900] shadow-xs"
+                    : "bg-white border border-[#E5E5E5] hover:border-[#8F6900]/50 hover:bg-[#FAFAF7]"
                 }`}
               >
                 <div className="flex items-center gap-2 text-[16px] text-black">
@@ -105,11 +105,11 @@ const SelectDiscountOfferDialog = ({
                 </div>
 
                 {offer.requiresApproval ? (
-                  <span className="px-3 py-1 bg-[#FE9A00]/10 border border-[#C7861E] rounded-full text-[13px] font-semibold text-[#C7861E] tracking-[0.26px] whitespace-nowrap">
+                  <span className="px-3 py-1 bg-[#FE9A00]/10 border border-[#C7861E] rounded-full text-[13px] font-semibold text-[#C7861E] tracking-[0.26px] whitespace-nowrap transition-transform duration-150 hover:scale-105">
                     {t("Requires approval")}
                   </span>
                 ) : (
-                  <span className="px-3 py-1 bg-[#E2F4ED] border border-[#059B5A] rounded-full text-[13px] font-semibold text-[#059B5A] tracking-[0.26px] whitespace-nowrap">
+                  <span className="px-3 py-1 bg-[#E2F4ED] border border-[#059B5A] rounded-full text-[13px] font-semibold text-[#059B5A] tracking-[0.26px] whitespace-nowrap transition-transform duration-150 hover:scale-105">
                     {t("Direct")}
                   </span>
                 )}
@@ -124,7 +124,7 @@ const SelectDiscountOfferDialog = ({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="h-[56px] px-[30px] rounded-[5px] border border-[#8F6900] text-[#8F6900] font-semibold text-[16px] hover:bg-[#F5F0EA] cursor-pointer"
+              className="h-[56px] px-[30px] rounded-[5px] border border-[#8F6900] text-[#8F6900] font-semibold text-[16px] active:scale-[0.98] transition-all duration-150 cursor-pointer"
             >
               {t("Cancel")}
             </Button>
@@ -132,7 +132,7 @@ const SelectDiscountOfferDialog = ({
               type="button"
               disabled={!selectedOfferId}
               onClick={handleConfirmSelect}
-              className="h-[56px] px-[30px] rounded-[5px] bg-[#8F6900] text-white font-semibold text-[16px] hover:bg-[#8F6900]/90 cursor-pointer disabled:opacity-50"
+              className="h-[56px] px-[30px] rounded-[5px] bg-[#8F6900] text-white font-semibold text-[16px] active:scale-[0.98] transition-all duration-150 cursor-pointer disabled:opacity-50"
             >
               {t("Select Offer")}
             </Button>

@@ -36,13 +36,16 @@ export const BAKERY_EXTRAS: ProductExtra[] = [
   { id: "lotus", name: "Lotus", price: 85.2 },
 ];
 
+import patriaLogo from "@/assets/images/svgs/patria-logo.svg";
+
 export const POS_CATEGORIES: PosCategory[] = [
-  { id: "all", label: "All", imageUrl: IMG.croissant },
-  { id: "drinks", label: "Drinks", imageUrl: IMG.chemex },
-  { id: "ramadan-desserts", label: "Ramadan Desserts", imageUrl: IMG.tiramisu },
-  { id: "sandwiches", label: "Sandwiches", imageUrl: IMG.turkey },
-  { id: "bakery", label: "Bakery", imageUrl: IMG.almond },
-  { id: "ramadan-oasis", label: "Ramadan Oasis", imageUrl: IMG.sobia },
+  { id: "all", label: "All", imageUrl: patriaLogo, image: patriaLogo },
+  { id: "coffee", label: "Coffee", imageUrl: "https://api.patriacoffeebeans.com/api/uploads/1788859131178-224063310.jpg", image: "https://api.patriacoffeebeans.com/api/uploads/1788859131178-224063310.jpg" },
+  { id: "pizzas", label: "Pizzas", imageUrl: "https://api.patriacoffeebeans.com/api/uploads/1792483762044-367120846.jpeg", image: "https://api.patriacoffeebeans.com/api/uploads/1792483762044-367120846.jpeg" },
+  { id: "pastries", label: "Pastries", imageUrl: "https://api.patriacoffeebeans.com/api/uploads/1788859131220-888939291.jpg", image: "https://api.patriacoffeebeans.com/api/uploads/1788859131220-888939291.jpg" },
+  { id: "desserts", label: "Desserts", imageUrl: "https://api.patriacoffeebeans.com/api/uploads/1788860816181-469753541.jpg", image: "https://api.patriacoffeebeans.com/api/uploads/1788860816181-469753541.jpg" },
+  { id: "cold-drinks", label: "Cold Drinks", imageUrl: "https://api.patriacoffeebeans.com/api/uploads/1788860816240-642966281.jpg", image: "https://api.patriacoffeebeans.com/api/uploads/1788860816240-642966281.jpg" },
+  { id: "sandwiches", label: "Sandwiches", imageUrl: "https://api.patriacoffeebeans.com/api/uploads/1788860816262-107208107.jpg", image: "https://api.patriacoffeebeans.com/api/uploads/1788860816262-107208107.jpg" },
 ];
 
 export const POS_PRODUCTS: PosProduct[] = [

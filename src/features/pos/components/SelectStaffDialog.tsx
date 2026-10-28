@@ -309,7 +309,7 @@ const SelectStaffDialog = ({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="h-[50px] min-w-[120px] px-6 rounded-[5px] border border-[#8F6900] bg-white text-[16px] font-semibold text-[#8F6900] hover:bg-[#F5F0EA] transition-colors cursor-pointer"
+              className="h-[50px] min-w-[120px] px-6 rounded-[5px] border border-[#8F6900] bg-white text-[16px] font-semibold text-[#8F6900] active:scale-[0.98] cursor-pointer"
             >
               {t("Cancel")}
             </Button>
@@ -320,7 +320,7 @@ const SelectStaffDialog = ({
                 !selectedStaffId ||
                 (discountType !== "without_discount" && (!discountValue || Number(discountValue) <= 0))
               }
-              className="h-[50px] min-w-[150px] px-6 rounded-[5px] bg-[#8F6900] text-[16px] font-semibold text-white hover:bg-[#8F6900]/90 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="h-[50px] min-w-[150px] px-6 rounded-[5px] bg-[#8F6900] text-[16px] font-semibold text-white active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {t("Confirm Order")}
             </Button>

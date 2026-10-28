@@ -142,7 +142,7 @@ const ShiftSummaryDialog = ({
               return (
                 <div
                   key={method}
-                  className="flex flex-1 flex-col items-center justify-center gap-2 rounded-[5px] border-2 border-[#E5E5E5] bg-[#FAFAF7] px-6 py-8 text-center"
+                  className="flex flex-1 flex-col items-center justify-center gap-2 rounded-[5px] border-2 border-[#E5E5E5] bg-[#FAFAF7] px-6 py-8 text-center transition-all duration-200 hover:border-[#D4D4D8] hover:shadow-xs"
                 >
                   <Icon className="size-6 text-black" />
                   <div className="flex flex-col items-center gap-1">
@@ -165,7 +165,7 @@ const ShiftSummaryDialog = ({
             <Button
               type="button"
               variant="outline"
-              className="h-[56px] px-[30px] py-4 rounded-[5px] border border-[#8F6900] bg-white text-[16px] font-semibold text-[#8F6900] transition-colors hover:bg-[#F5F0EA] cursor-pointer"
+              className="h-[56px] px-[30px] py-4 rounded-[5px] border border-[#8F6900] bg-white text-[16px] font-semibold text-[#8F6900] transition-all duration-150 active:scale-[0.98] cursor-pointer"
               onClick={() => onOpenChange(false)}
             >
               {t("Cancel")}

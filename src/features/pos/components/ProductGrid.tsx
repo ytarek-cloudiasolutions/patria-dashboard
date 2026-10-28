@@ -42,7 +42,7 @@ const ProductGrid = ({
             role="button"
             tabIndex={0}
             className={cn(
-              "group relative flex h-[257px] w-full flex-col overflow-hidden rounded-[24px] bg-white transition cursor-pointer select-none",
+              "group relative flex h-[257px] w-full flex-col overflow-hidden rounded-[24px] bg-white transition-all duration-300 hover:shadow-md hover:-translate-y-1 cursor-pointer select-none",
               isInCart
                 ? "border-2 border-[#8F6900]"
                 : "border-2 border-[#E5E5E5] hover:border-[#8F6900]/50",
@@ -91,14 +91,14 @@ const ProductGrid = ({
                   </div>
                   <button
                     type="button"
-                    className="flex size-9 shrink-0 items-center justify-center rounded-[5.71px] bg-[#8F6900] p-2.5 text-white transition-opacity hover:opacity-90 cursor-pointer"
+                    className="group/btn flex size-9 shrink-0 items-center justify-center rounded-[5.71px] bg-[#8F6900] p-2.5 text-white transition-all duration-150 hover:bg-[#725400] hover:scale-110 active:scale-90 cursor-pointer"
                     aria-label={`${t("Add")} ${product.name}`}
                     onClick={(event) => {
                       event.stopPropagation();
                       onSelectProduct(product);
                     }}
                   >
-                    <Plus className="size-4 text-white" />
+                    <Plus className="size-4 text-white transition-transform duration-200 group-hover/btn:rotate-90" />
                   </button>
                 </div>
                 {isInCart && (

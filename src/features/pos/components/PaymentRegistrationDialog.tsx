@@ -100,14 +100,14 @@ const PaymentRegistrationDialog = ({
               <Button
                 type="button"
                 variant="outline"
-                className="h-[56px] px-[30px] py-4 rounded-[5px] border border-[#8F6900] bg-white text-[16px] font-semibold text-[#8F6900] transition-colors hover:bg-[#F5F0EA] cursor-pointer"
+                className="h-[56px] px-[30px] py-4 rounded-[5px] border border-[#8F6900] bg-white text-[16px] font-semibold text-[#8F6900] transition-all duration-150 active:scale-[0.98] cursor-pointer"
                 onClick={() => onOpenChange(false)}
               >
                 {t("Cancel")}
               </Button>
               <Button
                 type="button"
-                className="h-[56px] px-[30px] py-4 rounded-[5px] bg-[#8F6900] text-[16px] font-semibold text-white transition-colors hover:bg-[#8F6900]/90 cursor-pointer"
+                className="h-[56px] px-[30px] py-4 rounded-[5px] bg-[#8F6900] text-[16px] font-semibold text-white transition-all duration-150 active:scale-[0.98] cursor-pointer"
                 onClick={handleConfirm}
               >
                 {t("Confirm Payment")}

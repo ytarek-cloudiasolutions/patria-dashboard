@@ -26,6 +26,9 @@ type ProductCustomizeDialogProps = {
     instructions: string;
     qty: number;
     excludedIngredients?: Array<{ productId: string; name: string }>;
+    unitPrice?: number;
+    variants?: Array<{ name: string; option: string; price?: number }>;
+    selectedVariants?: Record<string, string>;
   }) => void;
 };
 
@@ -70,6 +73,19 @@ const ProductCustomizeDialog = ({
       setExtras(editLine.extras.map((extra) => ({ ...extra })));
       setInstructions(editLine.instructions ?? "");
       setQty(editLine.qty);
+      if (editLine.selectedVariants && Object.keys(editLine.selectedVariants).length > 0) {
+        setSelectedVariants(editLine.selectedVariants);
+      } else {
+        const defaultVariantChoices: Record<string, string> = {};
+        (product.variantGroups ?? []).forEach((group: any) => {
+          const groupKey = String(group.id || group.name);
+          if (group.options && group.options.length > 0) {
+            const firstOptKey = String(group.options[0].id || group.options[0].name || group.options[0].label);
+            defaultVariantChoices[groupKey] = firstOptKey;
+          }
+        });
+        setSelectedVariants(defaultVariantChoices);
+      }
     } else {
       setExtras(
         (product.extras ?? []).map((extra) => ({ ...extra, selected: false }))
@@ -98,8 +114,15 @@ const ProductCustomizeDialog = ({
   const hasRecipe = recipeItems.length > 0;
   const hasExtras = extras.length > 0;
 
-  // Calculate price adjustment from selected variants
-  let variantPriceAdjustment = 0;
+  // Calculate price from base product price and selected variants.
+  // If a variant group (such as Size) specifies absolute option prices (e.g. S=120, M=150, L=180
+  // where the base pizza price is 120), the selected variant option's price replaces the base price
+  // rather than adding on top of it, avoiding the base price being added twice.
+  let effectiveBasePrice = product.price;
+  let hasReplacedBasePrice = false;
+  let variantAdditionalAdjustment = 0;
+  const selectedVariantDetails: Array<{ name: string; option: string; price: number }> = [];
+
   variantGroups.forEach((group: any) => {
     const groupKey = String(group.id || group.name);
     const selectedOptKey = selectedVariants[groupKey];
@@ -108,14 +131,39 @@ const ProductCustomizeDialog = ({
         (o: any) => String(o.id || o.name || o.label) === selectedOptKey
       );
       if (foundOpt) {
-        variantPriceAdjustment += Number(foundOpt.priceAdjustment || foundOpt.price) || 0;
+        const optPrice = Number(foundOpt.priceAdjustment ?? foundOpt.price) || 0;
+        const groupName = String(group.name || "");
+        const optLabel = String(foundOpt.label || foundOpt.name || "");
+
+        selectedVariantDetails.push({
+          name: groupName,
+          option: optLabel,
+          price: optPrice,
+        });
+
+        const hasFullPriceOption =
+          (product.price > 0 &&
+            group.options.some(
+              (o: any) => (Number(o.priceAdjustment ?? o.price) || 0) >= product.price,
+            )) ||
+          product.price === 0;
+
+        const isAbsoluteTier = hasFullPriceOption && optPrice > 0;
+
+        if (isAbsoluteTier && !hasReplacedBasePrice) {
+          effectiveBasePrice = optPrice;
+          hasReplacedBasePrice = true;
+        } else {
+          variantAdditionalAdjustment += optPrice;
+        }
       }
     }
   });
 
+  const unitPrice = effectiveBasePrice + variantAdditionalAdjustment;
   const selectedExtras = extras.filter((extra) => extra.selected);
   const extrasTotal = selectedExtras.reduce((sum, extra) => sum + extra.price, 0);
-  const total = (product.price + variantPriceAdjustment + extrasTotal) * qty;
+  const total = (unitPrice + extrasTotal) * qty;
 
   const toggleExtra = (id: string) =>
     setExtras((prev) =>
@@ -194,7 +242,7 @@ const ProductCustomizeDialog = ({
                               }))
                             }
                             className={cn(
-                              "flex w-full flex-col items-center justify-center gap-2 rounded-[5px] px-6 py-4 text-center transition-colors cursor-pointer",
+                              "flex w-full flex-col items-center justify-center gap-2 rounded-[5px] px-6 py-4 text-center transition-all duration-150 cursor-pointer active:scale-95",
                               isSelected
                                 ? "bg-[#F5F0EA] outline outline-2 outline-offset-[-2px] outline-[#4A3F33]"
                                 : "bg-white outline outline-[1.5px] outline-offset-[-1.5px] outline-[#CACBD4] hover:bg-gray-50",
@@ -371,23 +419,23 @@ const ProductCustomizeDialog = ({
             <div className="flex items-center gap-[10px]">
               <button
                 type="button"
-                className="flex size-7 items-center justify-center rounded-[5.71px] border border-[#E5E5E5] bg-white p-[6px] text-black transition-colors hover:bg-gray-50 cursor-pointer disabled:opacity-40"
+                className="group/btn flex size-7 items-center justify-center rounded-[5.71px] border border-[#E5E5E5] bg-white p-[6px] text-black transition-all duration-150 hover:bg-gray-100 active:scale-90 cursor-pointer disabled:opacity-40"
                 aria-label={t("Decrease")}
                 disabled={qty <= 1}
                 onClick={() => setQty((value) => Math.max(1, value - 1))}
               >
-                <Minus className="size-3.5 text-black" />
+                <Minus className="size-3.5 text-black transition-transform duration-150 group-hover/btn:scale-125" />
               </button>
               <span className="min-w-4 text-center text-[13px] font-bold tracking-[0.26px] text-black">
                 {qty}
               </span>
               <button
                 type="button"
-                className="flex size-7 items-center justify-center rounded-[5.71px] border border-[#E5E5E5] bg-white p-[6px] text-black transition-colors hover:bg-gray-50 cursor-pointer"
+                className="group/btn flex size-7 items-center justify-center rounded-[5.71px] border border-[#E5E5E5] bg-white p-[6px] text-black transition-all duration-150 hover:bg-gray-100 active:scale-90 cursor-pointer"
                 aria-label={t("Increase")}
                 onClick={() => setQty((value) => value + 1)}
               >
-                <Plus className="size-3.5 text-black" />
+                <Plus className="size-3.5 text-black transition-transform duration-150 group-hover/btn:rotate-90" />
               </button>
             </div>
           </div>
@@ -400,14 +448,14 @@ const ProductCustomizeDialog = ({
             <Button
               type="button"
               variant="outline"
-              className="h-[56px] px-[30px] py-4 rounded-[5px] border border-[#8F6900] bg-white text-[16px] font-semibold text-[#8F6900] transition-colors hover:bg-[#F5F0EA] cursor-pointer"
+              className="h-[56px] px-[30px] py-4 rounded-[5px] border border-[#8F6900] bg-white text-[16px] font-semibold text-[#8F6900] active:scale-[0.98] cursor-pointer"
               onClick={() => onOpenChange(false)}
             >
               {t("Cancel")}
             </Button>
             <Button
               type="button"
-              className="h-[56px] px-[30px] py-4 rounded-[5px] bg-[#8F6900] text-[16px] font-semibold text-white transition-colors hover:bg-[#8F6900]/90 cursor-pointer"
+              className="h-[56px] px-[30px] py-4 rounded-[5px] bg-[#8F6900] text-[16px] font-semibold text-white active:scale-[0.98] cursor-pointer"
               onClick={() => {
                 const excludedIngredients: Array<{ productId: string; name: string }> = [];
                 recipeItems.forEach((item: any, index: number) => {
@@ -428,6 +476,9 @@ const ProductCustomizeDialog = ({
                   instructions,
                   qty,
                   excludedIngredients: excludedIngredients.length > 0 ? excludedIngredients : undefined,
+                  unitPrice,
+                  variants: selectedVariantDetails,
+                  selectedVariants,
                 });
               }}
             >

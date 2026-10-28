@@ -7,6 +7,7 @@ export type PosCategory = {
   id: string;
   label: string;
   imageUrl: string;
+  image?: string;
 };
 
 /** An optional add-on a product can be customized with. */
@@ -47,6 +48,8 @@ export type CartItem = {
   extras: CartExtra[];
   instructions?: string;
   excludedIngredients?: Array<{ productId: string; name: string }>;
+  variants?: Array<{ name: string; option: string; price?: number }>;
+  selectedVariants?: Record<string, string>;
 };
 
 export type StaffPosition = "Admin" | "Manager" | "Barista" | "Staff";
@@ -97,12 +100,21 @@ export type PendingOrder = {
     qty: number;
     unitPrice: number;
     instructions?: string;
+    extras?: CartExtra[];
+    variants?: Array<{ name: string; option: string; price?: number }>;
   }>;
   guestCount?: number;
   customerCount?: number;
   customerName?: string;
   customerPhone?: string;
   notes?: string;
+  discount?: number;
+  discountAmount?: number;
+  discountValue?: number;
+  discountReason?: string;
+  gross?: number;
+  subtotal?: number;
+  tax?: number;
 };
 
 /** Totals derived from the current cart. */
@@ -123,3 +135,48 @@ export type PosCustomer = {
   tier?: string;
   loyaltyPoints?: number;
 };
+
+/**
+ * Strips variant descriptors (e.g. "Size: S", "Size: Large") from item notes
+ * so that variants are not erroneously treated as customer special instructions.
+ */
+export function extractCleanItemNotes(
+  notes?: string,
+  variants?: Array<{ name?: string; group?: string; option?: string }>,
+): string {
+  if (!notes || typeof notes !== "string") return "";
+  const trimmed = notes.trim();
+  if (!trimmed) return "";
+
+  // Split by common delimiters (e.g. " - ", ",", or ";")
+  const parts = trimmed.split(/\s*-\s*|,\s*|;\s*/);
+  const nonVariantParts = parts.filter((part) => {
+    const cleanPart = part.trim().toLowerCase();
+    if (!cleanPart) return false;
+
+    // Check against provided variants
+    if (variants && variants.length > 0) {
+      const isVariant = variants.some((v) => {
+        const group = (v.group || v.name || "").trim().toLowerCase();
+        const option = (v.option || "").trim().toLowerCase();
+        if (!option) return false;
+        return (
+          cleanPart === `${group}: ${option}` ||
+          cleanPart === `${group}:${option}` ||
+          cleanPart === option
+        );
+      });
+      if (isVariant) return false;
+    }
+
+    // Generic match for typical variant patterns (e.g. "Size: S", "Roast Level: Medium", etc.)
+    if (/^(size|roast\s*level|grind\s*type|type):\s*[A-Za-z0-9_-]+$/i.test(cleanPart)) {
+      return false;
+    }
+
+    return true;
+  });
+
+  return nonVariantParts.join(" - ").trim();
+}
+

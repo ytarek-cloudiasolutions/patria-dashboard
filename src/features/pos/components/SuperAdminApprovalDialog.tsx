@@ -101,14 +101,14 @@ const SuperAdminApprovalDialog = ({
               type="button"
               variant="outline"
               onClick={onCancel}
-              className="h-[50px] min-w-[120px] px-6 rounded-[5px] border border-[#8F6900] bg-white text-[16px] font-semibold text-[#8F6900] hover:bg-[#F5F0EA] transition-colors cursor-pointer disabled:opacity-60"
+              className="h-[50px] min-w-[120px] px-6 rounded-[5px] border border-[#8F6900] bg-white text-[16px] font-semibold text-[#8F6900] active:scale-[0.98] transition-all duration-150 cursor-pointer disabled:opacity-60"
             >
               {t("Cancel")}
             </Button>
             <Button
               type="submit"
               disabled={!email.trim() || !password}
-              className="h-[50px] min-w-[130px] px-6 rounded-[5px] bg-[#8F6900] text-[16px] font-semibold text-white hover:bg-[#8F6900]/90 transition-colors cursor-pointer disabled:opacity-50"
+              className="h-[50px] min-w-[130px] px-6 rounded-[5px] bg-[#8F6900] text-[16px] font-semibold text-white active:scale-[0.98] transition-all duration-150 cursor-pointer disabled:opacity-50"
             >
               {t("Confirm")}
             </Button>

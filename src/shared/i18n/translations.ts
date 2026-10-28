@@ -347,6 +347,7 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   "Back to Kitchens": "العودة إلى المطابخ",
   "Low Stock": "مخزون منخفض",
   Takeaway: "طلب خارجي",
+  "Takeaway is disabled for an active dine-in table order": "الطلبات الخارجية معطلة لطلبات الصالة النشطة",
   "Dine-In": "داخل المطعم",
   Rejected: "مرفوض",
   Received: "استُلم",

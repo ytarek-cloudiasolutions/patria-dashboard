@@ -9,6 +9,8 @@ import type { CartItem } from "../types";
 import { formatEgp } from "../utils";
 import { generateKitchenReceiptHtml } from "@/features/orders/utils/kitchenReceipt";
 import { generateCustomerReceiptHtml } from "@/features/orders/utils/customerReceipt";
+import { printHtmlInCurrentTab } from "@/shared/lib/printHtml";
+import { cn } from "@/lib/utils";
 
 export type OrderConfirmedMode = "order" | "payment";
 
@@ -26,6 +28,11 @@ export type OrderConfirmedDialogProps = {
   guestCount?: number;
   mode?: OrderConfirmedMode;
   notes?: string;
+  subtotal?: number;
+  extras?: number;
+  tax?: number;
+  discount?: number;
+  discountName?: string;
   onNewOrder: () => void;
 };
 
@@ -43,6 +50,11 @@ const OrderConfirmedDialog = ({
   guestCount = 0,
   mode = "payment",
   notes,
+  subtotal,
+  extras,
+  tax,
+  discount,
+  discountName,
   onNewOrder,
 }: OrderConfirmedDialogProps) => {
   const { t } = useTranslation();
@@ -75,11 +87,22 @@ const OrderConfirmedDialog = ({
       })),
     });
 
-    const subtotalCalc = cartItems.reduce((sum, item) => {
-      const extrasTotal =
-        item.extras?.filter((e) => e.selected).reduce((s, e) => s + (e.price || 0), 0) || 0;
-      return sum + (item.unitPrice + extrasTotal) * item.qty;
+    const calculatedBaseSubtotal = cartItems.reduce((sum, item) => sum + item.unitPrice * item.qty, 0);
+    const calculatedExtrasTotal = cartItems.reduce((sum, item) => {
+      const ex = item.extras?.filter((e) => e.selected).reduce((s, e) => s + (e.price || 0), 0) || 0;
+      return sum + ex * item.qty;
     }, 0);
+
+    const effectiveSubtotal = typeof subtotal === "number" && subtotal > 0 ? subtotal : calculatedBaseSubtotal;
+    const effectiveExtras = typeof extras === "number" ? extras : calculatedExtrasTotal;
+    const effectiveDiscount = discount || 0;
+    const computedTax = (effectiveSubtotal + effectiveExtras - effectiveDiscount) * 0.14;
+    const effectiveTax =
+      typeof tax === "number" && tax > 0
+        ? tax
+        : totalAmount > effectiveSubtotal
+          ? Number((totalAmount - (effectiveSubtotal + effectiveExtras - effectiveDiscount)).toFixed(2))
+          : Math.max(0, computedTax);
 
     const customerHtml = generateCustomerReceiptHtml({
       orderNumber: String(orderNumber),
@@ -91,10 +114,14 @@ const OrderConfirmedDialog = ({
       customerPhone: customerPhone,
       paymentMethod: paymentMethod,
       status: "paid",
-      subtotal: subtotalCalc > 0 ? subtotalCalc : totalAmount,
+      subtotal: effectiveSubtotal > 0 ? effectiveSubtotal : totalAmount,
+      extras: effectiveExtras,
+      tax: effectiveTax,
+      discount: effectiveDiscount,
+      discountName: discountName,
       total: totalAmount,
-      guestCount: guestCount,
-      costPerPerson: calculatedCostPerPerson,
+      guestCount: orderType === "dine-in" ? guestCount : undefined,
+      costPerPerson: orderType === "dine-in" ? calculatedCostPerPerson : undefined,
       items: cartItems.map((item) => {
         const extrasTotal =
           item.extras?.filter((e) => e.selected).reduce((s, e) => s + (e.price || 0), 0) || 0;
@@ -113,16 +140,7 @@ const OrderConfirmedDialog = ({
     });
 
     const html = type === "customer" ? customerHtml : kitchenHtml;
-    const win = window.open("", "_blank");
-    if (win) {
-      win.document.write(html);
-      win.document.close();
-      win.focus();
-      setTimeout(() => {
-        win.print();
-        win.close();
-      }, 250);
-    }
+    printHtmlInCurrentTab(html);
   };
 
   return (
@@ -140,7 +158,7 @@ const OrderConfirmedDialog = ({
             <button
               type="button"
               onClick={() => onOpenChange(false)}
-              className="flex size-8 items-center justify-center rounded-full text-black hover:bg-[#F3F4F6] transition-colors cursor-pointer"
+              className="flex size-8 items-center justify-center rounded-full text-black transition-transform duration-150 hover:scale-125 active:scale-90 cursor-pointer"
             >
               <X className="size-5" />
             </button>
@@ -165,9 +183,16 @@ const OrderConfirmedDialog = ({
           </div>
 
           {/* Cards Grid */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div
+            className={cn(
+              "grid gap-4",
+              orderType === "dine-in"
+                ? "grid-cols-1 sm:grid-cols-2"
+                : "grid-cols-1",
+            )}
+          >
             {/* Total Card */}
-            <div className="flex flex-col items-center justify-center gap-2 rounded-[8px] border border-[#E5E5E5] bg-[#FAFAF7] px-4 py-6 text-center">
+            <div className="flex flex-col items-center justify-center gap-2 rounded-[8px] border border-[#E5E5E5] bg-[#FAFAF7] px-4 py-6 text-center transition-all duration-200 hover:border-[#D4D4D8] hover:shadow-xs">
               <Banknote className="size-5 text-black stroke-[1.8]" />
               <div className="flex flex-col items-center gap-0.5 w-full">
                 <span className="text-[12px] font-medium text-[#737373]">
@@ -179,18 +204,20 @@ const OrderConfirmedDialog = ({
               </div>
             </div>
 
-            {/* Cost per person Card */}
-            <div className="flex flex-col items-center justify-center gap-2 rounded-[8px] border border-[#E5E5E5] bg-[#FAFAF7] px-4 py-6 text-center">
-              <Users className="size-5 text-black stroke-[1.8]" />
-              <div className="flex flex-col items-center gap-0.5 w-full">
-                <span className="text-[12px] font-medium text-[#737373]">
-                  {t("Cost per person")} ({guestCount || 1})
-                </span>
-                <span className="text-[15px] font-bold text-black">
-                  {formatEgp(calculatedCostPerPerson)}
-                </span>
+            {/* Cost per person Card (Only for dine-in orders) */}
+            {orderType === "dine-in" && (
+              <div className="flex flex-col items-center justify-center gap-2 rounded-[8px] border border-[#E5E5E5] bg-[#FAFAF7] px-4 py-6 text-center transition-all duration-200 hover:border-[#D4D4D8] hover:shadow-xs">
+                <Users className="size-5 text-black stroke-[1.8]" />
+                <div className="flex flex-col items-center gap-0.5 w-full">
+                  <span className="text-[12px] font-medium text-[#737373]">
+                    {t("Cost per person")} ({guestCount || 1})
+                  </span>
+                  <span className="text-[15px] font-bold text-black">
+                    {formatEgp(calculatedCostPerPerson)}
+                  </span>
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Separator */}
@@ -202,18 +229,18 @@ const OrderConfirmedDialog = ({
               <button
                 type="button"
                 onClick={() => handlePrint("customer")}
-                className="flex h-[56px] w-full items-center justify-center gap-2.5 rounded-[5px] border border-[#8F6900] bg-white px-4 text-[16px] font-semibold text-[#8F6900] whitespace-nowrap cursor-pointer"
+                className="group flex h-[56px] w-full items-center justify-center gap-2.5 rounded-[5px] border border-[#8F6900] bg-white px-4 text-[16px] font-semibold text-[#8F6900] whitespace-nowrap transition-all duration-150 hover:bg-[#F5F0EA] active:scale-[0.98] cursor-pointer"
               >
-                <Printer className="size-5 shrink-0 text-[#8F6900]" />
+                <Printer className="size-5 shrink-0 text-[#8F6900] transition-transform duration-200 group-hover:scale-110" />
                 <span>{t("Print Customer Receipt")}</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => handlePrint("kitchen")}
-                className="flex h-[56px] w-full items-center justify-center gap-2.5 rounded-[5px] bg-[#8F6900] px-4 text-[16px] font-semibold text-white whitespace-nowrap cursor-pointer"
+                className="group flex h-[56px] w-full items-center justify-center gap-2.5 rounded-[5px] bg-[#8F6900] px-4 text-[16px] font-semibold text-white whitespace-nowrap transition-all duration-150 hover:bg-[#8F6900]/90 active:scale-[0.98] cursor-pointer"
               >
-                <Printer className="size-5 shrink-0 text-white" />
+                <Printer className="size-5 shrink-0 text-white transition-transform duration-200 group-hover:scale-110" />
                 <span>{t("Print Kitchen Receipt")}</span>
               </button>
             </div>
@@ -222,7 +249,7 @@ const OrderConfirmedDialog = ({
               <button
                 type="button"
                 onClick={() => onOpenChange(false)}
-                className="flex h-[56px] items-center justify-center rounded-[5px] border border-[#8F6900] bg-white px-[30px] py-4 text-[16px] font-semibold text-[#8F6900] whitespace-nowrap cursor-pointer"
+                className="flex h-[56px] items-center justify-center rounded-[5px] border border-[#8F6900] bg-white px-[30px] py-4 text-[16px] font-semibold text-[#8F6900] whitespace-nowrap active:scale-[0.98] cursor-pointer"
               >
                 {t("Cancel")}
               </button>
@@ -230,9 +257,9 @@ const OrderConfirmedDialog = ({
               <button
                 type="button"
                 onClick={() => handlePrint(isOrderMode ? "kitchen" : "customer")}
-                className="flex h-[56px] items-center justify-center gap-2.5 rounded-[5px] bg-[#8F6900] px-[30px] py-4 text-[16px] font-semibold text-white whitespace-nowrap cursor-pointer"
+                className="group flex h-[56px] items-center justify-center gap-2.5 rounded-[5px] bg-[#8F6900] px-[30px] py-4 text-[16px] font-semibold text-white whitespace-nowrap transition-all duration-150 hover:bg-[#8F6900]/90 active:scale-[0.98] cursor-pointer"
               >
-                <Printer className="size-5 shrink-0 text-white" />
+                <Printer className="size-5 shrink-0 text-white transition-transform duration-200 group-hover:scale-110" />
                 <span>
                   {isOrderMode
                     ? t("Print Kitchen Receipt")

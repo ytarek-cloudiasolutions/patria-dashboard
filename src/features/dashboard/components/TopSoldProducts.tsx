@@ -35,7 +35,7 @@ const TopSoldProducts = ({ products }: TopSoldProductsProps) => {
           return (
             <div
               key={product.id}
-              className="group/row grid grid-cols-[1fr_minmax(70px,160px)_24px] items-center gap-2 sm:grid-cols-[minmax(120px,1fr)_minmax(120px,220px)_24px] sm:gap-2.5 px-2 -mx-2 rounded-lg cursor-default transition-all duration-200 ease-out hover:bg-[#FAFAF7] hover:translate-x-1 rtl:hover:-translate-x-1"
+              className="group/row grid grid-cols-[1fr_minmax(70px,160px)_24px] items-center gap-2 sm:grid-cols-[minmax(120px,1fr)_minmax(120px,220px)_24px] sm:gap-2.5 cursor-default transition-all duration-200 ease-out hover:translate-x-1 rtl:hover:-translate-x-1"
             >
               <p className="flex items-center gap-2 text-[12px] font-medium text-[#000000]">
                 <span className="font-bold">{product.rank}</span>

@@ -527,12 +527,12 @@ export const AvailabilityModal: React.FC<AvailabilityModalProps> = ({
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200 w-screen h-screen">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in-0 duration-200 ease-out w-screen h-screen">
       {!selectedCategory ? (
         /* ═══════════════════════════════════════════════
            VIEW 1: Categories Overview (Exact Figma Spec)
            ═══════════════════════════════════════════════ */
-        <div className="w-[1160px] max-w-[95vw] p-6 bg-white rounded-xl shadow-[0px_4px_6px_-4px_rgba(0,0,0,0.10)] shadow-lg outline outline-1 outline-offset-[-1px] outline-[#E5E5E5] flex flex-col justify-start items-start gap-6 overflow-hidden max-h-[90vh]">
+        <div className="w-[1160px] max-w-[95vw] p-6 bg-white rounded-xl shadow-[0px_4px_6px_-4px_rgba(0,0,0,0.10)] shadow-lg outline outline-1 outline-offset-[-1px] outline-[#E5E5E5] flex flex-col justify-start items-start gap-6 overflow-hidden max-h-[90vh] animate-in fade-in-0 zoom-in-95 duration-200 ease-out">
           {/* Header */}
           <div className="self-stretch flex justify-between items-center">
             <div className="flex flex-col justify-start items-start gap-0.5">
@@ -551,7 +551,7 @@ export const AvailabilityModal: React.FC<AvailabilityModalProps> = ({
               <button
                 type="button"
                 onClick={loadData}
-                className="p-2.5 bg-[#F5F0EA] rounded-lg flex justify-center items-center gap-3 hover:bg-[#EDE6DC] transition-colors cursor-pointer"
+                className="p-2.5 bg-[#F5F0EA] rounded-lg flex justify-center items-center gap-3 hover:bg-[#EDE6DC] active:scale-95 transition-all duration-150 cursor-pointer"
                 title={t("Refresh")}
               >
                 <RefreshCw
@@ -561,7 +561,7 @@ export const AvailabilityModal: React.FC<AvailabilityModalProps> = ({
               <button
                 type="button"
                 onClick={() => onOpenChange(false)}
-                className="size-6 flex justify-center items-center text-[#000000] hover:text-[#595959] cursor-pointer"
+                className="size-6 flex justify-center items-center text-[#000000] hover:text-[#595959] hover:scale-110 active:scale-90 transition-all duration-150 cursor-pointer"
                 title={t("Close")}
               >
                 <X className="size-4" />
@@ -579,7 +579,7 @@ export const AvailabilityModal: React.FC<AvailabilityModalProps> = ({
           </div>
 
           {/* Categories Grid (w-[1112px] flex-wrap) */}
-          <div className="self-stretch overflow-y-auto max-h-[62vh] pr-1">
+          <div className="self-stretch overflow-y-auto max-h-[62vh] p-1 pt-1.5 pb-2">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredCategories.map((cat) => (
                 <div
@@ -588,17 +588,17 @@ export const AvailabilityModal: React.FC<AvailabilityModalProps> = ({
                     setSelectedCategory(cat);
                     setProductSearch("");
                   }}
-                  className="p-3 bg-[#FAFAF7] rounded-xl outline outline-2 outline-offset-[-2px] outline-[#E5E5E5] hover:outline-[#8F6900] flex flex-col justify-center items-start gap-2 cursor-pointer transition-all"
+                  className="group p-3 bg-[#FAFAF7] rounded-xl outline outline-2 outline-offset-[-2px] outline-[#E5E5E5] hover:outline-[#8F6900] hover:bg-[#F5F0EA]/40 flex flex-col justify-center items-start gap-2 cursor-pointer transition-all duration-200 ease-out"
                 >
                   <div className="inline-flex justify-start items-center gap-4">
                     {cat.imageUrl ? (
                       <img
-                        className="size-14 rounded-xl border-[0.47px] border-[#E5E5E5] object-cover"
+                        className="size-14 rounded-xl border-[0.47px] border-[#E5E5E5] object-cover transition-transform duration-200 group-hover:scale-105"
                         src={cat.imageUrl}
                         alt={cat.name}
                       />
                     ) : (
-                      <div className="size-14 rounded-xl border-[0.47px] border-[#E5E5E5] bg-[#F5F0EA] flex items-center justify-center text-[#8F6900]">
+                      <div className="size-14 rounded-xl border-[0.47px] border-[#E5E5E5] bg-[#F5F0EA] flex items-center justify-center text-[#8F6900] transition-transform duration-200 group-hover:scale-105">
                         <Package className="size-7" />
                       </div>
                     )}
@@ -643,7 +643,7 @@ export const AvailabilityModal: React.FC<AvailabilityModalProps> = ({
                         </div>
                       </div>
                     )}
-                    <ArrowRight className="size-3.5 text-[#8F6900]" />
+                    <ArrowRight className="size-3.5 text-[#8F6900] transition-transform duration-200 group-hover:translate-x-1 rtl:group-hover:-translate-x-1" />
                   </div>
                 </div>
               ))}
@@ -655,14 +655,14 @@ export const AvailabilityModal: React.FC<AvailabilityModalProps> = ({
            VIEW 2: Category Products View (Exact Figma Spec)
            Shows REAL Products for the Selected Category
            ═══════════════════════════════════════════════ */
-        <div className="w-[800px] max-w-[95vw] p-6 bg-white rounded-xl shadow-[0px_4px_6px_-4px_rgba(0,0,0,0.10)] shadow-lg outline outline-1 outline-offset-[-1px] outline-[#E5E5E5] flex flex-col justify-start items-start gap-6 overflow-hidden max-h-[90vh]">
+        <div className="w-[800px] max-w-[95vw] p-6 bg-white rounded-xl shadow-[0px_4px_6px_-4px_rgba(0,0,0,0.10)] shadow-lg outline outline-1 outline-offset-[-1px] outline-[#E5E5E5] flex flex-col justify-start items-start gap-6 overflow-hidden max-h-[90vh] animate-in fade-in-0 zoom-in-95 duration-200 ease-out">
           {/* Header */}
           <div className="self-stretch flex justify-between items-center">
             <div className="flex justify-start items-center gap-3">
               <button
                 type="button"
                 onClick={() => setSelectedCategory(null)}
-                className="p-2 rounded-lg border border-[#E5E5E5] text-[#595959] hover:bg-[#F5F0EA] hover:text-[#333333] transition-colors cursor-pointer"
+                className="p-2 rounded-lg border border-[#E5E5E5] text-[#595959] hover:bg-[#F5F0EA] hover:text-[#333333] active:scale-95 transition-all duration-150 cursor-pointer"
                 title={t("Back to categories")}
               >
                 <ArrowLeft className="size-4" />
@@ -691,7 +691,7 @@ export const AvailabilityModal: React.FC<AvailabilityModalProps> = ({
               <button
                 type="button"
                 onClick={loadData}
-                className="p-2.5 bg-[#F5F0EA] rounded-lg flex justify-center items-center gap-3 hover:bg-[#EDE6DC] transition-colors cursor-pointer"
+                className="p-2.5 bg-[#F5F0EA] rounded-lg flex justify-center items-center gap-3 hover:bg-[#EDE6DC] active:scale-95 transition-all duration-150 cursor-pointer"
                 title={t("Refresh")}
               >
                 <RefreshCw
@@ -704,7 +704,7 @@ export const AvailabilityModal: React.FC<AvailabilityModalProps> = ({
                   setSelectedCategory(null);
                   onOpenChange(false);
                 }}
-                className="size-6 flex justify-center items-center text-[#000000] hover:text-[#595959] cursor-pointer"
+                className="size-6 flex justify-center items-center text-[#000000] hover:text-[#595959] hover:scale-110 active:scale-90 transition-all duration-150 cursor-pointer"
                 title={t("Close")}
               >
                 <X className="size-4" />
@@ -745,7 +745,7 @@ export const AvailabilityModal: React.FC<AvailabilityModalProps> = ({
                 <div
                   key={p.id}
                   onClick={() => handleOpenStatusDialog(p)}
-                  className="py-3 grid grid-cols-[2fr_1fr_1.2fr_1.5fr] items-center gap-2 hover:bg-[#FAFAF7] transition-colors rounded-lg px-2 cursor-pointer"
+                  className="py-3 grid grid-cols-[2fr_1fr_1.2fr_1.5fr] items-center gap-2 hover:bg-[#F5F0EA]/60 hover:shadow-2xs active:scale-[0.995] transition-all duration-150 ease-out rounded-lg px-2 cursor-pointer"
                 >
                   {/* Product info: img + name */}
                   <div className="flex items-center gap-3 min-w-0">
@@ -800,7 +800,7 @@ export const AvailabilityModal: React.FC<AvailabilityModalProps> = ({
                         e.stopPropagation();
                         handleOpenStatusDialog(p);
                       }}
-                      className={`px-3 py-1 rounded-[30px] outline outline-1 outline-offset-[-1px] inline-flex justify-center items-center cursor-pointer transition-transform hover:scale-105 ${getStatusPillStyle(
+                      className={`px-3 py-1 rounded-[30px] outline outline-1 outline-offset-[-1px] inline-flex justify-center items-center cursor-pointer transition-all duration-150 hover:scale-105 active:scale-95 hover:shadow-xs ${getStatusPillStyle(
                         p.status
                       )}`}
                     >
@@ -834,11 +834,11 @@ export const AvailabilityModal: React.FC<AvailabilityModalProps> = ({
               selectedTarget: "everywhere",
             })
           }
-          className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-150"
+          className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-200 ease-out"
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-[658px] max-w-[95vw] p-6 bg-white rounded-xl shadow-[0px_4px_6px_-4px_rgba(0,0,0,0.10)] shadow-lg outline outline-1 outline-offset-[-1px] outline-[#E5E5E5] flex flex-col justify-center items-end gap-6 overflow-hidden"
+            className="w-[658px] max-w-[95vw] p-6 bg-white rounded-xl shadow-[0px_4px_6px_-4px_rgba(0,0,0,0.10)] shadow-lg outline outline-1 outline-offset-[-1px] outline-[#E5E5E5] flex flex-col justify-center items-end gap-6 overflow-hidden animate-in fade-in-0 zoom-in-95 duration-200 ease-out"
           >
             {/* Header */}
             <div className="self-stretch flex justify-start items-center gap-3">
@@ -976,7 +976,7 @@ export const AvailabilityModal: React.FC<AvailabilityModalProps> = ({
                     selectedTarget: "everywhere",
                   })
                 }
-                className="h-14 px-7 py-4 rounded-[5px] outline outline-1 outline-offset-[-1px] outline-[#8F6900] flex justify-center items-center gap-3 cursor-pointer hover:bg-[#F5F0EA] transition-colors"
+                className="h-14 px-7 py-4 rounded-[5px] outline outline-1 outline-offset-[-1px] outline-[#8F6900] bg-white flex justify-center items-center gap-3 cursor-pointer"
               >
                 <span className="text-[#8F6900] text-base font-semibold font-['Montserrat'] leading-6">
                   {t("Cancel")}
@@ -985,7 +985,7 @@ export const AvailabilityModal: React.FC<AvailabilityModalProps> = ({
               <button
                 type="button"
                 onClick={handleConfirmTargetChange}
-                className="h-14 px-7 py-4 bg-[#8F6900] rounded-[5px] flex justify-center items-center gap-3 cursor-pointer hover:bg-[#7a5b00] transition-colors"
+                className="h-14 px-7 py-4 bg-[#8F6900] rounded-[5px] flex justify-center items-center gap-3 cursor-pointer"
               >
                 <span className="text-white text-base font-semibold font-['Montserrat'] leading-6">
                   {t("Confirm")}

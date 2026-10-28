@@ -345,20 +345,20 @@ const PendingApprovalsWidget = ({
               {/* Header */}
               <div
                 onClick={() => setIsOpen(false)}
-                className="w-full bg-[#F5F0EA] px-4 py-3 flex items-center justify-between cursor-pointer select-none rounded-t-[14px]"
+                className="group w-full bg-[#F5F0EA] px-4 py-3 flex items-center justify-between cursor-pointer select-none rounded-t-[14px] transition-colors"
               >
                 <div className="flex items-center gap-2">
                   <div className="flex items-center gap-1">
-                    <ShieldCheck className="size-4 text-[#8F6900] shrink-0" />
+                    <ShieldCheck className="size-4 text-[#8F6900] shrink-0 transition-transform duration-200 group-hover:scale-110" />
                     <span className="text-[14px] font-semibold text-[#8F6900] leading-[24px]">
                       {t("Pending Approvals")}
                     </span>
                   </div>
-                  <div className="size-6 rounded-[50px] bg-[#8F6900] text-white text-[12px] font-bold tracking-[0.24px] flex items-center justify-center shrink-0">
+                  <div className="size-6 rounded-[50px] bg-[#8F6900] text-white text-[12px] font-bold tracking-[0.24px] flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105">
                     {count}
                   </div>
                 </div>
-                <ChevronDown className="size-6 text-black shrink-0" />
+                <ChevronDown className="size-6 text-black shrink-0 transition-transform duration-200 group-hover:translate-y-0.5" />
               </div>
 
               {/* Content List */}

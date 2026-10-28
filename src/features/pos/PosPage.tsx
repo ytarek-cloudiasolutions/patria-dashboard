@@ -31,19 +31,21 @@ import {
 import { playNotificationSound } from "@/shared/lib/notificationSound";
 import { getSocket } from "@/shared/lib/socket";
 
+import patriaLogo from "@/assets/images/svgs/patria-logo.svg";
 import {
   EMPLOYEE_ACCOUNTS,
   nextLineId,
 } from "./data";
-import type {
-  CartExtra,
-  CartItem,
-  EmployeeAccount,
-  OrderType,
-  PendingOrder,
-  PosCategory,
-  PosProduct,
-  PaymentMethod,
+import {
+  type CartExtra,
+  type CartItem,
+  type EmployeeAccount,
+  type OrderType,
+  type PendingOrder,
+  type PosCategory,
+  type PosProduct,
+  type PaymentMethod,
+  extractCleanItemNotes,
 } from "./types";
 import { computeTotals, formatTime } from "./utils";
 import OpenShiftDialog from "./components/OpenShiftDialog";
@@ -160,6 +162,11 @@ const PosPage = () => {
     guestCount: number;
     mode?: "order" | "payment";
     notes?: string;
+    subtotal?: number;
+    extras?: number;
+    tax?: number;
+    discount?: number;
+    discountName?: string;
   } | null>(null);
   const [isShiftSummaryOpen, setShiftSummaryOpen] = useState(false);
   const [isSelectStaffOpen, setSelectStaffOpen] = useState(false);
@@ -180,6 +187,8 @@ const PosPage = () => {
     name: string;
     value: number;
     amount: number;
+    serverTotal?: number;
+    serverGross?: number;
   } | null>(null);
   const wasCreatingRef = useRef(false);
   const pendingPaymentRef = useRef<{ method: PaymentMethod; total: number } | null>(null);
@@ -456,12 +465,16 @@ const PosPage = () => {
     });
 
     const cats: PosCategory[] = [
-      { id: "all", label: "All", imageUrl: "" },
-      ...filteredCategories.map((c) => ({
-        id: (c.name || "").toLowerCase().replace(/\s+/g, "-"),
-        label: c.name,
-        imageUrl: "",
-      })),
+      { id: "all", label: "All", imageUrl: patriaLogo, image: patriaLogo },
+      ...filteredCategories.map((c) => {
+        const catImage = (c as any).image || c.imageUrl || "";
+        return {
+          id: (c.name || "").toLowerCase().replace(/\s+/g, "-"),
+          label: c.name,
+          image: catImage,
+          imageUrl: catImage,
+        };
+      }),
     ];
     return cats;
   }, [categories]);
@@ -477,7 +490,23 @@ const PosPage = () => {
     });
   }, [activeCategory, search, posProducts]);
 
-  const totals = useMemo(() => computeTotals(cartItems), [cartItems]);
+  const totals = useMemo(() => {
+    const base = computeTotals(cartItems);
+    if (!appliedDiscountInfo || appliedDiscountInfo.amount <= 0) {
+      return base;
+    }
+    const discountAmt = Math.min(base.total, appliedDiscountInfo.amount);
+    const finalTotal =
+      appliedDiscountInfo.serverTotal != null && Number.isFinite(appliedDiscountInfo.serverTotal)
+        ? appliedDiscountInfo.serverTotal
+        : Math.max(0, base.total - discountAmt);
+
+    return {
+      ...base,
+      discount: discountAmt,
+      total: finalTotal,
+    };
+  }, [cartItems, appliedDiscountInfo]);
   const cartProductIds = useMemo(
     () => cartItems.map((item) => item.productId),
     [cartItems],
@@ -561,13 +590,17 @@ const PosPage = () => {
     const recipe = await loadProductRecipe(line.productId);
     if (requestId !== customizeRequestRef.current) return;
 
+    const rawProduct = posProducts.find((p) => p.id === line.productId);
+
     setCustomizeProduct({
       id: line.productId,
       name: line.name,
-      price: line.unitPrice,
-      category: "",
-      imageUrl: "",
+      price: rawProduct?.price ?? line.unitPrice,
+      originalPrice: rawProduct?.originalPrice,
+      category: rawProduct?.category ?? "",
+      imageUrl: rawProduct?.imageUrl ?? "",
       extras: line.extras.map(({ id, name, price }) => ({ id, name, price })),
+      variantGroups: rawProduct?.variantGroups ?? [],
       recipe,
     });
     setEditingLine(line);
@@ -579,20 +612,38 @@ const PosPage = () => {
     instructions,
     qty,
     excludedIngredients,
+    unitPrice,
+    variants,
+    selectedVariants,
   }: {
     extras: CartExtra[];
     instructions: string;
     qty: number;
     excludedIngredients?: Array<{ productId: string; name: string }>;
+    unitPrice?: number;
+    variants?: Array<{ name: string; option: string; price?: number }>;
+    selectedVariants?: Record<string, string>;
   }) => {
     if (!customizeProduct) return;
+
+    const resolvedUnitPrice =
+      typeof unitPrice === "number" ? unitPrice : customizeProduct.price;
 
     if (editingLine) {
       const lineId = editingLine.lineId;
       setCartItems((prev) =>
         prev.map((item) =>
           item.lineId === lineId
-            ? { ...item, extras, instructions, qty, excludedIngredients }
+            ? {
+                ...item,
+                unitPrice: resolvedUnitPrice,
+                extras,
+                instructions,
+                qty,
+                excludedIngredients,
+                variants,
+                selectedVariants,
+              }
             : item,
         ),
       );
@@ -603,11 +654,13 @@ const PosPage = () => {
           lineId: nextLineId(),
           productId: customizeProduct.id,
           name: customizeProduct.name,
-          unitPrice: customizeProduct.price,
+          unitPrice: resolvedUnitPrice,
           qty,
           extras,
           instructions,
           excludedIngredients,
+          variants,
+          selectedVariants,
         },
       ]);
       // Adding a new product to an already-loaded pending order means there's
@@ -617,6 +670,39 @@ const PosPage = () => {
 
     setCustomizeOpen(false);
   };
+
+  const formatOrderItems = (items: CartItem[]) =>
+    items.map((item) => {
+      const activeExtras = (item.extras || []).filter((e) => e.selected);
+      return {
+        productId: item.productId,
+        name: item.name,
+        quantity: item.qty,
+        price: item.unitPrice,
+        notes: extractCleanItemNotes(item.instructions, item.variants) || undefined,
+        ...(item.variants && item.variants.length > 0
+          ? {
+              selectedVariants: item.variants.map((v) => ({
+                group: v.name,
+                option: v.option,
+                priceAdjustment: v.price || 0,
+              })),
+            }
+          : {}),
+        ...(activeExtras.length > 0
+          ? {
+              selectedExtras: activeExtras.map((e) => ({
+                id: e.id,
+                name: e.name,
+                price: e.price,
+              })),
+            }
+          : {}),
+        ...(item.excludedIngredients && item.excludedIngredients.length > 0
+          ? { excludedIngredients: item.excludedIngredients }
+          : {}),
+      };
+    });
 
   const handleTableChange = async (newTable: string) => {
     setSelectedTable(newTable);
@@ -682,14 +768,46 @@ const PosPage = () => {
               name: item.productId?.name || item.product?.name || item.name || "Unknown",
               qty: item.quantity || 1,
               unitPrice: item.price || item.productId?.price || 0,
-              extras: [],
-              instructions: item.notes || "",
+              extras: (item.selectedExtras || []).map((e: any) => ({
+                id: e._id || e.id || String(Math.random()),
+                name: e.name || "",
+                price: Number(e.price) || 0,
+                selected: true,
+              })),
+              instructions: extractCleanItemNotes(
+                item.notes,
+                (item.selectedVariants || []).map((v: any) => ({
+                  group: v.group || v.groupName || "",
+                  option: v.option || v.optionName || "",
+                })),
+              ),
+              variants: (item.selectedVariants || []).map((v: any) => ({
+                name: v.group || v.groupName || "",
+                option: v.option || v.optionName || "",
+                price: Number(v.priceAdjustment || v.price || 0),
+              })),
             }));
             setCartItems(loadedItems);
             setSentLineIds(new Set(loadedItems.map((item: CartItem) => item.lineId)));
           } else {
             setSentLineIds(new Set());
           }
+
+          const discAmt = Number(targetOrder.discountAmount || targetOrder.discount || 0);
+          if (discAmt > 0) {
+            setAppliedDiscountInfo({
+              name:
+                targetOrder.discountReason?.replace(/^Cashier discount:\s*/i, "").trim() ||
+                (targetOrder.discountValue ? `${targetOrder.discountValue}%` : "Discount"),
+              value: Number(targetOrder.discountValue) || 0,
+              amount: discAmt,
+              serverTotal: Number(targetOrder.total),
+              serverGross: Number(targetOrder.gross),
+            });
+          } else {
+            setAppliedDiscountInfo(null);
+          }
+
           setSentToKitchen(true);
         }
       } catch (err) {
@@ -739,16 +857,7 @@ const PosPage = () => {
         try {
           const { api } = await import("@/config/api");
           await api.patch(`/orders/${loadedOrderId}/items`, {
-            items: newItems.map((item) => ({
-              productId: item.productId,
-              name: item.name,
-              quantity: item.qty,
-              price: item.unitPrice,
-              notes: item.instructions || undefined,
-              ...(item.excludedIngredients && item.excludedIngredients.length > 0
-                ? { excludedIngredients: item.excludedIngredients }
-                : {}),
-            })),
+            items: formatOrderItems(newItems),
           });
           showSuccessToast("Sent to kitchen");
         } catch {
@@ -768,15 +877,7 @@ const PosPage = () => {
           customerName: customer || "Walk-in Customer",
           customerPhone: customerPhone || undefined,
           address: orderType === "dine-in" ? resolvedTable : undefined,
-          items: cartItems.map((item) => ({
-            productId: item.productId,
-            quantity: item.qty,
-            price: item.unitPrice,
-            notes: item.instructions || undefined,
-            ...(item.excludedIngredients && item.excludedIngredients.length > 0
-              ? { excludedIngredients: item.excludedIngredients }
-              : {}),
-          })),
+          items: formatOrderItems(cartItems),
           notes: notes || undefined,
           guestCount: orderType === "dine-in" && customerCount > 0 ? customerCount : undefined,
         });
@@ -890,15 +991,7 @@ const PosPage = () => {
     }
 
     const { createOrder } = await import("@/features/orders/api/ordersApi");
-    const orderItems = cartItems.map((item) => ({
-      productId: item.productId,
-      quantity: item.qty,
-      price: item.unitPrice,
-      notes: item.instructions || undefined,
-      ...(item.excludedIngredients && item.excludedIngredients.length > 0
-        ? { excludedIngredients: item.excludedIngredients }
-        : {}),
-    }));
+    const orderItems = formatOrderItems(cartItems);
 
     try {
       const created: any = await createOrder({
@@ -955,6 +1048,11 @@ const PosPage = () => {
       guestCount: customerCount,
       mode,
       notes: notes || undefined,
+      subtotal: totals.subtotal,
+      extras: totals.extras,
+      tax: totals.tax,
+      discount: discountInfo?.discountAmount ?? totals.discount ?? 0,
+      discountName: discountInfo?.name ?? (appliedDiscountInfo?.name ? `${appliedDiscountInfo.value}% ${appliedDiscountInfo.name}` : undefined),
     });
     if (discountInfo) {
       setAppliedDiscountInfo({
@@ -1042,15 +1140,7 @@ const PosPage = () => {
       return;
     }
 
-    const orderItems = cartItems.map((item) => ({
-      productId: item.productId,
-      quantity: item.qty,
-      price: item.unitPrice,
-      notes: item.instructions || undefined,
-      ...(item.excludedIngredients && item.excludedIngredients.length > 0
-        ? { excludedIngredients: item.excludedIngredients }
-        : {}),
-    }));
+    const orderItems = formatOrderItems(cartItems);
 
     // Brand new POS order: create it and pay via PATCH /orders/{id}/pay
     setPendingCreatePayload({ method });
@@ -1113,15 +1203,7 @@ const PosPage = () => {
     // it up) — it stays paymentStatus:"pending" until settled later from
     // the Employee Accounts panel, exactly like any other unpaid POS order.
     const { createOrder } = await import("@/features/orders/api/ordersApi");
-    const orderItems = cartItems.map((item) => ({
-      productId: item.productId,
-      quantity: item.qty,
-      price: item.unitPrice,
-      notes: item.instructions || undefined,
-      ...(item.excludedIngredients && item.excludedIngredients.length > 0
-        ? { excludedIngredients: item.excludedIngredients }
-        : {}),
-    }));
+    const orderItems = formatOrderItems(cartItems);
 
     let createdId: string | undefined;
     try {
@@ -1222,7 +1304,11 @@ const PosPage = () => {
 
   const handleOrderTypeChange = (type: OrderType) => {
     setOrderType(type);
-    setSentToKitchen(false);
+    if (loadedOrderId) {
+      setSentToKitchen(newItemsCount === 0);
+    } else {
+      setSentToKitchen(false);
+    }
   };
 
   const payEmployeeAccount = (account: EmployeeAccount) => {
@@ -1309,14 +1395,18 @@ const PosPage = () => {
     }
 
     if (order.items && order.items.length > 0) {
-      const loadedItems = order.items.map((item) => ({
+      const loadedItems: CartItem[] = order.items.map((item: any) => ({
         lineId: nextLineId(),
         productId: item.productId,
         name: item.name,
         unitPrice: item.unitPrice,
         qty: item.qty,
-        extras: [],
+        extras: (item.extras || []).map((e: any) => ({
+          ...e,
+          selected: true,
+        })),
         instructions: item.instructions || "",
+        variants: item.variants,
       }));
       setCartItems(loadedItems);
       // These items already exist on the backend order — only items added after this count as "new"
@@ -1324,6 +1414,22 @@ const PosPage = () => {
     } else {
       setSentLineIds(new Set());
     }
+
+    const discAmt = Number(order.discountAmount || order.discount || 0);
+    if (discAmt > 0) {
+      setAppliedDiscountInfo({
+        name:
+          order.discountReason?.replace(/^Cashier discount:\s*/i, "").trim() ||
+          (order.discountValue ? `${order.discountValue}%` : "Discount"),
+        value: Number(order.discountValue) || 0,
+        amount: discAmt,
+        serverTotal: Number(order.total),
+        serverGross: Number(order.gross),
+      });
+    } else {
+      setAppliedDiscountInfo(null);
+    }
+
     setPendingOpen(false);
   };
 
@@ -1418,8 +1524,24 @@ const PosPage = () => {
             item.product?.price ||
             0,
           qty: item.quantity || item.qty || 1,
-          extras: item.selectedExtras || [],
-          instructions: item.notes || "",
+          extras: (item.selectedExtras || []).map((e: any) => ({
+            id: e._id || e.id || String(Math.random()),
+            name: e.name || "",
+            price: Number(e.price) || 0,
+            selected: true,
+          })),
+          instructions: extractCleanItemNotes(
+            item.notes,
+            (item.selectedVariants || []).map((v: any) => ({
+              group: v.group || v.groupName || "",
+              option: v.option || v.optionName || "",
+            })),
+          ),
+          variants: (item.selectedVariants || []).map((v: any) => ({
+            name: v.group || v.groupName || "",
+            option: v.option || v.optionName || "",
+            price: Number(v.priceAdjustment || v.price || 0),
+          })),
         }));
         setCartItems(loadedItems);
         setSentLineIds(new Set(loadedItems.map((item: any) => item.lineId)));
@@ -1453,6 +1575,7 @@ const PosPage = () => {
             tableOptions={tableOptions}
             customerCount={customerCount}
             shiftOpen={isShiftActive}
+            isTakeawayDisabled={Boolean(loadedOrderId && orderType === "dine-in")}
             onOrderTypeChange={handleOrderTypeChange}
             onTableChange={handleTableChange}
             onCustomerCountChange={setCustomerCount}
@@ -1485,6 +1608,8 @@ const PosPage = () => {
             customerCount={customerCount}
             isShiftActive={isShiftActive}
             newItemsCount={newItemsCount}
+            isExistingOrder={Boolean(loadedOrderId)}
+            discountInfo={appliedDiscountInfo}
             onCustomerChange={setCustomer}
             onCustomerPhoneChange={setCustomerPhone}
             onNotesChange={setNotes}
@@ -1522,11 +1647,12 @@ const PosPage = () => {
 
       <PaymentDialog
         open={isPaymentOpen}
-        total={totals.total}
+        total={appliedDiscountInfo?.serverGross || (totals.subtotal + totals.extras + totals.tax)}
         isLoading={isCreatingOrder}
         orderId={loadedOrderId || undefined}
         onEnsureOrderId={handleEnsureOrderId}
         onOpenChange={setPaymentOpen}
+        onDiscountApplied={setAppliedDiscountInfo}
         onConfirm={confirmPayment}
       />
 
@@ -1568,6 +1694,11 @@ const PosPage = () => {
         guestCount={orderConfirmedData?.guestCount || customerCount}
         mode={orderConfirmedData?.mode || "payment"}
         notes={orderConfirmedData?.notes || notes || undefined}
+        subtotal={orderConfirmedData?.subtotal ?? totals.subtotal}
+        extras={orderConfirmedData?.extras ?? totals.extras}
+        tax={orderConfirmedData?.tax ?? totals.tax}
+        discount={orderConfirmedData?.discount ?? totals.discount}
+        discountName={orderConfirmedData?.discountName ?? (appliedDiscountInfo?.name ? `${appliedDiscountInfo.value}% ${appliedDiscountInfo.name}` : undefined)}
         onNewOrder={completeOrder}
       />
 

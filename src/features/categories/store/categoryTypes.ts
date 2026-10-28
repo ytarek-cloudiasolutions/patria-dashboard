@@ -5,6 +5,7 @@ export interface Category {
   name: string;
   nameAr?: string;
   imageUrl: string;
+  image?: string;
   itemCount: number;
   active: boolean;
   kitchenType?: KitchenType;

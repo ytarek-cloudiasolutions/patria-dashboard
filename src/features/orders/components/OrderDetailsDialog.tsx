@@ -19,6 +19,7 @@ import { showSuccessToast, showErrorToast } from "@/shared/utils/toast";
 import { mapOrder } from "../utils/orderMappers";
 import { generateKitchenReceiptHtml } from "../utils/kitchenReceipt";
 import { generateCustomerReceiptHtml } from "../utils/customerReceipt";
+import { printHtmlInCurrentTab } from "@/shared/lib/printHtml";
 
 interface OrderDetailsDialogProps {
   open: boolean;
@@ -267,6 +268,7 @@ const OrderDetailsDialog = ({
       discount: effectiveDiscount,
       discountName: effectiveDiscount > 0 ? getDiscountDisplayText() : undefined,
       deliveryFee: order.deliveryFee,
+      tax: (order as any).tax || (rawOrder as any).tax,
       total: finalTotal,
       items: order.items.map((item) => {
         const rawItem = item as RawOrderItem;
@@ -284,14 +286,7 @@ const OrderDetailsDialog = ({
     });
 
     const receiptHtml = type === "kitchen" ? kitchenReceiptHtml : customerReceiptHtml;
-
-    const win = window.open("", "_blank", "width=400,height=600");
-    if (win) {
-      win.document.write(receiptHtml);
-      win.document.close();
-      win.focus();
-      setTimeout(() => { win.print(); win.close(); }, 250);
-    }
+    printHtmlInCurrentTab(receiptHtml);
   };
 
   const rawSource = String(order.source || rawOrder.source || "").toLowerCase();
@@ -500,7 +495,13 @@ const OrderDetailsDialog = ({
                         </div>
                       )}
 
-                      {item.note && (
+                      {item.note &&
+                        !item.selectedVariants?.some(
+                          (v) =>
+                            `${v.group}: ${v.option}`.toLowerCase() === item.note?.trim().toLowerCase() ||
+                            v.option.toLowerCase() === item.note?.trim().toLowerCase(),
+                        ) &&
+                        !/^(size|roast\s*level|grind\s*type|type):\s*[A-Za-z0-9_-]+$/i.test(item.note.trim()) && (
                         <div className="flex items-center justify-between gap-3">
                           <span className="inline-flex items-center rounded-full border border-[#C7861E] bg-[rgba(254,154,0,0.10)] px-3 py-1 text-[13px] font-semibold tracking-[0.26px] text-[#C7861E]">
                             Notes: {item.note}

@@ -69,7 +69,7 @@ const DiscountApprovalRequestDialog = ({
               type="button"
               disabled={isLoading}
               onClick={onReject}
-              className="flex-1 h-[56px] bg-[#C90000] border-0 outline-none text-white font-semibold text-[16px] rounded-[5px] cursor-pointer disabled:opacity-60 focus:ring-0 focus:outline-none focus-visible:ring-0 focus-visible:border-transparent"
+              className="flex-1 h-[56px] bg-[#C90000] border-0 outline-none text-white font-semibold text-[16px] rounded-[5px] transition-all duration-150 active:scale-[0.98] cursor-pointer disabled:opacity-60 focus:ring-0 focus:outline-none focus-visible:ring-0 focus-visible:border-transparent"
             >
               {t("Reject")}
             </Button>
@@ -77,7 +77,7 @@ const DiscountApprovalRequestDialog = ({
               type="button"
               disabled={isLoading}
               onClick={() => onApprove(offer)}
-              className="flex-1 h-[56px] bg-[#E2F4ED] border border-[#059B5A] text-[#059B5A] font-semibold text-[16px] rounded-[5px] cursor-pointer disabled:opacity-60"
+              className="flex-1 h-[56px] bg-[#E2F4ED] border border-[#059B5A] text-[#059B5A] font-semibold text-[16px] rounded-[5px] transition-all duration-150 active:scale-[0.98] cursor-pointer disabled:opacity-60"
             >
               {t("Approve")}
             </Button>

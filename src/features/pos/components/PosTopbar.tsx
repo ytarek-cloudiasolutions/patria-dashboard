@@ -40,16 +40,16 @@ const PosTopbar = ({ search, timeLabel, onSearchChange, onAvailabilityClick }: P
           data-trailing-icon="False"
           data-type="Secondary"
           onClick={onAvailabilityClick}
-          className="h-10 px-6 py-3 bg-[#F5F0EA] rounded-[5px] inline-flex justify-center items-center gap-3 cursor-pointer"
+          className="group h-10 px-6 py-3 bg-[#F5F0EA] rounded-[5px] inline-flex justify-center items-center gap-3 cursor-pointer transition-all duration-200 hover:shadow-xs active:scale-95"
         >
-          <SlidersHorizontal className="size-4 text-[#8F6900]" />
+          <SlidersHorizontal className="size-4 text-[#8F6900] transition-transform duration-200 group-hover:rotate-12" />
           <span className="text-[#8F6900] text-sm font-semibold font-['Montserrat'] leading-6">
             {t("Availability")}
           </span>
         </button>
 
         {/* Clock Badge */}
-        <div className="flex h-[46px] items-center justify-center gap-3 rounded-[16px] border border-[#E5E5E5] bg-[#FAFAF7] px-6">
+        <div className="flex h-[46px] items-center justify-center gap-3 rounded-[16px] border border-[#E5E5E5] bg-[#FAFAF7] px-6 transition-all duration-200 hover:border-[#D4D4D8] hover:shadow-xs">
           <Clock className="size-6 text-black stroke-[1.75]" />
           <span className="text-[14px] font-bold tracking-wide text-black">
             {timeLabel}
@@ -57,8 +57,8 @@ const PosTopbar = ({ search, timeLabel, onSearchChange, onAvailabilityClick }: P
         </div>
 
         {/* Cashier Badge */}
-        <div className="flex items-center gap-[13px]">
-          <div className="flex size-[36px] items-center justify-center rounded-full bg-[#8F6900]">
+        <div className="group flex items-center gap-[13px] cursor-default">
+          <div className="flex size-[36px] items-center justify-center rounded-full bg-[#8F6900] transition-transform duration-200 group-hover:scale-105">
             <UserRound className="size-5 text-white" />
           </div>
           <div className="flex flex-col items-start gap-1">

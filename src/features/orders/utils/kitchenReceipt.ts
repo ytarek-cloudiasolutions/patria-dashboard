@@ -291,7 +291,13 @@ export function generateKitchenReceiptHtml(data: KitchenReceiptData): string {
           modLines.push(...item.excluded.map((ex) => `▪ Without: ${ex}`));
         }
         if (item.note) {
-          modLines.push(`▪ Note: ${item.note}`);
+          const cleanNote = item.note.trim();
+          const isRedundant =
+            item.options?.some((opt) => opt.trim().toLowerCase() === cleanNote.toLowerCase()) ||
+            /^(size|roast\s*level|grind\s*type|type):\s*[A-Za-z0-9_-]+$/i.test(cleanNote);
+          if (!isRedundant && cleanNote) {
+            modLines.push(`▪ Note: ${cleanNote}`);
+          }
         }
 
         return `

@@ -38,6 +38,12 @@ type OrderCartProps = {
   customerCount?: number;
   isShiftActive?: boolean;
   newItemsCount?: number;
+  isExistingOrder?: boolean;
+  discountInfo?: {
+    name: string;
+    value: number;
+    amount: number;
+  } | null;
   onCustomerChange: (value: string) => void;
   onCustomerPhoneChange?: (value: string) => void;
   onNotesChange: (value: string) => void;
@@ -58,9 +64,11 @@ const OrderCart = ({
   totals,
   notes,
   sentToKitchen,
+  discountInfo,
   customerCount = 0,
   isShiftActive = true,
   newItemsCount = 0,
+  isExistingOrder = false,
   onCustomerChange,
   onCustomerPhoneChange,
   onNotesChange,
@@ -78,10 +86,17 @@ const OrderCart = ({
   const [selectedCustomer, setSelectedCustomer] = useState<PosCustomer | null>(null);
   const [searchError, setSearchError] = useState<string | null>(null);
 
+  const cleanDiscountName =
+    discountInfo?.name?.replace(/^Cashier discount:\s*/i, "").trim() || "";
+
   const isCartEmpty = items.length === 0;
   const showSendToKitchen =
     orderType === "dine-in" &&
-    (typeof newItemsCount === "number" && newItemsCount > 0 ? true : !sentToKitchen);
+    (isExistingOrder
+      ? typeof newItemsCount === "number" && newItemsCount > 0
+      : typeof newItemsCount === "number" && newItemsCount > 0
+        ? true
+        : !sentToKitchen);
   const isActionDisabled =
     isCartEmpty || !isShiftActive || (showSendToKitchen && !selectedTable);
 
@@ -128,7 +143,7 @@ const OrderCart = ({
       <div className="shrink-0 px-3 pb-3">
         {selectedCustomer ? (
           /* Selected Customer Card */
-          <div className="flex flex-col gap-2 rounded-[12px] border border-[#8F6900] bg-[#F8F8F8] p-[14px]">
+          <div className="flex flex-col gap-2 rounded-[12px] border border-[#8F6900] bg-[#F8F8F8] p-[14px] transition-all duration-200 hover:shadow-xs">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-[13px] min-w-0 flex-1">
                 <div className="flex items-center gap-1 min-w-0">
@@ -151,7 +166,7 @@ const OrderCart = ({
                   onCustomerChange("");
                   onCustomerPhoneChange?.("");
                 }}
-                className="p-0.5 text-black transition-colors hover:text-[#8F6900] cursor-pointer"
+                className="p-0.5 text-black transition-transform duration-150 hover:scale-125 hover:text-[#C90000] active:scale-90 cursor-pointer"
                 aria-label={t("Remove customer")}
               >
                 <X className="size-[18px] text-black" />
@@ -202,7 +217,7 @@ const OrderCart = ({
                 type="button"
                 onClick={handleCustomerSearch}
                 disabled={isSearchingCustomer || !phoneQuery.trim()}
-                className="flex h-[46px] items-center justify-center rounded-[8px] bg-[#8F6900] px-3.5 text-[13px] font-semibold text-white transition-colors hover:bg-[#8F6900]/90 disabled:opacity-50 cursor-pointer shrink-0"
+                className="flex h-[46px] items-center justify-center rounded-[8px] bg-[#8F6900] px-3.5 text-[13px] font-semibold text-white transition-all duration-150 hover:bg-[#8F6900]/90 active:scale-95 disabled:opacity-50 cursor-pointer shrink-0"
               >
                 {isSearchingCustomer ? (
                   <Loader2 className="size-4 animate-spin text-white" />
@@ -261,20 +276,25 @@ const OrderCart = ({
             {items.map((item) => (
               <div
                 key={item.lineId}
-                className="flex flex-col gap-3 rounded-[12px] border border-[#E5E5E5] bg-[#FAFAF7] p-3.5"
+                className="flex flex-col gap-3 rounded-[12px] border border-[#E5E5E5] bg-[#FAFAF7] p-3.5 transition-all duration-200 hover:border-[#CACBD4] hover:shadow-xs"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[13px] font-bold leading-[13.91px] tracking-[0.26px] text-[#333333]">
                       {item.name}
                     </p>
+                    {item.variants && item.variants.length > 0 && (
+                      <p className="mt-0.5 truncate text-[11px] font-medium text-[#8F6900]">
+                        {item.variants.map((v) => `${v.name}: ${v.option}`).join(", ")}
+                      </p>
+                    )}
                     <p className="mt-1 text-[10px] font-semibold leading-[14px] tracking-[0.20px] text-[#8B8B8B]">
                       {formatEgp(item.unitPrice)} / {t("unit")}
                     </p>
                   </div>
                   <button
                     type="button"
-                    className="p-1 text-black transition-opacity hover:opacity-70 cursor-pointer"
+                    className="p-1 text-black transition-transform duration-150 hover:scale-125 hover:text-[#C90000] active:scale-90 cursor-pointer"
                     aria-label={`${t("Remove")} ${item.name}`}
                     onClick={() => onRemoveItem(item.lineId)}
                   >
@@ -286,22 +306,22 @@ const OrderCart = ({
                   <div className="flex items-center gap-[10px]">
                     <button
                       type="button"
-                      className="flex size-7 items-center justify-center rounded-[5.71px] border border-[#E5E5E5] bg-white p-[6px] text-black transition-colors hover:bg-gray-50 cursor-pointer"
+                      className="group/btn flex size-7 items-center justify-center rounded-[5.71px] border border-[#E5E5E5] bg-white p-[6px] text-black transition-all duration-150 hover:bg-gray-100 active:scale-90 cursor-pointer"
                       aria-label={`${t("Decrease")} ${item.name}`}
                       onClick={() => onUpdateQty(item.lineId, -1)}
                     >
-                      <Minus className="size-3.5 text-black" />
+                      <Minus className="size-3.5 text-black transition-transform duration-150 group-hover/btn:scale-125" />
                     </button>
                     <span className="min-w-4 text-center text-[13px] font-bold tracking-[0.26px] text-black">
                       {item.qty}
                     </span>
                     <button
                       type="button"
-                      className="flex size-7 items-center justify-center rounded-[5.71px] border border-[#E5E5E5] bg-white p-[6px] text-black transition-colors hover:bg-gray-50 cursor-pointer"
+                      className="group/btn flex size-7 items-center justify-center rounded-[5.71px] border border-[#E5E5E5] bg-white p-[6px] text-black transition-all duration-150 hover:bg-gray-100 active:scale-90 cursor-pointer"
                       aria-label={`${t("Increase")} ${item.name}`}
                       onClick={() => onUpdateQty(item.lineId, 1)}
                     >
-                      <Plus className="size-3.5 text-black" />
+                      <Plus className="size-3.5 text-black transition-transform duration-150 group-hover/btn:rotate-90" />
                     </button>
                   </div>
                   <p className="text-[13px] font-medium tracking-[0.26px] text-black">
@@ -318,7 +338,7 @@ const OrderCart = ({
                       {item.extras.map((extra) => (
                         <label
                           key={extra.id}
-                          className="flex w-full cursor-pointer items-center justify-between gap-2 text-[13px]"
+                          className="flex w-full cursor-pointer items-center justify-between gap-2 text-[13px] transition-colors hover:text-black"
                         >
                           <span className="flex items-center gap-2 text-[13px] font-medium text-[#333333]">
                             <Checkbox
@@ -337,10 +357,10 @@ const OrderCart = ({
                     </div>
                     <button
                       type="button"
-                      className="flex h-[36px] w-full items-center justify-center gap-2 rounded-[5px] text-[12px] font-semibold leading-[16.80px] tracking-[0.24px] text-[#8F6900] transition-colors hover:bg-[#F5F0EA] cursor-pointer"
+                      className="group flex h-[36px] w-full items-center justify-center gap-2 rounded-[5px] text-[12px] font-semibold leading-[16.80px] tracking-[0.24px] text-[#8F6900] transition-all duration-150 hover:bg-[#F5F0EA] active:scale-95 cursor-pointer"
                       onClick={() => onEditItem(item.lineId)}
                     >
-                      <SquarePen className="size-4.5 text-[#8F6900]" />
+                      <SquarePen className="size-4.5 text-[#8F6900] transition-transform duration-200 group-hover:scale-110" />
                       {t("Edit")}
                     </button>
                   </div>
@@ -376,14 +396,16 @@ const OrderCart = ({
               EGP {totals.subtotal.toFixed(2)}
             </span>
           </div>
-          <div className="flex items-center justify-between">
-            <span className="font-semibold text-[#8B8B8B] leading-[15.40px]">
-              {t("Extras")}
-            </span>
-            <span className="font-semibold text-[#23252A] leading-[15.40px]">
-              EGP {totals.extras.toFixed(2)}
-            </span>
-          </div>
+          {totals.extras > 0 && (
+            <div className="flex items-center justify-between">
+              <span className="font-semibold text-[#8B8B8B] leading-[15.40px]">
+                {t("Extras")}
+              </span>
+              <span className="font-semibold text-[#23252A] leading-[15.40px]">
+                EGP {totals.extras.toFixed(2)}
+              </span>
+            </div>
+          )}
           <div className="flex items-center justify-between">
             <span className="font-semibold text-[#8B8B8B] leading-[15.40px]">
               {t("Tax (14%)")}
@@ -392,6 +414,21 @@ const OrderCart = ({
               EGP {totals.tax.toFixed(2)}
             </span>
           </div>
+          {totals.discount != null && totals.discount > 0 && (
+            <div className="flex items-center justify-between gap-2">
+              <span
+                className="font-semibold text-[#059B5A] leading-[15.40px] truncate"
+                title={cleanDiscountName ? `${t("Discount")} (${cleanDiscountName})` : t("Discount")}
+              >
+                {cleanDiscountName
+                  ? `${t("Discount")} (${cleanDiscountName})`
+                  : t("Discount")}
+              </span>
+              <span className="font-semibold text-[#059B5A] leading-[15.40px] whitespace-nowrap shrink-0">
+                - EGP {totals.discount.toFixed(2)}
+              </span>
+            </div>
+          )}
           {orderType === "dine-in" && customerCount > 1 && (
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-1.5 font-semibold text-[#8B8B8B] leading-[15.40px]">
@@ -410,7 +447,7 @@ const OrderCart = ({
         </div>
 
         {/* Grand Total Box */}
-        <div className="flex h-[66px] items-center justify-between rounded-[16px] border border-[#059B5A] bg-[#E2F4ED] px-3.5 py-6">
+        <div className="flex h-[66px] items-center justify-between rounded-[16px] border border-[#059B5A] bg-[#E2F4ED] px-3.5 py-6 transition-all duration-200 hover:shadow-xs">
           <span className="text-[14px] font-semibold uppercase leading-[15.40px] text-[#059B5A]">
             {t("TOTAL")}
           </span>
@@ -424,11 +461,11 @@ const OrderCart = ({
           <div className="flex flex-col gap-2.5">
             <button
               type="button"
-              className="flex h-[56px] w-full items-center justify-center gap-3 rounded-[5px] bg-[#8F6900] px-[30px] py-4 text-[16px] font-semibold uppercase leading-6 text-white transition-colors hover:bg-[#8F6900]/90 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+              className="group flex h-[56px] w-full items-center justify-center gap-3 rounded-[5px] bg-[#8F6900] px-[30px] py-4 text-[16px] font-semibold uppercase leading-6 text-white transition-all duration-200 hover:bg-[#725400] active:scale-[0.98] hover:shadow-xs disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
               disabled={isActionDisabled}
               onClick={onSendToKitchen}
             >
-              <Utensils className="size-[18px] text-white" />
+              <Utensils className="size-[18px] text-white transition-transform duration-200 group-hover:scale-110" />
               <span>
                 {newItemsCount > 0
                   ? `${t("SEND TO KITCHEN")} (${newItemsCount})`
@@ -437,11 +474,11 @@ const OrderCart = ({
             </button>
             <button
               type="button"
-              className="flex h-[56px] w-full items-center justify-center gap-2 rounded-[5px] bg-[#F5F0EA] px-2 py-4 text-[12px] font-bold tracking-[0.2px] uppercase leading-6 text-[#8F6900] whitespace-nowrap transition-colors hover:bg-[#EFE7DC] disabled:opacity-50 disabled:pointer-events-none cursor-pointer sm:text-[13px]"
+              className="group flex h-[56px] w-full items-center justify-center gap-2 rounded-[5px] bg-[#F5F0EA] px-2 py-4 text-[12px] font-bold tracking-[0.2px] uppercase leading-6 text-[#8F6900] whitespace-nowrap transition-all duration-200 hover:bg-[#EFE7DC] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none cursor-pointer sm:text-[13px]"
               disabled={isActionDisabled}
               onClick={onDeductFromEmployee}
             >
-              <UserRound className="size-4.5 shrink-0 text-[#8F6900]" />
+              <UserRound className="size-4.5 shrink-0 text-[#8F6900] transition-transform duration-200 group-hover:scale-110" />
               <span className="whitespace-nowrap">{t("DEDUCT FROM EMPLOYEE ACC.")}</span>
             </button>
           </div>
@@ -449,20 +486,20 @@ const OrderCart = ({
           <div className="flex flex-col gap-2.5">
             <button
               type="button"
-              className="flex h-[56px] w-full items-center justify-center gap-3 rounded-[5px] bg-[#8F6900] px-[30px] py-4 text-[16px] font-semibold uppercase leading-6 text-white transition-colors hover:bg-[#8F6900]/90 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+              className="group flex h-[56px] w-full items-center justify-center gap-3 rounded-[5px] bg-[#8F6900] px-[30px] py-4 text-[16px] font-semibold uppercase leading-6 text-white transition-all duration-200 hover:bg-[#725400] active:scale-[0.98] hover:shadow-xs disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
               disabled={isActionDisabled}
               onClick={onCheckout}
             >
-              <ShoppingCart className="size-[18px] text-white" />
+              <ShoppingCart className="size-[18px] text-white transition-transform duration-200 group-hover:scale-110" />
               {t("Checkout")}
             </button>
             <button
               type="button"
-              className="flex h-[56px] w-full items-center justify-center gap-2 rounded-[5px] bg-[#F5F0EA] px-2 py-4 text-[12px] font-bold tracking-[0.2px] uppercase leading-6 text-[#8F6900] whitespace-nowrap transition-colors hover:bg-[#EFE7DC] disabled:opacity-50 disabled:pointer-events-none cursor-pointer sm:text-[13px]"
+              className="group flex h-[56px] w-full items-center justify-center gap-2 rounded-[5px] bg-[#F5F0EA] px-2 py-4 text-[12px] font-bold tracking-[0.2px] uppercase leading-6 text-[#8F6900] whitespace-nowrap transition-all duration-200 hover:bg-[#EFE7DC] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none cursor-pointer sm:text-[13px]"
               disabled={isActionDisabled}
               onClick={onDeductFromEmployee}
             >
-              <UserRound className="size-4.5 shrink-0 text-[#8F6900]" />
+              <UserRound className="size-4.5 shrink-0 text-[#8F6900] transition-transform duration-200 group-hover:scale-110" />
               <span className="whitespace-nowrap">{t("DEDUCT FROM EMPLOYEE ACC.")}</span>
             </button>
           </div>

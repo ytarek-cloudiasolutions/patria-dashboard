@@ -87,7 +87,7 @@ export const mapOrder = (o: any): Order => {
     }
 
     if (notesStr) {
-      const noteParts = notesStr.split(",").map((s: string) => s.trim());
+      const noteParts = notesStr.split(/\s*-\s*|,\s*|;\s*/).map((s: string) => s.trim());
       for (const part of noteParts) {
         if (!part) continue;
 
@@ -98,26 +98,44 @@ export const mapOrder = (o: any): Order => {
           const groupName = part.substring(0, colonIndex).trim();
           const optionName = part.substring(colonIndex + 1).trim();
 
-          const matchedGroup = availableVariantGroups.find(
-            (g: any) => g.name.trim().toLowerCase() === groupName.toLowerCase()
+          const alreadyAdded = selectedVariants.some(
+            (v) =>
+              v.group.toLowerCase() === groupName.toLowerCase() &&
+              v.option.toLowerCase() === optionName.toLowerCase()
           );
-          if (matchedGroup) {
-            const matchedOption = matchedGroup.options.find(
-              (opt: any) => opt.name.trim().toLowerCase() === optionName.toLowerCase()
+          if (alreadyAdded) {
+            isVariantMatched = true;
+          } else {
+            const matchedGroup = availableVariantGroups.find(
+              (g: any) => g.name.trim().toLowerCase() === groupName.toLowerCase()
             );
-            if (matchedOption) {
-              const alreadyAdded = selectedVariants.some(
-                (v) => v.group.toLowerCase() === matchedGroup.name.toLowerCase()
+            if (matchedGroup) {
+              const matchedOption = matchedGroup.options.find(
+                (opt: any) => opt.name.trim().toLowerCase() === optionName.toLowerCase()
               );
-              if (!alreadyAdded) {
+              if (matchedOption) {
                 selectedVariants.push({
                   group: matchedGroup.name,
                   option: matchedOption.name,
                   priceAdjustment: matchedOption.priceAdjustment || matchedOption.price || 0,
                 });
+                isVariantMatched = true;
               }
+            } else if (/^(size|roast\s*level|grind\s*type|type|الحجم)$/i.test(groupName)) {
+              selectedVariants.push({
+                group: groupName,
+                option: optionName,
+                priceAdjustment: 0,
+              });
               isVariantMatched = true;
             }
+          }
+        } else {
+          const matchedOption = selectedVariants.some(
+            (v) => v.option.toLowerCase() === part.toLowerCase()
+          );
+          if (matchedOption) {
+            isVariantMatched = true;
           }
         }
 

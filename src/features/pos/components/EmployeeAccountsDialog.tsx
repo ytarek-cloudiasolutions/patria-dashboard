@@ -157,10 +157,10 @@ const EmployeeAccountsDialog = ({
                 {/* Pay Button */}
                 <Button
                   type="button"
-                  className="flex h-[48px] w-full items-center justify-center gap-3 rounded-[5px] bg-[#8F6900] text-[16px] font-semibold text-white transition-colors hover:bg-[#8F6900]/90 cursor-pointer"
+                  className="group flex h-[48px] w-full items-center justify-center gap-3 rounded-[5px] bg-[#8F6900] text-[16px] font-semibold text-white transition-all duration-150 hover:bg-[#8F6900]/90 active:scale-[0.98] cursor-pointer"
                   onClick={() => onPay(account)}
                 >
-                  <CreditCard className="size-4 text-white" />
+                  <CreditCard className="size-4 text-white transition-transform duration-200 group-hover:scale-110" />
                   {t("Pay")}
                 </Button>
               </div>
@@ -174,7 +174,7 @@ const EmployeeAccountsDialog = ({
             <Button
               type="button"
               variant="outline"
-              className="h-[56px] px-[30px] py-4 rounded-[5px] border border-[#8F6900] bg-white text-[16px] font-semibold text-[#8F6900] transition-colors hover:bg-[#F5F0EA] cursor-pointer"
+              className="h-[56px] px-[30px] py-4 rounded-[5px] border border-[#8F6900] bg-white text-[16px] font-semibold text-[#8F6900] active:scale-[0.98] cursor-pointer"
               onClick={() => onOpenChange(false)}
             >
               {t("Cancel")}
