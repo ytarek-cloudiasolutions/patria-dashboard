@@ -423,16 +423,16 @@ const LogisticsPage = () => {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-[60vh] w-full items-center justify-center">
+      <div className="flex min-h-[60vh] w-full items-center justify-center animate-in fade-in-50 duration-300">
         <BarChart2 className="size-16 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <>
+    <section className="animate-in fade-in-50 duration-300">
       {isMenuOpen && (
-        <div className="pointer-events-none fixed inset-0 z-40 bg-black/40" />
+        <div className="pointer-events-none fixed inset-0 z-40 bg-black/40 transition-opacity animate-in fade-in-0 duration-200" />
       )}
 
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -443,8 +443,9 @@ const LogisticsPage = () => {
         <DefaultButton
           data={{
             buttonText: t("Add Driver"),
-            icon: <Plus className="size-4.5" />,
+            icon: <Plus className="size-4.5 transition-transform duration-200 group-hover:rotate-90" />,
             onClick: handleOpenAddDriver,
+            className: "transition-all duration-150 active:scale-[0.98]",
           }}
         />
       </div>
@@ -532,7 +533,7 @@ const LogisticsPage = () => {
         }}
         onConfirm={handleConfirmDelete}
       />
-    </>
+    </section>
   );
 };
 

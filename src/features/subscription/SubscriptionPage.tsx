@@ -185,16 +185,16 @@ const SubscriptionPage = () => {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-[60vh] w-full items-center justify-center">
+      <div className="flex min-h-[60vh] w-full items-center justify-center animate-in fade-in-50 duration-300">
         <UserCircle className="size-16 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <>
+    <section className="animate-in fade-in-50 duration-300">
       {isPaymentFilterOpen && (
-        <div className="pointer-events-none fixed inset-0 z-40 bg-black/40" />
+        <div className="pointer-events-none fixed inset-0 z-40 bg-black/40 transition-opacity animate-in fade-in-0 duration-200" />
       )}
 
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -206,18 +206,19 @@ const SubscriptionPage = () => {
           <DefaultButton
             data={{
               buttonText: t("Run Renewls"),
-              icon: <RefreshCw className="size-4.5" />,
+              icon: <RefreshCw className="size-4.5 transition-transform duration-500 group-hover:rotate-180" />,
               variant: "outline",
               onClick: runRenewals,
               className:
-                "border-[#E5E5E5] bg-[#FBF6EC] text-primary hover:bg-[#FBF6EC] hover:text-primary",
+                "border-[#E5E5E5] bg-[#FBF6EC] text-primary hover:bg-[#FBF6EC] hover:text-primary transition-all duration-150 active:scale-[0.98] hover:shadow-xs group",
             }}
           />
           <DefaultButton
             data={{
               buttonText: t("New subscription"),
-              icon: <Plus className="size-4.5" />,
+              icon: <Plus className="size-4.5 transition-transform duration-200 group-hover:rotate-90" />,
               onClick: () => setIsNewOpen(true),
+              className: "transition-all duration-150 active:scale-[0.98] hover:shadow-xs group",
             }}
           />
         </div>
@@ -278,7 +279,7 @@ const SubscriptionPage = () => {
         onOpenChange={(open) => !open && setCancellingSubscription(null)}
         onConfirm={handleCancelSubscription}
       />
-    </>
+    </section>
   );
 };
 

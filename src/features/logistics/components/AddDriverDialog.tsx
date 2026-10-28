@@ -132,7 +132,7 @@ const AddDriverDialog = ({
         className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-150"
       >
         {openDropdown && (
-          <div className="pointer-events-none fixed inset-0 z-60 bg-black/40" />
+          <div className="pointer-events-none fixed inset-0 z-60 bg-black/40 transition-opacity animate-in fade-in-0 duration-200" />
         )}
 
         <div className="flex max-h-[calc(100vh-2rem)] flex-col">
@@ -169,7 +169,7 @@ const AddDriverDialog = ({
                     }}
                   />
                   {errors.name && (
-                    <p className="mt-1 text-[13px] text-[#C90000]">
+                    <p className="mt-1 text-[13px] text-[#C90000] animate-in fade-in-0 slide-in-from-top-1 duration-150">
                       {errors.name}
                     </p>
                   )}
@@ -193,7 +193,7 @@ const AddDriverDialog = ({
                     }}
                   />
                   {errors.whatsappPhone && (
-                    <p className="mt-1 text-[13px] text-[#C90000]">
+                    <p className="mt-1 text-[13px] text-[#C90000] animate-in fade-in-0 slide-in-from-top-1 duration-150">
                       {errors.whatsappPhone}
                     </p>
                   )}
@@ -220,7 +220,7 @@ const AddDriverDialog = ({
                   }}
                 />
                 {errors.password && (
-                  <p className="mt-1 text-[13px] text-[#C90000]">
+                  <p className="mt-1 text-[13px] text-[#C90000] animate-in fade-in-0 slide-in-from-top-1 duration-150">
                     {errors.password}
                   </p>
                 )}
@@ -351,7 +351,7 @@ const AddDriverDialog = ({
                   </DropdownMenuContent>
                 </DropdownMenu>
                 {errors.zones && (
-                  <p className="mt-1 text-[13px] text-[#C90000]">
+                  <p className="mt-1 text-[13px] text-[#C90000] animate-in fade-in-0 slide-in-from-top-1 duration-150">
                     {errors.zones}
                   </p>
                 )}
@@ -389,7 +389,7 @@ const AddDriverDialog = ({
                     buttonText: t("Remove Driver"),
                     type: "button",
                     onClick: () => onRemove(driver),
-                    className: "w-full sm:me-auto sm:w-auto bg-[#C90000]",
+                    className: "w-full sm:me-auto sm:w-auto bg-[#C90000] transition-all duration-150 active:scale-[0.98]",
                   }}
                 />
               )}
@@ -400,13 +400,13 @@ const AddDriverDialog = ({
                   type: "button",
                   onClick: () => onOpenChange(false),
                   className:
-                    "w-full sm:w-auto border-primary text-primary hover:bg-white hover:text-primary",
+                    "w-full sm:w-auto border-primary text-primary hover:bg-white hover:text-primary transition-all duration-150 active:scale-[0.98]",
                 }}
               />
               <Button
                 form={FORM_ID}
                 type="submit"
-                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
+                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px] transition-all duration-150 active:scale-[0.98]"
               >
                 {driver ? t("Update Driver") : t("Add Driver")}
               </Button>

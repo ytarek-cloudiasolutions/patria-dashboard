@@ -31,7 +31,7 @@ const CancelSubscriptionDialog = ({
       <DialogContent className="w-[calc(100%-1.5rem)] max-w-[calc(100%-1.5rem)] rounded-xl border border-[#CACBD4] p-4 sm:w-full sm:max-w-152.25 sm:p-6">
         <DialogHeader>
           <DialogTitle>
-            <div className="inline-flex items-center justify-center rounded-[10px] bg-[#C90000] p-2">
+            <div className="inline-flex items-center justify-center rounded-[10px] bg-[#C90000] p-2 transition-transform duration-200 hover:scale-105">
               <Trash2 className="size-6 text-white sm:size-8" />
             </div>
           </DialogTitle>
@@ -59,7 +59,7 @@ const CancelSubscriptionDialog = ({
                 type: "button",
                 onClick: () => onOpenChange(false),
                 className:
-                  "w-full sm:w-auto text-primary border-primary hover:bg-white hover:text-primary",
+                  "w-full sm:w-auto text-primary border-primary hover:bg-white hover:text-primary transition-all duration-150 active:scale-[0.98]",
               }}
             />
             <DefaultButton
@@ -67,7 +67,7 @@ const CancelSubscriptionDialog = ({
                 buttonText: t("Cancel Subscription"),
                 type: "button",
                 icon: <Trash2 className="size-4.5" />,
-                className: "w-full sm:w-auto bg-[#C90000]",
+                className: "w-full sm:w-auto bg-[#C90000] transition-all duration-150 active:scale-[0.98] hover:shadow-xs",
                 onClick: () => onConfirm(subscription.id),
               }}
             />

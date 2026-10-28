@@ -93,10 +93,10 @@ const DriverDutyCard = ({ driver, onHourlyRateChange }: DriverDutyCardProps) => 
   };
 
   return (
-    <div className="rounded-[16px] border border-[#E5E5E5] bg-white p-5 shadow-sm">
+    <div className="group rounded-[16px] border border-[#E5E5E5] bg-white p-5 shadow-sm transition-all duration-300 ease-out hover:shadow-md hover:-translate-y-0.5 hover:border-[#D4D4D8] cursor-default">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary text-[14px] font-semibold text-white">
+        <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary text-[14px] font-semibold text-white transition-transform duration-300 group-hover:scale-105">
           {initials(driver.name)}
         </div>
         <div className="min-w-0 flex-1">
@@ -109,7 +109,7 @@ const DriverDutyCard = ({ driver, onHourlyRateChange }: DriverDutyCardProps) => 
         </div>
         <span
           className={cn(
-            "inline-flex h-7 items-center rounded-full border px-3 text-[12px] font-semibold",
+            "inline-flex h-7 items-center rounded-full border px-3 text-[12px] font-semibold transition-all duration-200",
             STATUS_STYLES[driver.status],
           )}
         >
@@ -176,7 +176,7 @@ const DriverDutyCard = ({ driver, onHourlyRateChange }: DriverDutyCardProps) => 
               type="button"
               aria-label={t("Increase")}
               onClick={handleIncrement}
-              className="cursor-pointer text-[#8B8B8B] hover:text-[#28293D]"
+              className="cursor-pointer text-[#8B8B8B] hover:text-[#28293D] transition-all duration-150 active:scale-90"
             >
               <ChevronUp className="size-3.5" />
             </button>
@@ -184,7 +184,7 @@ const DriverDutyCard = ({ driver, onHourlyRateChange }: DriverDutyCardProps) => 
               type="button"
               aria-label={t("Decrease")}
               onClick={handleDecrement}
-              className="cursor-pointer text-[#8B8B8B] hover:text-[#28293D]"
+              className="cursor-pointer text-[#8B8B8B] hover:text-[#28293D] transition-all duration-150 active:scale-90"
             >
               <ChevronDown className="size-3.5" />
             </button>
@@ -194,7 +194,7 @@ const DriverDutyCard = ({ driver, onHourlyRateChange }: DriverDutyCardProps) => 
           type="button"
           aria-label={t("Save hourly rate")}
           onClick={() => onHourlyRateChange(driver.id, rate)}
-          className="flex size-12 shrink-0 cursor-pointer items-center justify-center rounded-[8px] bg-primary text-white hover:opacity-90 transition-opacity"
+          className="flex size-12 shrink-0 cursor-pointer items-center justify-center rounded-[8px] bg-primary text-white hover:opacity-90 transition-all duration-150 active:scale-95"
         >
           <Check className="size-5" />
         </button>

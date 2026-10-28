@@ -55,17 +55,17 @@ const StatusDropdown = ({
         <DropdownMenuTrigger asChild>
           <button
             type="button"
-            className="inline-flex cursor-pointer items-center gap-1.5"
+            className="inline-flex cursor-pointer items-center gap-1 transition-all duration-150 active:scale-95"
           >
             <span
               className={cn(
-                "inline-flex h-7 min-w-20 items-center justify-center rounded-full border px-3 text-[12px] font-semibold",
+                "inline-flex h-7 min-w-18 items-center justify-center rounded-full border px-2.5 text-[12px] font-semibold transition-all duration-200",
                 STATUS_STYLES[driver.status],
               )}
             >
               {t(driver.status)}
             </span>
-            <ChevronDown className="size-4 text-[#28293D]" />
+            <ChevronDown className="size-3.5 text-[#28293D] shrink-0" />
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="z-70 rounded-[12px] p-2">
@@ -103,7 +103,7 @@ const DriverActions = ({
       type="button"
       onClick={() => openWhatsApp(driver.whatsappPhone)}
       aria-label={`Message ${driver.name} on WhatsApp`}
-      className="flex cursor-pointer items-center justify-center"
+      className="flex cursor-pointer items-center justify-center transition-transform duration-150 hover:scale-110 active:scale-90"
     >
       <img src={WhatsAppIcon} alt="" className="size-5" />
     </button>
@@ -141,7 +141,7 @@ const DriversTable = ({
         {drivers.map((driver) => (
           <div
             key={driver.id}
-            className="rounded-2xl border border-[#E5E5E5] bg-white px-4 py-4"
+            className="rounded-2xl border border-[#E5E5E5] bg-white px-4 py-4 transition-all duration-200 hover:shadow-sm"
           >
             <div className="mb-3 flex items-start justify-between gap-3">
               <div className="min-w-0">
@@ -176,7 +176,7 @@ const DriversTable = ({
           </div>
         ))}
         {drivers.length === 0 && (
-          <p className="py-8 text-center text-[14px] text-[#8B8B8B]">
+          <p className="py-8 text-center text-[14px] text-[#8B8B8B] animate-in fade-in-50 duration-200">
             {t("No drivers yet.")}
           </p>
         )}
@@ -187,37 +187,37 @@ const DriversTable = ({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="ps-6 py-4 text-start">{t("DRIVER NAME")}</TableHead>
-              <TableHead className="px-6 py-4 text-start">{t("WHATSAPP PHONE")}</TableHead>
-              <TableHead className="px-6 py-4 text-start">{t("VEHICLE TYPE")}</TableHead>
-              <TableHead className="px-6 py-4 text-start">{t("ZONES")}</TableHead>
-              <TableHead className="px-6 py-4 text-start">{t("STATUS")}</TableHead>
-              <TableHead className="pe-6 py-4 text-end">{t("ACTION")}</TableHead>
+              <TableHead className="ps-4 lg:ps-6 py-4 text-start whitespace-nowrap">{t("DRIVER NAME")}</TableHead>
+              <TableHead className="px-3 lg:px-4 py-4 text-start whitespace-nowrap">{t("WHATSAPP PHONE")}</TableHead>
+              <TableHead className="px-3 lg:px-4 py-4 text-start whitespace-nowrap">{t("VEHICLE TYPE")}</TableHead>
+              <TableHead className="px-3 lg:px-4 py-4 text-start">{t("ZONES")}</TableHead>
+              <TableHead className="px-3 lg:px-4 py-4 text-start whitespace-nowrap">{t("STATUS")}</TableHead>
+              <TableHead className="pe-4 lg:pe-6 py-4 text-end whitespace-nowrap">{t("ACTION")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {drivers.map((driver) => (
-              <TableRow key={driver.id} className="hover:bg-[#FAFAF8]">
-                <TableCell className="ps-6 py-4 whitespace-nowrap text-[14px] font-medium text-[#28293D]">
+              <TableRow key={driver.id} className="hover:bg-[#FAFAF8] transition-colors duration-150">
+                <TableCell className="ps-4 lg:ps-6 py-3.5 whitespace-nowrap text-[14px] font-medium text-[#28293D]">
                   {driver.name}
                 </TableCell>
-                <TableCell className="px-6 py-4 whitespace-nowrap text-[14px] text-[#28293D]">
+                <TableCell className="px-3 lg:px-4 py-3.5 whitespace-nowrap text-[14px] text-[#28293D]">
                   <bdi>{driver.whatsappPhone}</bdi>
                 </TableCell>
-                <TableCell className="px-6 py-4 whitespace-nowrap text-[14px] text-[#28293D]">
+                <TableCell className="px-3 lg:px-4 py-3.5 whitespace-nowrap text-[14px] text-[#28293D]">
                   {t(driver.vehicleType)}
                 </TableCell>
-                <TableCell className="px-6 py-4 whitespace-nowrap text-[14px] text-[#28293D]">
-                  {driver.zones.join(", ")}
+                <TableCell className="px-3 lg:px-4 py-3.5 text-[14px] text-[#28293D] whitespace-normal break-words leading-relaxed">
+                  {driver.zones.length > 0 ? driver.zones.join(", ") : "—"}
                 </TableCell>
-                <TableCell className="px-6 py-4 whitespace-nowrap">
+                <TableCell className="px-3 lg:px-4 py-3.5 whitespace-nowrap">
                   <StatusDropdown
                     driver={driver}
                     onChangeStatus={onChangeStatus}
                     onMenuOpenChange={onMenuOpenChange}
                   />
                 </TableCell>
-                <TableCell className="pe-6 py-4 whitespace-nowrap">
+                <TableCell className="pe-4 lg:pe-6 py-3.5 whitespace-nowrap">
                   <div className="flex items-center justify-end">
                     <DriverActions
                       driver={driver}
@@ -232,7 +232,7 @@ const DriversTable = ({
               <TableRow>
                 <TableCell
                   colSpan={6}
-                  className="py-10 text-center text-[14px] text-[#8B8B8B]"
+                  className="py-10 text-center text-[14px] text-[#8B8B8B] animate-in fade-in-50 duration-200"
                 >
                   {t("No drivers yet.")}
                 </TableCell>

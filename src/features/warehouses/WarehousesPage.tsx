@@ -124,14 +124,14 @@ const WarehousesPage = () => {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-[60vh] w-full items-center justify-center">
+      <div className="flex min-h-[60vh] w-full items-center justify-center animate-in fade-in-50 duration-300">
         <WarehouseIcon className="size-16 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <>
+    <section className="animate-in fade-in-50 duration-300">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <HeaderLayout
           title={t("Warehouses")}
@@ -141,17 +141,18 @@ const WarehousesPage = () => {
           <DefaultButton
             data={{
               buttonText: t("Internal Transfer"),
-              icon: <ArrowLeftRight className="size-4.5" />,
+              icon: <ArrowLeftRight className="size-4.5 transition-transform duration-200 group-hover:rotate-180" />,
               onClick: () => setIsTransferOpen(true),
               className:
-                "bg-[#F5F0EA] text-primary",
+                "bg-[#F5F0EA] text-primary transition-all duration-150 active:scale-[0.98]",
             }}
           />
           <DefaultButton
             data={{
               buttonText: t("Add Warehouse"),
-              icon: <Plus className="size-4.5" />,
+              icon: <Plus className="size-4.5 transition-transform duration-200 group-hover:rotate-90" />,
               onClick: () => setIsAddOpen(true),
+              className: "transition-all duration-150 active:scale-[0.98]",
             }}
           />
         </div>
@@ -184,7 +185,7 @@ const WarehousesPage = () => {
         onOpenChange={setIsTransferOpen}
         onSave={handleCreateTransfer}
       />
-    </>
+    </section>
   );
 };
 

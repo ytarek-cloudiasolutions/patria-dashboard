@@ -19,7 +19,7 @@ const PoStatusBadge = ({ status }: PoStatusBadgeProps) => {
   return (
     <Badge
       className={cn(
-        "h-7 px-3 py-1 text-[13px] font-semibold border rounded-full",
+        "h-7 px-3 py-1 text-[13px] font-semibold border rounded-full transition-all duration-200",
         STATUS_STYLES[status],
       )}
     >

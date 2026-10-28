@@ -108,7 +108,7 @@ const NewSubscriptionDialog = ({
         className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-140"
       >
         {openDropdown && (
-          <div className="pointer-events-none fixed inset-0 z-60 bg-black/40" />
+          <div className="pointer-events-none fixed inset-0 z-60 bg-black/40 transition-opacity animate-in fade-in-0 duration-200" />
         )}
 
         <div className="flex max-h-[calc(100vh-2rem)] flex-col">
@@ -147,7 +147,7 @@ const NewSubscriptionDialog = ({
                   contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
                 />
                 {errors.customerId && (
-                  <p className="mt-1 text-[13px] text-[#C90000]">
+                  <p className="mt-1 text-[13px] text-[#C90000] animate-in fade-in-0 slide-in-from-top-1 duration-150">
                     {errors.customerId}
                   </p>
                 )}
@@ -173,7 +173,7 @@ const NewSubscriptionDialog = ({
                   contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
                 />
                 {errors.productId && (
-                  <p className="mt-1 text-[13px] text-[#C90000]">
+                  <p className="mt-1 text-[13px] text-[#C90000] animate-in fade-in-0 slide-in-from-top-1 duration-150">
                     {errors.productId}
                   </p>
                 )}
@@ -222,7 +222,7 @@ const NewSubscriptionDialog = ({
                     }}
                   />
                   {errors.quantity && (
-                    <p className="mt-1 text-[13px] text-[#C90000]">
+                    <p className="mt-1 text-[13px] text-[#C90000] animate-in fade-in-0 slide-in-from-top-1 duration-150">
                       {errors.quantity}
                     </p>
                   )}
@@ -241,7 +241,7 @@ const NewSubscriptionDialog = ({
                   withBackdrop
                 />
                 {errors.firstDelivery && (
-                  <p className="mt-1 text-[13px] text-[#C90000]">
+                  <p className="mt-1 text-[13px] text-[#C90000] animate-in fade-in-0 slide-in-from-top-1 duration-150">
                     {errors.firstDelivery}
                   </p>
                 )}
@@ -260,13 +260,13 @@ const NewSubscriptionDialog = ({
                   type: "button",
                   onClick: () => onOpenChange(false),
                   className:
-                    "w-full sm:w-auto border-primary text-primary hover:bg-white hover:text-primary",
+                    "w-full sm:w-auto border-primary text-primary hover:bg-white hover:text-primary transition-all duration-150 active:scale-[0.98]",
                 }}
               />
               <Button
                 form={FORM_ID}
                 type="submit"
-                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
+                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px] transition-all duration-150 active:scale-[0.98] hover:shadow-xs"
               >
                 {t("Create Subscription")}
               </Button>

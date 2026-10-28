@@ -139,14 +139,14 @@ const DeliveryTrackingPage = () => {
 
   if (!hasLoaded) {
     return (
-      <div className="flex min-h-[60vh] w-full items-center justify-center">
+      <div className="flex min-h-[60vh] w-full items-center justify-center animate-in fade-in-50 duration-300">
         <Navigation className="size-16 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <>
+    <section className="animate-in fade-in-50 duration-300">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <HeaderLayout
           title={t("Delivery Tracking")}
@@ -155,8 +155,9 @@ const DeliveryTrackingPage = () => {
         <DefaultButton
           data={{
             buttonText: t("Refresh"),
-            icon: <RefreshCw className={`size-[18px] ${loading ? "animate-spin" : ""}`} />,
+            icon: <RefreshCw className={`size-[18px] transition-transform duration-500 ${loading ? "animate-spin" : "group-hover:rotate-180"}`} />,
             onClick: loadRiders,
+            className: "transition-all duration-150 active:scale-[0.98]",
           }}
         />
       </div>
@@ -180,7 +181,7 @@ const DeliveryTrackingPage = () => {
           <RiderListPanel riders={riders} onSelectRider={setSelectedRider} />
         )}
       </div>
-    </>
+    </section>
   );
 };
 

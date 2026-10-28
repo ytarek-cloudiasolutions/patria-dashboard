@@ -227,7 +227,7 @@ const GoogleMap = ({ riders, selectedRider, onSelectRider }: GoogleMapProps) => 
         <button
           type="button"
           onClick={fitAllFleet}
-          className="flex items-center gap-1.5 rounded-xl border border-[#E5E5E5] bg-white/95 px-3 py-1.5 text-[12px] font-semibold text-[#28293D] shadow-sm backdrop-blur transition-all hover:border-[#8F6900]/40 hover:bg-[#FAFAF7] active:scale-95"
+          className="flex items-center gap-1.5 rounded-xl border border-[#E5E5E5] bg-white/95 px-3 py-1.5 text-[12px] font-semibold text-[#28293D] shadow-sm backdrop-blur transition-all duration-150 hover:border-[#8F6900]/40 hover:bg-[#FAFAF7] active:scale-95"
           title={t("Fit All Fleet")}
         >
           <Crosshair size={14} className="text-[#8F6900]" />
@@ -237,7 +237,7 @@ const GoogleMap = ({ riders, selectedRider, onSelectRider }: GoogleMapProps) => 
 
       {/* Alert when selected rider has no live GPS coordinates */}
       {selectedRider && !selectedRider.location && (
-        <div className="pointer-events-none absolute top-3 end-3 z-10 max-w-[280px]">
+        <div className="pointer-events-none absolute top-3 end-3 z-10 max-w-[280px] animate-in fade-in-0 slide-in-from-top-1 duration-200">
           <div className="flex items-center gap-2 rounded-xl border border-[#f97316]/30 bg-white/95 px-3 py-2 text-[12px] text-[#595959] shadow-sm backdrop-blur">
             <MapPinOff size={15} className="shrink-0 text-[#f97316]" />
             <span>
@@ -249,7 +249,7 @@ const GoogleMap = ({ riders, selectedRider, onSelectRider }: GoogleMapProps) => 
       )}
 
       {riders.filter((r) => r.location).length === 0 && (
-        <div className="pointer-events-none absolute inset-0 flex items-end justify-center pb-4">
+        <div className="pointer-events-none absolute inset-0 flex items-end justify-center pb-4 animate-in fade-in-0 duration-300">
           <div className="rounded-full border border-[#E5E5E5] bg-white/90 px-4 py-1.5 shadow-sm backdrop-blur-sm">
             <span className="text-[12px] font-medium text-[#595959]">
               {t("No driver locations available")}

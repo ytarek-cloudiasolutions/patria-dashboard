@@ -39,7 +39,7 @@ const TransfersTable = ({ transfers }: TransfersTableProps) => {
         {transfers.map((transfer) => (
           <div
             key={transfer.id}
-            className="rounded-2xl border border-[#E5E5E5] bg-white px-4 py-4"
+            className="rounded-2xl border border-[#E5E5E5] bg-white px-4 py-4 transition-all duration-200 hover:shadow-sm"
           >
             <div className="mb-2 flex items-center justify-between gap-3">
               <p className="text-[14px] font-semibold text-[#28293D]" dir="ltr">
@@ -82,7 +82,7 @@ const TransfersTable = ({ transfers }: TransfersTableProps) => {
         ))}
 
         {transfers.length === 0 && (
-          <p className="py-8 text-center text-[14px] text-[#8B8B8B]">
+          <p className="py-8 text-center text-[14px] text-[#8B8B8B] animate-in fade-in-50 duration-200">
             {t("No transfers yet.")}
           </p>
         )}
@@ -103,7 +103,7 @@ const TransfersTable = ({ transfers }: TransfersTableProps) => {
           </TableHeader>
           <TableBody>
             {transfers.map((transfer) => (
-              <TableRow key={transfer.id} className="hover:bg-[#FAFAF8]">
+              <TableRow key={transfer.id} className="hover:bg-[#FAFAF8] transition-colors duration-150">
                 <TableCell className="ps-6 py-4 whitespace-nowrap text-[12px] font-normal text-[#333333]">
                   {transfer.reference}
                 </TableCell>
@@ -133,7 +133,7 @@ const TransfersTable = ({ transfers }: TransfersTableProps) => {
               <TableRow>
                 <TableCell
                   colSpan={6}
-                  className="py-10 text-center text-[14px] text-[#8B8B8B]"
+                  className="py-10 text-center text-[14px] text-[#8B8B8B] animate-in fade-in-50 duration-200"
                 >
                   {t("No transfers yet.")}
                 </TableCell>

@@ -143,7 +143,7 @@ const PaymentDialog = ({
                 {t("This payment will be automatically recorded in the accounts/expenses ledger.")}
               </p>
               {error && (
-                <p className="mt-1.5 text-[13px] text-[#C90000]">{error}</p>
+                <p className="mt-1.5 text-[13px] text-[#C90000] animate-in fade-in-0 slide-in-from-top-1 duration-150">{error}</p>
               )}
             </div>
           </form>
@@ -155,7 +155,7 @@ const PaymentDialog = ({
             {/* Total — stacked, right-aligned */}
             <div className="mb-4 flex flex-col items-end sm:mb-5">
               <p className="text-[12px] font-medium text-[#8B8B8B]">{t("Total")}</p>
-              <p className="text-[22px] font-bold text-[#28293D] sm:text-[24px]" dir="ltr">
+              <p className="text-[22px] font-bold text-[#28293D] sm:text-[24px] transition-all duration-150" dir="ltr">
                 {formatEgp(numericAmount)}
               </p>
             </div>
@@ -170,13 +170,13 @@ const PaymentDialog = ({
                   type: "button",
                   onClick: () => onOpenChange(false),
                   className:
-                    "w-full sm:w-auto border-primary text-primary hover:bg-white hover:text-primary",
+                    "w-full sm:w-auto border-primary text-primary hover:bg-white hover:text-primary transition-all duration-150 active:scale-[0.98]",
                 }}
               />
               <Button
                 form={FORM_ID}
                 type="submit"
-                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
+                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px] transition-all duration-150 active:scale-[0.98]"
               >
                 {t("Confirm exchange")}
               </Button>

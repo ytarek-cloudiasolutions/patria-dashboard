@@ -67,7 +67,7 @@ const PoActions = ({
             type: "button",
             onClick: () => onSubmitToSupplier(order),
             className:
-              "h-9 sm:h-9 px-3 sm:px-3 text-[12px] sm:text-[12px] gap-1 sm:gap-1 bg-[#F5F0EA] text-primary rounded-[16px]",
+              "h-9 sm:h-9 px-3 sm:px-3 text-[12px] sm:text-[12px] gap-1 sm:gap-1 bg-[#F5F0EA] text-primary rounded-[16px] transition-all duration-150 active:scale-[0.98] hover:opacity-90",
           }}
         />
       )}
@@ -79,7 +79,7 @@ const PoActions = ({
               type: "button",
               onClick: () => onMakePayment(order),
               className:
-                "h-9 sm:h-9 px-3 sm:px-3 text-[12px] sm:text-[12px] gap-1 sm:gap-1 rounded-[16px]",
+                "h-9 sm:h-9 px-3 sm:px-3 text-[12px] sm:text-[12px] gap-1 sm:gap-1 rounded-[16px] transition-all duration-150 active:scale-[0.98] hover:opacity-90",
             }}
           />
           <DefaultButton
@@ -88,7 +88,7 @@ const PoActions = ({
               type: "button",
               onClick: () => onMarkReceived(order),
               className:
-                "h-9 sm:h-9 px-3 sm:px-3 text-[12px] sm:text-[12px] gap-1 sm:gap-1 bg-[#E2F4ED] text-[#059B5A] rounded-[16px]",
+                "h-9 sm:h-9 px-3 sm:px-3 text-[12px] sm:text-[12px] gap-1 sm:gap-1 bg-[#E2F4ED] text-[#059B5A] rounded-[16px] transition-all duration-150 active:scale-[0.98] hover:opacity-90",
             }}
           />
         </>
@@ -100,7 +100,7 @@ const PoActions = ({
             type: "button",
             onClick: () => onCancel(order),
             className:
-              "h-9 sm:h-9 px-3 sm:px-3 text-[12px] sm:text-[12px] gap-1 sm:gap-1 bg-[#FFECEC] text-[#C90000] rounded-[16px]",
+              "h-9 sm:h-9 px-3 sm:px-3 text-[12px] sm:text-[12px] gap-1 sm:gap-1 bg-[#FFECEC] text-[#C90000] rounded-[16px] transition-all duration-150 active:scale-[0.98] hover:opacity-90",
           }}
         />
       )}
@@ -108,9 +108,9 @@ const PoActions = ({
         type="button"
         onClick={() => onDelete(order)}
         title={t("Delete")}
-        className="inline-flex h-9 items-center justify-center rounded-[16px] px-2 text-[#C90000] hover:bg-[#FFEBEE] transition-colors cursor-pointer"
+        className="group inline-flex h-9 items-center justify-center rounded-[16px] px-2 text-[#C90000] hover:bg-[#FFEBEE] transition-all duration-150 active:scale-90 cursor-pointer"
       >
-        <Trash2 className="size-4.5" />
+        <Trash2 className="size-4.5 transition-transform duration-150 group-hover:scale-110" />
       </button>
     </div>
   );
@@ -166,7 +166,7 @@ const PurchasingTable = ({
         {orders.map((order) => (
           <div
             key={order.id}
-            className="rounded-2xl border border-[#E5E5E5] bg-white px-4 py-4"
+            className="rounded-2xl border border-[#E5E5E5] bg-white px-4 py-4 transition-all duration-200 hover:shadow-sm"
           >
             <div className="mb-3 flex items-start justify-between gap-3">
               <PoNumberCell order={order} />
@@ -206,7 +206,7 @@ const PurchasingTable = ({
         ))}
 
         {orders.length === 0 && (
-          <p className="py-8 text-center text-[14px] text-[#8B8B8B]">
+          <p className="py-8 text-center text-[14px] text-[#8B8B8B] animate-in fade-in-50 duration-200">
             {t("No purchase orders found.")}
           </p>
         )}
@@ -240,7 +240,7 @@ const PurchasingTable = ({
 
           <TableBody>
             {orders.map((order) => (
-              <TableRow key={order.id} className="hover:bg-[#FAFAF8]">
+              <TableRow key={order.id} className="hover:bg-[#FAFAF8] transition-colors duration-150">
                 <TableCell className="ps-6 py-4 whitespace-nowrap">
                   <PoNumberCell order={order} />
                 </TableCell>
@@ -275,7 +275,7 @@ const PurchasingTable = ({
               <TableRow>
                 <TableCell
                   colSpan={6}
-                  className="py-10 text-center text-[14px] text-[#8B8B8B]"
+                  className="py-10 text-center text-[14px] text-[#8B8B8B] animate-in fade-in-50 duration-200"
                 >
                   {t("No purchase orders found.")}
                 </TableCell>

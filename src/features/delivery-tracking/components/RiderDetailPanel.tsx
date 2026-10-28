@@ -43,14 +43,14 @@ const RiderDetailPanel = ({ rider, onBack }: RiderDetailPanelProps) => {
   const orderCount = rider.activeOrders.length;
 
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-[16px] border border-[#CACBD4] bg-[#F5F0EA]">
+    <div className="flex h-full flex-col overflow-hidden rounded-[16px] border border-[#CACBD4] bg-[#F5F0EA] animate-in fade-in-0 duration-200">
       {/* Back button */}
       <button
         type="button"
         onClick={onBack}
-        className="flex cursor-pointer items-center gap-1.5 px-3 pt-3 pb-2 text-[13px] font-semibold text-[#28293D] transition-colors hover:text-[#8F6900]"
+        className="group flex cursor-pointer items-center gap-1.5 px-3 pt-3 pb-2 text-[13px] font-semibold text-[#28293D] transition-all duration-150 hover:text-[#8F6900] active:scale-95"
       >
-        <ArrowLeft size={16} />
+        <ArrowLeft size={16} className="transition-transform duration-150 group-hover:-translate-x-0.5" />
         <span>{t("Back to all riders")}</span>
       </button>
 
@@ -112,13 +112,15 @@ const RiderDetailPanel = ({ rider, onBack }: RiderDetailPanelProps) => {
       {/* Scrollable order cards */}
       <div className="custom-scrollbar flex flex-1 flex-col gap-4 overflow-y-auto px-3 pb-5">
         {rider.activeOrders.length === 0 ? (
-          <div className="py-8 text-center text-[13px] text-[#8B8B8B]">
+          <div className="py-8 text-center text-[13px] text-[#8B8B8B] animate-in fade-in-50 duration-200">
             {t("No active orders")}
           </div>
         ) : (
-          rider.activeOrders.map((order) => (
-            <OrderCard key={order.id} order={order} />
-          ))
+          <div className="flex flex-col gap-4 animate-in fade-in-50 duration-200">
+            {rider.activeOrders.map((order) => (
+              <OrderCard key={order.id} order={order} />
+            ))}
+          </div>
         )}
       </div>
     </div>

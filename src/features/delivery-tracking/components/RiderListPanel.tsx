@@ -58,7 +58,7 @@ const RiderListPanel = ({ riders, onSelectRider }: RiderListPanelProps) => {
                 key={f.key}
                 type="button"
                 onClick={() => setActiveFilter(f.key)}
-                className={`relative flex flex-1 items-center justify-center gap-1 py-2.5 px-1 text-[12px] font-semibold transition-colors cursor-pointer border-b-2 -mb-px ${
+                className={`relative flex flex-1 items-center justify-center gap-1 py-2.5 px-1 text-[12px] font-semibold transition-all duration-150 cursor-pointer border-b-2 -mb-px active:scale-95 ${
                   isActive
                     ? "border-primary text-[#28293D]"
                     : "border-transparent text-[#8B8B8B] hover:text-[#28293D] hover:border-[#CACBD4]"
@@ -67,7 +67,7 @@ const RiderListPanel = ({ riders, onSelectRider }: RiderListPanelProps) => {
                 <span className="whitespace-nowrap">{t(f.label)}</span>
                 {counts[f.key] !== undefined && (
                   <span
-                    className={`flex items-center justify-center min-w-4.5 h-4 px-1 rounded-full text-[10px] font-bold ${
+                    className={`flex items-center justify-center min-w-4.5 h-4 px-1 rounded-full text-[10px] font-bold transition-all duration-150 ${
                       isActive
                         ? "bg-[#8F6900]/15 text-[#8F6900]"
                         : "bg-[#E5E5E5] text-[#595959]"
@@ -85,11 +85,11 @@ const RiderListPanel = ({ riders, onSelectRider }: RiderListPanelProps) => {
       {/* Scrollable rider list */}
       <div className="custom-scrollbar min-h-0 flex-1 overflow-y-auto px-3 pt-3 pb-5">
         {filteredRiders.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-10 text-center text-[#8B8B8B]">
+          <div className="flex flex-col items-center justify-center py-10 text-center text-[#8B8B8B] animate-in fade-in-50 duration-200">
             <p className="text-[13px] font-medium">{t("No riders found")}</p>
           </div>
         ) : (
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 animate-in fade-in-50 duration-200">
             {filteredRiders.map((rider) => (
               <RiderCard key={rider.id} rider={rider} onClick={onSelectRider} />
             ))}

@@ -97,7 +97,7 @@ const SendNotificationDialog = ({
                 className="h-[50px] rounded-xl border-[#E5E5E5] px-4.5 py-3 text-[16px] font-normal text-[#23252A] placeholder:text-[#8B8B8B] placeholder:text-[16px] placeholder:font-normal focus-visible:border-primary focus-visible:ring-0"
               />
               {error && (
-                <p className="mt-1 text-[13px] text-[#C90000]">{error}</p>
+                <p className="mt-1 text-[13px] text-[#C90000] animate-in fade-in-0 slide-in-from-top-1 duration-150">{error}</p>
               )}
             </div>
 
@@ -128,13 +128,13 @@ const SendNotificationDialog = ({
                   type: "button",
                   onClick: () => onOpenChange(false),
                   className:
-                    "w-full sm:w-auto border-primary text-primary hover:bg-white hover:text-primary",
+                    "w-full sm:w-auto border-primary text-primary hover:bg-white hover:text-primary transition-all duration-150 active:scale-[0.98]",
                 }}
               />
               <Button
                 form={FORM_ID}
                 type="submit"
-                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
+                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px] transition-all duration-150 active:scale-[0.98]"
               >
                 {t("Send Notification")}
               </Button>

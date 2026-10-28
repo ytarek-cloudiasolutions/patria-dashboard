@@ -24,7 +24,7 @@ const OrderBadge = ({ order }: { order: ZoneOrder }) => {
   const { t } = useTranslation();
   if (order.assignedDriverName) {
     return (
-      <span className="inline-flex h-6 items-center gap-1.5 rounded-[30px] border border-[#8F6900] bg-[#F5F0EA] px-2.5 text-[11px] font-semibold text-[#8F6900]">
+      <span className="inline-flex h-6 items-center gap-1.5 rounded-[30px] border border-[#8F6900] bg-[#F5F0EA] px-2.5 text-[11px] font-semibold text-[#8F6900] transition-all duration-150">
         <Truck size={12} className="text-[#8F6900]" />
         {order.assignedDriverName}
       </span>
@@ -33,7 +33,7 @@ const OrderBadge = ({ order }: { order: ZoneOrder }) => {
   return (
     <span
       className={cn(
-        "inline-flex h-6 items-center rounded-full border bg-white px-2.5 text-[11px] font-semibold",
+        "inline-flex h-6 items-center rounded-full border bg-white px-2.5 text-[11px] font-semibold transition-all duration-150",
         getStatusBadgeStyle(order.status),
       )}
     >
@@ -74,7 +74,7 @@ const ZoneAccordion = ({
         return (
           <div
             key={zone.id}
-            className="overflow-hidden rounded-[14px] border border-[#E5E5E5] bg-white"
+            className="overflow-hidden rounded-[14px] border border-[#E5E5E5] bg-white transition-all duration-200 hover:shadow-xs"
           >
             {/* Zone header */}
             <div className="flex items-center gap-3 px-4 py-3.5">
@@ -106,7 +106,7 @@ const ZoneAccordion = ({
               >
                 <ChevronDown
                   className={cn(
-                    "size-5 transition-transform",
+                    "size-5 transition-transform duration-200",
                     isOpen && "rotate-180",
                   )}
                 />
@@ -115,13 +115,13 @@ const ZoneAccordion = ({
 
             {/* Orders */}
             {isOpen && (
-              <div className="border-t border-[#F0EEEA]">
+              <div className="border-t border-[#F0EEEA] animate-in fade-in-0 slide-in-from-top-1 duration-200">
                 {zone.orders.map((order) => {
                   const assigned = !!order.assignedDriverName;
                   return (
                     <div
                       key={order.id}
-                      className="flex items-center gap-3 border-b border-[#F4F2EE] px-4 py-3 last:border-b-0"
+                      className="flex items-center gap-3 border-b border-[#F4F2EE] px-4 py-3 last:border-b-0 hover:bg-[#FAFAF8] transition-colors duration-150"
                     >
                       <Checkbox
                         checked={selectedIds.has(order.id)}

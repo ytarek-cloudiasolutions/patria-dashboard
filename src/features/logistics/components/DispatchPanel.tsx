@@ -143,12 +143,12 @@ const DispatchPanel = ({
         {t("Orders selected")} ({count})
       </p>
 
-      <div className="mt-5 rounded-[12px] border-2 border-dashed border-[#624F1C] bg-[#F5F0EA4D] p-4">
+      <div className="mt-5 rounded-[12px] border-2 border-dashed border-[#624F1C] bg-[#F5F0EA4D] p-4 transition-colors">
         <p className="mb-3 text-[14px] font-bold text-[#28293D]">
           {t("Orders Selected")}
         </p>
         {count === 0 ? (
-          <p className="py-4 text-center text-[13px] text-[#8B8B8B]">
+          <p className="py-4 text-center text-[13px] text-[#8B8B8B] animate-in fade-in-50 duration-150">
             {t("Select orders from the zones to dispatch.")}
           </p>
         ) : (
@@ -156,7 +156,7 @@ const DispatchPanel = ({
             {selectedReferences.map((ref) => (
               <span
                 key={ref}
-                className="inline-flex h-10 items-center justify-center rounded-[8px] border border-[#E5E5E5] bg-white px-2 text-[12px] font-medium text-[#28293D]"
+                className="inline-flex h-10 items-center justify-center rounded-[8px] border border-[#E5E5E5] bg-white px-2 text-[12px] font-medium text-[#28293D] transition-transform duration-150 hover:scale-[1.02] animate-in fade-in-0 zoom-in-95 duration-150"
                 dir="ltr"
               >
                 {ref}
@@ -188,7 +188,7 @@ const DispatchPanel = ({
         type="button"
         disabled={count === 0 || !selectedDriverId || isDispatching}
         onClick={onSend}
-        className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[8px] text-[14px] font-semibold text-white disabled:opacity-50"
+        className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[8px] text-[14px] font-semibold text-white disabled:opacity-50 transition-all duration-150 active:scale-[0.98]"
       >
         {isDispatching ? (
           <Loader2 className="size-4 animate-spin" />
@@ -201,7 +201,7 @@ const DispatchPanel = ({
         type="button"
         variant="outline"
         onClick={onCancel}
-        className="mt-3 h-12 w-full cursor-pointer rounded-[8px] border-primary text-[14px] font-semibold text-primary hover:bg-[#FBF6EE] hover:text-primary"
+        className="mt-3 h-12 w-full cursor-pointer rounded-[8px] border-primary text-[14px] font-semibold text-primary hover:bg-[#FBF6EE] hover:text-primary transition-all duration-150 active:scale-[0.98]"
       >
         {t("Cancel")}
       </Button>

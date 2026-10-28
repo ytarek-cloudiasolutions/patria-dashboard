@@ -20,7 +20,7 @@ const PurchasingOverview = ({
 }: PurchasingOverviewProps) => {
   const { t } = useTranslation();
   return (
-    <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+    <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 animate-in fade-in-50 duration-300">
       <OverviewCard
         data={{
           title: t("Total purchases"),

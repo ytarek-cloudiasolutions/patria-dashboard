@@ -30,10 +30,10 @@ const RiderCard = ({ rider, onClick }: RiderCardProps) => {
     <button
       type="button"
       onClick={() => onClick(rider)}
-      className="flex w-full cursor-pointer items-center gap-3 rounded-[16px] border border-[#E5E5E5] bg-white p-3 transition-colors hover:bg-[#FAFAF7]"
+      className="group flex w-full cursor-pointer items-center gap-3 rounded-[16px] border border-[#E5E5E5] bg-white p-3 transition-all duration-200 hover:bg-[#FAFAF7] hover:border-[#D4D4D8] hover:shadow-xs active:scale-[0.99] text-start"
     >
       {/* Avatar */}
-      <div className="flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-full bg-[#8F6900] text-[14px] font-bold text-white">
+      <div className="flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-full bg-[#8F6900] text-[14px] font-bold text-white transition-transform duration-200 group-hover:scale-105">
         {initials}
       </div>
 
@@ -98,7 +98,7 @@ const RiderCard = ({ rider, onClick }: RiderCardProps) => {
       </div>
 
       {/* Chevron */}
-      <ChevronRight size={22} className="shrink-0 text-[#8B8B8B]" />
+      <ChevronRight size={22} className="shrink-0 text-[#8B8B8B] transition-transform duration-200 group-hover:translate-x-1" />
     </button>
   );
 };

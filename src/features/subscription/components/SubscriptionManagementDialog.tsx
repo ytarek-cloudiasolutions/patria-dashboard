@@ -107,7 +107,7 @@ const SubscriptionManagementDialog = ({
         className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-140"
       >
         {openDropdown && (
-          <div className="pointer-events-none fixed inset-0 z-60 bg-black/40" />
+          <div className="pointer-events-none fixed inset-0 z-60 bg-black/40 transition-opacity animate-in fade-in-0 duration-200" />
         )}
 
         <div className="flex max-h-[calc(100vh-2rem)] flex-col">
@@ -127,7 +127,7 @@ const SubscriptionManagementDialog = ({
           >
             <div className="flex flex-col gap-5">
               {/* Subscriber data card */}
-              <div className="flex items-start justify-between gap-3 rounded-[12px] border border-[#E5E5E5] bg-[#FAFAF7] px-4 py-3">
+              <div className="flex items-start justify-between gap-3 rounded-[12px] border border-[#E5E5E5] bg-[#FAFAF7] px-4 py-3 transition-all duration-200 hover:border-[#D4D4D8]">
                 <div>
                   <p className="text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
                     {t("Subscriber data")}
@@ -141,7 +141,7 @@ const SubscriptionManagementDialog = ({
                 </div>
                 <span
                   aria-hidden="true"
-                  className="flex size-8 items-center justify-center rounded-[8px] bg-primary text-[13px] font-semibold text-primary-foreground"
+                  className="flex size-8 items-center justify-center rounded-[8px] bg-primary text-[13px] font-semibold text-primary-foreground transition-transform duration-200 hover:scale-105"
                 >
                   {getInitial(subscription.customerName)}
                 </span>
@@ -210,7 +210,7 @@ const SubscriptionManagementDialog = ({
                     }}
                   />
                   {errors.quantity && (
-                    <p className="mt-1 text-[13px] text-[#C90000]">
+                    <p className="mt-1 text-[13px] text-[#C90000] animate-in fade-in-0 slide-in-from-top-1 duration-150">
                       {errors.quantity}
                     </p>
                   )}
@@ -229,7 +229,7 @@ const SubscriptionManagementDialog = ({
                     minDate={new Date().toISOString().slice(0, 10)}
                   />
                   {errors.nextDelivery && (
-                    <p className="mt-1 text-[13px] text-[#C90000]">
+                    <p className="mt-1 text-[13px] text-[#C90000] animate-in fade-in-0 slide-in-from-top-1 duration-150">
                       {errors.nextDelivery}
                     </p>
                   )}
@@ -249,13 +249,13 @@ const SubscriptionManagementDialog = ({
                   type: "button",
                   onClick: () => onOpenChange(false),
                   className:
-                    "w-full sm:w-auto border-primary text-primary hover:bg-white hover:text-primary",
+                    "w-full sm:w-auto border-primary text-primary hover:bg-white hover:text-primary transition-all duration-150 active:scale-[0.98]",
                 }}
               />
               <Button
                 form={FORM_ID}
                 type="submit"
-                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
+                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px] transition-all duration-150 active:scale-[0.98] hover:shadow-xs"
               >
                 {t("Save Changes")}
               </Button>

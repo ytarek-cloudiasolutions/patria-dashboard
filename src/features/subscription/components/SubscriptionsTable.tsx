@@ -67,7 +67,7 @@ const PaymentCell = ({ subscription }: { subscription: Subscription }) => {
     <div className="flex flex-col justify-center items-center gap-1">
       <Badge
         className={cn(
-          "h-6 w-fit rounded-full border px-3 py-0 text-[11px] font-semibold",
+          "h-6 w-fit rounded-full border px-3 py-0 text-[11px] font-semibold transition-all duration-200",
           PAYMENT_STYLES[subscription.paymentStatus],
         )}
       >
@@ -83,7 +83,7 @@ const StatusBadgeCell = ({ status }: { status: SubscriptionStatus }) => {
   return (
     <Badge
       className={cn(
-        "h-7 min-w-24 rounded-full border px-3 py-0 text-[12px] font-semibold",
+        "h-7 min-w-24 rounded-full border px-3 py-0 text-[12px] font-semibold transition-all duration-200",
         STATUS_STYLES[status],
       )}
     >
@@ -106,6 +106,7 @@ const SubscriptionActions = ({
       data={{
         icon: <SquarePen size={16} />,
         iconColor: "text-[#000000]",
+        className: "transition-transform duration-150 active:scale-90 hover:scale-110",
         ariaLabel: `Edit ${subscription.customerName}'s subscription`,
         onClick: () => onEdit(subscription),
       }}
@@ -114,6 +115,7 @@ const SubscriptionActions = ({
       data={{
         icon: <Trash2 size={16} />,
         iconColor: "text-[#C90000]",
+        className: "transition-transform duration-150 active:scale-90 hover:scale-110",
         ariaLabel: `Cancel ${subscription.customerName}'s subscription`,
         onClick: () => onCancel(subscription),
       }}
@@ -134,7 +136,7 @@ const SubscriptionsTable = ({
         {subscriptions.map((subscription) => (
           <div
             key={subscription.id}
-            className="rounded-2xl border border-[#E5E5E5] bg-white px-4 py-4"
+            className="group rounded-2xl border border-[#E5E5E5] bg-white px-4 py-4 transition-all duration-200 hover:shadow-md hover:border-[#D4D4D8]"
           >
             <div className="mb-3 flex items-start justify-between gap-3">
               <div className="min-w-0">
@@ -185,7 +187,7 @@ const SubscriptionsTable = ({
         ))}
 
         {subscriptions.length === 0 && (
-          <p className="py-8 text-center text-[14px] text-[#8B8B8B]">
+          <p className="py-8 text-center text-[14px] text-[#8B8B8B] animate-in fade-in-50 duration-200">
             {t("No subscriptions yet.")}
           </p>
         )}
@@ -207,7 +209,7 @@ const SubscriptionsTable = ({
           </TableHeader>
           <TableBody>
             {subscriptions.map((subscription) => (
-              <TableRow key={subscription.id} className="hover:bg-[#FAFAF8]">
+              <TableRow key={subscription.id} className="hover:bg-[#FAFAF8] transition-colors duration-150">
                 <TableCell className="ps-6 py-4 whitespace-nowrap">
                   <p className="text-[14px] font-semibold text-[#28293D]">
                     {subscription.customerName}
@@ -247,7 +249,7 @@ const SubscriptionsTable = ({
               <TableRow>
                 <TableCell
                   colSpan={7}
-                  className="py-10 text-center text-[14px] text-[#8B8B8B]"
+                  className="py-10 text-center text-[14px] text-[#8B8B8B] animate-in fade-in-50 duration-200"
                 >
                   {t("No subscriptions yet.")}
                 </TableCell>

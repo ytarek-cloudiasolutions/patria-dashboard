@@ -34,11 +34,11 @@ const WarehouseSection = ({
       </div>
 
       {warehouses.length === 0 ? (
-        <p className="rounded-[12px] border border-dashed border-[#E5E5E5] bg-white px-4 py-6 text-center text-[13px] text-[#8B8B8B]">
+        <p className="rounded-[12px] border border-dashed border-[#E5E5E5] bg-white px-4 py-6 text-center text-[13px] text-[#8B8B8B] animate-in fade-in-50 duration-200">
           {t(EMPTY_STATE[kind])}
         </p>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 animate-in fade-in-50 duration-300">
           {warehouses.map((warehouse) => (
             <WarehouseCard key={warehouse.id} warehouse={warehouse} />
           ))}

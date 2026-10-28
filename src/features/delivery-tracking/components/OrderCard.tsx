@@ -90,7 +90,7 @@ const OrderCard = ({ order }: OrderCardProps) => {
     `EGP ${value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   return (
-    <div className="flex flex-col gap-3 rounded-[16px] border border-[#E5E5E5] bg-[#FAFAF7] p-4">
+    <div className="group flex flex-col gap-3 rounded-[16px] border border-[#E5E5E5] bg-[#FAFAF7] p-4 transition-all duration-200 hover:shadow-xs hover:border-[#D4D4D8]">
       {/* Header: Order number + status badge */}
       <div className="flex items-center justify-between">
         <span className="text-[14px] font-bold text-[#28293D]">
@@ -198,7 +198,7 @@ const OrderCard = ({ order }: OrderCardProps) => {
         data={{
           buttonText: t("Show on map"),
           icon: <MapPinned size={18} />,
-          className: "w-full",
+          className: "w-full transition-all duration-150 active:scale-[0.98]",
           onClick: () =>
             window.open(
               `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(order.address)}`,
