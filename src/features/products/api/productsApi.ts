@@ -10,9 +10,19 @@ import type {
 } from "../store/productTypes";
 
 export const getProducts = async (params?: GetProductsRequest) => {
+  // This used to default `includeInactive: true` for EVERY call to this
+  // wrapper — meaning every product list anywhere in the app (the main
+  // Products tab, the Ingredients/Recipes tab, search, pagination, all of
+  // it) always asked the backend to include soft-deleted products
+  // regardless, completely bypassing the backend's own exclusion of them.
+  // A deleted product never actually stopped showing up — it looked
+  // exactly like "delete doesn't work". The two call sites that genuinely
+  // need to see deactivated products (the Availability modal, and the
+  // Ingredients dialog's picker) already pass `includeInactive: true`
+  // explicitly themselves, so nothing here needs a default at all.
   const response = await api.get<GetProductsResponse>(
     PRODUCT_ENDPOINTS.PRODUCTS,
-    { params: { includeInactive: true, ...params } },
+    { params },
   );
   return response.data;
 };
