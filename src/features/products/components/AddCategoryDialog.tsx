@@ -22,6 +22,17 @@ import UploadDropzone from "./UploadDropzone";
 
 const FORM_ID = "add-category-form";
 
+const getKitchenTypeValue = (k: any): string => {
+  return (
+    k?.kitchenType ||
+    k?.type ||
+    k?.slug ||
+    (typeof k?.name === "string" ? k.name.toLowerCase().trim().replace(/\s+/g, "_") : "") ||
+    k?.id ||
+    ""
+  );
+};
+
 interface AddCategoryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -51,28 +62,60 @@ const AddCategoryDialog = ({
   useEffect(() => {
     if (!open) return;
     let isMounted = true;
-    getKitchens()
-      .then((data) => {
+
+    Promise.allSettled([getKitchens(), getKitchenStations()]).then(
+      ([kitchensRes, stationsRes]) => {
         if (!isMounted) return;
-        const list = Array.isArray(data) ? data : (data as any)?.kitchens || [];
-        setKitchens(list);
-      })
-      .catch((err) => {
-        console.error("Failed to load kitchens for category", err);
-        getKitchenStations()
-          .then((stations) => {
-            if (!isMounted) return;
-            setKitchens(
-              (stations || []).map((s) => ({
-                id: s.kitchenType,
-                name: s.name,
-              } as Kitchen))
-            );
-          })
-          .catch(() => {
-            if (isMounted) setKitchens([]);
-          });
-      });
+        const kitchensList: any[] =
+          kitchensRes.status === "fulfilled" && Array.isArray(kitchensRes.value)
+            ? kitchensRes.value
+            : [];
+        const stationsList: any[] =
+          stationsRes.status === "fulfilled" && Array.isArray(stationsRes.value)
+            ? stationsRes.value
+            : [];
+
+        // Build a merged list of kitchens where each item has kitchenType guaranteed
+        const mergedKitchens: Kitchen[] = kitchensList.map((k) => {
+          const matchingStation = stationsList.find(
+            (s) =>
+              s.kitchenType === k.kitchenType ||
+              s.kitchenType?.toLowerCase() === k.name?.toLowerCase() ||
+              s.kitchenType?.toLowerCase() === k.id?.toLowerCase() ||
+              s.name?.toLowerCase() === k.name?.toLowerCase()
+          );
+
+          const resolvedType =
+            k.kitchenType ||
+            matchingStation?.kitchenType ||
+            k.type ||
+            (k.name ? k.name.toLowerCase().trim().replace(/\s+/g, "_") : k.id);
+
+          return {
+            ...k,
+            kitchenType: resolvedType,
+          };
+        });
+
+        // Add any stations from /kitchen/stations not present in /kitchens
+        stationsList.forEach((station) => {
+          const exists = mergedKitchens.some(
+            (k) =>
+              k.kitchenType === station.kitchenType ||
+              k.name?.toLowerCase() === station.name?.toLowerCase()
+          );
+          if (!exists) {
+            mergedKitchens.push({
+              id: station.kitchenType,
+              name: station.name,
+              kitchenType: station.kitchenType,
+            } as any);
+          }
+        });
+
+        setKitchens(mergedKitchens);
+      }
+    );
 
     return () => {
       isMounted = false;
@@ -105,14 +148,15 @@ const AddCategoryDialog = ({
     if (!kitchens.length || !editingCategory?.kitchenType) return;
     const current = editingCategory.kitchenType;
     const matched = kitchens.find(
-      (k) =>
+      (k: any) =>
+        k.kitchenType === current ||
         k.id === current ||
-        (k as any)._id === current ||
-        k.name.toLowerCase() === current.toLowerCase() ||
-        k.name.toLowerCase().replace(/\s+/g, "_") === current.toLowerCase()
+        k._id === current ||
+        k.name?.toLowerCase() === current.toLowerCase() ||
+        k.name?.toLowerCase().replace(/\s+/g, "_") === current.toLowerCase()
     );
     if (matched) {
-      setKitchenType(matched.id || (matched as any)._id || matched.name);
+      setKitchenType(getKitchenTypeValue(matched));
     }
   }, [kitchens, editingCategory]);
 
@@ -255,7 +299,7 @@ const AddCategoryDialog = ({
                   { label: t("-- Select Kitchen --"), value: "" },
                   ...kitchens.map((kitchen) => ({
                     label: kitchen.name,
-                    value: kitchen.id || (kitchen as any)._id || kitchen.name,
+                    value: getKitchenTypeValue(kitchen),
                   })),
                 ]}
                 selected={kitchenType ?? ""}

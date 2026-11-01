@@ -16,6 +16,7 @@ export interface Kitchen {
   detailActiveOrders: number;
   lowStock: number;
   printer?: string;
+  kitchenType?: string;
 }
 
 export type OrderType = "takeaway" | "dine-in";

@@ -63,7 +63,12 @@ export const mapOrder = (o: any): Order => {
   });
 
   const items = (o.items || []).map((item: any, idx: number) => {
-    const product = item.productId || item.product || {};
+    const product =
+      typeof item.productId === "object" && item.productId !== null
+        ? item.productId
+        : typeof item.product === "object" && item.product !== null
+          ? item.product
+          : {};
     const notesStr = item.notes || "";
     const selectedExtras: { name: string; price: number }[] = [];
     const selectedVariants: { group: string; option: string; priceAdjustment: number }[] = [];
@@ -180,12 +185,20 @@ export const mapOrder = (o: any): Order => {
       )
       .filter((excluded: { productId: string; name: string }) => excluded.name || excluded.productId);
 
+    const rawProductId =
+      (typeof item.productId === "string" ? item.productId : item.productId?._id || item.productId?.id) ||
+      (typeof item.product === "string" ? item.product : item.product?._id || item.product?.id) ||
+      product._id ||
+      product.id ||
+      item._id ||
+      String(idx);
+
     return {
-      id: product._id || product.id || String(idx),
-      productId: product._id || product.id,
-      name: product.name || "Unknown Product",
+      id: item._id || rawProductId || String(idx),
+      productId: rawProductId,
+      name: item.name || product.name || item.productName || "Unknown Product",
       quantity: item.quantity || 0,
-      unitPrice: item.price || product.price || 0,
+      unitPrice: item.price ?? product.price ?? 0,
       note: unmatchedNotes.join(", "),
       selectedVariants,
       selectedExtras,

@@ -1,4 +1,4 @@
-import type { CartLineItem, OrderLineItem } from "./types";
+import type { CartLineItem, OrderLineItem, ProductVariantGroup } from "./types";
 
 /**
  * Translate the words inside a payment-method string while preserving any
@@ -26,15 +26,50 @@ export const formatCurrency = (amount: number) =>
 let lineCounter = 0;
 export const nextLineUid = () => `line-${Date.now()}-${++lineCounter}`;
 
-/** Per-unit price of a configured line: base + variant deltas + extra deltas. */
+/**
+ * Per-unit price of a configured line.
+ * If a variant group (such as Size) specifies absolute option prices (e.g. S=120, M=150, L=180
+ * where base price is 120), the selected variant option's price replaces the base price
+ * rather than adding on top of it, avoiding the base price being added twice.
+ */
 export const computeUnitPrice = (
   base: number,
-  variantSelections: { price: number }[],
+  variantSelections: { price: number; groupName?: string; optionName?: string }[],
   extras: { price: number }[],
-) =>
-  base +
-  variantSelections.reduce((sum, v) => sum + v.price, 0) +
-  extras.reduce((sum, e) => sum + e.price, 0);
+  variantGroups?: ProductVariantGroup[],
+) => {
+  let effectiveBasePrice = base;
+  let hasReplacedBasePrice = false;
+  let variantAdditionalAdjustment = 0;
+
+  variantSelections.forEach((v) => {
+    const optPrice = Number(v.price) || 0;
+    const matchingGroup = variantGroups?.find((g) => g.name === v.groupName);
+
+    const hasFullPriceOption = matchingGroup
+      ? (base > 0 &&
+          matchingGroup.options.some(
+            (o) => (Number(o.price) || 0) >= base,
+          )) ||
+        base === 0 ||
+        matchingGroup.name.toLowerCase().includes("size")
+      : (base > 0 && optPrice >= base) ||
+        (v.groupName && v.groupName.toLowerCase().includes("size")) ||
+        base === 0;
+
+    const isAbsoluteTier = hasFullPriceOption && optPrice > 0;
+
+    if (isAbsoluteTier && !hasReplacedBasePrice) {
+      effectiveBasePrice = optPrice;
+      hasReplacedBasePrice = true;
+    } else {
+      variantAdditionalAdjustment += optPrice;
+    }
+  });
+
+  const extrasTotal = extras.reduce((sum, e) => sum + e.price, 0);
+  return effectiveBasePrice + variantAdditionalAdjustment + extrasTotal;
+};
 
 export const cartSubtotal = (cart: CartLineItem[]) =>
   cart.reduce((sum, line) => sum + line.unitPrice * line.quantity, 0);

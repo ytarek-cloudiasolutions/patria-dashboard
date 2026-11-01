@@ -116,6 +116,7 @@ const ProductCustomizationModal = ({
     product.unitPrice,
     variantSelections,
     selectedExtras,
+    product.variantGroups,
   );
 
   const handleSubmit = () => {

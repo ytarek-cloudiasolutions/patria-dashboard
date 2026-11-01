@@ -79,6 +79,12 @@ const OrderDetailsDialog = ({
   const [appliedDiscountValue, setAppliedDiscountValue] = useState<number | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    setAdminDiscount(0);
+    setAppliedDiscountType(null);
+    setAppliedDiscountValue(null);
+  }, [order?.id, order?.discount]);
+
   if (!order) return null;
 
   const rawOrder = order as RawOrder;
@@ -134,7 +140,7 @@ const OrderDetailsDialog = ({
 
   const baseTotal = Number.isFinite(orderTotalVal) ? orderTotalVal : subtotalVal + deliveryFeeVal + taxVal;
   const finalTotal = adminDiscount > 0
-    ? Math.max(subtotalVal + taxVal - adminDiscount, 0)
+    ? Math.max(subtotalVal + taxVal + deliveryFeeVal - adminDiscount, 0)
     : Math.max(baseTotal, 0);
   const zoneName =
     order.zone ||
@@ -232,6 +238,11 @@ const OrderDetailsDialog = ({
     const printTime = now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
     const printDate = now.toLocaleDateString("en-US", { month: "numeric", day: "numeric", year: "2-digit" });
 
+    const resolveItemName = (item: any) =>
+      item.name && item.name !== "Unknown Product"
+        ? item.name
+        : products.find((p) => String(p.id) === String(item.productId || item.id))?.name || item.name || "Unknown Product";
+
     const kitchenReceiptHtml = generateKitchenReceiptHtml({
       orderNumber: String(displayId),
       orderType: isDineIn ? "dine-in" : isTakeaway ? "takeaway" : isDelivery ? "delivery" : "dine-in",
@@ -244,7 +255,7 @@ const OrderDetailsDialog = ({
       items: order.items.map((item) => {
         const rawItem = item as RawOrderItem;
         return {
-          name: item.name,
+          name: resolveItemName(item),
           qty: item.quantity,
           options: item.selectedVariants?.map((v) => `${v.group}: ${v.option}`) || [],
           extras: item.selectedExtras?.map((e) => `+ ${e.name}`) || [],
@@ -273,7 +284,7 @@ const OrderDetailsDialog = ({
       items: order.items.map((item) => {
         const rawItem = item as RawOrderItem;
         return {
-          name: item.name,
+          name: resolveItemName(item),
           qty: item.quantity,
           unitPrice: item.unitPrice,
           totalPrice: item.quantity * item.unitPrice,
@@ -439,6 +450,12 @@ const OrderDetailsDialog = ({
                   const baseUnitPrice =
                     item.unitPrice - variantTotalAdjustment - extraTotalAdjustment;
                   const displayBasePrice = item.quantity * baseUnitPrice;
+                  const displayName =
+                    item.name && item.name !== "Unknown Product"
+                      ? item.name
+                      : products.find((p) => String(p.id) === String(item.productId || item.id))?.name ||
+                        item.name ||
+                        "Unknown Product";
 
                   return (
                     <div
@@ -448,7 +465,7 @@ const OrderDetailsDialog = ({
                       <div className="flex items-center justify-between gap-3">
                         <p className="truncate text-[16px] text-black">
                           <span className="font-medium">{item.quantity}X </span>
-                          <span className="font-normal">{item.name}</span>
+                          <span className="font-normal">{displayName}</span>
                         </p>
                         <span className="shrink-0 text-[13px] font-semibold tracking-[0.26px] text-[#28293D]">
                           {formatCurrency(displayBasePrice)}
