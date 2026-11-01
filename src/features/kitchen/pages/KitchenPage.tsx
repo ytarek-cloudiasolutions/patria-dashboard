@@ -1,134 +1,76 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
 import DeleteDialog from "@/shared/components/DeleteDialog";
 import { useTranslation } from "@/shared/i18n/useTranslation";
-import { showSuccessToast } from "@/shared/utils/toast";
+import { showSuccessToast, showErrorToast } from "@/shared/utils/toast";
 import KitchenCard from "../components/KitchenCard";
 import KitchenDialog, { type KitchenFormData } from "../components/KitchenDialog";
-import { getKitchenStations, type KitchenStation } from "../api/kitchenApi";
-import type { Kitchen, KitchenIcon } from "../types";
-const KITCHEN_STATIONS = [
-  {
-    id: "barista",
-    name: "Barista",
-    description: "Coffee & beverages station",
-    color: "#F0A22E",
-    bg: "#FE9A001A",
-  },
-  {
-    id: "pastry",
-    name: "Pastry & Bakery",
-    description: "Pastries and baked goods station",
-    color: "#A855F7",
-    bg: "#F3E9FA",
-  },
-  {
-    id: "hot_food",
-    name: "Hot Food",
-    description: "Hot meals kitchen station",
-    color: "#E45562",
-    bg: "#FEECEC",
-  },
-];
+import { getKitchens, createKitchen, updateKitchen, deleteKitchen } from "../api/kitchenApi";
+import type { Kitchen } from "../types";
 
-const STATION_ICON: Record<string, KitchenIcon> = {
-  barista: "coffee",
-  pastry: "bakery",
-  hot_food: "kitchen_hat",
-};
+const getErrorMessage = (err: unknown): string | undefined =>
+  (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
 
 const KitchenPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [stationData, setStationData] = useState<Record<string, KitchenStation>>({});
-  const [customKitchens, setCustomKitchens] = useState<Kitchen[]>([]);
-  const [overrides, setOverrides] = useState<Record<string, Partial<Kitchen>>>({});
-  const [deletingKitchen, setDeletingKitchen] = useState<{ id: string; name: string } | null>(null);
-  const [deletedKitchens, setDeletedKitchens] = useState<Set<string>>(new Set());
+  const [kitchens, setKitchens] = useState<Kitchen[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [deletingKitchen, setDeletingKitchen] = useState<Kitchen | null>(null);
   const [isKitchenDialogOpen, setIsKitchenDialogOpen] = useState(false);
   const [editingKitchen, setEditingKitchen] = useState<Kitchen | null>(null);
 
   useEffect(() => {
-    const fetchStations = async () => {
+    const fetchKitchens = async () => {
       try {
-        const stations = await getKitchenStations();
-        setStationData(
-          Object.fromEntries(stations.map((s) => [s.kitchenType, s])),
-        );
+        const data = await getKitchens();
+        setKitchens(data);
       } catch (err) {
-        console.error("Failed to fetch kitchen stations", err);
+        console.error("Failed to fetch kitchens", err);
+        showErrorToast(t("Failed to load kitchens"));
+      } finally {
+        setIsLoading(false);
       }
     };
-    fetchStations();
-  }, []);
-
-  const baseKitchens: Kitchen[] = KITCHEN_STATIONS.map((station) => {
-    const live = stationData[station.id];
-    const name = live?.name || station.name;
-    const printerByStation: Record<string, string> = {
-      hot_food: "main_kitchen",
-      barista: "barista",
-      pastry: "pastry",
-    };
-    return {
-      id: station.id,
-      name,
-      description: live?.description || station.description,
-      status: live?.status ?? "Active",
-      color: station.color,
-      icon: STATION_ICON[station.id] ?? "kitchen_hat",
-      activeOrders: live?.activeOrders ?? 0,
-      requests: live?.requests ?? 0,
-      detailActiveOrders: 0,
-      lowStock: 0,
-      printer: printerByStation[station.id] ?? "main_kitchen",
-    };
-  });
-
-  const kitchens = [...baseKitchens, ...customKitchens]
-    .map((kitchen) => ({ ...kitchen, ...(overrides[kitchen.id] ?? {}) }))
-    .filter((kitchen) => !deletedKitchens.has(kitchen.id));
+    fetchKitchens();
+  }, [t]);
 
   const usedColors = kitchens
     .filter((kitchen) => kitchen.id !== editingKitchen?.id)
     .map((kitchen) => kitchen.color);
 
-  const handleSaveKitchen = (data: KitchenFormData) => {
-    if (editingKitchen) {
-      setOverrides((prev) => ({
-        ...prev,
-        [editingKitchen.id]: {
-          ...prev[editingKitchen.id],
-          name: data.name,
-          printer: data.printer,
-          color: data.color,
-          icon: data.icon,
-        },
-      }));
-      showSuccessToast(t("Kitchen updated"));
-    } else {
-      setCustomKitchens((prev) => [
-        ...prev,
-        {
-          id: `custom-${Date.now()}`,
-          name: data.name,
-          printer: data.printer,
-          color: data.color,
-          description: "Operational kitchen station",
-          status: "Active",
-          icon: data.icon,
-          activeOrders: 0,
-          requests: 0,
-          detailActiveOrders: 0,
-          lowStock: 0,
-        },
-      ]);
-      showSuccessToast(t("Kitchen added"));
+  const handleSaveKitchen = async (data: KitchenFormData) => {
+    try {
+      if (editingKitchen) {
+        const updated = await updateKitchen(editingKitchen.id, data);
+        setKitchens((prev) =>
+          prev.map((kitchen) => (kitchen.id === updated.id ? updated : kitchen)),
+        );
+        showSuccessToast(t("Kitchen updated"));
+      } else {
+        const created = await createKitchen(data);
+        setKitchens((prev) => [...prev, created]);
+        showSuccessToast(t("Kitchen added"));
+      }
+      setEditingKitchen(null);
+    } catch (err) {
+      showErrorToast(getErrorMessage(err) || t("Failed to save kitchen"));
     }
-    setEditingKitchen(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deletingKitchen) return;
+    try {
+      await deleteKitchen(deletingKitchen.id);
+      setKitchens((prev) => prev.filter((kitchen) => kitchen.id !== deletingKitchen.id));
+      showSuccessToast(t("Kitchen deleted"));
+      setDeletingKitchen(null);
+    } catch (err) {
+      showErrorToast(getErrorMessage(err) || t("Failed to delete kitchen"));
+    }
   };
 
   return (
@@ -151,20 +93,26 @@ const KitchenPage = () => {
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-[30px] md:grid-cols-2 lg:gap-7.5 xl:grid-cols-3">
-        {kitchens.map((kitchen) => (
-          <KitchenCard
-            key={kitchen.id}
-            kitchen={kitchen}
-            onOpenKitchen={(id) => navigate(`/kitchen/${id}`)}
-            onEditKitchen={(selected) => {
-              setEditingKitchen(selected);
-              setIsKitchenDialogOpen(true);
-            }}
-            onDeleteKitchen={(selected) => setDeletingKitchen(selected)}
-          />
-        ))}
-      </div>
+      {isLoading ? (
+        <div className="flex items-center justify-center py-16">
+          <Loader2 className="size-8 animate-spin text-primary" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-[30px] md:grid-cols-2 lg:gap-7.5 xl:grid-cols-3">
+          {kitchens.map((kitchen) => (
+            <KitchenCard
+              key={kitchen.id}
+              kitchen={kitchen}
+              onOpenKitchen={(id) => navigate(`/kitchen/${id}`)}
+              onEditKitchen={(selected) => {
+                setEditingKitchen(selected);
+                setIsKitchenDialogOpen(true);
+              }}
+              onDeleteKitchen={(selected) => setDeletingKitchen(selected)}
+            />
+          ))}
+        </div>
+      )}
 
       <KitchenDialog
         open={isKitchenDialogOpen}
@@ -178,12 +126,7 @@ const KitchenPage = () => {
         open={!!deletingKitchen}
         onOpenChange={(open) => !open && setDeletingKitchen(null)}
         data={{ item: deletingKitchen?.name ?? "", type: "kitchen" }}
-        onConfirm={() => {
-          if (!deletingKitchen) return;
-          setDeletedKitchens((prev) => new Set(prev).add(deletingKitchen.id));
-          showSuccessToast(t("Kitchen deleted"));
-          setDeletingKitchen(null);
-        }}
+        onConfirm={handleConfirmDelete}
       />
     </section>
   );
