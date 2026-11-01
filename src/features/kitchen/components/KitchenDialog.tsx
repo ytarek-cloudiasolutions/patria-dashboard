@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Printer } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -9,13 +9,13 @@ import { Button } from "@/shared/components/ui/button";
 import { Label } from "@/shared/components/ui/label";
 import { Separator } from "@/shared/components/ui/separator";
 import DefaultButton from "@/shared/components/DefaultButton";
-import DropdownSelect from "@/shared/components/DropdownSelect";
 import InputField from "@/shared/components/InputField";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import AccentColorPicker from "@/features/shifts/components/AccentColorPicker";
 import { KITCHEN_ICONS, type KitchenIconId } from "../icons";
 import KitchenIconTile from "./KitchenIconTile";
 import KitchenIconPickerDialog from "./KitchenIconPickerDialog";
+import { openSystemPrintDialog } from "../utils/printReceipt";
 import type { Kitchen } from "../types";
 
 const FORM_ID = "kitchen-form";
@@ -31,12 +31,13 @@ const COLOR_PRESETS = [
 
 const DEFAULT_COLOR = "#8F6900";
 
-const PRINTER_OPTIONS = [
-  { value: "main_kitchen", label: "Main Kitchen Printer" },
-  { value: "barista", label: "Barista Printer" },
-  { value: "pastry", label: "Pastry Printer" },
-  { value: "cashier", label: "Cashier Printer" },
-];
+const PRINTER_NAME_MAP: Record<string, string> = {
+  main_kitchen: "Main Kitchen Printer",
+  barista: "Barista Printer",
+  pastry: "Pastry Printer",
+  cashier: "Cashier Printer",
+  system_default: "System Default / Network Printer",
+};
 
 export interface KitchenFormData {
   name: string;
@@ -65,7 +66,6 @@ const KitchenDialog = ({
   const [printer, setPrinter] = useState("");
   const [color, setColor] = useState(DEFAULT_COLOR);
   const [icon, setIcon] = useState<KitchenIconId>("kitchen_hat");
-  const [isPrinterOpen, setIsPrinterOpen] = useState(false);
   const [isIconPickerOpen, setIsIconPickerOpen] = useState(false);
   const [error, setError] = useState("");
 
@@ -75,7 +75,6 @@ const KitchenDialog = ({
     setPrinter(editingKitchen?.printer ?? "");
     setColor(editingKitchen?.color ?? DEFAULT_COLOR);
     setIcon(editingKitchen?.icon ?? "kitchen_hat");
-    setIsPrinterOpen(false);
     setIsIconPickerOpen(false);
     setError("");
   }, [open, editingKitchen]);
@@ -86,9 +85,22 @@ const KitchenDialog = ({
       setError(t("Kitchen name is required"));
       return;
     }
-    onSave({ name: name.trim(), printer, color, icon });
+    onSave({ name: name.trim(), printer: printer || "system_default", color, icon });
     onOpenChange(false);
   };
+
+  const handleOpenPrintDialog = () => {
+    openSystemPrintDialog(name.trim() || editingKitchen?.name || "Kitchen");
+    if (!printer) {
+      setPrinter("system_default");
+    }
+  };
+
+  const printerDisplayLabel = printer
+    ? PRINTER_NAME_MAP[printer]
+      ? t(PRINTER_NAME_MAP[printer])
+      : printer
+    : t("System Default / Network Printer");
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -96,9 +108,6 @@ const KitchenDialog = ({
         showCloseButton={false}
         className="w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-[700px]"
       >
-        {isPrinterOpen && (
-          <div className="pointer-events-none fixed inset-0 z-60 bg-black/40" />
-        )}
         <div className="flex flex-col">
           <div className="px-5 pt-5 sm:px-7 sm:pt-7">
             <DialogTitle className="text-[20px] font-semibold text-[#28293D] sm:text-[22px]">
@@ -140,19 +149,21 @@ const KitchenDialog = ({
               <Label className="text-[16px] font-medium text-black">
                 {t("Select Printer")}
               </Label>
-              <DropdownSelect
-                options={PRINTER_OPTIONS.map((option) => ({
-                  ...option,
-                  label: t(option.label),
-                }))}
-                selected={printer}
-                onSelect={setPrinter}
-                onOpenChange={setIsPrinterOpen}
-                placeholder={t("Select Printer")}
-                align="start"
-                className="md:w-full"
-                contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
-              />
+              <button
+                type="button"
+                onClick={handleOpenPrintDialog}
+                className="group flex h-12 w-full cursor-pointer items-center justify-between rounded-[8px] border border-[#CACBD4] bg-white px-3.5 text-left text-[14px] text-[#28293D] transition-all hover:border-[#8F6900] hover:bg-[#FAF7F2] active:scale-[0.99] focus:border-[#8F6900] focus:outline-none"
+              >
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <Printer className="size-4.5 shrink-0 text-[#8F6900] transition-transform duration-200 group-hover:scale-110" />
+                  <span className="truncate text-[15px] font-medium text-[#28293D]">
+                    {printerDisplayLabel}
+                  </span>
+                </div>
+                <div className="flex shrink-0 items-center gap-1.5 rounded-md bg-[#F5F0EA] px-2.5 py-1 text-xs font-semibold text-[#8F6900] transition-colors group-hover:bg-[#8F6900] group-hover:text-white">
+                  <span>{t("Open System Print Dialog")}</span>
+                </div>
+              </button>
             </div>
 
             <div className="flex flex-col gap-4">

@@ -1,6 +1,6 @@
 import { useEffect, useCallback, useState } from "react";
 import { Button } from "@/shared/components/ui/button";
-import { ArrowLeft, ArrowRight, RefreshCw, Loader2, Smartphone } from "lucide-react";
+import { ArrowLeft, ArrowRight, RefreshCw, Loader2, Smartphone, Printer } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { cn } from "@/lib/utils";
@@ -14,6 +14,8 @@ import { getSocket } from "@/shared/lib/socket";
 import { playNotificationSound } from "@/shared/lib/notificationSound";
 import OrderDetailsDialog from "../components/OrderDetailsDialog";
 import { formatTimeAgo } from "@/shared/utils/dateUtils";
+import { printKitchenOrderReceipt } from "../utils/printReceipt";
+import { formatKitchenOrderId } from "../utils/orderUtils";
 
 const KITCHEN_STATIONS: Record<string, { name: string; color: string; bg: string }> = {
   barista: { name: "Barista", color: "#F9A825", bg: "#FE9A001A" },
@@ -58,9 +60,10 @@ interface OrderCardProps {
   onStatusChange: (id: string, status: string) => void;
   stationColor: string;
   onCardClick: (order: KitchenOrder) => void;
+  onPrint?: (order: KitchenOrder) => void;
 }
 
-const ApiKitchenOrderCard = ({ order, onStatusChange, stationColor, onCardClick }: OrderCardProps) => {
+const ApiKitchenOrderCard = ({ order, onStatusChange, stationColor, onCardClick, onPrint }: OrderCardProps) => {
   const { t } = useTranslation();
   const statusStyle = STATUS_STYLE[order.status] ?? STATUS_STYLE.pending;
   const nextStatus: Record<string, string> = {
@@ -80,6 +83,11 @@ const ApiKitchenOrderCard = ({ order, onStatusChange, stationColor, onCardClick 
     label: order.type ?? "Delivery"
   };
 
+  const items = order.items ?? [];
+  const hasMore = items.length > 2;
+  const displayedItems = hasMore ? items.slice(0, 2) : items;
+  const remainingCount = items.length - 2;
+
   return (
     <Card
       onClick={() => onCardClick(order)}
@@ -88,19 +96,28 @@ const ApiKitchenOrderCard = ({ order, onStatusChange, stationColor, onCardClick 
       <CardContent className="flex flex-col flex-1 px-0 py-0">
         <div className="mb-3 flex items-center justify-between gap-3">
           <h3 className="text-[18px] font-bold text-[#333333]">
-            {/* orderNumber never actually exists on the backend Order
-                document — only orderId does (the same "#ORD-XXXXXX" shown
-                on every other order screen) — so this always fell through
-                to the raw Mongo _id hex slice, showing staff a completely
-                different id for the same order than the Orders screen. */}
-            {`#${order.orderId ?? order.orderNumber ?? order._id.slice(-6).toUpperCase()}`}
+            {formatKitchenOrderId(order)}
           </h3>
-          <Badge
-            className="rounded-[30px] border px-3 py-1 text-[12px] font-normal"
-            style={{ backgroundColor: typeStyle.bg, color: typeStyle.text, borderColor: typeStyle.border }}
-          >
-            {t(typeStyle.label)}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onPrint?.(order);
+              }}
+              title={t("Print Kitchen Receipt")}
+              aria-label={t("Print Kitchen Receipt")}
+              className="group/print flex cursor-pointer items-center justify-center gap-3 px-2.5 py-1.5 rounded-[8px] border border-[#FAFAF7] bg-[#F5F0EA] text-[#8F6900] transition-all duration-150 hover:bg-[#ebdcc8] active:scale-95"
+            >
+              <Printer className="size-3.5 text-[#8F6900] transition-transform duration-200 group-hover/print:scale-110" />
+            </button>
+            <Badge
+              className="rounded-[30px] border px-3 py-1 text-[12px] font-normal"
+              style={{ backgroundColor: typeStyle.bg, color: typeStyle.text, borderColor: typeStyle.border }}
+            >
+              {t(typeStyle.label)}
+            </Badge>
+          </div>
         </div>
 
         <div className="mb-3 rounded-[10px] border border-[#E5E5E5] bg-[#FAFAF7] p-2 text-[12px] text-[#595959] space-y-2">
@@ -121,8 +138,8 @@ const ApiKitchenOrderCard = ({ order, onStatusChange, stationColor, onCardClick 
           )}
         </div>
 
-        <ul className="mb-4 space-y-1 list-disc pl-5 pr-2 text-[13px] font-medium text-black">
-          {order.items.map((item, idx) => {
+        <ul className={cn("space-y-1 list-disc pl-5 pr-2 text-[13px] font-medium text-black", !hasMore && "mb-4")}>
+          {displayedItems.map((item, idx) => {
             const productName = typeof item.productId === "object" ? item.productId?.name : undefined;
             return (
               <li key={idx} className="marker:text-black">
@@ -132,6 +149,21 @@ const ApiKitchenOrderCard = ({ order, onStatusChange, stationColor, onCardClick 
             );
           })}
         </ul>
+
+        {hasMore && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onCardClick(order);
+            }}
+            className="mt-2.5 mb-4 w-full rounded-full border border-[#8F6900] bg-white py-1.5 px-4 text-center text-[13px] font-semibold text-[#8F6900] transition-all duration-150 hover:bg-[#F5F0EA] active:scale-[0.98] cursor-pointer"
+          >
+            {remainingCount === 1
+              ? t("View 1 more item")
+              : t("View {count} more items").replace("{count}", String(remainingCount))}
+          </button>
+        )}
 
         {next && (
           <button
@@ -326,6 +358,7 @@ const KitchenDetailsPage = () => {
                 updateOrderStatus(id, { status: status as any })
               }
               onCardClick={(ord) => setSelectedOrder(ord)}
+              onPrint={(ord) => printKitchenOrderReceipt(ord, station.name)}
             />
           ))}
         </div>
@@ -335,6 +368,7 @@ const KitchenDetailsPage = () => {
         order={selectedOrder}
         isOpen={!!selectedOrder}
         onOpenChange={(open) => !open && setSelectedOrder(null)}
+        stationName={station.name}
       />
     </section>
   );

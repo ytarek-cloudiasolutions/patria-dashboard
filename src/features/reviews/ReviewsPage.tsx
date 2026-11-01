@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Star } from "lucide-react";
 import { useTranslation } from "@/shared/i18n/useTranslation";
+import { cn } from "@/lib/utils";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import SearchInputField from "@/shared/components/SearchInputField";
 import DropdownSelect from "@/shared/components/DropdownSelect";
@@ -64,10 +65,12 @@ const ReviewsPage = () => {
   });
 
   const [deletingReview, setDeletingReview] = useState<Review | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [isFetching, setIsFetching] = useState(false);
 
   useEffect(() => {
-    setLoading(true);
+    setIsAnyDropdownOpen({ rating: false, category: false });
+    setIsFetching(true);
     const delayDebounceId = setTimeout(() => {
       const params: any = { limit: 100 };
       if (ratingFilter !== "all") {
@@ -93,7 +96,10 @@ const ReviewsPage = () => {
           }
         })
         .catch(() => {})
-        .finally(() => setLoading(false));
+        .finally(() => {
+          setInitialLoading(false);
+          setIsFetching(false);
+        });
     }, 300);
 
     return () => clearTimeout(delayDebounceId);
@@ -186,7 +192,7 @@ const ReviewsPage = () => {
     setDeletingReview(null);
   };
 
-  if (loading) {
+  if (initialLoading) {
     return (
       <div className="flex min-h-[60vh] w-full items-center justify-center">
         <Star className="size-16 animate-spin text-primary" />
@@ -197,7 +203,7 @@ const ReviewsPage = () => {
   return (
     <section className="animate-in fade-in-50 duration-300">
       {isScrimActive && (
-        <div className="pointer-events-none fixed inset-0 z-40 bg-black/40" />
+        <div className="pointer-events-none fixed inset-0 z-40 bg-black/40 transition-opacity animate-in fade-in-0 duration-200" />
       )}
 
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -224,7 +230,10 @@ const ReviewsPage = () => {
             <DropdownSelect
               options={REVIEW_RATING_FILTERS.map((o) => ({ ...o, label: t(o.label) }))}
               selected={ratingFilter}
-              onSelect={setRatingFilter}
+              onSelect={(val) => {
+                setRatingFilter(val);
+                setIsAnyDropdownOpen((prev) => ({ ...prev, rating: false }));
+              }}
               onOpenChange={(open) =>
                 setIsAnyDropdownOpen((prev) => ({ ...prev, rating: open }))
               }
@@ -238,7 +247,10 @@ const ReviewsPage = () => {
             <DropdownSelect
               options={REVIEW_CATEGORY_FILTERS}
               selected={categoryFilter}
-              onSelect={setCategoryFilter}
+              onSelect={(val) => {
+                setCategoryFilter(val);
+                setIsAnyDropdownOpen((prev) => ({ ...prev, category: false }));
+              }}
               onOpenChange={(open) =>
                 setIsAnyDropdownOpen((prev) => ({ ...prev, category: open }))
               }
@@ -261,7 +273,7 @@ const ReviewsPage = () => {
           {t("No reviews match your filters.")}
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className={cn("grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 transition-opacity duration-200", isFetching && "opacity-60")}>
           {filteredReviews.map((review) => (
             <ReviewCard
               key={review.id}

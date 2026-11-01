@@ -782,14 +782,14 @@ const ProductsPage = () => {
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <HeaderLayout title={headerTitle} description={headerDescription} />
 
-        <div className="flex flex-wrap items-center gap-3 md:flex-nowrap">
+        <div className="flex flex-wrap items-center gap-4 md:flex-nowrap">
           <DefaultButton
             data={{
               buttonText: t("import data"),
               icon: <Upload className="size-[18px] text-[#9524E4] transition-transform duration-200 group-hover/import:-translate-y-0.5" />,
               onClick: () => setIsImportOpen(true),
               className:
-                "group/import border border-[#7E00D7] bg-[#F3E9FA] text-[#9524E4] hover:bg-[#F3E9FA] hover:text-[#9524E4] hover:border-[#7E00D7] hover:shadow-xs active:scale-[0.98] transition-all duration-200 shadow-none ring-0 focus:ring-0",
+                "group/import px-3 gap-2 border border-[#7E00D7] bg-[#F3E9FA] text-[#9524E4] hover:bg-[#F3E9FA] hover:text-[#9524E4] hover:border-[#7E00D7] hover:shadow-xs active:scale-[0.98] transition-all duration-200 shadow-none ring-0 focus:ring-0",
             }}
           />
           {(isProducts || isRecipes || isCategories) && (
@@ -798,7 +798,7 @@ const ProductsPage = () => {
                 buttonText: t("Availability"),
                 icon: <SlidersHorizontal className="size-[18px] transition-transform duration-200 group-hover/avail:scale-110" />,
                 onClick: () => setIsBulkAvailabilityOpen(true),
-                className: "group/avail border border-primary bg-white text-primary hover:bg-[#F5F0EA] hover:text-primary hover:shadow-xs active:scale-[0.98] transition-all duration-200",
+                className: "group/avail px-3 gap-2 border border-primary bg-white text-primary hover:bg-[#F5F0EA] hover:text-primary hover:shadow-xs active:scale-[0.98] transition-all duration-200",
               }}
             />
           )}
@@ -808,14 +808,14 @@ const ProductsPage = () => {
               icon: <ScanBarcode className="size-[18px] transition-transform duration-200 group-hover/scan:scale-110" />,
               onClick: () => setIsScanOpen(true),
               className:
-                "group/scan border-0 bg-[#F5F0EA] text-primary hover:bg-[#F5F0EA] hover:text-primary hover:shadow-xs active:scale-[0.98] transition-all duration-200",
+                "group/scan px-3 gap-2 border-0 bg-[#F5F0EA] text-primary hover:bg-[#F5F0EA] hover:text-primary hover:shadow-xs active:scale-[0.98] transition-all duration-200",
             }}
           />
           <DefaultButton
             data={{
               buttonText: primaryButton.text,
               icon: <Plus className="size-4.5 transition-transform duration-200 group-hover:rotate-90" />,
-              className: "group hover:shadow-xs active:scale-[0.98] transition-all duration-200",
+              className: "group px-3 gap-2 hover:shadow-xs active:scale-[0.98] transition-all duration-200",
               onClick: primaryButton.onClick,
             }}
           />

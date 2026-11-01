@@ -104,6 +104,8 @@ const CreateOfferDialog = ({
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<OfferDialogTab>("offer");
   const [selectedOfferType, setSelectedOfferType] = useState<OfferType>("standard");
+  const isCategoryOnlyOfferType =
+    selectedOfferType === "buy_2_get_1" || selectedOfferType === "priciest_charged";
   const [form, setForm] = useState<OfferFormData>(INITIAL_FORM);
   const [errors, setErrors] = useState<
     Partial<Record<keyof OfferFormData, string>>
@@ -240,7 +242,7 @@ const CreateOfferDialog = ({
     if (!isOpen) return;
     setIsLoadingProducts(true);
     const params: { limit: number; search?: string } = { limit: 200 };
-    if (debouncedProductSearch.trim()) {
+    if (debouncedProductSearch.trim() && !isCategoryOnlyOfferType) {
       params.search = debouncedProductSearch.trim();
     }
     getProducts(params)
@@ -268,7 +270,7 @@ const CreateOfferDialog = ({
       })
       .catch(() => setCatalog([]))
       .finally(() => setIsLoadingProducts(false));
-  }, [isOpen, debouncedProductSearch]);
+  }, [isOpen, debouncedProductSearch, isCategoryOnlyOfferType]);
 
   // Banner tab: fetch products via API using search filter (server-side, not frontend)
   useEffect(() => {
@@ -309,6 +311,17 @@ const CreateOfferDialog = ({
     });
     return groups;
   }, [catalog]);
+
+  const displayCategories = useMemo(() => {
+    const entries = Object.entries(groupedCatalog);
+    if (!isCategoryOnlyOfferType || !productSearch.trim()) return entries;
+    const query = productSearch.trim().toLowerCase();
+    return entries.filter(
+      ([cat, prods]) =>
+        cat.toLowerCase().includes(query) ||
+        prods.some((p) => p.name.toLowerCase().includes(query)),
+    );
+  }, [groupedCatalog, isCategoryOnlyOfferType, productSearch]);
 
   const toggleProduct = (productId: string) => {
     setForm((prev) => ({
@@ -652,13 +665,15 @@ const CreateOfferDialog = ({
                       </div>
 
                       {/* Product list */}
-                      {catalog.length === 0 ? (
+                      {displayCategories.length === 0 ? (
                         <p className="py-4 text-center text-[13px] text-[#8B8B8B]">
-                          {t("No products found.")}
+                          {isCategoryOnlyOfferType
+                            ? t("No categories found.")
+                            : t("No products found.")}
                         </p>
                       ) : (
                         <div className="flex flex-col gap-[14px]">
-                          {Object.entries(groupedCatalog).map(
+                          {displayCategories.map(
                             ([category, products], idx) => {
                               const allSelected = products.every((p) =>
                                 form.productIds.includes(p.id),
@@ -666,6 +681,7 @@ const CreateOfferDialog = ({
                               const someSelected = products.some((p) =>
                                 form.productIds.includes(p.id),
                               );
+                              const isChecked = allSelected;
                               const isCollapsed =
                                 collapsedCategories.has(category);
 
@@ -688,43 +704,57 @@ const CreateOfferDialog = ({
                                       }
                                       className={cn(
                                         "flex size-5 shrink-0 items-center justify-center rounded-[6px] border transition-colors cursor-pointer",
-                                        allSelected
+                                        isChecked
                                           ? "border-[#8F6900] bg-[#8F6900]"
-                                          : someSelected
+                                          : someSelected && !isCategoryOnlyOfferType
                                             ? "border-[#8F6900] bg-white"
                                             : "border-[#CACBD4] bg-white",
                                       )}
                                     >
-                                      {allSelected && (
+                                      {isChecked && (
                                         <Check className="size-3 text-white" />
                                       )}
-                                      {someSelected && !allSelected && (
+                                      {!isCategoryOnlyOfferType && someSelected && !allSelected && (
                                         <div className="h-0.5 w-3 rounded-full bg-[#8F6900]" />
                                       )}
                                     </button>
 
                                     {/* Name + chevron */}
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        toggleCategoryCollapse(category)
-                                      }
-                                      className="flex flex-1 cursor-pointer items-center justify-between gap-2"
-                                    >
-                                      <span className="text-left text-[14px] font-semibold text-[#28293D]">
-                                        {category}
-                                      </span>
-                                      <ChevronDown
-                                        className={cn(
-                                          "size-4 shrink-0 text-[#28293D] transition-transform duration-200",
-                                          isCollapsed && "-rotate-90",
-                                        )}
-                                      />
-                                    </button>
+                                    {isCategoryOnlyOfferType ? (
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          toggleCategoryProducts(products)
+                                        }
+                                        className="flex flex-1 cursor-pointer items-center justify-start text-left"
+                                      >
+                                        <span className="text-left text-[14px] font-semibold text-[#28293D]">
+                                          {category}
+                                        </span>
+                                      </button>
+                                    ) : (
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          toggleCategoryCollapse(category)
+                                        }
+                                        className="flex flex-1 cursor-pointer items-center justify-between gap-2"
+                                      >
+                                        <span className="text-left text-[14px] font-semibold text-[#28293D]">
+                                          {category}
+                                        </span>
+                                        <ChevronDown
+                                          className={cn(
+                                            "size-4 shrink-0 text-[#28293D] transition-transform duration-200",
+                                            isCollapsed && "-rotate-90",
+                                          )}
+                                        />
+                                      </button>
+                                    )}
                                   </div>
 
-                                  {/* Category Items (collapsible) */}
-                                  {!isCollapsed && (
+                                  {/* Category Items (collapsible) - hidden for category-only offer types */}
+                                  {!isCategoryOnlyOfferType && !isCollapsed && (
                                     <div className="flex flex-col gap-[10px] pl-5">
                                       {products.map((product, pi) => {
                                         const selected =

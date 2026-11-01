@@ -6,15 +6,18 @@ import {
   DialogClose,
 } from "@/shared/components/ui/dialog";
 import { Badge } from "@/shared/components/ui/badge";
-import { Clock3, UserRound, Smartphone } from "lucide-react";
+import { Clock3, UserRound, Smartphone, Printer } from "lucide-react";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import type { KitchenOrder } from "../store/kitchenTypes";
 import { formatTimeAgo } from "@/shared/utils/dateUtils";
+import { printKitchenOrderReceipt } from "../utils/printReceipt";
+import { formatKitchenOrderId } from "../utils/orderUtils";
 
 interface OrderDetailsDialogProps {
   order: KitchenOrder | null;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  stationName?: string;
 }
 
 const STATUS_STYLE: Record<string, { bg: string; text: string; border: string; label: string }> = {
@@ -38,7 +41,7 @@ function getCustomerPhone(order: KitchenOrder): string {
   return order.customer.phone ?? "";
 }
 
-const OrderDetailsDialog = ({ order, isOpen, onOpenChange }: OrderDetailsDialogProps) => {
+const OrderDetailsDialog = ({ order, isOpen, onOpenChange, stationName }: OrderDetailsDialogProps) => {
   const { t } = useTranslation();
 
   if (!order) return null;
@@ -53,7 +56,7 @@ const OrderDetailsDialog = ({ order, isOpen, onOpenChange }: OrderDetailsDialogP
       >
         <DialogHeader className="flex flex-row items-center gap-3 space-y-0">
           <DialogTitle className="text-[24px] font-bold text-[#333333]">
-            {order.orderNumber ?? `#${order._id.slice(-6).toUpperCase()}`}
+            {formatKitchenOrderId(order)}
           </DialogTitle>
           <Badge
             className="rounded-[30px] border px-3 py-1 text-[13px] font-normal"
@@ -121,7 +124,7 @@ const OrderDetailsDialog = ({ order, isOpen, onOpenChange }: OrderDetailsDialogP
         <hr className="border-[#E5E5E5] -mx-6" />
 
         {/* Footer Actions */}
-        <div className="flex justify-end">
+        <div className="flex items-center justify-end gap-3.5">
           <DialogClose asChild>
             <button
               type="button"
@@ -130,6 +133,15 @@ const OrderDetailsDialog = ({ order, isOpen, onOpenChange }: OrderDetailsDialogP
               {t("Cancel")}
             </button>
           </DialogClose>
+
+          <button
+            type="button"
+            onClick={() => printKitchenOrderReceipt(order, stationName)}
+            className="group/btn flex h-14 cursor-pointer items-center justify-center gap-2.5 rounded-[5px] bg-[#8F6900] px-6 py-4 text-[16px] font-semibold text-white whitespace-nowrap transition-all duration-200 ease-out hover:opacity-95 hover:shadow-xs active:scale-[0.98]"
+          >
+            <Printer className="size-[18px] text-white transition-transform duration-200 ease-out group-hover/btn:scale-110" />
+            <span>{t("Print Kitchen Receipt")}</span>
+          </button>
         </div>
       </DialogContent>
     </Dialog>
