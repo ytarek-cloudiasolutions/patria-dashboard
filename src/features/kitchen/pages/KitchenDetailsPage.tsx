@@ -1,12 +1,13 @@
 import { useEffect, useCallback, useState } from "react";
 import { Button } from "@/shared/components/ui/button";
 import { ArrowLeft, ArrowRight, RefreshCw, Loader2, Smartphone, Printer } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { cn } from "@/lib/utils";
 import { useKitchen } from "../hooks/useKitchen";
 import type { KitchenOrder } from "../store/kitchenTypes";
-import { getKitchenStations } from "../api/kitchenApi";
+import { getKitchenStations, getKitchens } from "../api/kitchenApi";
+import type { Kitchen } from "../types";
 import { Badge } from "@/shared/components/ui/badge";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { Clock3, UserRound } from "lucide-react";
@@ -193,12 +194,38 @@ const ApiKitchenOrderCard = ({ order, onStatusChange, stationColor, onCardClick,
 const KitchenDetailsPage = () => {
   const { t, dir } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const { kitchenId } = useParams<{ kitchenId: string }>();
   const { kitchenOrders, loading, getKitchenOrders, updateOrderStatus } = useKitchen();
   const [selectedOrder, setSelectedOrder] = useState<KitchenOrder | null>(null);
-  const [stationStatus, setStationStatus] = useState<string>("Active");
 
-  const station = kitchenId ? KITCHEN_STATIONS[kitchenId] : null;
+  const passedKitchen = (location.state as { kitchen?: Kitchen } | undefined)?.kitchen;
+
+  const initialStation = (): { name: string; color: string; bg: string } | null => {
+    if (
+      passedKitchen &&
+      (passedKitchen.id === kitchenId ||
+        passedKitchen.name.toLowerCase() === kitchenId?.toLowerCase())
+    ) {
+      const color = passedKitchen.color || "#8F6900";
+      const hex = color.startsWith("#") ? color.slice(0, 7) : "#8F6900";
+      return {
+        name: passedKitchen.name,
+        color: color,
+        bg: `${hex}1A`,
+      };
+    }
+    if (kitchenId && KITCHEN_STATIONS[kitchenId]) {
+      return KITCHEN_STATIONS[kitchenId];
+    }
+    return null;
+  };
+
+  const [station, setStation] = useState<{ name: string; color: string; bg: string } | null>(
+    initialStation
+  );
+  const [stationStatus, setStationStatus] = useState<string>(() => passedKitchen?.status || "Active");
+  const [isLoadingStation, setIsLoadingStation] = useState<boolean>(() => !initialStation());
 
   const fetchOrders = useCallback(() => {
     if (kitchenId) getKitchenOrders(kitchenId);
@@ -211,18 +238,106 @@ const KitchenDetailsPage = () => {
   }, [fetchOrders]);
 
   useEffect(() => {
-    const fetchStationStatus = async () => {
+    let isMounted = true;
+    const fetchStationData = async () => {
+      if (!kitchenId) {
+        setIsLoadingStation(false);
+        return;
+      }
+
       try {
-        const stations = await getKitchenStations();
-        const currentStation = stations.find((s) => s.kitchenType === kitchenId);
-        if (currentStation?.status) {
-          setStationStatus(currentStation.status);
+        const [kitchensRes, stationsRes] = await Promise.allSettled([
+          getKitchens(),
+          getKitchenStations(),
+        ]);
+
+        const kitchens = kitchensRes.status === "fulfilled" ? kitchensRes.value : [];
+        const stations = stationsRes.status === "fulfilled" ? stationsRes.value : [];
+
+        // Check if kitchen matches in saved kitchens
+        const matchedKitchen = kitchens.find(
+          (k) =>
+            k.id === kitchenId ||
+            k.id?.toLowerCase() === kitchenId.toLowerCase() ||
+            k.name.toLowerCase() === kitchenId.toLowerCase() ||
+            k.name.toLowerCase().replace(/\s+/g, "_") === kitchenId.toLowerCase()
+        );
+
+        if (matchedKitchen && isMounted) {
+          const color = matchedKitchen.color || "#8F6900";
+          const hex = color.startsWith("#") ? color.slice(0, 7) : "#8F6900";
+          setStation({
+            name: matchedKitchen.name,
+            color: color,
+            bg: `${hex}1A`,
+          });
+          if (matchedKitchen.status) {
+            setStationStatus(matchedKitchen.status);
+          }
+          return;
+        }
+
+        const matchedStation = stations.find(
+          (s) =>
+            s.kitchenType === kitchenId ||
+            s.kitchenType?.toLowerCase() === kitchenId.toLowerCase() ||
+            s.name.toLowerCase() === kitchenId.toLowerCase() ||
+            s.name.toLowerCase().replace(/\s+/g, "_") === kitchenId.toLowerCase()
+        );
+
+        if (matchedStation && isMounted) {
+          const defaultColor = KITCHEN_STATIONS[matchedStation.kitchenType]?.color || "#8F6900";
+          const defaultBg = KITCHEN_STATIONS[matchedStation.kitchenType]?.bg || "#8F69001A";
+          setStation({
+            name: matchedStation.name,
+            color: defaultColor,
+            bg: defaultBg,
+          });
+          if (matchedStation.status) {
+            setStationStatus(matchedStation.status);
+          }
+          return;
+        }
+
+        if (KITCHEN_STATIONS[kitchenId] && isMounted) {
+          setStation(KITCHEN_STATIONS[kitchenId]);
+          return;
+        }
+
+        // Fallback for custom kitchen ID if not in list
+        if (kitchenId && isMounted) {
+          const formattedName = decodeURIComponent(kitchenId)
+            .replace(/[-_]/g, " ")
+            .replace(/\b\w/g, (c) => c.toUpperCase());
+          setStation((prev) => prev ?? {
+            name: formattedName,
+            color: "#8F6900",
+            bg: "#8F69001A",
+          });
         }
       } catch (err) {
         console.error("Failed to fetch station status", err);
+        if (kitchenId && isMounted) {
+          const formattedName = decodeURIComponent(kitchenId)
+            .replace(/[-_]/g, " ")
+            .replace(/\b\w/g, (c) => c.toUpperCase());
+          setStation((prev) => prev ?? {
+            name: formattedName,
+            color: "#8F6900",
+            bg: "#8F69001A",
+          });
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingStation(false);
+        }
       }
     };
-    if (kitchenId) fetchStationStatus();
+
+    fetchStationData();
+    return () => {
+      isMounted = false;
+    };
   }, [kitchenId]);
 
   // Live updates: play a sound and refresh the board when the kitchen gets a new
@@ -244,6 +359,14 @@ const KitchenDetailsPage = () => {
       socket.off("kitchen:items-added", handleUpdate);
     };
   }, [fetchOrders]);
+
+  if (isLoadingStation && !station) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24">
+        <Loader2 className="size-10 animate-spin text-[#8F6900]" />
+      </div>
+    );
+  }
 
   if (!station) {
     return (
@@ -292,7 +415,7 @@ const KitchenDetailsPage = () => {
               className="flex size-12 items-center justify-center rounded-full text-[18px] font-bold"
               style={{ backgroundColor: station.bg, color: station.color }}
             >
-              {station.name[0]}
+              {station.name?.[0]?.toUpperCase() ?? "K"}
             </div>
             <div className="flex items-center gap-2.5">
               <h1 className="text-[24px] font-bold text-black">{t(station.name)}</h1>

@@ -13,9 +13,10 @@ import DropdownSelect from "@/shared/components/DropdownSelect";
 import InputField from "@/shared/components/InputField";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import {
+  getKitchens,
   getKitchenStations,
-  type KitchenStation,
 } from "@/features/kitchen/api/kitchenApi";
+import type { Kitchen } from "@/features/kitchen/types";
 import type { CategoryFormData, Category, KitchenType } from "../types";
 import UploadDropzone from "./UploadDropzone";
 
@@ -43,15 +44,39 @@ const AddCategoryDialog = ({
   const [imageFile, setImageFile] = useState<File | undefined>(undefined);
   const [removeImage, setRemoveImage] = useState(false);
   const [kitchenType, setKitchenType] = useState<KitchenType>(null);
-  const [kitchenStations, setKitchenStations] = useState<KitchenStation[]>([]);
+  const [kitchens, setKitchens] = useState<Kitchen[]>([]);
   const [isKitchenOpen, setIsKitchenOpen] = useState(false);
   const [errors, setErrors] = useState<{ name?: string; nameAr?: string }>({});
 
   useEffect(() => {
     if (!open) return;
-    getKitchenStations()
-      .then((stations) => setKitchenStations(stations || []))
-      .catch(() => setKitchenStations([]));
+    let isMounted = true;
+    getKitchens()
+      .then((data) => {
+        if (!isMounted) return;
+        const list = Array.isArray(data) ? data : (data as any)?.kitchens || [];
+        setKitchens(list);
+      })
+      .catch((err) => {
+        console.error("Failed to load kitchens for category", err);
+        getKitchenStations()
+          .then((stations) => {
+            if (!isMounted) return;
+            setKitchens(
+              (stations || []).map((s) => ({
+                id: s.kitchenType,
+                name: s.name,
+              } as Kitchen))
+            );
+          })
+          .catch(() => {
+            if (isMounted) setKitchens([]);
+          });
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, [open]);
 
   useEffect(() => {
@@ -75,6 +100,21 @@ const AddCategoryDialog = ({
       setErrors({});
     }
   }, [open, editingCategory]);
+
+  useEffect(() => {
+    if (!kitchens.length || !editingCategory?.kitchenType) return;
+    const current = editingCategory.kitchenType;
+    const matched = kitchens.find(
+      (k) =>
+        k.id === current ||
+        (k as any)._id === current ||
+        k.name.toLowerCase() === current.toLowerCase() ||
+        k.name.toLowerCase().replace(/\s+/g, "_") === current.toLowerCase()
+    );
+    if (matched) {
+      setKitchenType(matched.id || (matched as any)._id || matched.name);
+    }
+  }, [kitchens, editingCategory]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -211,12 +251,15 @@ const AddCategoryDialog = ({
                 {t("Select Kitchen")}
               </Label>
               <DropdownSelect
-                options={kitchenStations.map((station) => ({
-                  label: station.name,
-                  value: station.kitchenType,
-                }))}
+                options={[
+                  { label: t("-- Select Kitchen --"), value: "" },
+                  ...kitchens.map((kitchen) => ({
+                    label: kitchen.name,
+                    value: kitchen.id || (kitchen as any)._id || kitchen.name,
+                  })),
+                ]}
                 selected={kitchenType ?? ""}
-                onSelect={(value) => setKitchenType(value as KitchenType)}
+                onSelect={(value) => setKitchenType(value ? (value as KitchenType) : null)}
                 onOpenChange={setIsKitchenOpen}
                 placeholder={t("-- Select Kitchen --")}
                 align="start"

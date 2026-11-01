@@ -103,7 +103,7 @@ const KitchenPage = () => {
             <KitchenCard
               key={kitchen.id}
               kitchen={kitchen}
-              onOpenKitchen={(id) => navigate(`/kitchen/${id}`)}
+              onOpenKitchen={(id) => navigate(`/kitchen/${id}`, { state: { kitchen } })}
               onEditKitchen={(selected) => {
                 setEditingKitchen(selected);
                 setIsKitchenDialogOpen(true);

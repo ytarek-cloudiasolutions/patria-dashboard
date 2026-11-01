@@ -617,13 +617,13 @@ const ProductsPage = () => {
           formData.append("name_ar", data.nameAr.trim());
         }
         formData.append("image", data.imageFile);
-        if (data.kitchenType) formData.append("kitchenType", data.kitchenType);
+        formData.append("kitchenType", data.kitchenType || "");
         updateCategory(editingCategory.id, formData);
       } else {
         const payload: any = {
           name: data.name.trim(),
           ...(data.nameAr && data.nameAr.trim() ? { nameAr: data.nameAr.trim(), name_ar: data.nameAr.trim() } : {}),
-          ...(data.kitchenType ? { kitchenType: data.kitchenType } : {}),
+          kitchenType: data.kitchenType ?? null,
         };
         if (data.removeImage) {
           payload.image = "";

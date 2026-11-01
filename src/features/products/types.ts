@@ -178,7 +178,7 @@ export interface IngredientFormData {
 
 // --- Add Category form ------------------------------------------------------
 
-export type KitchenType = 'barista' | 'pastry' | 'hot_food' | null;
+export type KitchenType = 'barista' | 'pastry' | 'hot_food' | string | null;
 
 export interface CategoryFormData {
   name: string;

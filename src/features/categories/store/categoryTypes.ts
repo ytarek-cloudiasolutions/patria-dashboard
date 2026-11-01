@@ -1,4 +1,4 @@
-export type KitchenType = "barista" | "pastry" | "hot_food" | null;
+export type KitchenType = "barista" | "pastry" | "hot_food" | string | null;
 
 export interface Category {
   id: string;
