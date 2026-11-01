@@ -62,10 +62,18 @@ export const deleteCategory = async (
   return response.data;
 };
 
+// Dashboard's Catalog Order page — was browser localStorage only before,
+// never synced across staff/devices.
+export const reorderCategories = async (categoryIds: string[]) => {
+  const response = await api.put(CATEGORY_ENDPOINTS.CATEGORIES + "/reorder", { categoryIds });
+  return response.data;
+};
+
 export const categoriesApi = {
   getCategories,
   createCategory,
   updateCategory,
   toggleCategoryStatus,
   deleteCategory,
+  reorderCategories,
 };

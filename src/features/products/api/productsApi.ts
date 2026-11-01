@@ -81,6 +81,14 @@ export const scanProductByBarcode = async (code: string) => {
   return response.data;
 };
 
+// Dashboard's Catalog Order page — was browser localStorage only before,
+// never synced across staff/devices and never reflected in the customer
+// app's own product listing order.
+export const reorderProducts = async (productIds: string[]) => {
+  const response = await api.put("/products/reorder", { productIds });
+  return response.data;
+};
+
 export const productsApi = {
   getProducts,
   createProduct,
@@ -89,5 +97,6 @@ export const productsApi = {
   deleteProduct,
   toggleProductStatus,
   scanProductByBarcode,
+  reorderProducts,
 };
 

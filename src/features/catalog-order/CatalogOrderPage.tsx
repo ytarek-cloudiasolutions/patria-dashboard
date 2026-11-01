@@ -1,34 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import { useTranslation } from "@/shared/i18n/useTranslation";
-import { showSuccessToast } from "@/shared/utils/toast";
+import { showSuccessToast, showErrorToast } from "@/shared/utils/toast";
 import { cn } from "@/lib/utils";
 import { useCategories } from "@/features/categories/hooks/useCategories";
 import { useProducts } from "@/features/products/hooks/useProducts";
+import { reorderCategories } from "@/features/categories/api/categoriesApi";
+import { reorderProducts } from "@/features/products/api/productsApi";
 import { ALL_CATEGORY_ID, CategoryOrderCard } from "./components/CategoryOrderCard";
 import { ProductOrderCard } from "./components/ProductOrderCard";
 import type { CategoryOrderItem, ProductOrderItem } from "./types";
-
-const CATEGORY_ORDER_KEY = "patria_category_order";
-const PRODUCT_ORDER_KEY = "patria_product_order";
-
-const readSavedIds = (key: string): string[] => {
-  try {
-    const parsed = JSON.parse(localStorage.getItem(key) || "[]");
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-};
-
-/** Sort items by a saved id list; items not in the list keep their relative order at the end. */
-const applySavedOrder = <T extends { id: string }>(items: T[], savedIds: string[]): T[] => {
-  if (savedIds.length === 0) return items;
-  const rank = new Map(savedIds.map((id, i) => [id, i]));
-  return [...items].sort(
-    (a, b) => (rank.get(a.id) ?? Number.MAX_SAFE_INTEGER) - (rank.get(b.id) ?? Number.MAX_SAFE_INTEGER),
-  );
-};
 
 const isRawIngredientName = (name: string) => {
   const n = (name || "").toLowerCase().trim();
@@ -53,19 +34,23 @@ const CatalogOrderPage = () => {
   const [products, setProducts] = useState<ProductOrderItem[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>(ALL_CATEGORY_ID);
   const [isDirty, setIsDirty] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     getCategories();
     getProducts({ limit: 1000 });
   }, [getCategories, getProducts]);
 
-  // Sync fetched data into local ordering state (without clobbering unsaved edits).
+  // Sync fetched data into local ordering state (without clobbering unsaved
+  // edits). The backend (GET /categories, GET /products) already returns
+  // these sorted by their persisted `order` — no client-side reordering
+  // needed on load.
   useEffect(() => {
     if (isDirty) return;
     const mapped: CategoryOrderItem[] = storeCategories
       .filter((c) => !isRawIngredientName(c.name))
       .map((c) => ({ id: c.id, name: c.name, image: c.imageUrl }));
-    setCategories(applySavedOrder(mapped, readSavedIds(CATEGORY_ORDER_KEY)));
+    setCategories(mapped);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storeCategories]);
 
@@ -80,7 +65,7 @@ const CatalogOrderPage = () => {
         image: p.imageUrl,
         category: p.category,
       }));
-    setProducts(applySavedOrder(mapped, readSavedIds(PRODUCT_ORDER_KEY)));
+    setProducts(mapped);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storeProducts]);
 
@@ -102,16 +87,22 @@ const CatalogOrderPage = () => {
     setIsDirty(true);
   };
 
-  const handleSaveEdits = () => {
+  const handleSaveEdits = async () => {
     if (!isDirty) return;
+    setIsSaving(true);
     try {
-      localStorage.setItem(CATEGORY_ORDER_KEY, JSON.stringify(categories.map((c) => c.id)));
-      localStorage.setItem(PRODUCT_ORDER_KEY, JSON.stringify(products.map((p) => p.id)));
-    } catch {
-      // storage unavailable
+      await Promise.all([
+        reorderCategories(categories.map((c) => c.id)),
+        reorderProducts(products.map((p) => p.id)),
+      ]);
+      showSuccessToast(t("Catalog order saved successfully"));
+      setIsDirty(false);
+    } catch (err) {
+      console.error("Failed to save catalog order:", err);
+      showErrorToast(t("Failed to save catalog order"));
+    } finally {
+      setIsSaving(false);
     }
-    showSuccessToast(t("Catalog order saved successfully"));
-    setIsDirty(false);
   };
 
   return (
@@ -127,7 +118,7 @@ const CatalogOrderPage = () => {
         <button
           type="button"
           onClick={handleSaveEdits}
-          disabled={!isDirty}
+          disabled={!isDirty || isSaving}
           data-buttonactive={isDirty ? "True" : "False"}
           data-icononly="False"
           data-leading-icon="True"
@@ -177,7 +168,7 @@ const CatalogOrderPage = () => {
 
           {/* Button Text */}
           <span className="text-base font-semibold font-['Montserrat'] leading-6 whitespace-nowrap">
-            {t("Save Edits")}
+            {isSaving ? t("Saving...") : t("Save Edits")}
           </span>
         </button>
       </div>
