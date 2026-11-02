@@ -54,14 +54,14 @@ const ShiftReportsPage = () => {
   return (
     <>
       {!hasLoaded && (
-        <div className="flex min-h-[60vh] w-full items-center justify-center">
+        <div className="flex min-h-[60vh] w-full items-center justify-center animate-in fade-in-50 duration-300">
           <BarChart3 className="size-16 animate-spin text-primary" />
         </div>
       )}
 
-      <div className={!hasLoaded ? "hidden" : ""}>
+      <div className={!hasLoaded ? "hidden" : "animate-in fade-in-50 duration-300"}>
         {isMenuOpen && (
-          <div className="pointer-events-none fixed inset-0 z-40 bg-black/40" />
+          <div className="pointer-events-none fixed inset-0 z-40 bg-black/40 transition-opacity animate-in fade-in-0 duration-200" />
         )}
 
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -73,35 +73,37 @@ const ShiftReportsPage = () => {
             data={{
               buttonText: t("Export CSV"),
               variant: "outline",
-              icon: <FileUp className="size-4.5" />,
+              icon: <FileUp className="size-4.5 transition-transform duration-200 group-hover:-translate-y-0.5" />,
               onClick: handleExportCSV,
               className:
-                "border-[#7A3FF2] text-[#7A3FF2] hover:bg-[#7A3FF2]/5 hover:text-[#7A3FF2]",
+                "group border-[#7A3FF2] text-[#7A3FF2] hover:bg-[#7A3FF2]/5 hover:text-[#7A3FF2] transition-all duration-200 hover:shadow-xs active:scale-[0.98]",
             }}
           />
         </div>
 
         <ShiftReportsTabs active={tab} onChange={setTab} />
 
-        {tab === "daily" && (
-          <DailyReportTab
-            onMenuOpenChange={setIsMenuOpen}
-            onInitialLoadComplete={() => setHasLoaded(true)}
-            onExportDataReady={handleExportDataReady}
-          />
-        )}
-        {tab === "most-selling" && (
-          <MostSellingTab
-            onMenuOpenChange={setIsMenuOpen}
-            onExportDataReady={handleExportDataReady}
-          />
-        )}
-        {tab === "shifts" && (
-          <ShiftReportsTab
-            onMenuOpenChange={setIsMenuOpen}
-            onExportDataReady={handleExportDataReady}
-          />
-        )}
+        <div key={tab} className="animate-in fade-in-50 duration-300">
+          {tab === "daily" && (
+            <DailyReportTab
+              onMenuOpenChange={setIsMenuOpen}
+              onInitialLoadComplete={() => setHasLoaded(true)}
+              onExportDataReady={handleExportDataReady}
+            />
+          )}
+          {tab === "most-selling" && (
+            <MostSellingTab
+              onMenuOpenChange={setIsMenuOpen}
+              onExportDataReady={handleExportDataReady}
+            />
+          )}
+          {tab === "shifts" && (
+            <ShiftReportsTab
+              onMenuOpenChange={setIsMenuOpen}
+              onExportDataReady={handleExportDataReady}
+            />
+          )}
+        </div>
       </div>
     </>
   );

@@ -115,7 +115,7 @@ const ReportOrderDetailsDialog = ({
           </DialogTitle>
 
           {/* Subcard 1: Order Overview */}
-          <div className="flex flex-col gap-4 rounded-[16px] border border-[#E5E5E5] bg-[#FAFAF7] p-4 sm:p-5">
+          <div className="flex flex-col gap-4 rounded-[16px] border border-[#E5E5E5] bg-[#FAFAF7] p-4 sm:p-5 transition-shadow duration-200 hover:shadow-xs">
             <div className="flex items-center justify-between">
               <div className="flex flex-col gap-1">
                 <span className="text-[10px] font-medium text-[#595959] uppercase tracking-wide">
@@ -164,7 +164,7 @@ const ReportOrderDetailsDialog = ({
 
           {/* Subcard 2: Products Count & Info */}
           <div className="flex flex-col gap-2">
-            <div className="flex items-center rounded-[16px] border border-[#E5E5E5] bg-[#FAFAF7] p-4 sm:p-5">
+            <div className="flex items-center rounded-[16px] border border-[#E5E5E5] bg-[#FAFAF7] p-4 sm:p-5 transition-shadow duration-200 hover:shadow-xs">
               <span className="text-[16px] font-semibold text-[#28293D]">
                 {t("Number of Products")} :{order.itemsCount}
               </span>
@@ -178,7 +178,7 @@ const ReportOrderDetailsDialog = ({
           </div>
 
           {/* Subcard 3: Payment & Total */}
-          <div className="flex flex-col gap-4 rounded-[16px] border border-[#E5E5E5] bg-[#FAFAF7] p-4 sm:p-5">
+          <div className="flex flex-col gap-4 rounded-[16px] border border-[#E5E5E5] bg-[#FAFAF7] p-4 sm:p-5 transition-shadow duration-200 hover:shadow-xs">
             <div className="flex items-center justify-between">
               <span className="text-[18px] font-bold text-[#000000]">
                 {t("Total:")}
@@ -202,7 +202,7 @@ const ReportOrderDetailsDialog = ({
             <Button
               type="button"
               onClick={() => onOpenChange(false)}
-              className="flex h-14 min-w-[95px] cursor-pointer items-center justify-center rounded-[5px] bg-[#8F6900] px-[30px] text-[16px] font-semibold text-white transition-colors hover:bg-[#8F6900]/90"
+              className="flex h-14 min-w-[95px] cursor-pointer items-center justify-center rounded-[5px] bg-[#8F6900] px-[30px] text-[16px] font-semibold text-white transition-all duration-200 hover:bg-[#8F6900]/90 hover:shadow-xs active:scale-[0.98]"
             >
               {t("Close")}
             </Button>

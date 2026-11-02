@@ -31,7 +31,7 @@ const BlockCustomerDialog = ({
       <DialogContent className="w-[calc(100%-1.5rem)] max-w-[calc(100%-1.5rem)] rounded-xl border border-[#CACBD4] p-4 sm:w-full sm:max-w-132 sm:p-6">
         <DialogHeader>
           <DialogTitle>
-            <div className="inline-flex items-center gap-2 rounded-[10px] bg-[#FFF0F0] p-1.5">
+            <div className="inline-flex items-center gap-2 rounded-[10px] bg-[#FFF0F0] p-1.5 animate-in zoom-in-75 duration-200">
               <Ban className="size-6 text-[#C90000] sm:size-7" />
             </div>
           </DialogTitle>
@@ -64,15 +64,15 @@ const BlockCustomerDialog = ({
                 type: "button",
                 onClick: () => onOpenChange(false),
                 className:
-                  "w-full sm:w-auto text-primary border-primary hover:bg-white hover:text-primary",
+                  "w-full sm:w-auto text-primary border-primary hover:bg-white hover:text-primary transition-all duration-200 active:scale-[0.98]",
               }}
             />
             <DefaultButton
               data={{
                 buttonText: blocking ? t("Block Customer") : t("Unblock Customer"),
                 type: "button",
-                icon: <Ban className="size-4.5" />,
-                className: "w-full sm:w-auto bg-[#C90000]",
+                icon: <Ban className="size-4.5 transition-transform duration-200 group-hover:scale-110" />,
+                className: "group w-full sm:w-auto bg-[#C90000] transition-all duration-200 hover:shadow-xs active:scale-[0.98]",
                 onClick: onConfirm,
               }}
             />

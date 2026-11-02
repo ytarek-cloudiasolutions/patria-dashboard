@@ -167,9 +167,9 @@ const DailyReportTab = ({
       </div>
 
       {/* Products sold table */}
-      <div className="mb-6 overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white">
+      <div className="group mb-6 overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white shadow-xs transition-shadow duration-200 hover:shadow-md">
         <div className="flex items-center gap-2 bg-white px-4 py-3">
-          <ShoppingBag className="size-6 text-black" />
+          <ShoppingBag className="size-6 text-black transition-transform duration-200 ease-out group-hover:scale-105" />
           <span className="text-[18px] font-bold text-[#333333] leading-[19.26px]">
             {t("Products sold")}
           </span>
@@ -193,20 +193,20 @@ const DailyReportTab = ({
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="py-8 text-center text-[14px] text-[#8B8B8B]">
+                  <td colSpan={7} className="py-8 text-center text-[14px] text-[#8B8B8B] animate-in fade-in-50 duration-200">
                     {t("Loading...")}
                   </td>
                 </tr>
               ) : products.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-8 text-center text-[14px] text-[#8B8B8B]">
+                  <td colSpan={7} className="py-8 text-center text-[14px] text-[#8B8B8B] animate-in fade-in-50 duration-200">
                     {t("No products sold")}
                   </td>
                 </tr>
               ) : (
                 <>
                   {products.map((row) => (
-                    <tr key={row.id} className="border-t border-[#F0EEEA] hover:bg-[#FAFAF8]">
+                    <tr key={row.id} className="border-t border-[#F0EEEA] hover:bg-[#FAFAF8] transition-colors duration-150">
                       <td className={`${TD} font-semibold text-[#28293D]`}>{row.label}</td>
                       <td className={`${TD} font-medium text-[#28293D]`}>{row.product}</td>
                       <td className={`${TD} text-center font-medium text-[#28293D]`}>{row.quantity}</td>
@@ -266,9 +266,9 @@ const DailyReportTab = ({
       </div>
 
       {/* Parts Request table */}
-      <div className="overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white">
+      <div className="group overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white shadow-xs transition-shadow duration-200 hover:shadow-md">
         <div className="flex items-center gap-2 bg-white px-4 py-3">
-          <Tag className="size-6 text-black" />
+          <Tag className="size-6 text-black transition-transform duration-200 ease-out group-hover:scale-105" />
           <span className="text-[18px] font-bold text-[#333333] leading-[19.26px]">
             {t("Parts Request")}
           </span>
@@ -290,7 +290,7 @@ const DailyReportTab = ({
             </thead>
             <tbody>
               <tr>
-                <td colSpan={6} className="py-8 text-center text-[14px] font-semibold text-[#595959]">
+                <td colSpan={6} className="py-8 text-center text-[14px] font-semibold text-[#595959] animate-in fade-in-50 duration-200">
                   {t("There are no orders this shift.")}
                 </td>
               </tr>

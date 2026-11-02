@@ -21,7 +21,7 @@ const RevenueExpenseBar = ({ revenue, expenses }: RevenueExpenseBarProps) => {
   const isNegative = balancePct < 0;
 
   return (
-    <Card className="mb-6 gap-0 overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white py-0 ring-0 shadow-sm">
+    <Card className="mb-6 gap-0 overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white py-0 ring-0 shadow-sm transition-shadow duration-200 hover:shadow-md">
       <div className="flex flex-wrap items-center justify-between gap-3 bg-[#F5F0EA] px-5 py-4 sm:px-6">
         <h3 className="text-[15px] font-bold text-[#28293D] sm:text-[16px]">
           {t("Revenues versus expenses")}
@@ -40,7 +40,7 @@ const RevenueExpenseBar = ({ revenue, expenses }: RevenueExpenseBarProps) => {
       <CardContent className="flex flex-col gap-4 px-5 py-5 sm:px-6 sm:py-6">
         <div className="flex h-12 w-full overflow-hidden rounded-[16px]">
           <div
-            className="flex items-center justify-center bg-[#06C270] text-center text-white"
+            className="flex items-center justify-center bg-[#06C270] text-center text-white transition-all duration-500 ease-out"
             style={{ width: `${revenuePct}%` }}
           >
             <div className="px-2">
@@ -53,7 +53,7 @@ const RevenueExpenseBar = ({ revenue, expenses }: RevenueExpenseBarProps) => {
             </div>
           </div>
           <div
-            className="flex items-center justify-center bg-[#C90000] text-center text-white"
+            className="flex items-center justify-center bg-[#C90000] text-center text-white transition-all duration-500 ease-out"
             style={{ width: `${expensePct}%` }}
           >
             <div className="px-2">

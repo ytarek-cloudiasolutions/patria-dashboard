@@ -80,7 +80,7 @@ export const AudienceSegmentCards = ({
               type="button"
               onClick={() => onSelectSegment(seg.id)}
               className={cn(
-                "w-full px-3 py-4 rounded-[5px] outline outline-2 outline-offset-[-2px] inline-flex flex-col justify-start items-start gap-1 overflow-hidden cursor-pointer text-left transition-all",
+                "group w-full px-3 py-4 rounded-[5px] outline outline-2 outline-offset-[-2px] inline-flex flex-col justify-start items-start gap-1 overflow-hidden cursor-pointer text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xs active:scale-[0.99]",
                 isSelected
                   ? "bg-[#F5F0EA] outline-[#8F6900]"
                   : "bg-white outline-[#CACBD4] hover:outline-[#8F6900]/50"
@@ -90,9 +90,9 @@ export const AudienceSegmentCards = ({
                 {/* Radio Indicator */}
                 <div className="size-3.5 relative shrink-0">
                   {isSelected ? (
-                    <div className="size-3.5 left-0 top-0 absolute bg-[#8F6900] rounded-full outline outline-[2.80px] outline-yellow-900/10" />
+                    <div className="size-3.5 left-0 top-0 absolute bg-[#8F6900] rounded-full outline outline-[2.80px] outline-yellow-900/10 transition-all duration-200 scale-105" />
                   ) : (
-                    <div className="size-3.5 left-0 top-0 absolute rounded-full outline outline-[0.70px] outline-[#8F6900]" />
+                    <div className="size-3.5 left-0 top-0 absolute rounded-full outline outline-[0.70px] outline-[#8F6900] transition-all duration-200 group-hover:scale-105" />
                   )}
                 </div>
 
@@ -156,7 +156,7 @@ export const AudienceSegmentCards = ({
                 onClick={() =>
                   onInactiveDaysChange(Math.min(365, inactiveDays + 1))
                 }
-                className="p-0.5 text-[#8B8B8B] hover:text-[#1A1A1A] transition-colors cursor-pointer"
+                className="p-0.5 text-[#8B8B8B] hover:text-[#1A1A1A] transition-all duration-150 active:scale-90 cursor-pointer"
                 aria-label={t("Increase days")}
               >
                 <ChevronUp className="size-4 stroke-[2]" />
@@ -166,7 +166,7 @@ export const AudienceSegmentCards = ({
                 onClick={() =>
                   onInactiveDaysChange(Math.max(1, inactiveDays - 1))
                 }
-                className="p-0.5 text-[#8B8B8B] hover:text-[#1A1A1A] transition-colors cursor-pointer"
+                className="p-0.5 text-[#8B8B8B] hover:text-[#1A1A1A] transition-all duration-150 active:scale-90 cursor-pointer"
                 aria-label={t("Decrease days")}
               >
                 <ChevronDown className="size-4 stroke-[2]" />

@@ -146,7 +146,7 @@ const DiscountsReportTab = ({
       </div>
 
       {/* Deductions by Responsible Party Card */}
-      <div className="mb-6 overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-5 sm:p-6">
+      <div className="mb-6 overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-5 sm:p-6 shadow-xs transition-shadow duration-200 hover:shadow-md">
         <p className="mb-4 text-[18px] font-bold text-[#333333]">
           {t("Deductions by responsible party")}
         </p>
@@ -163,7 +163,7 @@ const DiscountsReportTab = ({
           ).map((group) => (
             <div
               key={group.name}
-              className="flex flex-col gap-2 rounded-[16px] border border-[#E5E5E5] bg-[#FAFAF7] p-4 sm:p-5 w-full"
+              className="flex flex-col gap-2 rounded-[16px] border border-[#E5E5E5] bg-[#FAFAF7] p-4 sm:p-5 w-full transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-xs"
             >
               <p className="text-[16px] font-semibold text-[#000000]">
                 {group.name}
@@ -180,7 +180,7 @@ const DiscountsReportTab = ({
       </div>
 
       {/* Discount Details Table */}
-      <div className="overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white">
+      <div className="overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white shadow-xs transition-shadow duration-200 hover:shadow-md">
         <div className="flex items-center justify-between px-4 py-5 sm:px-5">
           <span className="text-[18px] font-bold text-[#333333]">
             {t("Discount Details")}
@@ -189,8 +189,8 @@ const DiscountsReportTab = ({
             data={{
               buttonText: t("Export CSV"),
               onClick: handleExportCSV,
-              icon: <FileDown className="size-4.5" />,
-              className: "bg-primary text-white hover:bg-primary/90",
+              icon: <FileDown className="size-4.5 transition-transform duration-200 group-hover:translate-y-0.5" />,
+              className: "group bg-primary text-white hover:bg-primary/90 transition-all duration-200 hover:shadow-xs active:scale-[0.98]",
             }}
           />
         </div>
@@ -214,7 +214,7 @@ const DiscountsReportTab = ({
                 <tr>
                   <td
                     colSpan={8}
-                    className="py-10 text-center text-[13px] text-[#8B8B8B]"
+                    className="py-10 text-center text-[13px] text-[#8B8B8B] animate-in fade-in-50 duration-200"
                   >
                     {t("Loading...")}
                   </td>
@@ -223,7 +223,7 @@ const DiscountsReportTab = ({
                 <tr>
                   <td
                     colSpan={8}
-                    className="py-10 text-center text-[13px] text-[#8B8B8B]"
+                    className="py-10 text-center text-[13px] text-[#8B8B8B] animate-in fade-in-50 duration-200"
                   >
                     {t("No discount records found")}
                   </td>
@@ -232,7 +232,7 @@ const DiscountsReportTab = ({
                 rows.map((row) => (
                   <tr
                     key={row.id}
-                    className="border-t border-[#E5E5E5] hover:bg-[#FAFAF7] transition-colors"
+                    className="border-t border-[#E5E5E5] hover:bg-[#FAFAF7] transition-colors duration-150"
                   >
                     <td className={`${TD} font-medium text-[#333333]`}>
                       {row.orderNo}

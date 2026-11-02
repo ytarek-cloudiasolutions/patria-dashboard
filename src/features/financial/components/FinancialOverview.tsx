@@ -22,7 +22,7 @@ const FinancialOverview = ({
   return (
     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 sm:gap-6">
       {/* Card 1: Total Revenue */}
-      <div className="flex h-[115px] w-full items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm">
+      <div className="group flex h-[115px] w-full items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md">
         <div className="flex flex-col gap-2">
           <span className="text-[10px] font-semibold tracking-[0.2px] text-black uppercase">
             {t("Total Revenue")}
@@ -31,13 +31,13 @@ const FinancialOverview = ({
             {formatEgp(totalRevenue)}
           </span>
         </div>
-        <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#F5F0EA]">
+        <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#F5F0EA] transition-transform duration-200 ease-out group-hover:scale-105">
           <TrendingUp size={24} className="text-[#8F6900]" />
         </div>
       </div>
 
       {/* Card 2: Total Expenses */}
-      <div className="flex h-[115px] w-full items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm">
+      <div className="group flex h-[115px] w-full items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md">
         <div className="flex flex-col gap-2">
           <span className="text-[10px] font-semibold tracking-[0.2px] text-black uppercase">
             {t("Total Expenses")}
@@ -46,13 +46,13 @@ const FinancialOverview = ({
             {formatEgp(totalExpenses)}
           </span>
         </div>
-        <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#C90000]">
+        <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#C90000] transition-transform duration-200 ease-out group-hover:scale-105">
           <TrendingDown size={24} className="text-white" />
         </div>
       </div>
 
       {/* Card 3: Net Profit */}
-      <div className="flex h-[115px] w-full items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm">
+      <div className="group flex h-[115px] w-full items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md">
         <div className="flex flex-col gap-2">
           <span className="text-[10px] font-semibold tracking-[0.2px] text-black uppercase">
             {t("Net Profit")}
@@ -61,13 +61,13 @@ const FinancialOverview = ({
             {formatEgp(netProfit)}
           </span>
         </div>
-        <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#E2F4ED]">
+        <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#E2F4ED] transition-transform duration-200 ease-out group-hover:scale-105">
           <Zap size={24} className="text-[#059B5A]" />
         </div>
       </div>
 
       {/* Card 4: Profit Margin */}
-      <div className="flex h-[115px] w-full items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm">
+      <div className="group flex h-[115px] w-full items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md">
         <div className="flex flex-col gap-2">
           <span className="text-[10px] font-semibold tracking-[0.2px] text-black uppercase">
             {t("Profit Margin")}
@@ -76,7 +76,7 @@ const FinancialOverview = ({
             {profitMargin}
           </span>
         </div>
-        <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#FE9A00]/10">
+        <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#FE9A00]/10 transition-transform duration-200 ease-out group-hover:scale-105">
           <Target size={24} className="text-[#C7861E]" />
         </div>
       </div>

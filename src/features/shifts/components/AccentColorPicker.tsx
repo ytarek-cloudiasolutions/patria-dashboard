@@ -174,8 +174,8 @@ const AccentColorPicker = ({
             disabled={unavailable}
             aria-label={swatch}
             className={cn(
-              "relative size-7 rounded-full",
-              unavailable ? "cursor-not-allowed" : "cursor-pointer",
+              "relative size-7 rounded-full transition-transform duration-150 ease-out",
+              unavailable ? "cursor-not-allowed" : "cursor-pointer hover:scale-110 active:scale-95",
             )}
             style={swatchStyle(swatch, value === swatch)}
           >
@@ -189,7 +189,7 @@ const AccentColorPicker = ({
         type="button"
         onClick={toggleOpen}
         aria-label="Pick a custom color"
-        className="size-7 cursor-pointer rounded-[4px]"
+        className="size-7 cursor-pointer rounded-[4px] transition-transform duration-150 ease-out hover:scale-110 active:scale-95"
         style={
           isCustom
             ? { backgroundColor: value }
@@ -203,7 +203,7 @@ const AccentColorPicker = ({
       {open &&
         createPortal(
           <>
-            <div className="pointer-events-none fixed inset-0 z-[9998] bg-black/40" />
+            <div className="pointer-events-none fixed inset-0 z-[9998] bg-black/40 transition-opacity animate-in fade-in-0 duration-200" />
             <FocusScopeModule.FocusScope
               trapped
               onMountAutoFocus={(event: Event) => event.preventDefault()}
@@ -211,7 +211,7 @@ const AccentColorPicker = ({
               <div
                 ref={portalRef}
                 style={portalStyle}
-                className="pointer-events-auto z-9999 flex h-96 w-64 flex-col gap-4 rounded-lg bg-white p-4 shadow-[0px_0px_6px_0px_rgba(31,41,55,0.05)] shadow-[0px_10px_15px_0px_rgba(31,41,55,0.10)]"
+                className="pointer-events-auto z-9999 flex h-96 w-64 flex-col gap-4 rounded-lg bg-white p-4 shadow-[0px_0px_6px_0px_rgba(31,41,55,0.05)] shadow-[0px_10px_15px_0px_rgba(31,41,55,0.10)] animate-in fade-in-0 zoom-in-95 duration-200"
               >
                 <ColorPicker
                   value={value}
@@ -446,7 +446,7 @@ const ColorPicker = ({
               prev.includes(hex) ? prev : [...prev, hex],
             )
           }
-          className="cursor-pointer text-xs font-semibold leading-4 text-gray-500"
+          className="cursor-pointer text-xs font-semibold leading-4 text-gray-500 transition-all duration-150 hover:text-gray-800 active:scale-95"
         >
           + {t("Add")}
         </button>
@@ -465,8 +465,8 @@ const ColorPicker = ({
               disabled={unavailable}
               aria-label={color}
               className={cn(
-                "relative size-6 rounded-full",
-                unavailable ? "cursor-not-allowed" : "cursor-pointer",
+                "relative size-6 rounded-full transition-transform duration-150 ease-out",
+                unavailable ? "cursor-not-allowed" : "cursor-pointer hover:scale-110 active:scale-95",
                 isSelected &&
                   "shadow-[0px_0px_0px_2px_rgba(0,0,0,0.25)] outline outline-2 outline-white",
               )}

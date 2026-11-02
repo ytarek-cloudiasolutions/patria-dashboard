@@ -47,11 +47,11 @@ export const ReportsComplaintsTab = () => {
     <>
       {isDropdownOpen &&
         createPortal(
-          <div className="pointer-events-none fixed inset-0 z-40 bg-black/40" />,
+          <div className="pointer-events-none fixed inset-0 z-40 bg-black/40 animate-in fade-in duration-200" />,
           document.body
         )}
 
-      <div className="flex flex-col gap-6 w-full animate-in fade-in duration-150">
+      <div className="flex flex-col gap-6 w-full animate-in fade-in-50 duration-200">
         {/* 1. Date Filter Bar - Full Width */}
         <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 items-end">
           {/* From Date */}
@@ -102,7 +102,7 @@ export const ReportsComplaintsTab = () => {
       {/* 2. Five Metric KPI Cards */}
       <div className="w-full grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-6">
         {/* Card 1: App Orders */}
-        <div className="h-28 p-6 bg-white rounded-2xl shadow-[0px_1px_2px_-1px_rgba(0,0,0,0.10),0px_1px_3px_0px_rgba(0,0,0,0.10)] border border-[#CACBD4] flex justify-between items-center overflow-hidden">
+        <div className="group h-28 p-6 bg-white rounded-2xl shadow-[0px_1px_2px_-1px_rgba(0,0,0,0.10),0px_1px_3px_0px_rgba(0,0,0,0.10)] border border-[#CACBD4] flex justify-between items-center overflow-hidden transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md">
           <div className="flex flex-col justify-start items-start gap-1">
             <span className="text-black text-[10px] font-semibold font-['Montserrat',sans-serif] tracking-tight">
               {t("App Orders")}
@@ -114,13 +114,13 @@ export const ReportsComplaintsTab = () => {
               {t("EGP")} {kpis.appOrdersRevenue.toLocaleString()}
             </span>
           </div>
-          <div className="size-11 bg-[#F5F0EA] rounded-xl flex justify-center items-center overflow-hidden shrink-0">
+          <div className="size-11 bg-[#F5F0EA] rounded-xl flex justify-center items-center overflow-hidden shrink-0 transition-transform duration-200 group-hover:scale-105">
             <Smartphone className="size-6 text-[#8F6900]" />
           </div>
         </div>
 
         {/* Card 2: Website Orders */}
-        <div className="h-28 p-6 bg-white rounded-2xl shadow-[0px_1px_2px_-1px_rgba(0,0,0,0.10),0px_1px_3px_0px_rgba(0,0,0,0.10)] border border-[#CACBD4] flex justify-between items-center overflow-hidden">
+        <div className="group h-28 p-6 bg-white rounded-2xl shadow-[0px_1px_2px_-1px_rgba(0,0,0,0.10),0px_1px_3px_0px_rgba(0,0,0,0.10)] border border-[#CACBD4] flex justify-between items-center overflow-hidden transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md">
           <div className="flex flex-col justify-start items-start gap-1">
             <span className="text-black text-[10px] font-semibold font-['Montserrat',sans-serif] tracking-tight">
               {t("Website Orders")}
@@ -132,13 +132,13 @@ export const ReportsComplaintsTab = () => {
               {t("EGP")} {kpis.websiteOrdersRevenue.toFixed(2)}
             </span>
           </div>
-          <div className="size-11 bg-blue-100 rounded-xl flex justify-center items-center overflow-hidden shrink-0">
+          <div className="size-11 bg-blue-100 rounded-xl flex justify-center items-center overflow-hidden shrink-0 transition-transform duration-200 group-hover:scale-105">
             <Globe className="size-6 text-blue-600" />
           </div>
         </div>
 
         {/* Card 3: New Sign-ups */}
-        <div className="h-28 p-6 bg-white rounded-2xl shadow-[0px_1px_2px_-1px_rgba(0,0,0,0.10),0px_1px_3px_0px_rgba(0,0,0,0.10)] border border-[#CACBD4] flex justify-between items-center overflow-hidden">
+        <div className="group h-28 p-6 bg-white rounded-2xl shadow-[0px_1px_2px_-1px_rgba(0,0,0,0.10),0px_1px_3px_0px_rgba(0,0,0,0.10)] border border-[#CACBD4] flex justify-between items-center overflow-hidden transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md">
           <div className="flex flex-col justify-start items-start gap-2">
             <span className="text-black text-[10px] font-semibold font-['Montserrat',sans-serif] tracking-tight">
               {t("New Sign-ups")}
@@ -147,13 +147,13 @@ export const ReportsComplaintsTab = () => {
               {kpis.newSignups}
             </span>
           </div>
-          <div className="size-11 bg-[#E2F4ED] rounded-xl flex justify-center items-center overflow-hidden shrink-0">
+          <div className="size-11 bg-[#E2F4ED] rounded-xl flex justify-center items-center overflow-hidden shrink-0 transition-transform duration-200 group-hover:scale-105">
             <UserPlus className="size-6 text-[#059B5A]" />
           </div>
         </div>
 
         {/* Card 4: Reviews */}
-        <div className="h-28 p-6 bg-white rounded-2xl shadow-[0px_1px_2px_-1px_rgba(0,0,0,0.10),0px_1px_3px_0px_rgba(0,0,0,0.10)] border border-[#CACBD4] flex justify-between items-center overflow-hidden">
+        <div className="group h-28 p-6 bg-white rounded-2xl shadow-[0px_1px_2px_-1px_rgba(0,0,0,0.10),0px_1px_3px_0px_rgba(0,0,0,0.10)] border border-[#CACBD4] flex justify-between items-center overflow-hidden transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md">
           <div className="flex flex-col justify-start items-start gap-1">
             <span className="text-black text-[10px] font-semibold font-['Montserrat',sans-serif] tracking-tight">
               {t("Reviews")}
@@ -165,13 +165,13 @@ export const ReportsComplaintsTab = () => {
               {kpis.reviewsCount} {t("reviews")}
             </span>
           </div>
-          <div className="size-11 bg-[#FEF3C7] rounded-xl flex justify-center items-center overflow-hidden shrink-0">
+          <div className="size-11 bg-[#FEF3C7] rounded-xl flex justify-center items-center overflow-hidden shrink-0 transition-transform duration-200 group-hover:scale-105">
             <Star className="size-6 text-[#D97706]" />
           </div>
         </div>
 
         {/* Card 5: Complaints */}
-        <div className="h-28 p-6 bg-white rounded-2xl shadow-[0px_1px_2px_-1px_rgba(0,0,0,0.10),0px_1px_3px_0px_rgba(0,0,0,0.10)] border border-[#CACBD4] flex justify-between items-center overflow-hidden">
+        <div className="group h-28 p-6 bg-white rounded-2xl shadow-[0px_1px_2px_-1px_rgba(0,0,0,0.10),0px_1px_3px_0px_rgba(0,0,0,0.10)] border border-[#CACBD4] flex justify-between items-center overflow-hidden transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md">
           <div className="flex flex-col justify-start items-start gap-1">
             <span className="text-black text-[10px] font-semibold font-['Montserrat',sans-serif] tracking-tight">
               {t("Complaints")}
@@ -183,14 +183,14 @@ export const ReportsComplaintsTab = () => {
               {t("1-2 star reviews")}
             </span>
           </div>
-          <div className="size-11 bg-[#C90000] rounded-xl flex justify-center items-center overflow-hidden shrink-0">
+          <div className="size-11 bg-[#C90000] rounded-xl flex justify-center items-center overflow-hidden shrink-0 transition-transform duration-200 group-hover:scale-105">
             <AlertTriangle className="size-6 text-white" />
           </div>
         </div>
       </div>
 
       {/* 3. Orders per day Card */}
-      <div className="w-full rounded-[16px] border border-[#E5E5E5] bg-white overflow-hidden shadow-xs flex flex-col">
+      <div className="w-full rounded-[16px] border border-[#E5E5E5] bg-white overflow-hidden shadow-xs transition-shadow duration-200 hover:shadow-sm flex flex-col">
         {/* Header */}
         <div className="self-stretch min-h-14 px-6 py-4 bg-[#F5F0EA] rounded-t-[16px] flex justify-between items-center">
           <h2 className="text-[#333333] text-[18px] font-bold font-['Montserrat',sans-serif] leading-6">
@@ -211,7 +211,7 @@ export const ReportsComplaintsTab = () => {
             return (
               <div
                 key={stat.id}
-                className="self-stretch flex items-center gap-2.5 sm:gap-3 w-full"
+                className="self-stretch flex items-center gap-2.5 sm:gap-3 w-full rounded-lg px-2 py-1 -mx-2 transition-colors duration-150 hover:bg-[#FAF7F2]/70"
               >
                 {/* Number & Date */}
                 <div className="w-28 sm:w-[118px] shrink-0 flex items-center gap-2">
@@ -259,7 +259,7 @@ export const ReportsComplaintsTab = () => {
       </div>
 
       {/* 4. Top Delivery Zones Card */}
-      <div className="w-full rounded-[16px] border border-[#E5E5E5] bg-white overflow-hidden shadow-xs flex flex-col">
+      <div className="w-full rounded-[16px] border border-[#E5E5E5] bg-white overflow-hidden shadow-xs transition-shadow duration-200 hover:shadow-sm flex flex-col">
         {/* Header */}
         <div className="self-stretch min-h-14 px-6 py-4 bg-[#F5F0EA] rounded-t-[16px] flex justify-between items-center">
           <h2 className="text-[#333333] text-[18px] font-bold font-['Montserrat',sans-serif] leading-6">
@@ -285,7 +285,7 @@ export const ReportsComplaintsTab = () => {
             return (
               <div
                 key={z.id}
-                className="self-stretch flex items-center gap-2.5 sm:gap-3 w-full"
+                className="self-stretch flex items-center gap-2.5 sm:gap-3 w-full rounded-lg px-2 py-1 -mx-2 transition-colors duration-150 hover:bg-[#FAF7F2]/70"
               >
                 {/* Number & Name */}
                 <div className="w-44 sm:w-[185px] shrink-0 flex items-center gap-2 truncate">
@@ -320,7 +320,7 @@ export const ReportsComplaintsTab = () => {
       </div>
 
       {/* 5. Complaints (1–2 star reviews) Card */}
-      <div className="w-full rounded-2xl border border-[#CACBD4] bg-white overflow-hidden flex flex-col">
+      <div className="w-full rounded-2xl border border-[#CACBD4] bg-white overflow-hidden transition-shadow duration-200 hover:shadow-sm flex flex-col">
         {/* Header */}
         <div className="self-stretch px-4 py-3 bg-[#F5F0EA] rounded-t-2xl flex justify-between items-center">
           <div className="text-[#1A1A1A] text-lg font-semibold font-['Montserrat',sans-serif] leading-6">
@@ -334,7 +334,7 @@ export const ReportsComplaintsTab = () => {
           {complaints.map((c) => (
             <div
               key={c.id}
-              className="w-full sm:w-[320px] min-h-[288px] p-4 bg-[#FAFAF7] rounded-2xl border-l-[3px] border-l-[#C90000] border-y border-r border-[#CACBD4] flex flex-col justify-between overflow-hidden shadow-xs"
+              className="w-full sm:w-[320px] min-h-[288px] p-4 bg-[#FAFAF7] rounded-2xl border-l-[3px] border-l-[#C90000] border-y border-r border-[#CACBD4] flex flex-col justify-between overflow-hidden shadow-xs transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md"
             >
               <div className="self-stretch flex flex-col justify-start items-start gap-4">
                 {/* Header: Name, Phone & Rating */}
@@ -385,7 +385,7 @@ export const ReportsComplaintsTab = () => {
                     {c.tags.map((tag) => (
                       <span
                         key={tag}
-                        className="px-2 py-2 bg-[#F5F0EA] rounded-[4px] border border-[#CACBD4] text-[#1A1A1A] text-[10px] font-semibold font-['Montserrat',sans-serif] leading-3 tracking-tight"
+                        className="px-2 py-2 bg-[#F5F0EA] rounded-[4px] border border-[#CACBD4] text-[#1A1A1A] text-[10px] font-semibold font-['Montserrat',sans-serif] leading-3 tracking-tight transition-transform duration-150 hover:scale-105"
                       >
                         {t(tag)}
                       </span>

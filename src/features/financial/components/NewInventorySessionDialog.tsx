@@ -100,7 +100,7 @@ const NewInventorySessionDialog = ({
                   contentClassName="w-[var(--radix-dropdown-menu-trigger-width)] md:!w-[var(--radix-dropdown-menu-trigger-width)]"
                 />
                 {error && (
-                  <p className="mt-1 text-[13px] text-[#C90000]">{error}</p>
+                  <p className="mt-1 text-[13px] text-[#C90000] animate-in fade-in-50 duration-150">{error}</p>
                 )}
               </div>
 
@@ -125,14 +125,14 @@ const NewInventorySessionDialog = ({
                   type: "button",
                   onClick: () => onOpenChange(false),
                   className:
-                    "w-full sm:w-auto border-primary text-primary hover:bg-white hover:text-primary",
+                    "w-full sm:w-auto border-primary text-primary hover:bg-white hover:text-primary transition-all duration-150 active:scale-[0.98]",
                 }}
               />
               <Button
                 form={FORM_ID}
                 type="submit"
                 disabled={!selectedWarehouse}
-                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
+                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white transition-all duration-150 active:scale-[0.98] sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
               >
                 {t("Create new inventory session")}
               </Button>

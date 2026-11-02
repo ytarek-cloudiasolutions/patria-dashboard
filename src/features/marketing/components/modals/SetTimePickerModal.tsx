@@ -98,9 +98,9 @@ const WheelColumn = ({
             onClick={() => onChange(item)}
             style={{ height: ITEM_HEIGHT }}
             className={cn(
-              "flex items-center justify-center snap-center text-xl font-['Inter',sans-serif] transition-all cursor-pointer",
+              "flex items-center justify-center snap-center text-xl font-['Inter',sans-serif] transition-all duration-150 active:scale-95 cursor-pointer",
               isSelected
-                ? "text-[#8F6900] font-bold"
+                ? "text-[#8F6900] font-bold scale-105"
                 : "text-[#8C8C8C] font-medium hover:text-black"
             )}
           >
@@ -227,14 +227,14 @@ export const SetTimePickerModal = ({
           <button
             type="button"
             onClick={onClose}
-            className="h-14 px-7 py-4 rounded-[5px] outline outline-1 outline-offset-[-1px] outline-[#8F6900] text-[#8F6900] text-base font-semibold font-['Montserrat',sans-serif] leading-6 hover:bg-[#F5F0EA] transition-colors cursor-pointer"
+            className="h-14 px-7 py-4 rounded-[5px] outline outline-1 outline-offset-[-1px] outline-[#8F6900] text-[#8F6900] text-base font-semibold font-['Montserrat',sans-serif] leading-6 hover:bg-[#F5F0EA] transition-all duration-200 hover:shadow-xs active:scale-[0.98] cursor-pointer"
           >
             {t("Cancel")}
           </button>
           <button
             type="button"
             onClick={handleSave}
-            className="h-14 px-7 py-4 bg-[#8F6900] hover:bg-[#785700] rounded-[5px] text-white text-base font-semibold font-['Montserrat',sans-serif] leading-6 transition-colors cursor-pointer shadow-xs"
+            className="h-14 px-7 py-4 bg-[#8F6900] hover:bg-[#785700] rounded-[5px] text-white text-base font-semibold font-['Montserrat',sans-serif] leading-6 transition-all duration-200 hover:shadow-xs active:scale-[0.98] cursor-pointer shadow-xs"
           >
             {t("Save")}
           </button>

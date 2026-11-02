@@ -136,7 +136,7 @@ const SalesReportTab = ({ fromDate, toDate }: SalesReportTabProps) => {
       </div>
 
       {/* Product Sales Table */}
-      <div className="overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white">
+      <div className="overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white shadow-xs transition-shadow duration-200 hover:shadow-md">
         <div className="flex items-center justify-between px-4 py-5 sm:px-5">
           <span className="text-[18px] font-bold text-[#333333]">
             {t("Product Sales")}
@@ -145,8 +145,8 @@ const SalesReportTab = ({ fromDate, toDate }: SalesReportTabProps) => {
             data={{
               buttonText: t("Export CSV"),
               onClick: handleExportCSV,
-              icon: <FileDown className="size-4.5" />,
-              className: "bg-primary text-white hover:bg-primary/90",
+              icon: <FileDown className="size-4.5 transition-transform duration-200 group-hover:translate-y-0.5" />,
+              className: "group bg-primary text-white hover:bg-primary/90 transition-all duration-200 hover:shadow-xs active:scale-[0.98]",
             }}
           />
         </div>
@@ -169,7 +169,7 @@ const SalesReportTab = ({ fromDate, toDate }: SalesReportTabProps) => {
                 <tr>
                   <td
                     colSpan={7}
-                    className="py-10 text-center text-[13px] text-[#8B8B8B]"
+                    className="py-10 text-center text-[13px] text-[#8B8B8B] animate-in fade-in-50 duration-200"
                   >
                     {t("Loading...")}
                   </td>
@@ -178,7 +178,7 @@ const SalesReportTab = ({ fromDate, toDate }: SalesReportTabProps) => {
                 <tr>
                   <td
                     colSpan={7}
-                    className="py-10 text-center text-[13px] text-[#8B8B8B]"
+                    className="py-10 text-center text-[13px] text-[#8B8B8B] animate-in fade-in-50 duration-200"
                   >
                     {t("No sales data found")}
                   </td>
@@ -187,7 +187,7 @@ const SalesReportTab = ({ fromDate, toDate }: SalesReportTabProps) => {
                 rows.map((row) => (
                   <tr
                     key={row.id}
-                    className="border-t border-[#E5E5E5] hover:bg-[#FAFAF7] transition-colors"
+                    className="border-t border-[#E5E5E5] hover:bg-[#FAFAF7] transition-colors duration-150"
                   >
                     <td className={`${TD} font-medium text-[#28293D]`}>
                       {row.productName}

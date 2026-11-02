@@ -93,7 +93,7 @@ const ConsumptionView = () => {
           type="button"
           onClick={handleGenerateReport}
           disabled={loading}
-          className="h-14 w-full lg:w-[204px] shrink-0 rounded-[5px] bg-[#8F6900] px-4 text-[16px] font-semibold text-white hover:bg-[#785800] transition-colors cursor-pointer disabled:opacity-60"
+          className="h-14 w-full lg:w-[204px] shrink-0 rounded-[5px] bg-[#8F6900] px-4 text-[16px] font-semibold text-white hover:bg-[#785800] transition-all duration-200 hover:shadow-xs active:scale-[0.98] cursor-pointer disabled:opacity-60"
         >
           {loading ? <Loader2 className="mx-auto size-5 animate-spin" /> : t("Generate Report")}
         </button>
@@ -101,7 +101,7 @@ const ConsumptionView = () => {
 
       {/* 4 Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="flex h-[115px] items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm">
+        <div className="group flex h-[115px] items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md">
           <div className="flex flex-col gap-2">
             <span className="text-[10px] font-semibold tracking-[0.2px] text-black uppercase">
               {t("Total Consumed")}
@@ -110,12 +110,12 @@ const ConsumptionView = () => {
               {summary.totalConsumed}
             </span>
           </div>
-          <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#F5F0EA]">
+          <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#F5F0EA] transition-transform duration-200 ease-out group-hover:scale-105">
             <Package size={24} className="text-[#8F6900]" />
           </div>
         </div>
 
-        <div className="flex h-[115px] items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm">
+        <div className="group flex h-[115px] items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md">
           <div className="flex flex-col gap-2">
             <span className="text-[10px] font-semibold tracking-[0.2px] text-black uppercase">
               {t("Consumption cost")}
@@ -124,12 +124,12 @@ const ConsumptionView = () => {
               {formatEgp(summary.consumptionCost)}
             </span>
           </div>
-          <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#FE9A00]/10">
+          <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#FE9A00]/10 transition-transform duration-200 ease-out group-hover:scale-105">
             <Wallet size={24} className="text-[#C7861E]" />
           </div>
         </div>
 
-        <div className="flex h-[115px] items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm">
+        <div className="group flex h-[115px] items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md">
           <div className="flex flex-col gap-2">
             <span className="text-[10px] font-semibold tracking-[0.2px] text-black uppercase">
               {t("Sales revenue")}
@@ -138,12 +138,12 @@ const ConsumptionView = () => {
               {formatEgp(summary.salesRevenue)}
             </span>
           </div>
-          <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#E2F4ED]">
+          <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#E2F4ED] transition-transform duration-200 ease-out group-hover:scale-105">
             <TrendingUp size={24} className="text-[#059B5A]" />
           </div>
         </div>
 
-        <div className="flex h-[115px] items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm">
+        <div className="group flex h-[115px] items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md">
           <div className="flex flex-col gap-2">
             <span className="text-[10px] font-semibold tracking-[0.2px] text-black uppercase">
               {t("Total loss")}
@@ -152,14 +152,14 @@ const ConsumptionView = () => {
               {formatEgp(summary.totalLoss)}
             </span>
           </div>
-          <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#C90000]">
+          <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#C90000] transition-transform duration-200 ease-out group-hover:scale-105">
             <Trash2 size={24} className="text-white" />
           </div>
         </div>
       </div>
 
       {/* Consumption Breakdown Table */}
-      <div className="rounded-[16px] border border-[#E5E5E5] bg-white overflow-hidden shadow-sm">
+      <div className="rounded-[16px] border border-[#E5E5E5] bg-white overflow-hidden shadow-sm transition-shadow duration-200 hover:shadow-md">
         <Table>
           <TableHeader>
             <TableRow className="bg-[#F5F0EA] border-b border-[#E5E5E5]">
@@ -192,19 +192,19 @@ const ConsumptionView = () => {
           <TableBody>
             {!hasRun ? (
               <TableRow className="border-none">
-                <TableCell colSpan={8} className="py-10 text-center text-[14px] text-[#8B8B8B]">
+                <TableCell colSpan={8} className="py-10 text-center text-[14px] text-[#8B8B8B] animate-in fade-in-50 duration-200">
                   {t("Pick a date range and click Generate Report")}
                 </TableCell>
               </TableRow>
             ) : !loading && items.length === 0 ? (
               <TableRow className="border-none">
-                <TableCell colSpan={8} className="py-10 text-center text-[14px] text-[#8B8B8B]">
+                <TableCell colSpan={8} className="py-10 text-center text-[14px] text-[#8B8B8B] animate-in fade-in-50 duration-200">
                   {t("No consumption in this range")}
                 </TableCell>
               </TableRow>
             ) : (
               items.map((row) => (
-                <TableRow key={row.productId} className="border-b border-[#E5E5E5] hover:bg-[#FAFAF8]">
+                <TableRow key={row.productId} className="border-b border-[#E5E5E5] hover:bg-[#FAFAF8] transition-colors duration-150">
                   <TableCell className="ps-8 py-5 whitespace-nowrap text-[12px] font-bold tracking-[0.24px] text-[#333333]">
                     {row.name}
                   </TableCell>

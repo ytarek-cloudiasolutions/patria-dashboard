@@ -218,7 +218,7 @@ const OrdersReportTab = ({
       </div>
 
       {/* Orders Table */}
-      <div className="overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white">
+      <div className="overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white shadow-xs transition-shadow duration-200 hover:shadow-md">
         {/* Table Header */}
         <div className="flex flex-col gap-3 px-4 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-5">
           <span className="text-[18px] font-bold text-[#333333]">
@@ -241,8 +241,8 @@ const OrdersReportTab = ({
               data={{
                 buttonText: t("Export CSV"),
                 onClick: handleExportCSV,
-                icon: <FileDown className="size-4.5" />,
-                className: "bg-primary text-white hover:bg-primary/90",
+                icon: <FileDown className="size-4.5 transition-transform duration-200 group-hover:translate-y-0.5" />,
+                className: "group bg-primary text-white hover:bg-primary/90 transition-all duration-200 hover:shadow-xs active:scale-[0.98]",
               }}
             />
           </div>
@@ -266,7 +266,7 @@ const OrdersReportTab = ({
                 <tr>
                   <td
                     colSpan={7}
-                    className="py-10 text-center text-[13px] text-[#8B8B8B]"
+                    className="py-10 text-center text-[13px] text-[#8B8B8B] animate-in fade-in-50 duration-200"
                   >
                     {t("Loading...")}
                   </td>
@@ -275,7 +275,7 @@ const OrdersReportTab = ({
                 <tr>
                   <td
                     colSpan={7}
-                    className="py-10 text-center text-[13px] text-[#8B8B8B]"
+                    className="py-10 text-center text-[13px] text-[#8B8B8B] animate-in fade-in-50 duration-200"
                   >
                     {t("No orders found")}
                   </td>
@@ -284,16 +284,16 @@ const OrdersReportTab = ({
                 orders.map((row) => (
                   <tr
                     key={row.id}
-                    className="border-t border-[#E5E5E5] hover:bg-[#FAFAF7] transition-colors"
+                    className="border-t border-[#E5E5E5] hover:bg-[#FAFAF7] transition-colors duration-150"
                   >
                     <td className={`${TD} font-bold text-[13px] text-center`}>
                       <button
                         type="button"
                         onClick={() => handleOpenDetails(row)}
-                        className="inline-flex cursor-pointer items-center gap-1.5 font-bold text-[#28293D] hover:text-primary transition-colors"
+                        className="group inline-flex cursor-pointer items-center gap-1.5 font-bold text-[#28293D] hover:text-primary transition-all duration-150 active:scale-95"
                       >
                         <span>#{row.orderId.replace(/^#/, "")}</span>
-                        <Info className="size-4 text-[#000000]" />
+                        <Info className="size-4 text-[#000000] transition-transform duration-150 group-hover:scale-110" />
                       </button>
                     </td>
                     <td className={`${TD} text-center text-[#595959] text-[14px] whitespace-pre-line`}>
@@ -325,11 +325,11 @@ const OrdersReportTab = ({
                       <button
                         type="button"
                         onClick={() => handleOpenDetails(row)}
-                        className="inline-flex cursor-pointer items-center gap-1.5 rounded-[8px] bg-[#F5F0EA] px-3 py-1 text-[12px] font-medium text-[#000000] hover:bg-[#EAE4DB] transition-colors"
+                        className="group inline-flex cursor-pointer items-center gap-1.5 rounded-[8px] bg-[#F5F0EA] px-3 py-1 text-[12px] font-medium text-[#000000] hover:bg-[#EAE4DB] transition-all duration-150 active:scale-95"
                       >
                         <strong>{row.itemsCount}</strong>
                         <span>{t("Products")}</span>
-                        <Info className="size-3.5 text-[#000000]" />
+                        <Info className="size-3.5 text-[#000000] transition-transform duration-150 group-hover:scale-110" />
                       </button>
                     </td>
                   </tr>

@@ -25,12 +25,14 @@ const TechnicalPerformanceCard = ({
     >
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
         {metrics.map((metric) => (
-          <div key={metric.id} className="flex flex-col gap-1.5">
+          <div
+            key={metric.id}
+            className="flex flex-col gap-1.5 rounded-lg p-2 -m-2 transition-colors duration-150 hover:bg-[#FAF7F2]/80"
+          >
             <p className="text-[14px] font-semibold text-[#333333]">
               {t(metric.label)}
             </p>
             <p
-  
               className={cn(
                 "text-[15px] font-semibold",
                 TONE_STYLES[metric.tone],

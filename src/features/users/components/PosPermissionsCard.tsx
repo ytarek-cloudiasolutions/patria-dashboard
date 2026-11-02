@@ -19,7 +19,7 @@ const PosPermissionsCard = ({ selected, onChange }: PosPermissionsCardProps) => 
   };
 
   return (
-    <div className="w-full px-4 py-4 bg-[#FAFAF7] rounded-2xl border border-[#E5E5E5] flex flex-col gap-4">
+    <div className="w-full px-4 py-4 bg-[#FAFAF7] rounded-2xl border border-[#E5E5E5] flex flex-col gap-4 animate-in fade-in-50 slide-in-from-top-1 duration-200">
       {/* Title */}
       <div className="flex items-center gap-2">
         <span className="text-[#28293D] text-base font-semibold font-['Montserrat'] leading-4 tracking-tight">
@@ -37,7 +37,7 @@ const PosPermissionsCard = ({ selected, onChange }: PosPermissionsCardProps) => 
               type="button"
               onClick={() => toggle(perm.id)}
               className={cn(
-                "w-full px-4 py-3.5 rounded-2xl border-2 flex items-center gap-3 text-left transition-all",
+                "w-full px-4 py-3.5 rounded-2xl border-2 flex items-center gap-3 text-left transition-all duration-200 cursor-pointer hover:shadow-2xs active:scale-[0.99]",
                 isSelected
                   ? "bg-[#F5F0EA] border-[#8F6900]"
                   : "bg-[#FAFAF7] border-[#E5E5E5]",
@@ -47,7 +47,7 @@ const PosPermissionsCard = ({ selected, onChange }: PosPermissionsCardProps) => 
               <span className="shrink-0 size-3.5 relative flex items-center justify-center">
                 <span
                   className={cn(
-                    "size-3.5 rounded-full border transition-all",
+                    "size-3.5 rounded-full border transition-all duration-200",
                     isSelected
                       ? "bg-[#8F6900] border-[#8F6900] outline outline-[2.80px] outline-yellow-900/10"
                       : "border-[#8B8B8B]",

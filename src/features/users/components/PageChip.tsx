@@ -10,7 +10,7 @@ const PageChip = ({ page }: PageChipProps) => {
   const { t } = useTranslation();
   const { icon: Icon, color } = PAGE_ICONS[page];
   return (
-    <span className="inline-flex items-center gap-1 rounded-[30px] border border-[#E5E5E5] bg-white px-2 py-0.5 text-[10px] font-semibold text-black">
+    <span className="inline-flex items-center gap-1 rounded-[30px] border border-[#E5E5E5] bg-white px-2 py-0.5 text-[10px] font-semibold text-black transition-transform duration-150 ease-out hover:scale-[1.03]">
       <Icon size={12} className={color} />
       {t(page)}
     </span>

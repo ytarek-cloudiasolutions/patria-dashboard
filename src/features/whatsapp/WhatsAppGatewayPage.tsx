@@ -61,14 +61,14 @@ const WhatsAppGatewayPage = () => {
   }, [t]);
 
   return (
-    <>
+    <div className="animate-in fade-in-50 duration-300">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <HeaderLayout
           title={t("WhatsApp Gateway")}
           description={t("Link your device for internal OTP & Notifications")}
         />
         <Badge
-          className={`h-7 gap-1.5 rounded-[30px] border px-3 py-0 text-[12px] font-semibold ${
+          className={`h-7 gap-1.5 rounded-[30px] border px-3 py-0 text-[12px] font-semibold transition-all duration-300 hover:scale-105 ${
             isConnected
               ? "border-[#059B5A] bg-[#E2F4ED] text-[#059B5A]"
               : "border-[#C90000] bg-[#FFF0F0] text-[#C90000]"
@@ -95,7 +95,7 @@ const WhatsAppGatewayPage = () => {
           <NeedHelpCard className="flex-1" />
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

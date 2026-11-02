@@ -110,25 +110,25 @@ const ItemBalanceView = () => {
           type="button"
           onClick={handleInquire}
           disabled={loading}
-          className="h-14 w-full sm:w-[204px] shrink-0 rounded-[5px] bg-[#8F6900] px-4 text-[16px] font-semibold text-white hover:bg-[#785800] transition-colors cursor-pointer disabled:opacity-60"
+          className="h-14 w-full sm:w-[204px] shrink-0 rounded-[5px] bg-[#8F6900] px-4 text-[16px] font-semibold text-white hover:bg-[#785800] transition-all duration-200 hover:shadow-xs active:scale-[0.98] cursor-pointer disabled:opacity-60"
         >
           {loading ? <Loader2 className="mx-auto size-5 animate-spin" /> : t("Inquire")}
         </button>
       </div>
 
       {!hasSearched ? (
-        <p className="py-10 text-center text-[14px] text-[#8B8B8B]">
+        <p className="py-10 text-center text-[14px] text-[#8B8B8B] animate-in fade-in-50 duration-200">
           {t("Select a product and click Inquire to see item balances")}
         </p>
       ) : !loading && items.length === 0 ? (
-        <p className="py-10 text-center text-[14px] text-[#8B8B8B]">
+        <p className="py-10 text-center text-[14px] text-[#8B8B8B] animate-in fade-in-50 duration-200">
           {t("No items found")}
         </p>
       ) : (
         items.map((item) => (
-          <div key={item.productId} className="flex flex-col gap-6">
+          <div key={item.productId} className="flex flex-col gap-6 animate-in fade-in-50 duration-300">
             {/* Item Title & Summary Cards Section */}
-            <div className="flex flex-col rounded-[16px] border border-[#E5E5E5] bg-white overflow-hidden shadow-sm">
+            <div className="flex flex-col rounded-[16px] border border-[#E5E5E5] bg-white overflow-hidden shadow-sm transition-shadow duration-200 hover:shadow-md">
               <div className="bg-[#F5F0EA] px-[26px] py-3 border-b border-[#E5E5E5]">
                 <h3 className="text-[16px] font-bold text-[#333333]">{item.name}</h3>
                 <p className="text-[14px] font-medium tracking-[0.28px] text-[#8B8B8B]">
@@ -137,7 +137,7 @@ const ItemBalanceView = () => {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 p-6">
-                <div className="flex h-[115px] items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-[#FAFAF7] p-6 shadow-sm">
+                <div className="group flex h-[115px] items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-[#FAFAF7] p-6 shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md">
                   <div className="flex flex-col gap-2">
                     <span className="text-[10px] font-semibold tracking-[0.2px] text-black uppercase">
                       {t("Total Quantity")}
@@ -146,12 +146,12 @@ const ItemBalanceView = () => {
                       {item.totalQuantity}
                     </span>
                   </div>
-                  <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#F5F0EA]">
+                  <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#F5F0EA] transition-transform duration-200 ease-out group-hover:scale-105">
                     <Package size={24} className="text-[#8F6900]" />
                   </div>
                 </div>
 
-                <div className="flex h-[115px] items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-[#FAFAF7] p-6 shadow-sm">
+                <div className="group flex h-[115px] items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-[#FAFAF7] p-6 shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md">
                   <div className="flex flex-col gap-2">
                     <span className="text-[10px] font-semibold tracking-[0.2px] text-black uppercase">
                       {t("Total Value")}
@@ -160,12 +160,12 @@ const ItemBalanceView = () => {
                       {formatEgp(item.totalValue)}
                     </span>
                   </div>
-                  <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#E2F4ED]">
+                  <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#E2F4ED] transition-transform duration-200 ease-out group-hover:scale-105">
                     <DollarSign size={24} className="text-[#059B5A]" />
                   </div>
                 </div>
 
-                <div className="flex h-[115px] items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-[#FAFAF7] p-6 shadow-sm">
+                <div className="group flex h-[115px] items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-[#FAFAF7] p-6 shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md">
                   <div className="flex flex-col gap-2">
                     <span className="text-[10px] font-semibold tracking-[0.2px] text-black uppercase">
                       {t("Status")}
@@ -175,7 +175,7 @@ const ItemBalanceView = () => {
                     </span>
                   </div>
                   <div
-                    className="flex size-[46px] items-center justify-center rounded-[11.15px]"
+                    className="flex size-[46px] items-center justify-center rounded-[11.15px] transition-transform duration-200 ease-out group-hover:scale-105"
                     style={{ backgroundColor: item.status === "Stable" ? "#E2F4ED" : "#C90000" }}
                   >
                     <AlertTriangle size={24} className={item.status === "Stable" ? "text-[#059B5A]" : "text-white"} />
@@ -185,7 +185,7 @@ const ItemBalanceView = () => {
             </div>
 
             {/* Warehouse Breakdown Table */}
-            <div className="rounded-[16px] border border-[#E5E5E5] bg-white overflow-hidden shadow-sm">
+            <div className="rounded-[16px] border border-[#E5E5E5] bg-white overflow-hidden shadow-sm transition-shadow duration-200 hover:shadow-md">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-[#F5F0EA] border-none">
@@ -209,13 +209,13 @@ const ItemBalanceView = () => {
                 <TableBody>
                   {item.warehouses.length === 0 ? (
                     <TableRow className="border-none">
-                      <TableCell colSpan={5} className="py-6 text-center text-[13px] text-[#8B8B8B]">
+                      <TableCell colSpan={5} className="py-6 text-center text-[13px] text-[#8B8B8B] animate-in fade-in-50 duration-200">
                         {t("No per-warehouse breakdown recorded for this item yet")}
                       </TableCell>
                     </TableRow>
                   ) : (
                     item.warehouses.map((row) => (
-                      <TableRow key={row.warehouseId} className="border-none hover:bg-[#FAFAF8]">
+                      <TableRow key={row.warehouseId} className="border-none hover:bg-[#FAFAF8] transition-colors duration-150">
                         <TableCell className="ps-8 py-5 whitespace-nowrap text-[14px] font-medium tracking-[0.28px] text-black">
                           {row.warehouseName}
                         </TableCell>

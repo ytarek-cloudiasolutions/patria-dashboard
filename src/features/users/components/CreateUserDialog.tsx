@@ -105,7 +105,7 @@ const CreateUserDialog = ({
         className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-150"
       >
         {(isRoleOpen || isShiftOpen) && (
-          <div className="pointer-events-none fixed inset-0 z-60 bg-black/40" />
+          <div className="pointer-events-none fixed inset-0 z-60 bg-black/40 transition-opacity animate-in fade-in-0 duration-200" />
         )}
 
         <div className="flex max-h-[calc(100vh-2rem)] flex-col">
@@ -141,7 +141,7 @@ const CreateUserDialog = ({
                   }}
                 />
                 {errors.fullName && (
-                  <p className="mt-1 text-[13px] text-[#C90000]">
+                  <p className="mt-1 text-[13px] text-[#C90000] animate-in fade-in-50 slide-in-from-top-1 duration-200">
                     {errors.fullName}
                   </p>
                 )}
@@ -166,7 +166,7 @@ const CreateUserDialog = ({
                     }}
                   />
                   {errors.email && (
-                    <p className="mt-1 text-[13px] text-[#C90000]">
+                    <p className="mt-1 text-[13px] text-[#C90000] animate-in fade-in-50 slide-in-from-top-1 duration-200">
                       {errors.email}
                     </p>
                   )}
@@ -189,7 +189,7 @@ const CreateUserDialog = ({
                     }}
                   />
                   {errors.phone && (
-                    <p className="mt-1 text-[13px] text-[#C90000]">
+                    <p className="mt-1 text-[13px] text-[#C90000] animate-in fade-in-50 slide-in-from-top-1 duration-200">
                       {errors.phone}
                     </p>
                   )}
@@ -215,7 +215,7 @@ const CreateUserDialog = ({
                     }}
                   />
                   {errors.password && (
-                    <p className="mt-1 text-[13px] text-[#C90000]">
+                    <p className="mt-1 text-[13px] text-[#C90000] animate-in fade-in-50 slide-in-from-top-1 duration-200">
                       {errors.password}
                     </p>
                   )}
@@ -240,7 +240,7 @@ const CreateUserDialog = ({
                     contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
                   />
                   {errors.role && (
-                    <p className="mt-1 text-[13px] text-[#C90000]">
+                    <p className="mt-1 text-[13px] text-[#C90000] animate-in fade-in-50 slide-in-from-top-1 duration-200">
                       {errors.role}
                     </p>
                   )}
@@ -270,7 +270,7 @@ const CreateUserDialog = ({
               </div>
 
               {previewPages.length > 0 && (
-                <div className="rounded-[12px] bg-[#FAFAF7] px-4 py-4 border  border-[#CACBD4]">
+                <div className="rounded-[12px] bg-[#FAFAF7] px-4 py-4 border border-[#CACBD4] animate-in fade-in-50 duration-200">
                   <p className="mb-3 text-[12px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
                     {t("Available pages")}
                   </p>
@@ -303,13 +303,13 @@ const CreateUserDialog = ({
                   type: "button",
                   onClick: () => onOpenChange(false),
                   className:
-                    "w-full sm:w-auto border-primary text-primary hover:bg-white hover:text-primary",
+                    "w-full sm:w-auto border-primary text-primary hover:bg-white hover:text-primary transition-all duration-200 active:scale-[0.98]",
                 }}
               />
               <Button
                 form={FORM_ID}
                 type="submit"
-                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
+                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white transition-all duration-200 hover:shadow-xs active:scale-[0.98] sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
               >
                 {t("Create Account")}
               </Button>

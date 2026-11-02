@@ -53,7 +53,7 @@ const MutationBadge = ({ mutation }: { mutation: MutationType }) => {
   return (
     <Badge
       className={cn(
-        "h-6 min-w-20 rounded-[30px] border px-3 py-0 text-[11px] font-semibold justify-center",
+        "h-6 min-w-20 rounded-[30px] border px-3 py-0 text-[11px] font-semibold justify-center transition-transform duration-150 hover:scale-105",
         MUTATION_STYLES[mutation],
       )}
     >
@@ -65,7 +65,7 @@ const MutationBadge = ({ mutation }: { mutation: MutationType }) => {
 const AuditCardRow = ({ log }: { log: ApiAuditLog }) => {
   const mutation = mutationTypeFor(log.action);
   return (
-    <div className="rounded-2xl border border-[#E5E5E5] bg-white px-4 py-4">
+    <div className="rounded-2xl border border-[#E5E5E5] bg-white px-4 py-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm">
       <div className="mb-2 flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-[14px] font-semibold text-[#333333]">{log.actorName}</p>
@@ -104,9 +104,9 @@ const AuditLogsSection = () => {
       type="button"
       aria-label="Refresh"
       onClick={load}
-      className="flex size-10 cursor-pointer items-center justify-center rounded-[8px] bg-primary text-white hover:bg-primary/90"
+      className="group flex size-10 cursor-pointer items-center justify-center rounded-[8px] bg-primary text-white hover:bg-primary/90 transition-all duration-200 hover:shadow-xs active:scale-95"
     >
-      <RefreshCw className={cn("size-4.5", loading && "animate-spin")} />
+      <RefreshCw className={cn("size-4.5 transition-transform duration-300", loading ? "animate-spin" : "group-hover:rotate-45")} />
     </button>
   );
 
@@ -145,7 +145,7 @@ const AuditLogsSection = () => {
               </TableHeader>
               <TableBody>
                 {logs.map((log) => (
-                  <TableRow key={log._id} className="hover:bg-[#FAFAF8]">
+                  <TableRow key={log._id} className="hover:bg-[#FAFAF8] transition-colors duration-150">
                     <TableCell className="ps-6 py-4 text-[13px] font-medium text-[#000000]" dir="ltr">
                       <Timestamp value={log.createdAt} />
                     </TableCell>

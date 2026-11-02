@@ -21,7 +21,7 @@ export const MarketingPage = () => {
     useState<AbandonedCartConfig>(INITIAL_ABANDONED_CART_CONFIG);
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-6 pb-12 animate-in fade-in-50 duration-300">
       {/* Top Header with Title and Abandoned Cart Reminder Button */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <HeaderLayout
@@ -36,7 +36,7 @@ export const MarketingPage = () => {
             buttonText: t("Abandoned Cart Reminder"),
             onClick: () => setIsAbandonedCartOpen(true),
             className:
-              "h-12 sm:h-14 px-6 text-[15px] font-semibold bg-[#8F6900] text-white hover:bg-[#785700] rounded-[5px] shrink-0 self-start sm:self-auto cursor-pointer shadow-xs",
+              "h-12 sm:h-14 px-6 text-[15px] font-semibold bg-[#8F6900] text-white hover:bg-[#785700] rounded-[5px] shrink-0 self-start sm:self-auto cursor-pointer shadow-xs transition-all duration-200 hover:shadow-md active:scale-[0.98]",
           }}
         />
       </div>
@@ -45,7 +45,7 @@ export const MarketingPage = () => {
       <MarketingTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
       {/* Active Tab View */}
-      <div className="pt-2">
+      <div key={activeTab} className="pt-2 animate-in fade-in-50 duration-200">
         {activeTab === "app-notifications" && <AppNotificationsTab />}
         {activeTab === "whatsapp-campaign" && <WhatsAppCampaignTab />}
         {activeTab === "scheduled-notifications" && (

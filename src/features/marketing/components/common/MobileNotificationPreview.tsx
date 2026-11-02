@@ -22,13 +22,13 @@ export const MobileNotificationPreview = ({
   return (
     <div
       className={cn(
-        "rounded-[16px] border border-[#624F1C]/70 bg-[#FAF7F2]/50 p-4 transition-all shadow-2xs",
+        "group rounded-[16px] border border-[#624F1C]/70 bg-[#FAF7F2]/50 p-4 transition-all duration-200 shadow-2xs hover:shadow-xs",
         className
       )}
     >
       <div className="flex items-start gap-3">
         {/* App Icon Tile */}
-        <div className="size-10 rounded-[12px] bg-[#F5F0EA] border border-[#E5E5E5] flex items-center justify-center shrink-0 text-[#8F6900]">
+        <div className="size-10 rounded-[12px] bg-[#F5F0EA] border border-[#E5E5E5] flex items-center justify-center shrink-0 text-[#8F6900] transition-transform duration-200 group-hover:scale-105">
           <Smartphone className="size-5" />
         </div>
 

@@ -14,7 +14,7 @@ const GatewaySecurityCard = ({ connectedSince }: GatewaySecurityCardProps) => {
       icon={<ShieldCheck size={24} className="text-[#28293D]" />}
       contentClassName="flex flex-col gap-5 px-5 py-5 sm:px-6 sm:py-6"
     >
-      <div className="flex flex-col gap-1.5 rounded-[12px] bg-[#E5E5E5] px-4 py-4">
+      <div className="flex flex-col gap-1.5 rounded-[12px] bg-[#E5E5E5] px-4 py-4 transition-colors duration-200 hover:bg-[#DCDCDC]/80">
         <p className="text-[16px] font-semibold text-[#000000]">{t("Session Isolation")}</p>
         <p className="text-[13px] leading-relaxed font-medium text-[#28293D]">
           {t("Your WhatsApp messages are never stored on our database. We only handle the delivery socket.")}

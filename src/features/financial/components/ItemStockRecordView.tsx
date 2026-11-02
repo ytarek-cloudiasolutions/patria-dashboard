@@ -126,7 +126,7 @@ const ItemStockRecordView = () => {
           type="button"
           onClick={handleLoadStockCard}
           disabled={loading || !productId}
-          className="h-14 w-full lg:w-[204px] shrink-0 rounded-[5px] bg-[#8F6900] px-4 text-[16px] font-semibold text-white hover:bg-[#785800] transition-colors cursor-pointer disabled:opacity-60"
+          className="h-14 w-full lg:w-[204px] shrink-0 rounded-[5px] bg-[#8F6900] px-4 text-[16px] font-semibold text-white hover:bg-[#785800] transition-all duration-200 hover:shadow-xs active:scale-[0.98] cursor-pointer disabled:opacity-60"
         >
           {loading ? <Loader2 className="mx-auto size-5 animate-spin" /> : t("Load Stock Card")}
         </button>
@@ -134,7 +134,7 @@ const ItemStockRecordView = () => {
 
       {/* 3 Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div className="flex h-[115px] items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm">
+        <div className="group flex h-[115px] items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md">
           <div className="flex flex-col gap-2">
             <span className="text-[10px] font-semibold tracking-[0.2px] text-black uppercase">
               {t("Total Imports")}
@@ -143,12 +143,12 @@ const ItemStockRecordView = () => {
               {totalImports} {t("Pcs")}
             </span>
           </div>
-          <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#E2F4ED]">
+          <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#E2F4ED] transition-transform duration-200 ease-out group-hover:scale-105">
             <TrendingUp size={24} className="text-[#059B5A]" />
           </div>
         </div>
 
-        <div className="flex h-[115px] items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm">
+        <div className="group flex h-[115px] items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md">
           <div className="flex flex-col gap-2">
             <span className="text-[10px] font-semibold tracking-[0.2px] text-black uppercase">
               {t("Total Exports")}
@@ -157,12 +157,12 @@ const ItemStockRecordView = () => {
               {totalExports} {t("Pcs")}
             </span>
           </div>
-          <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#C90000]">
+          <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#C90000] transition-transform duration-200 ease-out group-hover:scale-105">
             <TrendingDown size={24} className="text-white" />
           </div>
         </div>
 
-        <div className="flex h-[115px] items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm">
+        <div className="group flex h-[115px] items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md">
           <div className="flex flex-col gap-2">
             <span className="text-[10px] font-semibold tracking-[0.2px] text-black uppercase">
               {t("Current balance")}
@@ -171,14 +171,14 @@ const ItemStockRecordView = () => {
               {currentBalance} {t("Pcs")}
             </span>
           </div>
-          <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#E5E5E5]">
+          <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#E5E5E5] transition-transform duration-200 ease-out group-hover:scale-105">
             <Box size={24} className="text-[#595959]" />
           </div>
         </div>
       </div>
 
       {/* Stock Card Table */}
-      <div className="rounded-[16px] border border-[#E5E5E5] bg-white overflow-hidden shadow-sm">
+      <div className="rounded-[16px] border border-[#E5E5E5] bg-white overflow-hidden shadow-sm transition-shadow duration-200 hover:shadow-md">
         <div className="p-6 border-b border-[#E5E5E5]">
           <h3 className="text-[18px] font-bold text-[#333333] tracking-[0.36px]">
             {productName ? `${t("Item Card")} — ${productName}` : t("Item Card")}
@@ -186,11 +186,11 @@ const ItemStockRecordView = () => {
         </div>
 
         {!hasLoaded ? (
-          <p className="py-10 text-center text-[14px] text-[#8B8B8B]">
+          <p className="py-10 text-center text-[14px] text-[#8B8B8B] animate-in fade-in-50 duration-200">
             {t("Select an item and click Load Stock Card")}
           </p>
         ) : !loading && ledger.length === 0 ? (
-          <p className="py-10 text-center text-[14px] text-[#8B8B8B]">
+          <p className="py-10 text-center text-[14px] text-[#8B8B8B] animate-in fade-in-50 duration-200">
             {t("No stock movements found in this range")}
           </p>
         ) : (
@@ -222,7 +222,7 @@ const ItemStockRecordView = () => {
             </TableHeader>
             <TableBody>
               {ledger.map((row, index) => (
-                <TableRow key={index} className="border-b border-[#E5E5E5] hover:bg-[#FAFAF8]">
+                <TableRow key={index} className="border-b border-[#E5E5E5] hover:bg-[#FAFAF8] transition-colors duration-150">
                   <TableCell className="ps-8 py-5 whitespace-nowrap text-[12px] font-bold tracking-[0.24px] text-[#333333]">
                     {row.note || "—"}
                   </TableCell>

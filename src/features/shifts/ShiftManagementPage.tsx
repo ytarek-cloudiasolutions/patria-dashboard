@@ -50,14 +50,14 @@ const ShiftManagementPage = () => {
 
   if (!hasLoaded) {
     return (
-      <div className="flex min-h-[60vh] w-full items-center justify-center">
+      <div className="flex min-h-[60vh] w-full items-center justify-center animate-in fade-in-50 duration-300">
         <Clock className="size-16 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <>
+    <section className="animate-in fade-in-50 duration-300">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <HeaderLayout
           title={t("Shift Management")}
@@ -66,15 +66,16 @@ const ShiftManagementPage = () => {
         <DefaultButton
           data={{
             buttonText: t("Create New Shift"),
-            icon: <Plus className="size-4.5" />,
+            icon: <Plus className="size-4.5 transition-transform duration-200 group-hover:rotate-90" />,
             onClick: handleOpenCreate,
+            className: "group transition-all duration-200 hover:shadow-xs active:scale-[0.98]",
           }}
         />
       </div>
 
       <div className="flex flex-col gap-3 sm:gap-4">
         {shifts.length === 0 ? (
-          <p className="rounded-[16px] border border-[#E5E5E5] bg-white py-12 text-center text-[14px] text-[#8B8B8B]">
+          <p className="rounded-[16px] border border-[#E5E5E5] bg-white py-12 text-center text-[14px] text-[#8B8B8B] animate-in fade-in-50 duration-200">
             {t("No shifts found.")}
           </p>
         ) : (
@@ -101,7 +102,7 @@ const ShiftManagementPage = () => {
         onOpenChange={(open) => !open && setDeletingShift(null)}
         onConfirm={handleConfirmDelete}
       />
-    </>
+    </section>
   );
 };
 

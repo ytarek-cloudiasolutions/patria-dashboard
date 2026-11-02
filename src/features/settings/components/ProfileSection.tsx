@@ -112,6 +112,7 @@ const ProfileSection = ({ onSaved }: ProfileSectionProps) => {
               buttonText: isSaving ? t("Saving...") : t("Save changes"),
               onClick: handleSave,
               disabled: isSaving,
+              className: "transition-all duration-200 hover:shadow-xs active:scale-[0.98]",
             }}
           />
         </div>

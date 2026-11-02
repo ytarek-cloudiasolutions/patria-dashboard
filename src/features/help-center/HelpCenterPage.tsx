@@ -32,7 +32,7 @@ const HelpCenterPage = () => {
   }, [selectedTopicId]);
 
   return (
-    <>
+    <div className="animate-in fade-in-50 duration-300">
       <div className="mb-6">
         <HeaderLayout
           title={t("System Overview")}
@@ -49,7 +49,7 @@ const HelpCenterPage = () => {
         />
         <HelpCenterContent topic={topic} section={section} className="lg:min-h-[550px]" />
       </div>
-    </>
+    </div>
   );
 };
 

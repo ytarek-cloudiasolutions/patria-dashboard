@@ -119,14 +119,14 @@ const PricingPage = () => {
 
   if (!hasLoaded) {
     return (
-      <div className="flex min-h-[60vh] w-full items-center justify-center">
+      <div className="flex min-h-[60vh] w-full items-center justify-center animate-in fade-in-50 duration-300">
         <Tag className="size-16 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <>
+    <section className="animate-in fade-in-50 duration-300">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <HeaderLayout
           title={t("Pricing Strategy")}
@@ -137,20 +137,21 @@ const PricingPage = () => {
             data={{
               buttonText: t("Manage Pricelists"),
               variant: "outline",
-              icon: <WalletCards className="size-4.5" />,
+              icon: <WalletCards className="size-4.5 transition-transform duration-200 group-hover:scale-110" />,
               onClick: () => setIsPriceListOpen(true),
               className:
-                "border-transparent bg-[#F5F0EA] text-primary hover:bg-[#F5F0EA]",
+                "group border-transparent bg-[#F5F0EA] text-primary hover:bg-[#F5F0EA] transition-all duration-200 hover:shadow-xs active:scale-[0.98]",
             }}
           />
           <DefaultButton
             data={{
               buttonText: t("New Pricing Rule"),
-              icon: <Plus className="size-4.5" />,
+              icon: <Plus className="size-4.5 transition-transform duration-200 group-hover:rotate-90" />,
               onClick: () => {
                 setEditingRule(null);
                 setIsCreateOpen(true);
               },
+              className: "group transition-all duration-200 hover:shadow-xs active:scale-[0.98]",
             }}
           />
         </div>
@@ -230,7 +231,7 @@ const PricingPage = () => {
         }}
         onConfirm={handleConfirmDeleteList}
       />
-    </>
+    </section>
   );
 };
 

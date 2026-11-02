@@ -110,14 +110,14 @@ const InventoryDetailView = ({ session, onBack, onCompleted }: InventoryDetailVi
   const outOfStockCount = items.filter((i) => i.countableQuantity === 0).length;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 animate-in fade-in-50 duration-300">
       {/* Back Header Bar */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={onBack}
-            className="flex size-9 items-center justify-center rounded-full bg-white border border-[#E5E5E5] text-black hover:bg-[#F5F0EA] transition-colors cursor-pointer"
+            className="flex size-9 items-center justify-center rounded-full bg-white border border-[#E5E5E5] text-black hover:bg-[#F5F0EA] transition-all duration-150 active:scale-95 cursor-pointer"
           >
             <ArrowLeft className="size-5 text-black" />
           </button>
@@ -144,7 +144,7 @@ const InventoryDetailView = ({ session, onBack, onCompleted }: InventoryDetailVi
               variant="outline"
               disabled={saving || loading}
               onClick={() => persist(false)}
-              className="h-11 cursor-pointer rounded-[8px] border-primary text-primary"
+              className="h-11 cursor-pointer rounded-[8px] border-primary text-primary transition-all duration-150 active:scale-[0.98]"
             >
               {t("Save Progress")}
             </Button>
@@ -152,7 +152,7 @@ const InventoryDetailView = ({ session, onBack, onCompleted }: InventoryDetailVi
               type="button"
               disabled={saving || loading}
               onClick={() => persist(true)}
-              className="h-11 cursor-pointer rounded-[8px]"
+              className="h-11 cursor-pointer rounded-[8px] transition-all duration-150 active:scale-[0.98]"
             >
               {saving ? <Loader2 className="size-4 animate-spin" /> : t("Complete Count")}
             </Button>
@@ -167,7 +167,7 @@ const InventoryDetailView = ({ session, onBack, onCompleted }: InventoryDetailVi
       ) : (
         <>
           {/* Analytical Inventory Summary Section */}
-          <div className="flex flex-col rounded-[16px] border border-[#E5E5E5] bg-white overflow-hidden shadow-sm">
+          <div className="flex flex-col rounded-[16px] border border-[#E5E5E5] bg-white overflow-hidden shadow-sm transition-shadow duration-200 hover:shadow-md">
             <div className="bg-[#F5F0EA] px-[26px] py-3 border-b border-[#E5E5E5]">
               <h3 className="text-[16px] font-bold text-[#333333]">
                 {t("Analytical Inventory")}
@@ -175,7 +175,7 @@ const InventoryDetailView = ({ session, onBack, onCompleted }: InventoryDetailVi
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 p-6">
-              <div className="flex h-[115px] items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-[#FAFAF7] p-6 shadow-sm">
+              <div className="group flex h-[115px] items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-[#FAFAF7] p-6 shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md">
                 <div className="flex flex-col gap-2">
                   <span className="text-[10px] font-semibold tracking-[0.2px] text-black uppercase">
                     {t("identical")}
@@ -184,12 +184,12 @@ const InventoryDetailView = ({ session, onBack, onCompleted }: InventoryDetailVi
                     {identicalCount}
                   </span>
                 </div>
-                <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#E2F4ED]">
+                <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#E2F4ED] transition-transform duration-200 ease-out group-hover:scale-105">
                   <MapPin size={24} className="text-[#059B5A]" />
                 </div>
               </div>
 
-              <div className="flex h-[115px] items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-[#FAFAF7] p-6 shadow-sm">
+              <div className="group flex h-[115px] items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-[#FAFAF7] p-6 shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md">
                 <div className="flex flex-col gap-2">
                   <span className="text-[10px] font-semibold tracking-[0.2px] text-black uppercase">
                     {t("Extra")}
@@ -198,12 +198,12 @@ const InventoryDetailView = ({ session, onBack, onCompleted }: InventoryDetailVi
                     {extraCount}
                   </span>
                 </div>
-                <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#FE9A00]/10">
+                <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#FE9A00]/10 transition-transform duration-200 ease-out group-hover:scale-105">
                   <Plus size={24} className="text-[#C7861E]" />
                 </div>
               </div>
 
-              <div className="flex h-[115px] items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-[#FAFAF7] p-6 shadow-sm">
+              <div className="group flex h-[115px] items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-[#FAFAF7] p-6 shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md">
                 <div className="flex flex-col gap-2">
                   <span className="text-[10px] font-semibold tracking-[0.2px] text-black uppercase">
                     {t("Out of Stock")}
@@ -212,7 +212,7 @@ const InventoryDetailView = ({ session, onBack, onCompleted }: InventoryDetailVi
                     {outOfStockCount}
                   </span>
                 </div>
-                <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#C90000]">
+                <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#C90000] transition-transform duration-200 ease-out group-hover:scale-105">
                   <AlertTriangle size={24} className="text-white" />
                 </div>
               </div>
@@ -220,7 +220,7 @@ const InventoryDetailView = ({ session, onBack, onCompleted }: InventoryDetailVi
           </div>
 
           {/* Analytical Inventory Table */}
-          <div className="rounded-[16px] border border-[#E5E5E5] bg-white overflow-hidden shadow-sm">
+          <div className="rounded-[16px] border border-[#E5E5E5] bg-white overflow-hidden shadow-sm transition-shadow duration-200 hover:shadow-md">
             <Table>
               <TableHeader>
                 <TableRow className="bg-[#F5F0EA] border-none">
@@ -240,7 +240,7 @@ const InventoryDetailView = ({ session, onBack, onCompleted }: InventoryDetailVi
               </TableHeader>
               <TableBody>
                 {items.map((item) => (
-                  <TableRow key={item.productId} className="border-none hover:bg-[#FAFAF8]">
+                  <TableRow key={item.productId} className="border-none hover:bg-[#FAFAF8] transition-colors duration-150">
                     <TableCell className="ps-8 py-5 whitespace-nowrap text-[14px] font-semibold tracking-[0.28px] text-[#333333]">
                       {item.product}
                     </TableCell>
@@ -254,7 +254,7 @@ const InventoryDetailView = ({ session, onBack, onCompleted }: InventoryDetailVi
                           disabled={status !== "In Progress"}
                           value={item.countableQuantity}
                           onChange={(e) => handleQuantityChange(item.productId, e.target.value)}
-                          className="h-[36px] w-full rounded-full border border-[#E5E5E5] bg-white px-4 text-center text-[14px] font-medium text-[#28293D] focus:border-[#8F6900] focus:outline-none disabled:bg-[#FAFAF7]"
+                          className="h-[36px] w-full rounded-full border border-[#E5E5E5] bg-white px-4 text-center text-[14px] font-medium text-[#28293D] transition-colors duration-150 focus:border-[#8F6900] focus:outline-none disabled:bg-[#FAFAF7]"
                         />
                       </div>
                     </TableCell>

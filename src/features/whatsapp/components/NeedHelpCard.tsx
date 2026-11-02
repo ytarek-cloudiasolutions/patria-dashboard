@@ -13,7 +13,7 @@ const NeedHelpCard = ({ className }: { className?: string }) => {
     >
       <a
         href="#"
-        className="text-[14px] font-semibold text-[#000000] hover:text-primary"
+        className="text-[14px] font-semibold text-[#000000] hover:text-primary transition-all duration-200 hover:underline underline-offset-4 active:scale-[0.99]"
       >
         {t("Read our knowledge base for gateway troubleshooting")}
       </a>

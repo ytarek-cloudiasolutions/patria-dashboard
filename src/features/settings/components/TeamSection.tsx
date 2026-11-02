@@ -33,7 +33,7 @@ const PermissionBadge = ({ level }: { level: PermissionLevel }) => {
   return (
     <Badge
       className={cn(
-        "h-6 rounded-full border px-3 py-0 text-[11px] font-semibold",
+        "h-6 rounded-full border px-3 py-0 text-[11px] font-semibold transition-transform duration-150 hover:scale-105",
         PERMISSION_STYLES[level],
       )}
     >
@@ -82,9 +82,9 @@ const TeamSection = ({
         <DefaultButton
           data={{
             buttonText: t("Invite Member"),
-            icon: <span className="text-[18px] leading-none">+</span>,
+            icon: <span className="inline-block text-[18px] leading-none transition-transform duration-200 group-hover:rotate-90">+</span>,
             onClick: onInvite,
-            className: "h-10 sm:h-11",
+            className: "group h-10 sm:h-11 transition-all duration-200 hover:shadow-xs active:scale-[0.98]",
           }}
         />
       }
@@ -94,7 +94,7 @@ const TeamSection = ({
         {members.map((member) => (
           <div
             key={member.id}
-            className="rounded-2xl border border-[#E5E5E5] bg-white px-4 py-4"
+            className="rounded-2xl border border-[#E5E5E5] bg-white px-4 py-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm"
           >
             <div className="mb-3 flex items-start justify-between gap-3">
               <div className="min-w-0">
@@ -137,7 +137,7 @@ const TeamSection = ({
           </TableHeader>
           <TableBody>
             {members.map((member) => (
-              <TableRow key={member.id} className="hover:bg-[#FAFAF8]">
+              <TableRow key={member.id} className="hover:bg-[#FAFAF8] transition-colors duration-150">
                 <TableCell className="ps-6 py-4">
                   <p className="text-[14px] font-semibold text-[#333333]">
                     {member.name}

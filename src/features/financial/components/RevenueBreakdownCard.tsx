@@ -15,7 +15,7 @@ const RevenueBreakdownCard = ({ rows }: RevenueBreakdownCardProps) => {
   const max = Math.max(...rows.map((r) => r.amount), 1);
 
   return (
-    <Card className="h-full rounded-[16px] border border-[#E5E5E5] bg-white py-0 ring-0 shadow-sm">
+    <Card className="h-full rounded-[16px] border border-[#E5E5E5] bg-white py-0 ring-0 shadow-sm transition-shadow duration-200 hover:shadow-md">
       <CardContent className="flex h-full flex-col gap-4 px-5 py-5 sm:px-6 sm:py-6">
         <div className="flex items-center gap-2">
           <Info size={25} className="text-[#000000]" />
@@ -39,7 +39,7 @@ const RevenueBreakdownCard = ({ rows }: RevenueBreakdownCardProps) => {
                 </div>
                 <div className="h-[6px] w-[302.5px] overflow-hidden rounded-[3px] bg-[#E5E5E5]">
                   <div
-                    className="h-full rounded-[3px] bg-[#8F6900]"
+                    className="h-full rounded-[3px] bg-[#8F6900] transition-all duration-500 ease-out"
                     style={{ width: `${width}%` }}
                   />
                 </div>

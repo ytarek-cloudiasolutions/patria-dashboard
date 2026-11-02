@@ -84,7 +84,7 @@ const CostAnalysisView = () => {
     <div className="flex flex-col gap-6">
       {/* 3 Dashboard Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div className="flex h-[115px] items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm">
+        <div className="group flex h-[115px] items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md">
           <div className="flex flex-col gap-2">
             <span className="text-[10px] font-semibold tracking-[0.2px] text-black uppercase">
               {t("Total inventory value")}
@@ -93,12 +93,12 @@ const CostAnalysisView = () => {
               {formatEgp(totalInventoryValue)}
             </span>
           </div>
-          <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#F5F0EA]">
+          <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#F5F0EA] transition-transform duration-200 ease-out group-hover:scale-105">
             <TrendingUp size={24} className="text-[#8F6900]" />
           </div>
         </div>
 
-        <div className="flex h-[115px] items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm">
+        <div className="group flex h-[115px] items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md">
           <div className="flex flex-col gap-2">
             <span className="text-[10px] font-semibold tracking-[0.2px] text-black uppercase">
               {t("Number of items")}
@@ -107,12 +107,12 @@ const CostAnalysisView = () => {
               {numberOfItems}
             </span>
           </div>
-          <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#DBEAFE]">
+          <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#DBEAFE] transition-transform duration-200 ease-out group-hover:scale-105">
             <Box size={24} className="text-[#155DFC]" />
           </div>
         </div>
 
-        <div className="flex h-[115px] items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm">
+        <div className="group flex h-[115px] items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md">
           <div className="flex flex-col gap-2">
             <span className="text-[10px] font-semibold tracking-[0.2px] text-black uppercase">
               {t("Number of categories")}
@@ -121,14 +121,14 @@ const CostAnalysisView = () => {
               {numberOfCategories}
             </span>
           </div>
-          <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#FE9A00]/10">
+          <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#FE9A00]/10 transition-transform duration-200 ease-out group-hover:scale-105">
             <BarChart2 size={24} className="text-[#C7861E]" />
           </div>
         </div>
       </div>
 
       {/* Value by Category Card */}
-      <div className="rounded-[16px] border border-[#E5E5E5] bg-white overflow-hidden shadow-sm">
+      <div className="rounded-[16px] border border-[#E5E5E5] bg-white overflow-hidden shadow-sm transition-shadow duration-200 hover:shadow-md">
         <div className="bg-[#F5F0EA] px-6 py-3 border-b border-[#E5E5E5]">
           <h3 className="text-[18px] font-semibold leading-6 text-[#333333]">
             {t("Value by category")}
@@ -137,7 +137,7 @@ const CostAnalysisView = () => {
 
         <div className="flex flex-col gap-5 p-6">
           {valueByCategory.length === 0 ? (
-            <p className="text-center text-[14px] text-[#8B8B8B]">{t("No data yet")}</p>
+            <p className="text-center text-[14px] text-[#8B8B8B] animate-in fade-in-50 duration-200">{t("No data yet")}</p>
           ) : (
             valueByCategory.map((cat) => (
               <div key={cat.category} className="flex flex-col gap-2">
@@ -151,7 +151,7 @@ const CostAnalysisView = () => {
                 </div>
                 <div className="h-[17px] w-full overflow-hidden rounded-[6px] border border-[#E5E5E5] bg-[#E5E5E5]">
                   <div
-                    className="h-full rounded-s-[6px] bg-[#8F6900] transition-all duration-300"
+                    className="h-full rounded-s-[6px] bg-[#8F6900] transition-all duration-500 ease-out"
                     style={{ width: `${Math.max(2, (cat.value / maxCategoryValue) * 100)}%` }}
                   />
                 </div>
@@ -162,7 +162,7 @@ const CostAnalysisView = () => {
       </div>
 
       {/* Cost Analysis Breakdown Table */}
-      <div className="rounded-[16px] border border-[#E5E5E5] bg-white overflow-hidden shadow-sm">
+      <div className="rounded-[16px] border border-[#E5E5E5] bg-white overflow-hidden shadow-sm transition-shadow duration-200 hover:shadow-md">
         <Table>
           <TableHeader>
             <TableRow className="bg-[#F5F0EA] border-b border-[#E5E5E5]">
@@ -189,13 +189,13 @@ const CostAnalysisView = () => {
           <TableBody>
             {items.length === 0 ? (
               <TableRow className="border-none">
-                <TableCell colSpan={6} className="py-10 text-center text-[14px] text-[#8B8B8B]">
+                <TableCell colSpan={6} className="py-10 text-center text-[14px] text-[#8B8B8B] animate-in fade-in-50 duration-200">
                   {t("No products found")}
                 </TableCell>
               </TableRow>
             ) : (
               items.map((row) => (
-                <TableRow key={row.productId} className="border-b border-[#E5E5E5] hover:bg-[#FAFAF8]">
+                <TableRow key={row.productId} className="border-b border-[#E5E5E5] hover:bg-[#FAFAF8] transition-colors duration-150">
                   <TableCell className="ps-8 py-5 whitespace-nowrap text-[12px] font-bold tracking-[0.24px] text-[#333333]">
                     {row.name}
                   </TableCell>

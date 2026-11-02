@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Plus, RefreshCw } from "lucide-react";
+import { Landmark, Plus, RefreshCw } from "lucide-react";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
 import { useTranslation } from "@/shared/i18n/useTranslation";
@@ -77,6 +77,7 @@ const FinancialHubPage = () => {
   const [isNewPeriodBalanceOpen, setIsNewPeriodBalanceOpen] = useState(false);
   const [selectedInventorySession, setSelectedInventorySession] = useState<InventoryCountSession | null>(null);
   const [loading, setLoading] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
   const handleTabChange = (newTab: FinancialTab) => {
     setTab(newTab);
@@ -110,7 +111,10 @@ const FinancialHubPage = () => {
         }
       })
       .catch(() => {})
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setLoading(false);
+        setHasLoaded(true);
+      });
   };
 
   useEffect(() => {
@@ -162,8 +166,16 @@ const FinancialHubPage = () => {
     }
   };
 
+  if (!hasLoaded) {
+    return (
+      <div className="flex min-h-[60vh] w-full items-center justify-center animate-in fade-in-50 duration-300">
+        <Landmark className="size-16 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
-    <>
+    <section className="animate-in fade-in-50 duration-300">
       {/* Header */}
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <HeaderLayout
@@ -176,9 +188,13 @@ const FinancialHubPage = () => {
               type="button"
               aria-label="Refresh"
               onClick={loadData}
-              className="flex size-12 cursor-pointer items-center justify-center rounded-[8px] bg-[#FBF6EC] text-[#8F6900] hover:bg-[#F5F0EA] sm:size-14"
+              className="group flex size-12 cursor-pointer items-center justify-center rounded-[8px] bg-[#FBF6EC] text-[#8F6900] hover:bg-[#F5F0EA] transition-all duration-200 hover:shadow-xs active:scale-95 sm:size-14"
             >
-              <RefreshCw className={`size-5 ${loading ? "animate-spin" : ""}`} />
+              <RefreshCw
+                className={`size-5 transition-transform duration-300 ${
+                  loading ? "animate-spin" : "group-hover:rotate-90"
+                }`}
+              />
             </button>
           )}
 
@@ -186,8 +202,9 @@ const FinancialHubPage = () => {
             <DefaultButton
               data={{
                 buttonText: t("New Transaction"),
-                icon: <Plus className="size-4.5" />,
+                icon: <Plus className="size-4.5 transition-transform duration-200 group-hover:rotate-90" />,
                 onClick: () => setIsAddOpen(true),
+                className: "transition-all duration-200 hover:shadow-xs active:scale-[0.98] group",
               }}
             />
           )}
@@ -196,8 +213,9 @@ const FinancialHubPage = () => {
             <DefaultButton
               data={{
                 buttonText: t("New inventory session"),
-                icon: <Plus className="size-4.5" />,
+                icon: <Plus className="size-4.5 transition-transform duration-200 group-hover:rotate-90" />,
                 onClick: () => setIsInventorySessionOpen(true),
+                className: "transition-all duration-200 hover:shadow-xs active:scale-[0.98] group",
               }}
             />
           )}
@@ -206,8 +224,9 @@ const FinancialHubPage = () => {
             <DefaultButton
               data={{
                 buttonText: t("Stock Adjustments"),
-                icon: <Plus className="size-4.5" />,
+                icon: <Plus className="size-4.5 transition-transform duration-200 group-hover:rotate-90" />,
                 onClick: () => setIsInventoryAdjustmentOpen(true),
+                className: "transition-all duration-200 hover:shadow-xs active:scale-[0.98] group",
               }}
             />
           )}
@@ -216,8 +235,9 @@ const FinancialHubPage = () => {
             <DefaultButton
               data={{
                 buttonText: t("New period Balance"),
-                icon: <Plus className="size-4.5" />,
+                icon: <Plus className="size-4.5 transition-transform duration-200 group-hover:rotate-90" />,
                 onClick: () => setIsNewPeriodBalanceOpen(true),
+                className: "transition-all duration-200 hover:shadow-xs active:scale-[0.98] group",
               }}
             />
           )}
@@ -228,6 +248,7 @@ const FinancialHubPage = () => {
       <FinancialTabs active={tab} onChange={handleTabChange} />
 
       {/* Tab Views */}
+      <div key={tab} className="animate-in fade-in-50 duration-300">
       {tab === "accountant-dashboard" ? (
         <AccountantDashboardView
           totalRevenue={overview.totalRevenue}
@@ -284,6 +305,7 @@ const FinancialHubPage = () => {
           {t("No Data Found")}
         </div>
       )}
+      </div>
 
       {/* Add Transaction Dialog */}
       <AddTransactionDialog
@@ -376,7 +398,7 @@ const FinancialHubPage = () => {
           }
         }}
       />
-    </>
+    </section>
   );
 };
 

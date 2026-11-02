@@ -38,10 +38,10 @@ const Tile = ({
 }) => {
   const { t } = useTranslation();
   return (
-    <div className="flex flex-col items-center gap-2.5 rounded-[14px] border border-[#E5E5E5] bg-white px-4 py-5 text-center">
+    <div className="group/tile flex flex-col items-center gap-2.5 rounded-[14px] border border-[#E5E5E5] bg-white px-4 py-5 text-center transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-sm hover:border-[#8F6900]/40">
       <span
         className={cn(
-          "flex size-11 items-center justify-center rounded-2xl",
+          "flex size-11 items-center justify-center rounded-2xl transition-transform duration-200 group-hover/tile:scale-105",
           healthy ? "bg-[#E2F4ED]" : "bg-[#FFF7E6]",
         )}
       >
@@ -83,9 +83,9 @@ const SystemSection = () => {
       type="button"
       aria-label="Refresh"
       onClick={load}
-      className="flex size-10 cursor-pointer items-center justify-center rounded-[8px] bg-primary text-white hover:bg-primary/90"
+      className="group flex size-10 cursor-pointer items-center justify-center rounded-[8px] bg-primary text-white hover:bg-primary/90 transition-all duration-200 hover:shadow-xs active:scale-95"
     >
-      <RefreshCw className={cn("size-4.5", loading && "animate-spin")} />
+      <RefreshCw className={cn("size-4.5 transition-transform duration-300", loading ? "animate-spin" : "group-hover:rotate-45")} />
     </button>
   );
 

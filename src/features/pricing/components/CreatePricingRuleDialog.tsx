@@ -107,7 +107,7 @@ const CreatePricingRuleDialog = ({
         className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-150"
       >
         {openDropdown && (
-          <div className="pointer-events-none fixed inset-0 z-60 bg-black/40" />
+          <div className="pointer-events-none fixed inset-0 z-60 bg-black/40 transition-opacity animate-in fade-in-0 duration-200" />
         )}
 
         <div className="flex max-h-[calc(100vh-2rem)] flex-col">
@@ -144,7 +144,7 @@ const CreatePricingRuleDialog = ({
                     }}
                   />
                   {errors.name && (
-                    <p className="mt-1 text-[13px] text-[#C90000]">
+                    <p className="mt-1 text-[13px] text-[#C90000] animate-in fade-in-50 slide-in-from-top-1 duration-200">
                       {errors.name}
                     </p>
                   )}
@@ -172,7 +172,7 @@ const CreatePricingRuleDialog = ({
                     contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
                   />
                   {errors.type && (
-                    <p className="mt-1 text-[13px] text-[#C90000]">
+                    <p className="mt-1 text-[13px] text-[#C90000] animate-in fade-in-50 slide-in-from-top-1 duration-200">
                       {errors.type}
                     </p>
                   )}
@@ -202,7 +202,7 @@ const CreatePricingRuleDialog = ({
                     contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
                   />
                   {errors.adjustmentType && (
-                    <p className="mt-1 text-[13px] text-[#C90000]">
+                    <p className="mt-1 text-[13px] text-[#C90000] animate-in fade-in-50 slide-in-from-top-1 duration-200">
                       {errors.adjustmentType}
                     </p>
                   )}
@@ -227,7 +227,7 @@ const CreatePricingRuleDialog = ({
                     }}
                   />
                   {errors.value && (
-                    <p className="mt-1 text-[13px] text-[#C90000]">
+                    <p className="mt-1 text-[13px] text-[#C90000] animate-in fade-in-50 slide-in-from-top-1 duration-200">
                       {errors.value}
                     </p>
                   )}
@@ -254,7 +254,7 @@ const CreatePricingRuleDialog = ({
                   }}
                 />
                 {errors.minimumQuantity && (
-                  <p className="mt-1 text-[13px] text-[#C90000]">
+                  <p className="mt-1 text-[13px] text-[#C90000] animate-in fade-in-50 slide-in-from-top-1 duration-200">
                     {errors.minimumQuantity}
                   </p>
                 )}
@@ -273,13 +273,13 @@ const CreatePricingRuleDialog = ({
                   type: "button",
                   onClick: () => onOpenChange(false),
                   className:
-                    "w-full sm:w-auto border-primary text-primary hover:bg-white hover:text-primary",
+                    "w-full sm:w-auto border-primary text-primary hover:bg-white hover:text-primary transition-all duration-200 active:scale-[0.98]",
                 }}
               />
               <Button
                 form={FORM_ID}
                 type="submit"
-                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
+                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white transition-all duration-200 hover:shadow-xs active:scale-[0.98] sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
               >
                 {rule ? t("Save Changes") : t("Create Strategy Rule")}
               </Button>

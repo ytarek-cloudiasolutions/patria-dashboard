@@ -249,16 +249,16 @@ const UsersPermissionsPage = () => {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-[60vh] w-full items-center justify-center">
+      <div className="flex min-h-[60vh] w-full items-center justify-center animate-in fade-in-50 duration-300">
         <UserCircle className="size-16 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <>
+    <section className="animate-in fade-in-50 duration-300">
       {(isRoleFilterOpen || isStatusFilterOpen) && (
-        <div className="pointer-events-none fixed inset-0 z-40 bg-black/40" />
+        <div className="pointer-events-none fixed inset-0 z-40 bg-black/40 transition-opacity animate-in fade-in-0 duration-200" />
       )}
 
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -270,26 +270,29 @@ const UsersPermissionsPage = () => {
           <DefaultButton
             data={{
               buttonText: t("Create New User Account"),
-              icon: <Plus className="size-4.5" />,
+              icon: <Plus className="size-4.5 transition-transform duration-200 group-hover:rotate-90" />,
               onClick: () => setIsCreateOpen(true),
+              className: "group transition-all duration-200 hover:shadow-xs active:scale-[0.98] animate-in fade-in-50 duration-200",
             }}
           />
         )}
       </div>
 
-      {tab === "users" ? (
-        <UsersOverview
-          totalUsers={userCounts.totalUsers}
-          administrators={userCounts.administrators}
-          managers={userCounts.managers}
-        />
-      ) : (
-        <AppUsersOverview
-          totalUsers={appCounts.totalUsers}
-          blockedUsers={appCounts.blockedUsers}
-          activeUsers={appCounts.activeUsers}
-        />
-      )}
+      <div key={`overview-${tab}`} className="animate-in fade-in-50 duration-300">
+        {tab === "users" ? (
+          <UsersOverview
+            totalUsers={userCounts.totalUsers}
+            administrators={userCounts.administrators}
+            managers={userCounts.managers}
+          />
+        ) : (
+          <AppUsersOverview
+            totalUsers={appCounts.totalUsers}
+            blockedUsers={appCounts.blockedUsers}
+            activeUsers={appCounts.activeUsers}
+          />
+        )}
+      </div>
 
       <UsersTabs
         active={tab}
@@ -298,6 +301,7 @@ const UsersPermissionsPage = () => {
         onChange={setTab}
       />
 
+      <div key={tab} className="animate-in fade-in-50 duration-300">
       {tab === "users" ? (
         <>
           <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -365,6 +369,7 @@ const UsersPermissionsPage = () => {
           />
         </>
       )}
+      </div>
 
       {/* Users dialogs */}
       <CreateUserDialog
@@ -405,7 +410,7 @@ const UsersPermissionsPage = () => {
         onOpenChange={(open) => !open && setBlockingAppUser(null)}
         onConfirm={confirmToggleBlock}
       />
-    </>
+    </section>
   );
 };
 

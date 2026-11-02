@@ -38,7 +38,7 @@ const ConfirmOpeningBalanceDialog = ({
       >
         <div className="flex flex-col gap-6 p-6 sm:p-7">
           {/* Green Double Check Icon */}
-          <div className="flex size-12 items-center justify-center rounded-[10px] bg-[#E2F4ED]">
+          <div className="flex size-12 items-center justify-center rounded-[10px] bg-[#E2F4ED] animate-in zoom-in-75 duration-200">
             <CheckCheck className="size-8 text-[#059B5A]" />
           </div>
 
@@ -67,13 +67,13 @@ const ConfirmOpeningBalanceDialog = ({
                   type: "button",
                   onClick: () => onOpenChange(false),
                   className:
-                    "w-full sm:w-auto border-primary text-primary hover:bg-white hover:text-primary",
+                    "w-full sm:w-auto border-primary text-primary hover:bg-white hover:text-primary transition-all duration-150 active:scale-[0.98]",
                 }}
               />
               <Button
                 type="button"
                 onClick={handleConfirm}
-                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
+                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white transition-all duration-150 active:scale-[0.98] sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
               >
                 {t("Confirm")}
               </Button>

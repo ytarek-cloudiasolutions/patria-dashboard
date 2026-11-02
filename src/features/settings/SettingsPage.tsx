@@ -118,10 +118,10 @@ const SettingsPage = () => {
   };
 
   return (
-    <>
+    <div className="animate-in fade-in-50 duration-300">
       {/* Scrim/backdrop when a row dropdown is open */}
       {isDropdownOpen && (
-        <div className="pointer-events-none fixed inset-0 z-40 bg-black/40" />
+        <div className="pointer-events-none fixed inset-0 z-40 bg-black/40 animate-in fade-in duration-200" />
       )}
 
       <div className="mb-6">
@@ -135,7 +135,9 @@ const SettingsPage = () => {
 
       <div className="grid grid-cols-1 items-stretch gap-4 lg:grid-cols-[320px_1fr]">
         <SettingsSidebar name={me.name} role={me.role} />
-        <div className="h-full">{renderSection()}</div>
+        <div key={tab} className="h-full animate-in fade-in-50 duration-200">
+          {renderSection()}
+        </div>
       </div>
 
       <InviteMemberDialog
@@ -143,7 +145,7 @@ const SettingsPage = () => {
         onOpenChange={setIsInviteOpen}
         onSave={handleInvite}
       />
-    </>
+    </div>
   );
 };
 

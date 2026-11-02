@@ -37,7 +37,7 @@ export const GenderSelector = ({
               type="button"
               onClick={() => onSelectGender(opt.id)}
               className={cn(
-                "px-2 py-3.5 rounded-[5px] outline outline-2 outline-offset-[-2px] flex items-center justify-center cursor-pointer transition-all",
+                "px-2 py-3.5 rounded-[5px] outline outline-2 outline-offset-[-2px] flex items-center justify-center cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-2xs active:scale-[0.98]",
                 isSelected
                   ? "bg-[#F5F0EA] outline-[#8F6900] text-black font-semibold text-sm"
                   : "bg-white outline-[#CACBD4] hover:outline-[#8F6900]/50 text-black font-medium text-sm"

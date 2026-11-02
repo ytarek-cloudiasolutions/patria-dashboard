@@ -33,7 +33,7 @@ export const RecipientListCard = ({
           recipients.map((rec, index) => (
             <div key={rec.id} className="self-stretch flex flex-col gap-2.5">
               {index > 0 && <div className="self-stretch h-px bg-[#CACBD4]" />}
-              <div className="self-stretch flex justify-between items-center">
+              <div className="self-stretch flex justify-between items-center rounded-md px-1.5 py-0.5 -mx-1.5 transition-colors duration-150 hover:bg-[#F5F0EA]/60">
                 <div className="text-black text-sm font-medium font-['Montserrat',sans-serif] leading-4 tracking-tight truncate pr-2">
                   {rec.name}
                 </div>
@@ -45,7 +45,7 @@ export const RecipientListCard = ({
                     <button
                       type="button"
                       onClick={() => onRemoveRecipient(rec.id)}
-                      className="size-4.5 rounded-full flex items-center justify-center text-red-500 hover:bg-red-50 hover:text-red-700 transition-colors cursor-pointer"
+                      className="size-4.5 rounded-full flex items-center justify-center text-red-500 hover:bg-red-50 hover:text-red-700 transition-all duration-150 hover:scale-110 active:scale-90 cursor-pointer"
                       aria-label={t("Remove")}
                     >
                       <X className="size-3.5 stroke-[2.5]" />

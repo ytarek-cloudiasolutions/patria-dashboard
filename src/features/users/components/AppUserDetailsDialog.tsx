@@ -143,7 +143,7 @@ const AppUserDetailsDialog = ({
 
             {/* Stat cards */}
             <div className="mt-8 grid grid-cols-1 gap-8 sm:grid-cols-3">
-              <div className="flex h-[115px] flex-col items-center justify-center rounded-[16px] border border-[#8F6900] bg-[#F8F8F8] p-6 text-center">
+              <div className="flex h-[115px] flex-col items-center justify-center rounded-[16px] border border-[#8F6900] bg-[#F8F8F8] p-6 text-center transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-sm">
                 <p className="text-[10px] font-semibold tracking-[0.20px] text-[#8F6900]">
                   {t("Total orders")}
                 </p>
@@ -151,7 +151,7 @@ const AppUserDetailsDialog = ({
                   {user.totalOrders}
                 </p>
               </div>
-              <div className="flex h-[115px] flex-col items-center justify-center rounded-[16px] border border-[#003BBE] bg-[#EDF4FB] p-6 text-center">
+              <div className="flex h-[115px] flex-col items-center justify-center rounded-[16px] border border-[#003BBE] bg-[#EDF4FB] p-6 text-center transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-sm">
                 <p className="text-[10px] font-semibold tracking-[0.20px] text-[#3574FF]">
                   {t("Purchases value")}
                 </p>
@@ -161,7 +161,7 @@ const AppUserDetailsDialog = ({
               </div>
               <div
                 className={cn(
-                  "flex h-[115px] flex-col items-center justify-center rounded-[16px] border p-6 text-center",
+                  "flex h-[115px] flex-col items-center justify-center rounded-[16px] border p-6 text-center transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-sm",
                   isActive
                     ? "border-[#059B5A] bg-[#E2F4ED]"
                     : "border-[#C90000] bg-[#FFF0F0]",
@@ -187,7 +187,7 @@ const AppUserDetailsDialog = ({
             </div>
 
             {/* Orders history */}
-            <div className="mt-8 overflow-hidden rounded-[16px] border border-[#E5E5E5]">
+            <div className="mt-8 overflow-hidden rounded-[16px] border border-[#E5E5E5] transition-shadow duration-200 hover:shadow-xs">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-[#F5F0EA]">
@@ -210,7 +210,7 @@ const AppUserDetailsDialog = ({
                 </TableHeader>
                 <TableBody>
                   {orders.map((order) => (
-                    <TableRow key={order.id} className="border-none hover:bg-[#FAFAF7]">
+                    <TableRow key={order.id} className="border-none hover:bg-[#FAFAF7] transition-colors duration-150">
                       <TableCell className="ps-6 py-3 text-[12px] font-bold text-[#333333]">
                         {order.id}
                       </TableCell>
@@ -241,7 +241,7 @@ const AppUserDetailsDialog = ({
                     <TableRow>
                       <TableCell
                         colSpan={5}
-                        className="py-8 text-center text-[13px] text-[#8B8B8B]"
+                        className="py-8 text-center text-[13px] text-[#8B8B8B] animate-in fade-in-50 duration-200"
                       >
                         {t("No orders found.")}
                       </TableCell>
@@ -258,7 +258,7 @@ const AppUserDetailsDialog = ({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="h-14 cursor-pointer rounded-[5px] border border-[#8F6900] px-7.5 text-[16px] font-semibold text-[#8F6900] hover:bg-[#FBF6EE] hover:text-[#8F6900]"
+              className="h-14 cursor-pointer rounded-[5px] border border-[#8F6900] px-7.5 text-[16px] font-semibold text-[#8F6900] hover:bg-[#FBF6EE] hover:text-[#8F6900] transition-all duration-200 active:scale-[0.98]"
             >
               {t("Cancel")}
             </Button>
@@ -266,17 +266,17 @@ const AppUserDetailsDialog = ({
               type="button"
               onClick={() => onForceLogout(user)}
               variant="outline"
-              className="flex h-14 cursor-pointer items-center gap-3 rounded-[5px] border border-[#28293D] px-7.5 text-[16px] font-semibold text-[#28293D] hover:bg-[#F5F5F5]"
+              className="group flex h-14 cursor-pointer items-center gap-3 rounded-[5px] border border-[#28293D] px-7.5 text-[16px] font-semibold text-[#28293D] hover:bg-[#F5F5F5] transition-all duration-200 hover:shadow-xs active:scale-[0.98]"
             >
-              <LogOut className="size-4.5 text-[#28293D]" />
+              <LogOut className="size-4.5 text-[#28293D] transition-transform duration-200 group-hover:-translate-x-0.5" />
               {t("Force Logout")}
             </Button>
             <Button
               type="button"
               onClick={() => onBlock(user)}
-              className="flex h-14 cursor-pointer items-center gap-3 rounded-[5px] bg-[#C90000] px-7.5 text-[16px] font-semibold text-white hover:bg-[#C90000]/90"
+              className="group flex h-14 cursor-pointer items-center gap-3 rounded-[5px] bg-[#C90000] px-7.5 text-[16px] font-semibold text-white hover:bg-[#C90000]/90 transition-all duration-200 hover:shadow-xs active:scale-[0.98]"
             >
-              <Ban className="size-4.5 text-white" />
+              <Ban className="size-4.5 text-white transition-transform duration-200 group-hover:scale-110" />
               {isActive ? t("Block Customer") : t("Unblock Customer")}
             </Button>
           </div>

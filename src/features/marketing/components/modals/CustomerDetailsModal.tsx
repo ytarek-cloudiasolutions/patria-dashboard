@@ -101,7 +101,7 @@ export const CustomerDetailsModal = ({
           <button
             type="button"
             onClick={onClose}
-            className="absolute top-5 right-5 sm:top-6 sm:right-6 size-8 rounded-full hover:bg-[#F5F0EA] flex items-center justify-center text-[#8B8B8B] hover:text-black transition-colors cursor-pointer shrink-0"
+            className="absolute top-5 right-5 sm:top-6 sm:right-6 size-8 rounded-full hover:bg-[#F5F0EA] flex items-center justify-center text-[#8B8B8B] hover:text-black transition-all duration-150 hover:scale-105 active:scale-90 cursor-pointer shrink-0"
             aria-label={t("Close")}
           >
             <X className="size-5" />
@@ -110,7 +110,7 @@ export const CustomerDetailsModal = ({
 
         {/* 4 Summary Stat Tiles */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="flex-1 px-4 sm:px-6 py-3 bg-[#F8F8F8] rounded-2xl border-2 border-[#E5E5E5] flex flex-col justify-center items-center gap-2">
+          <div className="flex-1 px-4 sm:px-6 py-3 bg-[#F8F8F8] rounded-2xl border-2 border-[#E5E5E5] flex flex-col justify-center items-center gap-2 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xs hover:border-[#8F6900]/40">
             <div className="text-[#595959] text-[10px] font-semibold font-['Montserrat',sans-serif] leading-3 tracking-tight">
               {t("Orders")}
             </div>
@@ -119,7 +119,7 @@ export const CustomerDetailsModal = ({
             </div>
           </div>
 
-          <div className="px-4 sm:px-6 py-3 bg-[#F8F8F8] rounded-2xl border-2 border-[#E5E5E5] flex flex-col justify-center items-center gap-2">
+          <div className="px-4 sm:px-6 py-3 bg-[#F8F8F8] rounded-2xl border-2 border-[#E5E5E5] flex flex-col justify-center items-center gap-2 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xs hover:border-[#8F6900]/40">
             <div className="text-[#595959] text-[10px] font-semibold font-['Montserrat',sans-serif] leading-3 tracking-tight">
               {t("Total Spent")}
             </div>
@@ -129,7 +129,7 @@ export const CustomerDetailsModal = ({
             </div>
           </div>
 
-          <div className="px-4 sm:px-6 py-3 bg-[#F8F8F8] rounded-2xl border-2 border-[#E5E5E5] flex flex-col justify-center items-center gap-2">
+          <div className="px-4 sm:px-6 py-3 bg-[#F8F8F8] rounded-2xl border-2 border-[#E5E5E5] flex flex-col justify-center items-center gap-2 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xs hover:border-[#8F6900]/40">
             <div className="text-[#595959] text-[10px] font-semibold font-['Montserrat',sans-serif] leading-3 tracking-tight">
               {t("Average Order")}
             </div>
@@ -139,7 +139,7 @@ export const CustomerDetailsModal = ({
             </div>
           </div>
 
-          <div className="flex-1 px-4 sm:px-6 py-3 bg-[#F8F8F8] rounded-2xl border-2 border-[#E5E5E5] flex flex-col justify-center items-center gap-2">
+          <div className="flex-1 px-4 sm:px-6 py-3 bg-[#F8F8F8] rounded-2xl border-2 border-[#E5E5E5] flex flex-col justify-center items-center gap-2 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xs hover:border-[#8F6900]/40">
             <div className="text-[#595959] text-[10px] font-semibold font-['Montserrat',sans-serif] leading-3 tracking-tight">
               {t("Last Order")}
             </div>
@@ -256,7 +256,7 @@ export const CustomerDetailsModal = ({
               <div className="px-3 py-2.5 rounded-2xl border-2 border-dashed border-[#8F6900]/70 flex flex-col gap-2">
                 {customer.favoriteCategories.map((c, idx) => (
                   <div key={c.name} className="flex flex-col gap-2">
-                    <div className="px-3 py-2 rounded-xl flex justify-between items-center overflow-hidden">
+                    <div className="px-3 py-2 rounded-xl flex justify-between items-center overflow-hidden transition-colors duration-150 hover:bg-black/5">
                       <span className="text-[#1A1A1A] text-base font-medium font-['Montserrat',sans-serif] leading-4 tracking-tight">
                         {t(c.name)}
                       </span>
@@ -284,7 +284,7 @@ export const CustomerDetailsModal = ({
               <div className="w-full px-3 py-2.5 rounded-2xl border-2 border-dashed border-[#8F6900]/70 flex flex-col gap-2">
                 {customer.ordersToZones.map((z, idx) => (
                   <div key={z.zoneName} className="flex flex-col gap-2">
-                    <div className="px-3 py-2 rounded-xl flex justify-between items-center overflow-hidden">
+                    <div className="px-3 py-2 rounded-xl flex justify-between items-center overflow-hidden transition-colors duration-150 hover:bg-black/5">
                       <span className="text-[#1A1A1A] text-base font-medium font-['Montserrat',sans-serif] leading-4 tracking-tight">
                         {z.zoneName}
                       </span>
@@ -312,7 +312,7 @@ export const CustomerDetailsModal = ({
             {customer.ordersHistory.map((ord) => (
               <div
                 key={ord.id}
-                className="p-3 bg-white rounded-xl border border-[#CACBD4] flex flex-col gap-3 overflow-hidden shadow-2xs"
+                className="p-3 bg-white rounded-xl border border-[#CACBD4] flex flex-col gap-3 overflow-hidden shadow-2xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xs hover:border-[#8F6900]/40"
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex flex-col gap-2">

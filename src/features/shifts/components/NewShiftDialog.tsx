@@ -90,7 +90,7 @@ const NewShiftDialog = ({
         className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-160"
       >
         {isNameOpen && (
-          <div className="pointer-events-none fixed inset-0 z-60 bg-black/40" />
+          <div className="pointer-events-none fixed inset-0 z-60 bg-black/40 transition-opacity animate-in fade-in-0 duration-200" />
         )}
 
         <div className="flex max-h-[calc(100vh-2rem)] flex-col">
@@ -184,14 +184,14 @@ const NewShiftDialog = ({
                   type: "button",
                   onClick: () => onOpenChange(false),
                   className:
-                    "border-primary text-primary hover:bg-white hover:text-primary",
+                    "border-primary text-primary hover:bg-white hover:text-primary transition-all duration-200 active:scale-[0.98]",
                 }}
               />
               <Button
                 type="button"
                 onClick={handleSave}
                 disabled={!canSave}
-                className="flex h-12 cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 sm:h-14 sm:gap-3 sm:px-7.5 sm:text-[16px]"
+                className="flex h-12 cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white transition-all duration-200 hover:shadow-xs active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 sm:h-14 sm:gap-3 sm:px-7.5 sm:text-[16px]"
               >
                 {editingShift ? t("Update Shift") : t("Add New Shift")}
               </Button>

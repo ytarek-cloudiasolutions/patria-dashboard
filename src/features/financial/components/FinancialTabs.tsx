@@ -34,7 +34,7 @@ const FinancialTabs = ({ active, onChange }: FinancialTabsProps) => {
               type="button"
               onClick={() => onChange(tab.key)}
               className={cn(
-                "flex-1 pb-3 text-center text-[13px] sm:text-[14px] font-medium transition-colors relative whitespace-nowrap cursor-pointer px-1.5 sm:px-2",
+                "flex-1 pb-3 text-center text-[13px] sm:text-[14px] font-medium transition-all duration-200 ease-out active:scale-[0.98] relative whitespace-nowrap cursor-pointer px-1.5 sm:px-2",
                 isActive
                   ? "text-[#333333] font-semibold border-b-2 border-[#8F6900] -mb-[1px]"
                   : "text-[#8B8B8B] hover:text-[#333333]"

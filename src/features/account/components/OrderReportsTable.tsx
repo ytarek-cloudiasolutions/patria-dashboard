@@ -32,7 +32,7 @@ const StatusBadge = ({ status }: { status: OrderStatus }) => {
   return (
     <Badge
       className={cn(
-        "h-6 min-w-24 justify-center rounded-[30px] border px-3 py-0 text-[11px] font-semibold",
+        "h-6 min-w-24 justify-center rounded-[30px] border px-3 py-0 text-[11px] font-semibold transition-transform duration-150 hover:scale-105",
         STATUS_STYLES[status],
       )}
     >
@@ -53,11 +53,11 @@ const OrderReportsTable = ({
 }: OrderReportsTableProps) => {
   const { t } = useTranslation();
   return (
-    <div className="overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white">
+    <div className="group/table overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white transition-shadow duration-200 hover:shadow-sm">
       {/* Applications + download bar */}
       <div className="flex flex-col gap-3 border-b border-[#E5E5E5] px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <div className="flex items-center gap-3">
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-[10px] text-[#000000]">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-[10px] text-[#000000] transition-transform duration-200 group-hover/table:scale-105">
             <BarChart3 size={24} />
           </span>
           <p className="text-[14px] font-semibold text-[#333333] sm:text-[15px]">
@@ -67,10 +67,10 @@ const OrderReportsTable = ({
         <DefaultButton
           data={{
             buttonText: t("Download EXCEL"),
-            icon: <FileDown className="size-4.5 text-[#8F6900]" />,
+            icon: <FileDown className="size-4.5 text-[#8F6900] transition-transform duration-200 group-hover:translate-y-0.5" />,
             onClick: onDownload,
             className:
-              "h-10 border-transparent bg-[#F5F0EA] text-[#8F6900] hover:bg-[#F5F0EA] hover:text-[#8F6900] active:translate-y-0 shadow-none ring-0 focus:ring-0 sm:h-11",
+              "group h-10 border-transparent bg-[#F5F0EA] text-[#8F6900] hover:bg-[#F5F0EA] hover:text-[#8F6900] active:translate-y-0 shadow-none ring-0 focus:ring-0 sm:h-11 transition-all duration-200 hover:shadow-2xs active:scale-[0.98]",
           }}
         />
       </div>
@@ -78,7 +78,7 @@ const OrderReportsTable = ({
       {/* Mobile list */}
       <div className="divide-y divide-[#E5E5E5] md:hidden">
         {orders.map((order) => (
-          <div key={order.id} className="px-4 py-4">
+          <div key={order.id} className="px-4 py-4 transition-colors duration-150 hover:bg-[#FAFAF8]">
             <div className="mb-2 flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="truncate text-[12px] font-bold text-[#333333]">
@@ -119,7 +119,7 @@ const OrderReportsTable = ({
           </TableHeader>
           <TableBody>
             {orders.map((order) => (
-              <TableRow key={order.id} className="hover:bg-[#FAFAF8]">
+              <TableRow key={order.id} className="hover:bg-[#FAFAF8] transition-colors duration-150">
                 <TableCell className="px-2 py-4 text-center text-[12px] font-bold text-[#333333] truncate">
                   {order.orderNo}
                 </TableCell>

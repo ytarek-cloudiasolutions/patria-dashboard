@@ -10,10 +10,10 @@ interface ShiftCardProps {
 
 const ShiftCard = ({ shift, onEdit, onDelete }: ShiftCardProps) => {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-[16px] border border-[#E5E5E5] bg-white px-4 py-4 sm:px-5">
+    <div className="group flex items-center justify-between gap-3 rounded-[16px] border border-[#E5E5E5] bg-white px-4 py-4 shadow-xs transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md sm:px-5">
       <div className="flex min-w-0 items-center gap-3 sm:gap-4">
         <div
-          className="flex size-10 shrink-0 items-center justify-center rounded-full text-[15px] font-semibold text-white"
+          className="flex size-10 shrink-0 items-center justify-center rounded-full text-[15px] font-semibold text-white transition-transform duration-200 ease-out group-hover:scale-105"
           style={{ backgroundColor: shift.color }}
         >
           {shiftInitial(shift.name)}
@@ -36,18 +36,18 @@ const ShiftCard = ({ shift, onEdit, onDelete }: ShiftCardProps) => {
         <button
           type="button"
           onClick={() => onEdit(shift)}
-          className="cursor-pointer text-[#28293D] transition-colors hover:text-primary"
+          className="group/btn cursor-pointer text-[#28293D] transition-all duration-150 hover:text-primary active:scale-90"
           aria-label={`Edit ${shift.name}`}
         >
-          <SquarePen className="size-4.5" />
+          <SquarePen className="size-4.5 transition-transform duration-150 group-hover/btn:scale-110" />
         </button>
         <button
           type="button"
           onClick={() => onDelete(shift)}
-          className="cursor-pointer text-[#C90000] transition-colors hover:opacity-80"
+          className="group/btn cursor-pointer text-[#C90000] transition-all duration-150 hover:opacity-80 active:scale-90"
           aria-label={`Delete ${shift.name}`}
         >
-          <Trash2 className="size-4.5" />
+          <Trash2 className="size-4.5 transition-transform duration-150 group-hover/btn:scale-110" />
         </button>
       </div>
     </div>

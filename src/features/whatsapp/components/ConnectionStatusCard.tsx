@@ -90,21 +90,21 @@ const ConnectionStatusCard = ({
           <img
             src={qrDataUrl}
             alt="WhatsApp QR"
-            className="size-52 rounded-[12px] border border-[#E5E2DD]"
+            className="size-52 rounded-[12px] border border-[#E5E2DD] animate-in fade-in zoom-in-95 duration-200"
           />
-          <p className="text-[14px] text-[#595959]">
+          <p className="text-[14px] text-[#595959] animate-in fade-in duration-200">
             {t("Scan this QR code with WhatsApp on your phone")}
           </p>
         </>
       ) : (
         <span
-          className={`flex size-34.5 items-center justify-center rounded-[32px] ${
+          className={`flex size-34.5 items-center justify-center rounded-[32px] transition-all duration-300 group-hover/card:scale-[1.03] ${
             isConnected ? "bg-[#E2F4ED]" : "bg-[#FFF0F0]"
           }`}
         >
           <ShieldCheck
             size={90}
-            className={isConnected ? "text-[#059B5A]" : "text-[#C90000]"}
+            className={`transition-colors duration-300 ${isConnected ? "text-[#059B5A]" : "text-[#C90000]"}`}
           />
         </span>
       )}
@@ -128,9 +128,9 @@ const ConnectionStatusCard = ({
         <DefaultButton
           data={{
             buttonText: t("Disconnect Account"),
-            icon: <LogOut className="size-4.5" />,
+            icon: <LogOut className="size-4.5 transition-transform duration-200 group-hover:scale-110" />,
             onClick: handleDisconnect,
-            className: "mt-2 bg-[#C90000] text-white hover:bg-[#A60000]",
+            className: "group mt-2 bg-[#C90000] text-white hover:bg-[#A60000] transition-all duration-200 hover:shadow-xs active:scale-[0.98]",
           }}
         />
       ) : !qrDataUrl ? (
@@ -139,9 +139,9 @@ const ConnectionStatusCard = ({
             buttonText: isInitializing ? t("Waiting for QR...") : t("Link Account"),
             icon: isInitializing
               ? <Loader2 className="size-4.5 animate-spin" />
-              : <LinkIcon className="size-4.5" />,
+              : <LinkIcon className="size-4.5 transition-transform duration-200 group-hover:scale-110" />,
             onClick: isInitializing ? () => {} : handleLink,
-            className: "mt-2",
+            className: "group mt-2 transition-all duration-200 hover:shadow-xs active:scale-[0.98]",
           }}
         />
       ) : null}

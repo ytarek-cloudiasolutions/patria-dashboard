@@ -68,13 +68,13 @@ const ReorderView = () => {
       </div>
 
       {/* Table Container */}
-      <div className="rounded-[16px] border border-[#E5E5E5] bg-white overflow-hidden shadow-sm">
+      <div className="rounded-[16px] border border-[#E5E5E5] bg-white overflow-hidden shadow-sm transition-shadow duration-200 hover:shadow-md">
         {loading ? (
           <div className="flex justify-center py-10">
             <Loader2 className="size-6 animate-spin text-[#8F6900]" />
           </div>
         ) : rows.length === 0 ? (
-          <p className="py-10 text-center text-[14px] text-[#8B8B8B]">
+          <p className="py-10 text-center text-[14px] text-[#8B8B8B] animate-in fade-in-50 duration-200">
             {t("No items currently need reordering")}
           </p>
         ) : (
@@ -105,7 +105,7 @@ const ReorderView = () => {
               {rows.map((row) => {
                 const status = statusFor(row);
                 return (
-                  <TableRow key={row.productId} className="border-b border-[#E5E5E5] hover:bg-[#FAFAF8]">
+                  <TableRow key={row.productId} className="border-b border-[#E5E5E5] hover:bg-[#FAFAF8] transition-colors duration-150">
                     <TableCell className="ps-8 py-5 whitespace-nowrap text-[12px] font-bold tracking-[0.24px] text-[#333333]">
                       {row.name}
                     </TableCell>

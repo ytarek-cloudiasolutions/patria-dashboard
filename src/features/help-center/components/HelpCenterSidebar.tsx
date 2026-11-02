@@ -41,13 +41,13 @@ const HelpCenterSidebar = ({
   return (
     <div
       className={cn(
-        "flex flex-col bg-white rounded-[16px] border border-[#E5E5E5] shadow-[0px_4px_6px_-4px_rgba(0,0,0,0.1),0px_10px_15px_-3px_rgba(0,0,0,0.1)] overflow-hidden",
+        "flex flex-col bg-white rounded-[16px] border border-[#E5E5E5] shadow-[0px_4px_6px_-4px_rgba(0,0,0,0.1),0px_10px_15px_-3px_rgba(0,0,0,0.1)] transition-shadow duration-300 hover:shadow-[0px_6px_10px_-4px_rgba(0,0,0,0.12),0px_14px_20px_-3px_rgba(0,0,0,0.12)] overflow-hidden",
         className || "h-[calc(100vh-220px)] min-h-[550px] max-h-[820px]"
       )}
     >
       {/* Search field */}
       <div className="px-3 pt-[18px] pb-3 shrink-0">
-        <div className="flex items-center gap-2.5 px-3.5 py-3 bg-white rounded-lg border border-[#CACBD4]">
+        <div className="flex items-center gap-2.5 px-3.5 py-3 bg-white rounded-lg border border-[#CACBD4] focus-within:border-[#8F6900] transition-colors duration-200">
           <Search className="size-5 shrink-0 text-[#8B8B8B]" />
           <input
             type="text"
@@ -63,7 +63,7 @@ const HelpCenterSidebar = ({
       <ScrollArea dir={dir} className="flex-1 min-h-0 w-full">
         <div className="flex flex-col gap-3 pt-2 pb-4 px-3">
           {filteredSections.length === 0 ? (
-            <p className="text-center text-[13px] text-[#8B8B8B] py-8">
+            <p className="text-center text-[13px] text-[#8B8B8B] py-8 animate-in fade-in duration-150">
               {t("No topics found.")}
             </p>
           ) : (
@@ -92,13 +92,13 @@ const HelpCenterSidebar = ({
                         type="button"
                         onClick={() => onSelectTopic(topic.id)}
                         className={cn(
-                          "flex items-center gap-1.5 px-1.5 py-2 rounded-[16px] transition-colors cursor-pointer text-start w-full",
+                          "group/topic flex items-center gap-1.5 px-1.5 py-2 rounded-[16px] transition-all duration-150 active:scale-[0.98] cursor-pointer text-start w-full",
                           isSelected
                             ? "bg-[#F5F0EA]"
                             : "hover:bg-[#F5F0EA]/60"
                         )}
                       >
-                        <Icon className="size-4 shrink-0 text-black" />
+                        <Icon className="size-4 shrink-0 text-black transition-transform duration-150 group-hover/topic:scale-110" />
                         <span className="text-[11px] font-medium tracking-[0.22px] text-black leading-snug">
                           {isAr ? topic.titleAr : topic.title}
                         </span>

@@ -23,13 +23,13 @@ const SectionCard = ({
 }: SectionCardProps) => (
   <Card
     className={cn(
-      "h-full gap-0 overflow-hidden rounded-[16px] border border-[#CACBD4] bg-white py-0 ring-0 shadow-lg",
+      "group/section h-full gap-0 overflow-hidden rounded-[16px] border border-[#CACBD4] bg-white py-0 ring-0 shadow-lg transition-shadow duration-300 hover:shadow-xl",
       className,
     )}
   >
     <div className="flex items-center justify-between gap-3 bg-[#F5F0EA] px-5 py-4 sm:px-6">
       <div className="flex min-w-0 items-center gap-3">
-        <span className="flex size-9 shrink-0 items-center justify-center text-[#28293D]">
+        <span className="flex size-9 shrink-0 items-center justify-center text-[#28293D] transition-transform duration-200 group-hover/section:scale-105">
           {icon}
         </span>
         <div className="min-w-0">

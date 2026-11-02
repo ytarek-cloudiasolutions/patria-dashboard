@@ -79,7 +79,7 @@ const TransactionsTable = ({
         {transactions.map((tx) => (
           <div
             key={tx.id}
-            className="rounded-2xl border border-[#E5E5E5] bg-white px-4 py-4"
+            className="rounded-2xl border border-[#E5E5E5] bg-white px-4 py-4 transition-all duration-200 hover:shadow-sm"
           >
             <div className="mb-3 flex items-start justify-between gap-3">
               <div className="min-w-0">
@@ -119,7 +119,7 @@ const TransactionsTable = ({
         ))}
 
         {transactions.length === 0 && (
-          <p className="py-8 text-center text-[14px] text-[#8B8B8B]">
+          <p className="py-8 text-center text-[14px] text-[#8B8B8B] animate-in fade-in-50 duration-200">
             {t("No transactions yet.")}
           </p>
         )}
@@ -141,7 +141,7 @@ const TransactionsTable = ({
           </TableHeader>
           <TableBody>
             {transactions.map((tx) => (
-              <TableRow key={tx.id} className="hover:bg-[#FAFAF8]">
+              <TableRow key={tx.id} className="hover:bg-[#FAFAF8] transition-colors duration-150">
                 <TableCell className="ps-6 py-4 whitespace-nowrap text-[14px] font-semibold text-[#28293D]">
                   {t(tx.statement)}
                 </TableCell>
@@ -173,7 +173,7 @@ const TransactionsTable = ({
               <TableRow>
                 <TableCell
                   colSpan={showStatus ? 5 : 4}
-                  className="py-10 text-center text-[14px] text-[#8B8B8B]"
+                  className="py-10 text-center text-[14px] text-[#8B8B8B] animate-in fade-in-50 duration-200"
                 >
                   {t("No transactions yet.")}
                 </TableCell>

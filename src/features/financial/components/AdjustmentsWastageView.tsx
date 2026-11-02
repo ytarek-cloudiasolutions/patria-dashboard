@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Copy, Trash2 } from "lucide-react";
+import { Copy, Loader2, Trash2 } from "lucide-react";
 import { Badge } from "@/shared/components/ui/badge";
 import {
   Table,
@@ -34,8 +34,10 @@ const AdjustmentsWastageView = ({ refreshKey }: AdjustmentsWastageViewProps) => 
   const [records, setRecords] = useState<AdjustmentRecord[]>([]);
   const [deleteTarget, setDeleteTarget] = useState<AdjustmentRecord | null>(null);
   const [localRefreshKey, setLocalRefreshKey] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   const loadRecords = () => {
+    setLoading(true);
     api
       .get("/inventory/adjustments")
       .then((res) => {
@@ -55,7 +57,8 @@ const AdjustmentsWastageView = ({ refreshKey }: AdjustmentsWastageViewProps) => 
           })),
         );
       })
-      .catch(() => setRecords([]));
+      .catch(() => setRecords([]))
+      .finally(() => setLoading(false));
   };
 
   useEffect(() => {
@@ -79,8 +82,16 @@ const AdjustmentsWastageView = ({ refreshKey }: AdjustmentsWastageViewProps) => 
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex justify-center py-16">
+        <Loader2 className="size-6 animate-spin text-[#8F6900]" />
+      </div>
+    );
+  }
+
   return (
-    <div className="rounded-[16px] border border-[#E5E5E5] bg-white overflow-hidden shadow-sm">
+    <div className="rounded-[16px] border border-[#E5E5E5] bg-white overflow-hidden shadow-sm transition-shadow duration-200 hover:shadow-md">
       <Table>
         <TableHeader>
           <TableRow className="bg-[#F5F0EA] border-none">
@@ -115,14 +126,14 @@ const AdjustmentsWastageView = ({ refreshKey }: AdjustmentsWastageViewProps) => 
             <TableRow className="border-none">
               <TableCell
                 colSpan={8}
-                className="py-12 text-center text-[14px] font-bold tracking-[0.28px] text-[#28293D]"
+                className="py-12 text-center text-[14px] font-bold tracking-[0.28px] text-[#28293D] animate-in fade-in-50 duration-200"
               >
                 {t("No Data Found")}
               </TableCell>
             </TableRow>
           ) : (
             records.map((rec) => (
-              <TableRow key={rec.id} className="border-none hover:bg-[#FAFAF8]">
+              <TableRow key={rec.id} className="border-none hover:bg-[#FAFAF8] transition-colors duration-150">
                 <TableCell className="ps-8 py-5 whitespace-nowrap">
                   <div className="flex items-center gap-2">
                     <span className="text-[14px] font-bold tracking-[0.28px] text-[#28293D]">
@@ -132,7 +143,7 @@ const AdjustmentsWastageView = ({ refreshKey }: AdjustmentsWastageViewProps) => 
                       type="button"
                       onClick={() => handleCopy(rec.number)}
                       title={t("Copy")}
-                      className="text-black hover:text-[#8F6900] transition-colors cursor-pointer"
+                      className="text-black hover:text-[#8F6900] transition-all duration-150 active:scale-90 cursor-pointer"
                     >
                       <Copy className="size-4" />
                     </button>
@@ -165,9 +176,9 @@ const AdjustmentsWastageView = ({ refreshKey }: AdjustmentsWastageViewProps) => 
                     type="button"
                     onClick={() => setDeleteTarget(rec)}
                     title={t("Delete")}
-                    className="inline-flex items-center justify-center rounded-[8px] p-2 text-[#C90000] hover:bg-[#FFEBEE] transition-colors cursor-pointer"
+                    className="group inline-flex items-center justify-center rounded-[8px] p-2 text-[#C90000] hover:bg-[#FFEBEE] transition-all duration-150 active:scale-90 cursor-pointer"
                   >
-                    <Trash2 className="size-4.5" />
+                    <Trash2 className="size-4.5 transition-transform duration-150 group-hover:scale-110" />
                   </button>
                 </TableCell>
               </TableRow>

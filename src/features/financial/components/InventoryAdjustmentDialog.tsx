@@ -207,9 +207,9 @@ const InventoryAdjustmentDialog = ({
                   <button
                     type="button"
                     onClick={handleAddCategoryRow}
-                    className="inline-flex items-center gap-2 rounded-[5px] border border-[#8F6900] px-3 py-1.5 text-[12px] font-semibold text-[#8F6900] hover:bg-[#FDFBF7] transition-colors cursor-pointer"
+                    className="group inline-flex items-center gap-2 rounded-[5px] border border-[#8F6900] px-3 py-1.5 text-[12px] font-semibold text-[#8F6900] hover:bg-[#FDFBF7] transition-all duration-150 active:scale-[0.98] cursor-pointer"
                   >
-                    <Plus className="size-4 text-[#8F6900]" />
+                    <Plus className="size-4 text-[#8F6900] transition-transform duration-200 group-hover:rotate-90" />
                     <span>{t("Add Category")}</span>
                   </button>
                 </div>
@@ -218,7 +218,7 @@ const InventoryAdjustmentDialog = ({
                   {categories.map((row, idx) => (
                     <div
                       key={row.id}
-                      className="relative grid grid-cols-1 gap-3 sm:grid-cols-3 pr-8 sm:pr-0"
+                      className="relative grid grid-cols-1 gap-3 sm:grid-cols-3 pr-8 sm:pr-0 animate-in fade-in-50 slide-in-from-top-1 duration-200"
                     >
                       <div className="flex flex-col">
                         {idx === 0 && (
@@ -277,9 +277,9 @@ const InventoryAdjustmentDialog = ({
                               type="button"
                               onClick={() => handleRemoveCategoryRow(row.id)}
                               title={t("Remove")}
-                              className="text-red-500 hover:text-red-700 p-2 cursor-pointer"
+                              className="group text-red-500 hover:text-red-700 p-2 transition-all duration-150 active:scale-90 cursor-pointer"
                             >
-                              <Trash2 className="size-4" />
+                              <Trash2 className="size-4 transition-transform duration-150 group-hover:scale-110" />
                             </button>
                           )}
                         </div>
@@ -315,13 +315,13 @@ const InventoryAdjustmentDialog = ({
                   type: "button",
                   onClick: () => onOpenChange(false),
                   className:
-                    "w-full sm:w-auto border-primary text-primary hover:bg-white hover:text-primary",
+                    "w-full sm:w-auto border-primary text-primary hover:bg-white hover:text-primary transition-all duration-150 active:scale-[0.98]",
                 }}
               />
               <Button
                 form={FORM_ID}
                 type="submit"
-                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
+                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white transition-all duration-150 active:scale-[0.98] sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
               >
                 {t("Confirm")}
               </Button>

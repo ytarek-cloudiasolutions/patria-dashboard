@@ -183,7 +183,7 @@ export const AbandonedCartModal = ({
                             inactivityMinutes: prev.inactivityMinutes + 1,
                           }))
                         }
-                        className="p-0.5 text-[#8B8B8B] hover:text-[#1A1A1A] transition-colors cursor-pointer"
+                        className="p-0.5 text-[#8B8B8B] hover:text-[#1A1A1A] transition-all duration-150 active:scale-90 cursor-pointer"
                         aria-label={t("Increase minutes")}
                       >
                         <ChevronUp className="size-4 stroke-[2]" />
@@ -199,7 +199,7 @@ export const AbandonedCartModal = ({
                             ),
                           }))
                         }
-                        className="p-0.5 text-[#8B8B8B] hover:text-[#1A1A1A] transition-colors cursor-pointer"
+                        className="p-0.5 text-[#8B8B8B] hover:text-[#1A1A1A] transition-all duration-150 active:scale-90 cursor-pointer"
                         aria-label={t("Decrease minutes")}
                       >
                         <ChevronDown className="size-4 stroke-[2]" />
@@ -249,7 +249,7 @@ export const AbandonedCartModal = ({
                             cooldownHours: prev.cooldownHours + 1,
                           }))
                         }
-                        className="p-0.5 text-[#8B8B8B] hover:text-[#1A1A1A] transition-colors cursor-pointer"
+                        className="p-0.5 text-[#8B8B8B] hover:text-[#1A1A1A] transition-all duration-150 active:scale-90 cursor-pointer"
                         aria-label={t("Increase hours")}
                       >
                         <ChevronUp className="size-4 stroke-[2]" />
@@ -265,7 +265,7 @@ export const AbandonedCartModal = ({
                             ),
                           }))
                         }
-                        className="p-0.5 text-[#8B8B8B] hover:text-[#1A1A1A] transition-colors cursor-pointer"
+                        className="p-0.5 text-[#8B8B8B] hover:text-[#1A1A1A] transition-all duration-150 active:scale-90 cursor-pointer"
                         aria-label={t("Decrease hours")}
                       >
                         <ChevronDown className="size-4 stroke-[2]" />
@@ -277,7 +277,7 @@ export const AbandonedCartModal = ({
 
               {/* Performance Badges */}
               <div className="flex flex-wrap items-center gap-4">
-                <div className="px-3 py-1 bg-[#F5F0EA] rounded-[30px] border border-[#8F6900] flex items-center">
+                <div className="px-3 py-1 bg-[#F5F0EA] rounded-[30px] border border-[#8F6900] flex items-center transition-transform duration-200 hover:scale-[1.03]">
                   <span className="text-[#8F6900] text-xs font-semibold font-['Montserrat',sans-serif] tracking-tight">
                     {t("Last 7 days: {count} reminders").replace(
                       "{count}",
@@ -285,7 +285,7 @@ export const AbandonedCartModal = ({
                     )}
                   </span>
                 </div>
-                <div className="px-3 py-1 bg-[#E2F4ED] rounded-[30px] border border-[#059B5A] flex items-center">
+                <div className="px-3 py-1 bg-[#E2F4ED] rounded-[30px] border border-[#059B5A] flex items-center transition-transform duration-200 hover:scale-[1.03]">
                   <span className="text-[#059B5A] text-xs font-semibold font-['Montserrat',sans-serif] tracking-tight">
                     {t("{count} orders within 24h").replace(
                       "{count}",
@@ -299,7 +299,7 @@ export const AbandonedCartModal = ({
               <Separator className="bg-[#CACBD4]" />
 
               {/* Test Box */}
-              <div className="p-6 bg-[#FAF7F2]/40 rounded-2xl border-2 border-dashed border-[#624F1C] flex flex-col gap-4">
+              <div className="p-6 bg-[#FAF7F2]/40 hover:bg-[#FAF7F2]/60 transition-colors duration-200 rounded-2xl border-2 border-dashed border-[#624F1C] flex flex-col gap-4">
                 <div className="text-[#1A1A1A] text-sm font-semibold font-['Montserrat',sans-serif] leading-4 tracking-tight">
                   {t(
                     "Try this notification on one number (yours) before sending to everyone"
@@ -324,7 +324,7 @@ export const AbandonedCartModal = ({
                     onClick: handleSendTest,
                     disabled: isSendingTest,
                     className:
-                      "w-full h-10 rounded-[5px] border-primary text-primary hover:bg-[#F5F0EA] hover:text-primary font-['Montserrat',sans-serif] text-xs font-semibold",
+                      "w-full h-10 rounded-[5px] border-primary text-primary hover:bg-[#F5F0EA] hover:text-primary font-['Montserrat',sans-serif] text-xs font-semibold transition-all duration-200 hover:shadow-2xs active:scale-[0.99]",
                   }}
                 />
               </div>
@@ -338,7 +338,7 @@ export const AbandonedCartModal = ({
               </div>
 
               {/* Enabled Card with project's Switch */}
-              <div className="px-6 py-4 bg-[#FAFAF7] rounded-2xl border border-[#CACBD4] flex justify-between items-center">
+              <div className="px-6 py-4 bg-[#FAFAF7] rounded-2xl border border-[#CACBD4] flex justify-between items-center transition-colors duration-200 hover:border-[#8F6900]/40">
                 <span className="text-[#1A1A1A] text-base font-semibold font-['Montserrat',sans-serif] leading-4 tracking-tight">
                   {t("Enabled")}
                 </span>
@@ -363,13 +363,13 @@ export const AbandonedCartModal = ({
                   type: "button",
                   onClick: onClose,
                   className:
-                    "h-12 sm:h-14 px-7 py-4 rounded-[5px] border-primary text-primary hover:bg-white hover:text-primary font-['Montserrat',sans-serif] font-semibold text-base",
+                    "h-12 sm:h-14 px-7 py-4 rounded-[5px] border-primary text-primary hover:bg-white hover:text-primary font-['Montserrat',sans-serif] font-semibold text-base transition-all duration-200 hover:shadow-xs active:scale-[0.98]",
                 }}
               />
               <Button
                 form={FORM_ID}
                 type="submit"
-                className="flex h-12 sm:h-14 cursor-pointer items-center justify-center rounded-[5px] px-7 py-4 text-base font-semibold text-white font-['Montserrat',sans-serif]"
+                className="flex h-12 sm:h-14 cursor-pointer items-center justify-center rounded-[5px] px-7 py-4 text-base font-semibold text-white font-['Montserrat',sans-serif] transition-all duration-200 hover:shadow-xs active:scale-[0.98]"
               >
                 {t("Save changes")}
               </Button>

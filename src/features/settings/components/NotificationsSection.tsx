@@ -76,10 +76,10 @@ const NotificationsSection = () => {
           return (
             <label
               key={setting.id}
-              className="flex cursor-pointer items-center justify-between gap-3 rounded-[12px] border border-[#E5E5E5] bg-white px-4 py-3"
+              className="group/row flex cursor-pointer items-center justify-between gap-3 rounded-[12px] border border-[#E5E5E5] bg-white px-4 py-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xs hover:border-[#8F6900]/40"
             >
               <span className="flex min-w-0 items-center gap-3">
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-[12px] bg-[#E5E5E5] text-[#000000]">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-[12px] bg-[#E5E5E5] text-[#000000] transition-transform duration-200 group-hover/row:scale-105">
                   <Icon size={20} />
                 </span>
                 <span className="min-w-0">
@@ -105,6 +105,7 @@ const NotificationsSection = () => {
               buttonText: isSaving ? t("Saving...") : t("Save changes"),
               onClick: handleSave,
               disabled: isSaving,
+              className: "transition-all duration-200 hover:shadow-xs active:scale-[0.98]",
             }}
           />
         </div>

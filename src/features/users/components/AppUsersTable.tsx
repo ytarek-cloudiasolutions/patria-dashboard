@@ -51,21 +51,21 @@ const RowActions = ({
       aria-label={
         user.status === "Active" ? `Block ${user.name}` : `Unblock ${user.name}`
       }
-      className="cursor-pointer text-[#C7861E] hover:opacity-80"
+      className="group cursor-pointer text-[#C7861E] hover:opacity-80 transition-all duration-150 active:scale-90"
     >
       {user.status === "Active" ? (
-        <Ban className="size-4.5" />
+        <Ban className="size-4.5 transition-transform duration-150 group-hover:scale-110" />
       ) : (
-        <ShieldCheck className="size-4.5" />
+        <ShieldCheck className="size-4.5 transition-transform duration-150 group-hover:scale-110" />
       )}
     </button>
     <button
       type="button"
       onClick={() => onView(user)}
       aria-label={`Manage ${user.name}`}
-      className="cursor-pointer text-[#000000] hover:opacity-80"
+      className="group cursor-pointer text-[#000000] hover:opacity-80 transition-all duration-150 active:scale-90"
     >
-      <Settings className="size-4.5" />
+      <Settings className="size-4.5 transition-transform duration-200 group-hover:rotate-45" />
     </button>
   </div>
 );
@@ -97,7 +97,7 @@ const AppUsersTable = ({
         {users.map((user) => (
           <div
             key={user.id}
-            className="rounded-2xl border border-[#E5E5E5] bg-white px-4 py-4"
+            className="rounded-2xl border border-[#E5E5E5] bg-white px-4 py-4 transition-all duration-200 hover:shadow-sm"
           >
             <div className="mb-3 flex items-start justify-between gap-3">
               <CustomerCell user={user} />
@@ -116,7 +116,7 @@ const AppUsersTable = ({
           </div>
         ))}
         {users.length === 0 && (
-          <p className="py-8 text-center text-[14px] text-[#8B8B8B]">
+          <p className="py-8 text-center text-[14px] text-[#8B8B8B] animate-in fade-in-50 duration-200">
             {t("No users found.")}
           </p>
         )}
@@ -143,7 +143,7 @@ const AppUsersTable = ({
           </TableHeader>
           <TableBody>
             {users.map((user) => (
-              <TableRow key={user.id} className="hover:bg-[#FAFAF8]">
+              <TableRow key={user.id} className="hover:bg-[#FAFAF8] transition-colors duration-150">
                 <TableCell className="ps-6 py-4">
                   <CustomerCell user={user} />
                 </TableCell>
@@ -171,7 +171,7 @@ const AppUsersTable = ({
               <TableRow>
                 <TableCell
                   colSpan={4}
-                  className="py-10 text-center text-[14px] text-[#8B8B8B]"
+                  className="py-10 text-center text-[14px] text-[#8B8B8B] animate-in fade-in-50 duration-200"
                 >
                   {t("No users found.")}
                 </TableCell>

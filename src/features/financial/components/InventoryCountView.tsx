@@ -53,7 +53,7 @@ const InventoryCountView = ({ refreshKey, onSelectSession }: InventoryCountViewP
   }
 
   return (
-    <div className="rounded-[16px] border border-[#E5E5E5] bg-white overflow-hidden shadow-sm">
+    <div className="rounded-[16px] border border-[#E5E5E5] bg-white overflow-hidden shadow-sm transition-shadow duration-200 hover:shadow-md">
       <Table>
         <TableHeader>
           <TableRow className="bg-[#F5F0EA] border-none">
@@ -80,13 +80,13 @@ const InventoryCountView = ({ refreshKey, onSelectSession }: InventoryCountViewP
         <TableBody>
           {sessions.length === 0 ? (
             <TableRow className="border-none">
-              <TableCell colSpan={6} className="py-10 text-center text-[13px] text-[#8B8B8B]">
+              <TableCell colSpan={6} className="py-10 text-center text-[13px] text-[#8B8B8B] animate-in fade-in-50 duration-200">
                 {t("No inventory count sessions yet")}
               </TableCell>
             </TableRow>
           ) : (
             sessions.map((session) => (
-              <TableRow key={session.id} className="border-none hover:bg-[#FAFAF8]">
+              <TableRow key={session.id} className="border-none hover:bg-[#FAFAF8] transition-colors duration-150">
                 <TableCell className="ps-8 py-5 whitespace-nowrap text-[12px] font-bold tracking-[0.24px] text-[#333333]">
                   {session.number}
                 </TableCell>
@@ -117,7 +117,7 @@ const InventoryCountView = ({ refreshKey, onSelectSession }: InventoryCountViewP
                     <button
                       type="button"
                       onClick={() => onSelectSession?.(session)}
-                      className="h-[34px] w-[160px] inline-flex items-center justify-center rounded-[16px] bg-[#F5F0EA] text-[12px] font-semibold leading-6 text-[#8F6900] hover:bg-[#EAE2D5] transition-colors cursor-pointer"
+                      className="h-[34px] w-[160px] inline-flex items-center justify-center rounded-[16px] bg-[#F5F0EA] text-[12px] font-semibold leading-6 text-[#8F6900] hover:bg-[#EAE2D5] transition-all duration-150 active:scale-[0.98] cursor-pointer"
                     >
                       {t("View")}
                     </button>

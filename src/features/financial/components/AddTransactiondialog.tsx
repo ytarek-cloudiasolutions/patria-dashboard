@@ -147,7 +147,7 @@ const AddTransactionDialog = ({
                   }}
                 />
                 {errors.statement && (
-                  <p className="mt-1 text-[13px] text-[#C90000]">
+                  <p className="mt-1 text-[13px] text-[#C90000] animate-in fade-in-50 duration-150">
                     {errors.statement}
                   </p>
                 )}
@@ -174,7 +174,7 @@ const AddTransactionDialog = ({
                     contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
                   />
                   {errors.category && (
-                    <p className="mt-1 text-[13px] text-[#C90000]">
+                    <p className="mt-1 text-[13px] text-[#C90000] animate-in fade-in-50 duration-150">
                       {errors.category}
                     </p>
                   )}
@@ -200,7 +200,7 @@ const AddTransactionDialog = ({
                     }}
                   />
                   {errors.amount && (
-                    <p className="mt-1 text-[13px] text-[#C90000]">
+                    <p className="mt-1 text-[13px] text-[#C90000] animate-in fade-in-50 duration-150">
                       {errors.amount}
                     </p>
                   )}
@@ -218,7 +218,7 @@ const AddTransactionDialog = ({
                     popoverPlacement="bottom-right"
                   />
                   {errors.date && (
-                    <p className="mt-1 text-[13px] text-[#C90000]">
+                    <p className="mt-1 text-[13px] text-[#C90000] animate-in fade-in-50 duration-150">
                       {errors.date}
                     </p>
                   )}
@@ -239,13 +239,13 @@ const AddTransactionDialog = ({
                   type: "button",
                   onClick: () => onOpenChange(false),
                   className:
-                    "w-full sm:w-auto border-primary text-primary hover:bg-white hover:text-primary",
+                    "w-full sm:w-auto border-primary text-primary hover:bg-white hover:text-primary transition-all duration-150 active:scale-[0.98]",
                 }}
               />
               <Button
                 form={FORM_ID}
                 type="submit"
-                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
+                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white transition-all duration-150 active:scale-[0.98] sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
               >
                 {t("Add Transaction")}
               </Button>

@@ -19,7 +19,7 @@ const GatewayCard = ({
 }: GatewayCardProps) => (
   <Card
     className={cn(
-      "gap-0 overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white py-0 ring-0 shadow-sm",
+      "group/card gap-0 overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white py-0 ring-0 shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md",
       className,
     )}
   >
@@ -27,7 +27,7 @@ const GatewayCard = ({
       <h3 className="text-[15px] font-bold text-[#333333] sm:text-[16px]">
         {title}
       </h3>
-      <span className="text-[#28293D]">{icon}</span>
+      <span className="text-[#28293D] transition-transform duration-200 group-hover/card:scale-110">{icon}</span>
     </div>
     <CardContent
       className={cn("flex-1 px-5 py-5 sm:px-6 sm:py-6", contentClassName)}

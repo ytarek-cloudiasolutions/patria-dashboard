@@ -178,9 +178,9 @@ export const WhatsAppCampaignTab = () => {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full items-start">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full items-start animate-in fade-in-50 duration-200">
       {/* Left Column: Who? Targeting and Source (lg:col-span-7 xl:col-span-8) */}
-      <div className="lg:col-span-7 xl:col-span-8 w-full p-6 bg-white rounded-[12px] border border-[#CACBD4] shadow-[0_10px_15px_-3px_rgba(0,0,0,0.10),0_4px_6px_-4px_rgba(0,0,0,0.10)] flex flex-col justify-start items-start gap-4 overflow-hidden">
+      <div className="lg:col-span-7 xl:col-span-8 w-full p-6 bg-white rounded-[12px] border border-[#CACBD4] shadow-[0_10px_15px_-3px_rgba(0,0,0,0.10),0_4px_6px_-4px_rgba(0,0,0,0.10)] transition-shadow duration-300 hover:shadow-[0_14px_20px_-3px_rgba(0,0,0,0.12),0_6px_8px_-4px_rgba(0,0,0,0.10)] flex flex-col justify-start items-start gap-4 overflow-hidden">
         {/* "Who?" Selector Card */}
         <div className="self-stretch px-6 py-4 bg-[#FAFAF7] rounded-[16px] border border-[#CACBD4] flex flex-col justify-start items-start gap-4 overflow-hidden">
           <div className="inline-flex justify-center items-center gap-2">
@@ -195,16 +195,16 @@ export const WhatsAppCampaignTab = () => {
               type="button"
               onClick={() => setMode("audience")}
               className={cn(
-                "flex-1 sm:w-56 px-3 py-4 rounded-[5px] outline outline-2 outline-offset-[-2px] flex flex-col justify-center items-center gap-2 overflow-hidden cursor-pointer transition-all",
+                "group flex-1 sm:w-56 px-3 py-4 rounded-[5px] outline outline-2 outline-offset-[-2px] flex flex-col justify-center items-center gap-2 overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xs active:scale-[0.98]",
                 mode === "audience"
                   ? "bg-[#F5F0EA] outline-[#8F6900]"
                   : "bg-[#FAFAF7] outline-[#CACBD4] hover:outline-[#8F6900]/50"
               )}
             >
-              <div className="size-6 flex items-center justify-center">
+              <div className="size-6 flex items-center justify-center transition-transform duration-200 group-hover:scale-110">
                 <Users
                   className={cn(
-                    "size-5",
+                    "size-5 transition-colors duration-200",
                     mode === "audience" ? "text-black" : "text-[#595959]"
                   )}
                 />
@@ -226,16 +226,16 @@ export const WhatsAppCampaignTab = () => {
               type="button"
               onClick={() => setMode("numbers")}
               className={cn(
-                "flex-1 px-3 py-4 rounded-[5px] outline outline-2 outline-offset-[-2px] flex flex-col justify-center items-center gap-2 overflow-hidden cursor-pointer transition-all",
+                "group flex-1 px-3 py-4 rounded-[5px] outline outline-2 outline-offset-[-2px] flex flex-col justify-center items-center gap-2 overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xs active:scale-[0.98]",
                 mode === "numbers"
                   ? "bg-[#F5F0EA] outline-[#8F6900]"
                   : "bg-[#FAFAF7] outline-[#CACBD4] hover:outline-[#8F6900]/50"
               )}
             >
-              <div className="size-6 flex items-center justify-center">
+              <div className="size-6 flex items-center justify-center transition-transform duration-200 group-hover:scale-110">
                 <Hash
                   className={cn(
-                    "size-5",
+                    "size-5 transition-colors duration-200",
                     mode === "numbers" ? "text-black" : "text-[#595959]"
                   )}
                 />
@@ -257,18 +257,18 @@ export const WhatsAppCampaignTab = () => {
               type="button"
               onClick={() => setMode("sheet")}
               className={cn(
-                "flex-1 px-3 py-4 rounded-[5px] outline outline-2 outline-offset-[-2px] flex flex-col justify-center items-center gap-2 overflow-hidden cursor-pointer transition-all",
+                "group flex-1 px-3 py-4 rounded-[5px] outline outline-2 outline-offset-[-2px] flex flex-col justify-center items-center gap-2 overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xs active:scale-[0.98]",
                 mode === "sheet"
                   ? "bg-[#F5F0EA] outline-[#8F6900]"
                   : "bg-[#FAFAF7] outline-[#CACBD4] hover:outline-[#8F6900]/50"
               )}
             >
-              <div className="size-6 flex items-center justify-center">
+              <div className="size-6 flex items-center justify-center transition-transform duration-200 group-hover:scale-110">
                 <img
                   src={FileIcon}
                   alt="From a sheet"
                   className={cn(
-                    "w-4 h-5 object-contain",
+                    "w-4 h-5 object-contain transition-opacity duration-200",
                     mode !== "sheet" && "opacity-70"
                   )}
                 />
@@ -289,7 +289,7 @@ export const WhatsAppCampaignTab = () => {
 
         {/* Content depending on selected mode */}
         {mode === "audience" && (
-          <div className="self-stretch flex flex-col gap-4">
+          <div className="self-stretch flex flex-col gap-4 animate-in fade-in-50 duration-200">
             {/* 6 Segments Cards */}
             <AudienceSegmentCards
               selectedSegment={criteria.segment}
@@ -343,7 +343,7 @@ export const WhatsAppCampaignTab = () => {
         )}
 
         {mode === "numbers" && (
-          <div className="self-stretch flex flex-col gap-4 animate-in fade-in duration-150">
+          <div className="self-stretch flex flex-col gap-4 animate-in fade-in-50 duration-200">
             <div className="self-stretch flex flex-col gap-2">
               <label className="text-sm font-semibold font-['Montserrat',sans-serif] text-[#1A1A1A]">
                 {t("Enter recipients (Name and Phone)")}
@@ -355,7 +355,7 @@ export const WhatsAppCampaignTab = () => {
                 placeholder={t(
                   "One number per line, optionally with a name:\nSohaila Maher\n0123456789"
                 )}
-                className="w-full p-3.5 rounded-xl border border-[#CACBD4] bg-white text-xs font-['Montserrat',sans-serif] text-black focus:outline-none focus:border-[#8F6900] resize-none"
+                className="w-full p-3.5 rounded-xl border border-[#CACBD4] bg-white text-xs font-['Montserrat',sans-serif] text-black focus:outline-none focus:border-[#8F6900] transition-colors duration-200 resize-none"
               />
               <span className="text-[11px] text-[#8B8B8B] font-['Montserrat',sans-serif]">
                 {t("Duplicates are removed automatically.")}
@@ -376,7 +376,7 @@ export const WhatsAppCampaignTab = () => {
         )}
 
         {mode === "sheet" && (
-          <div className="self-stretch flex flex-col gap-4 animate-in fade-in duration-150">
+          <div className="self-stretch flex flex-col gap-4 animate-in fade-in-50 duration-200">
             <input
               type="file"
               ref={fileInputRef}
@@ -387,9 +387,9 @@ export const WhatsAppCampaignTab = () => {
 
             <div
               onClick={() => fileInputRef.current?.click()}
-              className="self-stretch p-6 rounded-[16px] border-2 border-dashed border-[#624F1C] bg-[#F5F0EA]/30 flex flex-col justify-center items-center gap-2 overflow-hidden cursor-pointer hover:bg-[#F5F0EA]/50 transition-colors"
+              className="group self-stretch p-6 rounded-[16px] border-2 border-dashed border-[#624F1C] bg-[#F5F0EA]/30 flex flex-col justify-center items-center gap-2 overflow-hidden cursor-pointer hover:bg-[#F5F0EA]/50 transition-all duration-200 hover:shadow-xs active:scale-[0.99]"
             >
-              <div className="size-6 flex items-center justify-center">
+              <div className="size-6 flex items-center justify-center transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:scale-105">
                 <img
                   src={FileIcon}
                   alt="Upload sheet"
@@ -423,7 +423,7 @@ export const WhatsAppCampaignTab = () => {
       </div>
 
       {/* Right Column: WhatsApp Message Composer (lg:col-span-5 xl:col-span-4) */}
-      <div className="lg:col-span-5 xl:col-span-4 w-full p-6 bg-white rounded-[12px] border border-[#CACBD4] shadow-[0_10px_15px_-3px_rgba(0,0,0,0.10),0_4px_6px_-4px_rgba(0,0,0,0.10)] flex flex-col justify-start items-stretch gap-4 overflow-hidden">
+      <div className="lg:col-span-5 xl:col-span-4 w-full p-6 bg-white rounded-[12px] border border-[#CACBD4] shadow-[0_10px_15px_-3px_rgba(0,0,0,0.10),0_4px_6px_-4px_rgba(0,0,0,0.10)] transition-shadow duration-300 hover:shadow-[0_14px_20px_-3px_rgba(0,0,0,0.12),0_6px_8px_-4px_rgba(0,0,0,0.10)] flex flex-col justify-start items-stretch gap-4 overflow-hidden">
         {/* Title: Message */}
         <div className="self-stretch flex justify-start items-center">
           <h3 className="text-[#1A1A1A] text-base font-semibold font-['Montserrat',sans-serif] tracking-tight">
@@ -440,7 +440,7 @@ export const WhatsAppCampaignTab = () => {
               setDraft((prev) => ({ ...prev, message: e.target.value }))
             }
             placeholder="Hi {name}✋🏻&#10;We have an offer today..."
-            className="self-stretch px-3 py-3.5 bg-white rounded-xl outline outline-1 outline-offset-[-1px] outline-[#CACBD4] focus:outline-[#8F6900] text-[#1A1A1A] text-xs font-normal font-['Montserrat',sans-serif] resize-none leading-relaxed placeholder:text-[#8B8B8B]"
+            className="self-stretch px-3 py-3.5 bg-white rounded-xl outline outline-1 outline-offset-[-1px] outline-[#CACBD4] focus:outline-[#8F6900] transition-colors duration-200 text-[#1A1A1A] text-xs font-normal font-['Montserrat',sans-serif] resize-none leading-relaxed placeholder:text-[#8B8B8B]"
           />
         </div>
 
@@ -477,7 +477,7 @@ export const WhatsAppCampaignTab = () => {
           />
 
           {imagePreview ? (
-            <div className="relative self-stretch rounded-[16px] overflow-hidden border-2 border-dashed border-[#624F1C]">
+            <div className="relative self-stretch rounded-[16px] overflow-hidden border-2 border-dashed border-[#624F1C] animate-in fade-in zoom-in-95 duration-200">
               <img
                 src={imagePreview}
                 alt="Campaign Attachment"
@@ -486,7 +486,7 @@ export const WhatsAppCampaignTab = () => {
               <button
                 type="button"
                 onClick={handleRemoveImage}
-                className="absolute top-2 right-2 size-7 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black transition-colors cursor-pointer"
+                className="absolute top-2 right-2 size-7 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black transition-all duration-150 hover:scale-110 active:scale-90 cursor-pointer"
               >
                 <X className="size-4" />
               </button>
@@ -494,9 +494,9 @@ export const WhatsAppCampaignTab = () => {
           ) : (
             <div
               onClick={() => imageInputRef.current?.click()}
-              className="self-stretch p-6 rounded-[16px] border-2 border-dashed border-[#624F1C] bg-[#F5F0EA]/30 flex flex-col justify-center items-center gap-2 overflow-hidden cursor-pointer hover:bg-[#F5F0EA]/50 transition-colors"
+              className="group self-stretch p-6 rounded-[16px] border-2 border-dashed border-[#624F1C] bg-[#F5F0EA]/30 flex flex-col justify-center items-center gap-2 overflow-hidden cursor-pointer hover:bg-[#F5F0EA]/50 transition-all duration-200 hover:shadow-xs active:scale-[0.99]"
             >
-              <div className="size-6 flex items-center justify-center">
+              <div className="size-6 flex items-center justify-center transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:scale-105">
                 <img
                   src={FileIcon}
                   alt="Upload image"
@@ -524,7 +524,7 @@ export const WhatsAppCampaignTab = () => {
             {t("Seconds between each message")}
           </div>
           <div className="self-stretch flex flex-col justify-start items-start gap-1">
-            <div className="self-stretch h-12 px-3.5 bg-white rounded-xl outline outline-1 outline-offset-[-1px] outline-[#CACBD4] focus-within:outline-[#8F6900] flex justify-between items-center gap-2 overflow-hidden">
+            <div className="self-stretch h-12 px-3.5 bg-white rounded-xl outline outline-1 outline-offset-[-1px] outline-[#CACBD4] focus-within:outline-[#8F6900] transition-colors duration-200 flex justify-between items-center gap-2 overflow-hidden">
               <div className="flex-1 flex items-center gap-1">
                 <input
                   type="number"
@@ -557,7 +557,7 @@ export const WhatsAppCampaignTab = () => {
                       secondsDelay: prev.secondsDelay + 1,
                     }))
                   }
-                  className="p-0.5 text-[#8B8B8B] hover:text-[#1A1A1A] transition-colors cursor-pointer"
+                  className="p-0.5 text-[#8B8B8B] hover:text-[#1A1A1A] transition-all duration-150 active:scale-90 cursor-pointer"
                   aria-label={t("Increase seconds")}
                 >
                   <ChevronUp className="size-4 stroke-[2]" />
@@ -570,7 +570,7 @@ export const WhatsAppCampaignTab = () => {
                       secondsDelay: Math.max(1, prev.secondsDelay - 1),
                     }))
                   }
-                  className="p-0.5 text-[#8B8B8B] hover:text-[#1A1A1A] transition-colors cursor-pointer"
+                  className="p-0.5 text-[#8B8B8B] hover:text-[#1A1A1A] transition-all duration-150 active:scale-90 cursor-pointer"
                   aria-label={t("Decrease seconds")}
                 >
                   <ChevronDown className="size-4 stroke-[2]" />
@@ -588,7 +588,7 @@ export const WhatsAppCampaignTab = () => {
           type="button"
           onClick={handleSendCampaign}
           disabled={isSending}
-          className="self-stretch h-12 px-6 py-3.5 bg-[#8F6900] hover:bg-[#785700] rounded-[5px] inline-flex justify-center items-center gap-3 outline outline-1 outline-offset-[-1px] outline-[#8F6900] text-white text-base font-semibold font-['Montserrat',sans-serif] leading-6 cursor-pointer transition-colors shadow-xs disabled:opacity-50"
+          className="self-stretch h-12 px-6 py-3.5 bg-[#8F6900] hover:bg-[#785700] rounded-[5px] inline-flex justify-center items-center gap-3 outline outline-1 outline-offset-[-1px] outline-[#8F6900] text-white text-base font-semibold font-['Montserrat',sans-serif] leading-6 cursor-pointer transition-all duration-200 hover:shadow-sm active:scale-[0.99] shadow-xs disabled:opacity-50"
         >
           {isSending
             ? t("Starting campaign...")

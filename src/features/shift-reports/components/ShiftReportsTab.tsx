@@ -170,7 +170,7 @@ const ShiftReportsTab = ({ onExportDataReady }: ShiftReportsTabProps) => {
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-[16px] border border-[#E5E5E5] bg-white">
+      <div className="overflow-x-auto rounded-[16px] border border-[#E5E5E5] bg-white shadow-xs transition-shadow duration-200 hover:shadow-md">
         <table className="w-full min-w-[1050px]">
           <thead className="bg-[#F5F0EA] border-b border-[#E5E5E5]">
             <tr className="h-[48px]">
@@ -189,19 +189,19 @@ const ShiftReportsTab = ({ onExportDataReady }: ShiftReportsTabProps) => {
           <tbody className="divide-y divide-[#E5E5E5]">
             {loading ? (
               <tr>
-                <td colSpan={10} className="py-10 text-center text-[13px] text-[#8B8B8B]">
+                <td colSpan={10} className="py-10 text-center text-[13px] text-[#8B8B8B] animate-in fade-in-50 duration-200">
                   {t("Loading...")}
                 </td>
               </tr>
             ) : rows.length === 0 ? (
               <tr>
-                <td colSpan={10} className="py-10 text-center text-[13px] text-[#8B8B8B]">
+                <td colSpan={10} className="py-10 text-center text-[13px] text-[#8B8B8B] animate-in fade-in-50 duration-200">
                   {t("No shifts found")}
                 </td>
               </tr>
             ) : (
               rows.map((row) => (
-                <tr key={row.id} className="transition-colors hover:bg-[#FAF9F6]">
+                <tr key={row.id} className="transition-colors duration-150 hover:bg-[#FAF9F6]">
                   <td className={`${TD} text-start ps-8 font-bold text-[#333333]`}>
                     {row.employee}
                   </td>

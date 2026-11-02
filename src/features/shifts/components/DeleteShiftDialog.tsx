@@ -31,7 +31,7 @@ const DeleteShiftDialog = ({
       >
         <DialogHeader>
           <DialogTitle>
-            <div className="inline-flex items-center justify-center rounded-[10px] bg-[#C90000] p-2">
+            <div className="inline-flex items-center justify-center rounded-[10px] bg-[#C90000] p-2 animate-in zoom-in-75 duration-200">
               <Trash2 className="size-6 text-white" />
             </div>
           </DialogTitle>
@@ -59,14 +59,14 @@ const DeleteShiftDialog = ({
                 type: "button",
                 onClick: () => onOpenChange(false),
                 className:
-                  "w-full sm:w-auto text-primary border-primary hover:bg-white hover:text-primary",
+                  "w-full sm:w-auto text-primary border-primary hover:bg-white hover:text-primary transition-all duration-200 active:scale-[0.98]",
               }}
             />
             <DefaultButton
               data={{
                 buttonText: t("Delete Shift"),
                 type: "button",
-                className: "w-full sm:w-auto bg-[#C90000]",
+                className: "w-full sm:w-auto bg-[#C90000] transition-all duration-200 hover:shadow-xs active:scale-[0.98]",
                 onClick: onConfirm,
               }}
             />

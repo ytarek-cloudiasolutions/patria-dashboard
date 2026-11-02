@@ -18,10 +18,10 @@ const AccountSettingsCard = ({
 }: AccountSettingsCardProps) => {
   const { t } = useTranslation();
   return (
-    <Card className="gap-0 overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white py-0 ring-0 shadow-sm">
+    <Card className="group/card gap-0 overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white py-0 ring-0 shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md">
       <div className="flex items-center justify-between bg-[#F5F0EA] px-5 py-4 sm:px-6">
         <h3 className="text-[16px] font-bold text-[#333333]">{t("Account Settings")}</h3>
-        <Settings size={20} className="text-[#28293D]" />
+        <Settings size={20} className="text-[#28293D] transition-transform duration-300 group-hover/card:rotate-45" />
       </div>
       <CardContent className="flex flex-col gap-5 px-5 py-5 sm:px-6 sm:py-6">
         <InputField
@@ -72,9 +72,9 @@ const AccountSettingsCard = ({
         <Button
           type="button"
           onClick={onSave}
-          className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[8px] text-[15px] font-semibold text-white sm:h-13"
+          className="group flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[8px] text-[15px] font-semibold text-white sm:h-13 transition-all duration-200 hover:shadow-xs active:scale-[0.98]"
         >
-          <Save className="size-4.5" />
+          <Save className="size-4.5 transition-transform duration-200 group-hover:scale-110" />
           {t("Save Changes")}
         </Button>
       </CardContent>

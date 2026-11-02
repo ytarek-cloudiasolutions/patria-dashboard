@@ -35,7 +35,7 @@ export const CategoryInterestChips = ({
               type="button"
               onClick={() => onToggleInterest(cat)}
               className={cn(
-                "h-9 px-3.5 rounded-[5px] outline outline-2 outline-offset-[-2px] inline-flex items-center justify-center cursor-pointer transition-all",
+                "h-9 px-3.5 rounded-[5px] outline outline-2 outline-offset-[-2px] inline-flex items-center justify-center cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-2xs active:scale-95",
                 isSelected
                   ? "bg-[#F5F0EA] outline-[#8F6900] text-black font-semibold text-xs"
                   : "bg-white outline-[#CACBD4] hover:outline-[#8F6900]/50 text-[#1A1A1A] font-normal text-xs"

@@ -123,9 +123,9 @@ export const ScheduledNotificationsTab = () => {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full items-start">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full items-start animate-in fade-in-50 duration-200">
       {/* Left Column: Audience Targeting (lg:col-span-7 xl:col-span-8) */}
-      <div className="lg:col-span-7 xl:col-span-8 w-full p-6 bg-white rounded-[12px] border border-[#CACBD4] shadow-[0_10px_15px_-3px_rgba(0,0,0,0.10),0_4px_6px_-4px_rgba(0,0,0,0.10)] flex flex-col justify-start items-start gap-4 overflow-hidden">
+      <div className="lg:col-span-7 xl:col-span-8 w-full p-6 bg-white rounded-[12px] border border-[#CACBD4] shadow-[0_10px_15px_-3px_rgba(0,0,0,0.10),0_4px_6px_-4px_rgba(0,0,0,0.10)] transition-shadow duration-300 hover:shadow-[0_14px_20px_-3px_rgba(0,0,0,0.12),0_6px_8px_-4px_rgba(0,0,0,0.10)] flex flex-col justify-start items-start gap-4 overflow-hidden">
         {/* 6 Segments Cards */}
         <AudienceSegmentCards
           selectedSegment={criteria.segment}
@@ -178,7 +178,7 @@ export const ScheduledNotificationsTab = () => {
       </div>
 
       {/* Right Column: Notification Composer & Schedule (lg:col-span-5 xl:col-span-4) */}
-      <div className="lg:col-span-5 xl:col-span-4 w-full p-6 bg-white rounded-[12px] border border-[#CACBD4] shadow-[0_10px_15px_-3px_rgba(0,0,0,0.10),0_4px_6px_-4px_rgba(0,0,0,0.10)] flex flex-col justify-start items-stretch gap-4 overflow-hidden">
+      <div className="lg:col-span-5 xl:col-span-4 w-full p-6 bg-white rounded-[12px] border border-[#CACBD4] shadow-[0_10px_15px_-3px_rgba(0,0,0,0.10),0_4px_6px_-4px_rgba(0,0,0,0.10)] transition-shadow duration-300 hover:shadow-[0_14px_20px_-3px_rgba(0,0,0,0.12),0_6px_8px_-4px_rgba(0,0,0,0.10)] flex flex-col justify-start items-stretch gap-4 overflow-hidden">
         {/* Title: Notification Message */}
         <div className="self-stretch flex justify-start items-center">
           <h3 className="text-[#1A1A1A] text-base font-semibold font-['Montserrat',sans-serif] tracking-tight">
@@ -188,7 +188,7 @@ export const ScheduledNotificationsTab = () => {
 
         {/* Title and Message Inputs */}
         <div className="self-stretch flex flex-col justify-start items-start gap-4">
-          <div className="self-stretch h-12 p-3 bg-white rounded-xl outline outline-1 outline-offset-[-1px] outline-[#CACBD4] focus-within:outline-[#8F6900] flex justify-start items-center gap-3 overflow-hidden">
+          <div className="self-stretch h-12 p-3 bg-white rounded-xl outline outline-1 outline-offset-[-1px] outline-[#CACBD4] focus-within:outline-[#8F6900] transition-colors duration-200 flex justify-start items-center gap-3 overflow-hidden">
             <input
               type="text"
               value={draft.title}
@@ -200,7 +200,7 @@ export const ScheduledNotificationsTab = () => {
             />
           </div>
 
-          <div className="self-stretch h-12 p-3 bg-white rounded-xl outline outline-1 outline-offset-[-1px] outline-[#CACBD4] focus-within:outline-[#8F6900] flex justify-start items-center gap-3 overflow-hidden">
+          <div className="self-stretch h-12 p-3 bg-white rounded-xl outline outline-1 outline-offset-[-1px] outline-[#CACBD4] focus-within:outline-[#8F6900] transition-colors duration-200 flex justify-start items-center gap-3 overflow-hidden">
             <input
               type="text"
               value={draft.message}
@@ -217,8 +217,8 @@ export const ScheduledNotificationsTab = () => {
         <div className="self-stretch h-px bg-[#CACBD4]" />
 
         {/* Live Device Preview Card */}
-        <div className="self-stretch p-5 bg-[#FAF9F5]/40 rounded-2xl border-2 border-[#624F1C] flex items-center gap-3.5 overflow-hidden">
-          <div className="size-10 rounded-[12.658px] bg-[#F5F0EA] flex items-center justify-center shrink-0">
+        <div className="group self-stretch p-5 bg-[#FAF9F5]/40 rounded-2xl border-2 border-[#624F1C] flex items-center gap-3.5 overflow-hidden transition-all duration-200 hover:shadow-xs">
+          <div className="size-10 rounded-[12.658px] bg-[#F5F0EA] flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105">
             <Tablet className="size-5 text-[#8F6900]" />
           </div>
           <div className="flex-1 min-w-0 flex flex-col justify-center">
@@ -239,7 +239,7 @@ export const ScheduledNotificationsTab = () => {
           type="button"
           onClick={handleSchedule}
           disabled={isScheduling}
-          className="self-stretch h-12 px-6 py-3.5 bg-[#8F6900] hover:bg-[#785700] rounded-[5px] inline-flex justify-center items-center gap-3 outline outline-1 outline-offset-[-1px] outline-[#8F6900] text-white text-base font-semibold font-['Montserrat',sans-serif] leading-6 cursor-pointer transition-colors shadow-xs disabled:opacity-50"
+          className="self-stretch h-12 px-6 py-3.5 bg-[#8F6900] hover:bg-[#785700] rounded-[5px] inline-flex justify-center items-center gap-3 outline outline-1 outline-offset-[-1px] outline-[#8F6900] text-white text-base font-semibold font-['Montserrat',sans-serif] leading-6 cursor-pointer transition-all duration-200 hover:shadow-sm active:scale-[0.99] shadow-xs disabled:opacity-50"
         >
           {isScheduling
             ? t("Scheduling...")
@@ -276,7 +276,7 @@ export const ScheduledNotificationsTab = () => {
                     }))
                   }
                   className={cn(
-                    "w-full h-11 sm:h-12 px-1 rounded-[5px] outline outline-[1.50px] outline-offset-[-1.50px] flex items-center justify-center cursor-pointer transition-all overflow-hidden",
+                    "w-full h-11 sm:h-12 px-1 rounded-[5px] outline outline-[1.50px] outline-offset-[-1.50px] flex items-center justify-center cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-2xs active:scale-[0.98] overflow-hidden",
                     isSelected
                       ? "bg-[#F5F0EA] outline-[#8F6900] text-black font-semibold"
                       : "bg-[#FAFAF7] outline-[#CACBD4] text-black font-medium hover:outline-[#8F6900]/50"
@@ -303,7 +303,7 @@ export const ScheduledNotificationsTab = () => {
                       setDraft((prev) => ({ ...prev, selectedWeekday: day }))
                     }
                     className={cn(
-                      "px-3 py-1.5 rounded-[5px] text-xs font-medium border transition-colors cursor-pointer font-['Montserrat',sans-serif]",
+                      "px-3 py-1.5 rounded-[5px] text-xs font-medium border transition-all duration-150 hover:-translate-y-0.5 active:scale-95 cursor-pointer font-['Montserrat',sans-serif]",
                       isSelected
                         ? "bg-[#8F6900] text-white border-[#8F6900]"
                         : "bg-white text-[#595959] border-[#CACBD4] hover:border-[#8F6900]"
@@ -348,12 +348,12 @@ export const ScheduledNotificationsTab = () => {
 
           <div
             onClick={() => setIsTimePickerOpen(true)}
-            className="self-stretch h-12 p-3 bg-white rounded-xl outline outline-1 outline-offset-[-1px] outline-[#CACBD4] hover:outline-[#8F6900] inline-flex justify-between items-center gap-3 overflow-hidden cursor-pointer transition-colors"
+            className="group self-stretch h-12 p-3 bg-white rounded-xl outline outline-1 outline-offset-[-1px] outline-[#CACBD4] hover:outline-[#8F6900] inline-flex justify-between items-center gap-3 overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-2xs active:scale-[0.99]"
           >
             <div className="flex-1 text-[#1A1A1A] text-base font-normal font-['Montserrat',sans-serif]">
               {draft.time}
             </div>
-            <Clock className="size-5 text-[#8B8B8B]" />
+            <Clock className="size-5 text-[#8B8B8B] transition-all duration-200 group-hover:scale-110 group-hover:text-[#8F6900]" />
           </div>
         </div>
       </div>

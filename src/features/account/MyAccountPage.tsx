@@ -166,14 +166,14 @@ const MyAccountPage = () => {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-[60vh] w-full items-center justify-center">
+      <div className="flex min-h-[60vh] w-full items-center justify-center animate-in fade-in-50 duration-300">
         <UserCircle className="size-16 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <>
+    <div className="animate-in fade-in-50 duration-300">
       <div className="mb-6">
         <HeaderLayout
           title={t("Order reports")}
@@ -202,7 +202,7 @@ const MyAccountPage = () => {
           />
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

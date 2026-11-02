@@ -90,16 +90,16 @@ const ReportsPage = () => {
   return (
     <>
       {isDropdownOpen && (
-        <div className="pointer-events-none fixed inset-0 z-40 bg-black/40" />
+        <div className="pointer-events-none fixed inset-0 z-40 bg-black/40 transition-opacity animate-in fade-in-0 duration-200" />
       )}
 
       {!hasLoaded && (
-        <div className="flex min-h-[60vh] w-full items-center justify-center">
+        <div className="flex min-h-[60vh] w-full items-center justify-center animate-in fade-in-50 duration-300">
           <Receipt className="size-16 animate-spin text-primary" />
         </div>
       )}
 
-      <div className={!hasLoaded ? "hidden" : ""}>
+      <div className={!hasLoaded ? "hidden" : "animate-in fade-in-50 duration-300"}>
         {/* Page Header */}
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <HeaderLayout
@@ -110,15 +110,15 @@ const ReportsPage = () => {
             data={{
               buttonText: "",
               onClick: handleRefresh,
-              icon: <RefreshCw className="size-5" />,
+              icon: <RefreshCw className="size-5 transition-transform duration-300 group-hover:rotate-90" />,
               className:
-                "bg-[#F5F0EA] text-[#8F6900] hover:bg-[#F5F0EA]/80 h-14 w-14 min-w-0 px-0 rounded-[8px]",
+                "group bg-[#F5F0EA] text-[#8F6900] hover:bg-[#F5F0EA]/80 h-14 w-14 min-w-0 px-0 rounded-[8px] transition-all duration-200 hover:shadow-xs active:scale-95",
             }}
           />
         </div>
 
         {/* Filters Container (Above the Tabs) */}
-        <div className="mb-6 w-full">
+        <div key={`filters-${tab}`} className="mb-6 w-full animate-in fade-in-50 duration-200">
           {tab === "orders" && (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 w-full">
               <div className="flex flex-col gap-1.5 w-full">
@@ -258,7 +258,7 @@ const ReportsPage = () => {
         <ReportsTabs active={tab} onChange={setTab} />
 
         {/* Tab Content */}
-        <div key={refreshKey}>
+        <div key={`${tab}-${refreshKey}`} className="animate-in fade-in-50 duration-300">
           {tab === "orders" && (
             <OrdersReportTab
               fromDate={fromDate}

@@ -81,6 +81,7 @@ const SecuritySection = () => {
               buttonText: isSaving ? t("Updating...") : t("Update Password"),
               onClick: handleUpdatePassword,
               disabled: isSaving,
+              className: "transition-all duration-200 hover:shadow-xs active:scale-[0.98]",
             }}
           />
         </div>

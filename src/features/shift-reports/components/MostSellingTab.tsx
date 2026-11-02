@@ -129,19 +129,19 @@ const MostSellingTab = ({ onMenuOpenChange, onExportDataReady }: MostSellingTabP
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Top sold products */}
-        <div className="overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white">
+        <div className="group overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white shadow-xs transition-shadow duration-200 hover:shadow-md">
           <div className="flex min-h-14 items-center justify-between bg-[#F5F0EA] px-5 py-4">
             <h2 className="text-[18px] font-bold text-[#333333]">
               {t("Top Sold Products")}
             </h2>
-            <BarChart3 className="size-5 text-[#28293D]" />
+            <BarChart3 className="size-5 text-[#28293D] transition-transform duration-200 ease-out group-hover:scale-105" />
           </div>
 
           <div className="flex flex-col gap-6 px-5 py-6">
             {loading ? (
-              <p className="py-4 text-center text-[13px] text-[#8B8B8B]">{t("Loading...")}</p>
+              <p className="py-4 text-center text-[13px] text-[#8B8B8B] animate-in fade-in-50 duration-200">{t("Loading...")}</p>
             ) : topProducts.length === 0 ? (
-              <p className="py-4 text-center text-[13px] text-[#8B8B8B]">{t("No data")}</p>
+              <p className="py-4 text-center text-[13px] text-[#8B8B8B] animate-in fade-in-50 duration-200">{t("No data")}</p>
             ) : (
               topProducts.map((product, index) => {
                 const width = (product.count / maxCount) * 100;
@@ -150,7 +150,7 @@ const MostSellingTab = ({ onMenuOpenChange, onExportDataReady }: MostSellingTabP
                 return (
                   <div
                     key={product.rank}
-                    className="grid grid-cols-[160px_1fr_36px] items-center gap-3 sm:grid-cols-[200px_1fr_36px]"
+                    className="grid grid-cols-[160px_1fr_36px] items-center gap-3 rounded-lg px-2 py-1 -mx-2 transition-colors duration-150 hover:bg-[#FAFAF8] sm:grid-cols-[200px_1fr_36px]"
                   >
                     <div className="flex items-center gap-2 overflow-hidden">
                       <span className="shrink-0 text-[12px] font-bold text-black tracking-[0.24px]">
@@ -163,7 +163,7 @@ const MostSellingTab = ({ onMenuOpenChange, onExportDataReady }: MostSellingTabP
 
                     <div className="relative h-4 w-full overflow-hidden rounded-full bg-[#E5E5E5]">
                       <div
-                        className="h-full rounded-full bg-[#8F6900] transition-all duration-500"
+                        className="h-full rounded-full bg-[#8F6900] transition-all duration-500 ease-out"
                         style={{ width: `${width}%` }}
                       />
                     </div>
@@ -179,12 +179,12 @@ const MostSellingTab = ({ onMenuOpenChange, onExportDataReady }: MostSellingTabP
         </div>
 
         {/* Daily sales table */}
-        <div className="overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white">
+        <div className="group overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white shadow-xs transition-shadow duration-200 hover:shadow-md">
           <div className="flex items-center justify-between bg-white px-5 py-4">
             <span className="text-[18px] font-bold text-[#333333]">
               {t("Daily sales")}
             </span>
-            <TrendingUp className="size-5 text-black" />
+            <TrendingUp className="size-5 text-black transition-transform duration-200 ease-out group-hover:scale-105" />
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -198,19 +198,19 @@ const MostSellingTab = ({ onMenuOpenChange, onExportDataReady }: MostSellingTabP
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={3} className="py-8 text-center text-[14px] text-[#8B8B8B]">
+                    <td colSpan={3} className="py-8 text-center text-[14px] text-[#8B8B8B] animate-in fade-in-50 duration-200">
                       {t("Loading...")}
                     </td>
                   </tr>
                 ) : dailySales.length === 0 ? (
                   <tr>
-                    <td colSpan={3} className="py-8 text-center text-[14px] text-[#8B8B8B]">
+                    <td colSpan={3} className="py-8 text-center text-[14px] text-[#8B8B8B] animate-in fade-in-50 duration-200">
                       {t("No data")}
                     </td>
                   </tr>
                 ) : (
                   dailySales.map((sale) => (
-                    <tr key={sale.id} className="hover:bg-[#FAFAF8]">
+                    <tr key={sale.id} className="hover:bg-[#FAFAF8] transition-colors duration-150">
                       <td className={`${TD} font-medium text-black tracking-[0.28px]`}>
                         {sale.date}
                       </td>

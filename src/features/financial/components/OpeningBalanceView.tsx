@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Loader2 } from "lucide-react";
 import { Badge } from "@/shared/components/ui/badge";
 import {
   Table,
@@ -25,8 +26,10 @@ const OpeningBalanceView = ({ refreshKey }: OpeningBalanceViewProps) => {
   const { t } = useTranslation();
   const [selectedRecord, setSelectedRecord] = useState<OpeningBalanceRecord | null>(null);
   const [records, setRecords] = useState<OpeningBalanceRecord[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const loadRecords = () => {
+    setLoading(true);
     api
       .get("/inventory/opening-balances")
       .then((res) => {
@@ -46,7 +49,8 @@ const OpeningBalanceView = ({ refreshKey }: OpeningBalanceViewProps) => {
           })),
         );
       })
-      .catch(() => setRecords([]));
+      .catch(() => setRecords([]))
+      .finally(() => setLoading(false));
   };
 
   useEffect(loadRecords, [refreshKey]);
@@ -66,9 +70,17 @@ const OpeningBalanceView = ({ refreshKey }: OpeningBalanceViewProps) => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex justify-center py-16">
+        <Loader2 className="size-6 animate-spin text-[#8F6900]" />
+      </div>
+    );
+  }
+
   return (
     <>
-      <div className="rounded-[16px] border border-[#E5E5E5] bg-white overflow-hidden shadow-sm">
+      <div className="rounded-[16px] border border-[#E5E5E5] bg-white overflow-hidden shadow-sm transition-shadow duration-200 hover:shadow-md">
         <Table>
           <TableHeader>
             <TableRow className="bg-[#F5F0EA] border-none">
@@ -97,7 +109,7 @@ const OpeningBalanceView = ({ refreshKey }: OpeningBalanceViewProps) => {
           </TableHeader>
           <TableBody>
             {records.map((rec) => (
-              <TableRow key={rec.id} className="border-none hover:bg-[#FAFAF8]">
+              <TableRow key={rec.id} className="border-none hover:bg-[#FAFAF8] transition-colors duration-150">
                 <TableCell className="ps-8 py-5 whitespace-nowrap text-[12px] font-bold tracking-[0.24px] text-[#333333]">
                   {rec.number}
                 </TableCell>
@@ -132,7 +144,7 @@ const OpeningBalanceView = ({ refreshKey }: OpeningBalanceViewProps) => {
                       <button
                         type="button"
                         onClick={() => setSelectedRecord(rec)}
-                        className="h-[34px] w-[100px] inline-flex items-center justify-center rounded-[6px] bg-[#E2F4ED] text-[12px] font-semibold text-[#059B5A] hover:bg-[#D4EFE4] transition-colors cursor-pointer"
+                        className="h-[34px] w-[100px] inline-flex items-center justify-center rounded-[6px] bg-[#E2F4ED] text-[12px] font-semibold text-[#059B5A] hover:bg-[#D4EFE4] transition-all duration-150 active:scale-[0.98] cursor-pointer"
                       >
                         {t("Confirm")}
                       </button>

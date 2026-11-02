@@ -61,7 +61,7 @@ const AccountantDashboardView = ({
       {/* 8 Summary Cards Matching Figma exact layout */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
         {/* Card 1: Total Revenue */}
-        <div className="flex h-[115px] w-full items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm">
+        <div className="group flex h-[115px] w-full items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md">
           <div className="flex flex-col gap-2">
             <span className="text-[10px] font-semibold tracking-[0.2px] text-black uppercase">
               {t("Total Revenue")}
@@ -70,13 +70,13 @@ const AccountantDashboardView = ({
               {formatEgp(totalRevenue)}
             </span>
           </div>
-          <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#F5F0EA]">
+          <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#F5F0EA] transition-transform duration-200 ease-out group-hover:scale-105">
             <TrendingUp size={24} className="text-[#8F6900]" />
           </div>
         </div>
 
         {/* Card 2: Total Expenses */}
-        <div className="flex h-[115px] w-full items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm">
+        <div className="group flex h-[115px] w-full items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md">
           <div className="flex flex-col gap-2">
             <span className="text-[10px] font-semibold tracking-[0.2px] text-black uppercase">
               {t("Total Expenses")}
@@ -85,13 +85,13 @@ const AccountantDashboardView = ({
               {formatEgp(totalExpenses)}
             </span>
           </div>
-          <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#C90000]">
+          <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#C90000] transition-transform duration-200 ease-out group-hover:scale-105">
             <TrendingDown size={24} className="text-white" />
           </div>
         </div>
 
         {/* Card 3: Net Profit */}
-        <div className="flex h-[115px] w-full items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm">
+        <div className="group flex h-[115px] w-full items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md">
           <div className="flex flex-col gap-2">
             <span className="text-[10px] font-semibold tracking-[0.2px] text-black uppercase">
               {t("Net Profit")}
@@ -100,13 +100,13 @@ const AccountantDashboardView = ({
               {formatEgp(netProfit)}
             </span>
           </div>
-          <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#E2F4ED]">
+          <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#E2F4ED] transition-transform duration-200 ease-out group-hover:scale-105">
             <Zap size={24} className="text-[#059B5A]" />
           </div>
         </div>
 
         {/* Card 4: Profit Margin */}
-        <div className="flex h-[115px] w-full items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm">
+        <div className="group flex h-[115px] w-full items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md">
           <div className="flex flex-col gap-2">
             <span className="text-[10px] font-semibold tracking-[0.2px] text-black uppercase">
               {t("Profit Margin")}
@@ -115,13 +115,13 @@ const AccountantDashboardView = ({
               {profitMargin}
             </span>
           </div>
-          <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#FE9A00]/10">
+          <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#FE9A00]/10 transition-transform duration-200 ease-out group-hover:scale-105">
             <Target size={24} className="text-[#C7861E]" />
           </div>
         </div>
 
         {/* Card 5: Total inventory value */}
-        <div className="flex h-[115px] w-full items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm">
+        <div className="group flex h-[115px] w-full items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md">
           <div className="flex flex-col gap-2">
             <span className="text-[10px] font-semibold tracking-[0.2px] text-black uppercase">
               {t("Total inventory value")}
@@ -130,13 +130,13 @@ const AccountantDashboardView = ({
               {formatEgp(totalInventoryValue)}
             </span>
           </div>
-          <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#DBEAFE]">
+          <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#DBEAFE] transition-transform duration-200 ease-out group-hover:scale-105">
             <Database size={24} className="text-[#155DFC]" />
           </div>
         </div>
 
         {/* Card 6: Low Stock Items */}
-        <div className="flex h-[115px] w-full items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm">
+        <div className="group flex h-[115px] w-full items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md">
           <div className="flex flex-col gap-2">
             <span className="text-[10px] font-semibold tracking-[0.2px] text-black uppercase">
               {t("Low Stock Items")}
@@ -145,13 +145,13 @@ const AccountantDashboardView = ({
               {lowStockItems}
             </span>
           </div>
-          <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#FE9A00]/10">
+          <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#FE9A00]/10 transition-transform duration-200 ease-out group-hover:scale-105">
             <AlertTriangle size={24} className="text-[#C7861E]" />
           </div>
         </div>
 
         {/* Card 7: Out of Stock */}
-        <div className="flex h-[115px] w-full items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm">
+        <div className="group flex h-[115px] w-full items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md">
           <div className="flex flex-col gap-2">
             <span className="text-[10px] font-semibold tracking-[0.2px] text-black uppercase">
               {t("Out of Stock")}
@@ -160,13 +160,13 @@ const AccountantDashboardView = ({
               {outOfStock}
             </span>
           </div>
-          <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#C90000]">
+          <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#C90000] transition-transform duration-200 ease-out group-hover:scale-105">
             <Box size={24} className="text-white" />
           </div>
         </div>
 
         {/* Card 8: Cost of Waste (Monthly) */}
-        <div className="flex h-[115px] w-full items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm">
+        <div className="group flex h-[115px] w-full items-center justify-between overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md">
           <div className="flex flex-col gap-2">
             <span className="text-[10px] font-semibold tracking-[0.2px] text-black uppercase">
               {t("Cost of Waste (Monthly)")}
@@ -175,7 +175,7 @@ const AccountantDashboardView = ({
               {formatEgp(costOfWasteMonthly)}
             </span>
           </div>
-          <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#F3E9FA]">
+          <div className="flex size-[46px] items-center justify-center rounded-[11.15px] bg-[#F3E9FA] transition-transform duration-200 ease-out group-hover:scale-105">
             <Trash2 size={24} className="text-[#9524E4]" />
           </div>
         </div>
@@ -184,7 +184,7 @@ const AccountantDashboardView = ({
       {/* Middle Row: Revenues vs Expenses & Quick Actions */}
       <div className="grid grid-cols-1 gap-7 lg:grid-cols-2">
         {/* Revenues versus expenses Card */}
-        <div className="flex h-[296px] flex-col rounded-[16px] border border-[#E5E5E5] bg-white shadow-sm overflow-hidden">
+        <div className="flex h-[296px] flex-col rounded-[16px] border border-[#E5E5E5] bg-white shadow-sm overflow-hidden transition-shadow duration-200 hover:shadow-md">
           <div className="flex items-center justify-between bg-[#F5F0EA] px-[26px] py-3 border-b border-[#E5E5E5]">
             <h3 className="text-[20px] font-bold text-[#333333]">
               {t("Revenues versus expenses")}
@@ -198,18 +198,18 @@ const AccountantDashboardView = ({
             {/* Progress bar */}
             <div className="flex h-5 w-full overflow-hidden rounded-full">
               <div
-                className="bg-[#06C270] transition-all"
+                className="bg-[#06C270] transition-all duration-500 ease-out"
                 style={{ width: `${revenuePct}%` }}
               />
               <div
-                className="bg-[#C90000] transition-all"
+                className="bg-[#C90000] transition-all duration-500 ease-out"
                 style={{ width: `${expensePct}%` }}
               />
             </div>
 
             {/* Sub cards */}
             <div className="grid grid-cols-2 gap-6">
-              <div className="flex flex-col gap-1 rounded-[16px] border border-[#E5E5E5] bg-[#E2F4ED] p-4">
+              <div className="flex flex-col gap-1 rounded-[16px] border border-[#E5E5E5] bg-[#E2F4ED] p-4 transition-transform duration-200 ease-out hover:-translate-y-0.5">
                 <span className="text-[10px] font-semibold uppercase tracking-[0.2px] text-[#059B5A]">
                   {t("Revenue")}
                 </span>
@@ -217,7 +217,7 @@ const AccountantDashboardView = ({
                   {formatEgp(totalRevenue)}
                 </span>
               </div>
-              <div className="flex flex-col gap-1 rounded-[16px] border border-[#E5E5E5] bg-[#C90000] p-4">
+              <div className="flex flex-col gap-1 rounded-[16px] border border-[#E5E5E5] bg-[#C90000] p-4 transition-transform duration-200 ease-out hover:-translate-y-0.5">
                 <span className="text-[10px] font-semibold uppercase tracking-[0.2px] text-white">
                   {t("Expenses")}
                 </span>
@@ -230,7 +230,7 @@ const AccountantDashboardView = ({
         </div>
 
         {/* Quick Actions Card */}
-        <div className="flex h-[296px] flex-col rounded-[16px] border border-[#E5E5E5] bg-white shadow-sm overflow-hidden">
+        <div className="flex h-[296px] flex-col rounded-[16px] border border-[#E5E5E5] bg-white shadow-sm overflow-hidden transition-shadow duration-200 hover:shadow-md">
           <div className="bg-[#F5F0EA] px-[26px] py-3 border-b border-[#E5E5E5]">
             <h3 className="text-[20px] font-bold text-[#333333]">
               {t("Quick Actions")}
@@ -241,9 +241,9 @@ const AccountantDashboardView = ({
               <button
                 type="button"
                 onClick={() => onNavigateTab("inventory-count")}
-                className="flex h-[56px] items-center gap-3 rounded-[5px] border border-[#E5E5E5] bg-[#FAFAF7] px-4 text-start hover:bg-[#F5F0EA] transition-colors cursor-pointer"
+                className="group flex h-[56px] items-center gap-3 rounded-[5px] border border-[#E5E5E5] bg-[#FAFAF7] px-4 text-start hover:bg-[#F5F0EA] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-xs active:scale-[0.98] cursor-pointer"
               >
-                <FileSpreadsheet className="size-4.5 text-black shrink-0" />
+                <FileSpreadsheet className="size-4.5 text-black shrink-0 transition-transform duration-200 group-hover:scale-110" />
                 <span className="text-[16px] font-semibold text-black truncate">
                   {t("New Inventory Session")}
                 </span>
@@ -252,9 +252,9 @@ const AccountantDashboardView = ({
               <button
                 type="button"
                 onClick={() => onNavigateTab("adjustments-wastage")}
-                className="flex h-[56px] items-center gap-3 rounded-[5px] border border-[#E5E5E5] bg-[#FAFAF7] px-4 text-start hover:bg-[#F5F0EA] transition-colors cursor-pointer"
+                className="group flex h-[56px] items-center gap-3 rounded-[5px] border border-[#E5E5E5] bg-[#FAFAF7] px-4 text-start hover:bg-[#F5F0EA] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-xs active:scale-[0.98] cursor-pointer"
               >
-                <Trash2 className="size-4.5 text-black shrink-0" />
+                <Trash2 className="size-4.5 text-black shrink-0 transition-transform duration-200 group-hover:scale-110" />
                 <span className="text-[16px] font-semibold text-black truncate">
                   {t("Waste Entry")}
                 </span>
@@ -263,9 +263,9 @@ const AccountantDashboardView = ({
               <button
                 type="button"
                 onClick={() => onNavigateTab("adjustments-wastage")}
-                className="flex h-[56px] items-center gap-3 rounded-[5px] border border-[#E5E5E5] bg-[#FAFAF7] px-4 text-start hover:bg-[#F5F0EA] transition-colors cursor-pointer"
+                className="group flex h-[56px] items-center gap-3 rounded-[5px] border border-[#E5E5E5] bg-[#FAFAF7] px-4 text-start hover:bg-[#F5F0EA] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-xs active:scale-[0.98] cursor-pointer"
               >
-                <ArrowLeftRight className="size-4.5 text-black shrink-0" />
+                <ArrowLeftRight className="size-4.5 text-black shrink-0 transition-transform duration-200 group-hover:scale-110" />
                 <span className="text-[16px] font-semibold text-black truncate">
                   {t("Quantity Adjustment")}
                 </span>
@@ -274,9 +274,9 @@ const AccountantDashboardView = ({
               <button
                 type="button"
                 onClick={() => onNavigateTab("opening-balance")}
-                className="flex h-[56px] items-center gap-3 rounded-[5px] border border-[#E5E5E5] bg-[#FAFAF7] px-4 text-start hover:bg-[#F5F0EA] transition-colors cursor-pointer"
+                className="group flex h-[56px] items-center gap-3 rounded-[5px] border border-[#E5E5E5] bg-[#FAFAF7] px-4 text-start hover:bg-[#F5F0EA] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-xs active:scale-[0.98] cursor-pointer"
               >
-                <Package className="size-4.5 text-black shrink-0" />
+                <Package className="size-4.5 text-black shrink-0 transition-transform duration-200 group-hover:scale-110" />
                 <span className="text-[16px] font-semibold text-black truncate">
                   {t("Opening Balance")}
                 </span>
@@ -285,9 +285,9 @@ const AccountantDashboardView = ({
               <button
                 type="button"
                 onClick={onOpenAddModal}
-                className="flex h-[56px] items-center gap-3 rounded-[5px] border border-[#E5E5E5] bg-[#FAFAF7] px-4 text-start hover:bg-[#F5F0EA] transition-colors cursor-pointer"
+                className="group flex h-[56px] items-center gap-3 rounded-[5px] border border-[#E5E5E5] bg-[#FAFAF7] px-4 text-start hover:bg-[#F5F0EA] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-xs active:scale-[0.98] cursor-pointer"
               >
-                <CircleDollarSign className="size-4.5 text-black shrink-0" />
+                <CircleDollarSign className="size-4.5 text-black shrink-0 transition-transform duration-200 group-hover:scale-110" />
                 <span className="text-[16px] font-semibold text-black truncate">
                   {t("Expense / Income")}
                 </span>

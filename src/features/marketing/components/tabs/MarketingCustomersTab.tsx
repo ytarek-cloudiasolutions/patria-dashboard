@@ -52,11 +52,11 @@ export const MarketingCustomersTab = () => {
       {/* Backdrop overlay portaled to document.body so it covers the entire viewport */}
       {isDropdownOpen &&
         createPortal(
-          <div className="pointer-events-none fixed inset-0 z-40 bg-black/40" />,
+          <div className="pointer-events-none fixed inset-0 z-40 bg-black/40 animate-in fade-in duration-200" />,
           document.body
         )}
 
-      <div className="space-y-4 animate-in fade-in duration-150">
+      <div className="space-y-4 animate-in fade-in-50 duration-200">
         {/* Search & Sort Filters */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
         <div className="flex-1">
@@ -82,7 +82,7 @@ export const MarketingCustomersTab = () => {
       </div>
 
       {/* Customers Table */}
-      <div className="w-full rounded-2xl border border-[#CACBD4] bg-white overflow-hidden shadow-xs flex flex-col">
+      <div className="w-full rounded-2xl border border-[#CACBD4] bg-white overflow-hidden shadow-xs transition-shadow duration-200 hover:shadow-sm flex flex-col">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -117,7 +117,7 @@ export const MarketingCustomersTab = () => {
                   <tr
                     key={cust.id}
                     onClick={() => setSelectedCustomer(cust)}
-                    className="hover:bg-[#FAF7F2]/60 transition-colors cursor-pointer group"
+                    className="hover:bg-[#FAF7F2]/60 transition-colors duration-150 cursor-pointer group"
                   >
                     {/* Customer column (Name, Phone, WhatsApp icon) */}
                     <td className="py-3.5 px-6">
@@ -132,7 +132,7 @@ export const MarketingCustomersTab = () => {
                           <button
                             type="button"
                             onClick={(e) => handleWhatsAppClick(e, cust.phone)}
-                            className="flex cursor-pointer items-center justify-center shrink-0 hover:opacity-80 transition-opacity"
+                            className="flex cursor-pointer items-center justify-center shrink-0 hover:opacity-80 transition-all duration-150 hover:scale-110 active:scale-90"
                             title={t("Chat on WhatsApp")}
                             aria-label={`Message ${cust.name} on WhatsApp`}
                           >
@@ -170,11 +170,11 @@ export const MarketingCustomersTab = () => {
                     <td className="py-3.5 px-6 text-center">
                       <div className="flex justify-center items-center">
                         {cust.appStatus === "active" ? (
-                          <span className="inline-flex items-center px-3 py-1 bg-[#E2F4ED] rounded-[30px] border border-[#059B5A] text-[#059B5A] text-xs font-semibold tracking-tight font-['Montserrat',sans-serif]">
+                          <span className="inline-flex items-center px-3 py-1 bg-[#E2F4ED] rounded-[30px] border border-[#059B5A] text-[#059B5A] text-xs font-semibold tracking-tight font-['Montserrat',sans-serif] transition-transform duration-150 group-hover:scale-105">
                             {t("Active")}
                           </span>
                         ) : cust.appStatus === "unactive" ? (
-                          <span className="inline-flex items-center px-3 py-1 bg-[#C90000] rounded-[30px] border border-[#C90000] text-white text-xs font-semibold tracking-tight font-['Montserrat',sans-serif]">
+                          <span className="inline-flex items-center px-3 py-1 bg-[#C90000] rounded-[30px] border border-[#C90000] text-white text-xs font-semibold tracking-tight font-['Montserrat',sans-serif] transition-transform duration-150 group-hover:scale-105">
                             {t("unactive")}
                           </span>
                         ) : (

@@ -16,7 +16,7 @@ interface StatCardProps {
 }
 
 const StatCard = ({ label, value, tone = "neutral" }: StatCardProps) => (
-  <div className="flex h-[115px] flex-col items-center justify-center gap-2 rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.10)]">
+  <div className="flex h-[115px] flex-col items-center justify-center gap-2 rounded-[16px] border border-[#E5E5E5] bg-white p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.10)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md">
     <span className={cn("text-[10px] font-semibold tracking-[0.20px]", COLOR_STYLES[tone])}>
       {label}
     </span>

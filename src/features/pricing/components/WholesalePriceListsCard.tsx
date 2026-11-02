@@ -22,23 +22,23 @@ const WholesalePriceListsCard = ({
 }: WholesalePriceListsCardProps) => {
   const { t } = useTranslation();
   return (
-    <Card className="h-full gap-0 overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white py-0 ring-0 shadow-sm">
+    <Card className="group/card h-full gap-0 overflow-hidden rounded-[16px] border border-[#E5E5E5] bg-white py-0 ring-0 shadow-sm transition-shadow duration-200 hover:shadow-md">
       <div className="flex items-center justify-between bg-[#F5F0EA] px-5 py-4 sm:px-6">
         <h3 className="text-[15px] font-bold text-[#333333] sm:text-[16px]">
           {t("Wholesale Price Lists")}
         </h3>
-        <Banknote size={24} className="text-[#28293D]" />
+        <Banknote size={24} className="text-[#28293D] transition-transform duration-200 ease-out group-hover/card:scale-105" />
       </div>
       <CardContent className="flex h-full flex-col gap-3 px-5 py-5 sm:px-6 sm:py-6">
         {lists.length === 0 ? (
-          <p className="py-8 text-center text-[14px] text-[#8B8B8B]">
+          <p className="py-8 text-center text-[14px] text-[#8B8B8B] animate-in fade-in-50 duration-200">
             {t("No price lists yet.")}
           </p>
         ) : (
           lists.map((list) => (
             <div
               key={list.id}
-              className="rounded-[12px] border border-[#EDEBE7] bg-[#FAFAF7] px-4 py-3"
+              className="rounded-[12px] border border-[#EDEBE7] bg-[#FAFAF7] px-4 py-3 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-xs"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
@@ -54,17 +54,17 @@ const WholesalePriceListsCard = ({
                     type="button"
                     aria-label={`Edit ${list.name}`}
                     onClick={() => onEdit?.(list)}
-                    className="cursor-pointer text-[#000000] hover:text-primary"
+                    className="group cursor-pointer text-[#000000] hover:text-primary transition-all duration-150 active:scale-90"
                   >
-                    <Pencil size={18} />
+                    <Pencil size={18} className="transition-transform duration-150 group-hover:scale-110" />
                   </button>
                   <button
                     type="button"
                     aria-label={`Delete ${list.name}`}
                     onClick={() => onDelete?.(list)}
-                    className="cursor-pointer text-[#C90000]"
+                    className="group cursor-pointer text-[#C90000] transition-all duration-150 active:scale-90"
                   >
-                    <Trash2 size={18} />
+                    <Trash2 size={18} className="transition-transform duration-150 group-hover:scale-110" />
                   </button>
                 </div>
               </div>

@@ -107,7 +107,7 @@ const ModifyPermissionsDialog = ({
         className="max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[16px] bg-white p-0 ring-0 sm:max-w-150"
       >
         {(isWarehouseOpen || isShiftOpen) && (
-          <div className="pointer-events-none fixed inset-0 z-60 bg-black/40" />
+          <div className="pointer-events-none fixed inset-0 z-60 bg-black/40 transition-opacity animate-in fade-in-0 duration-200" />
         )}
 
         <div className="flex max-h-[calc(100vh-2rem)] flex-col">
@@ -132,7 +132,7 @@ const ModifyPermissionsDialog = ({
                       key={option.value}
                       onClick={() => handleRoleChange(option.value)}
                       className={cn(
-                        "flex flex-1 cursor-pointer flex-col items-center justify-center gap-2 rounded-[4px] px-2 py-3.5 text-center transition-all",
+                        "flex flex-1 cursor-pointer flex-col items-center justify-center gap-2 rounded-[4px] px-2 py-3.5 text-center transition-all duration-200 ease-out hover:-translate-y-0.5 active:scale-[0.98]",
                         isActive
                           ? "bg-[#F5F0EA] outline outline-4 outline-[rgba(98,79,28,0.50)]"
                           : "bg-[#FAFAF7] outline outline-4 outline-offset-[-4px] outline-[#E5E5E5] hover:outline-[#CACBD4]",
@@ -220,7 +220,7 @@ const ModifyPermissionsDialog = ({
                         key={page}
                         htmlFor={id}
                         className={cn(
-                          "flex cursor-pointer items-center justify-between rounded-2xl border border-[#E5E5E5] p-3 transition-opacity",
+                          "flex cursor-pointer items-center justify-between rounded-2xl border border-[#E5E5E5] p-3 transition-all duration-150 hover:bg-[#FAFAF8] active:scale-[0.99]",
                           !isChecked && "opacity-60",
                         )}
                       >
@@ -232,7 +232,7 @@ const ModifyPermissionsDialog = ({
                         </span>
                         <div
                           className={cn(
-                            "rounded-[10px] p-1",
+                            "rounded-[10px] p-1 transition-colors duration-150",
                             isChecked && "bg-[#624F1C1A]",
                           )}
                         >
@@ -270,13 +270,13 @@ const ModifyPermissionsDialog = ({
                   type: "button",
                   onClick: () => onOpenChange(false),
                   className:
-                    "w-full sm:w-auto border-primary text-primary hover:bg-white hover:text-primary",
+                    "w-full sm:w-auto border-primary text-primary hover:bg-white hover:text-primary transition-all duration-200 active:scale-[0.98]",
                 }}
               />
               <Button
                 type="button"
                 onClick={handleSave}
-                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
+                className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white transition-all duration-200 hover:shadow-xs active:scale-[0.98] sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px]"
               >
                 {t("Save Edits")}
               </Button>

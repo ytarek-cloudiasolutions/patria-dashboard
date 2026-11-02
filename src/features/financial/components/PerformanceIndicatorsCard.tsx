@@ -54,7 +54,7 @@ const PerformanceIndicatorsCard = ({
 }: PerformanceIndicatorsCardProps) => {
   const { t } = useTranslation();
   return (
-    <Card className="h-full rounded-[16px] border border-[#E5E5E5] bg-white py-0 ring-0 shadow-sm">
+    <Card className="h-full rounded-[16px] border border-[#E5E5E5] bg-white py-0 ring-0 shadow-sm transition-shadow duration-200 hover:shadow-md">
       <CardContent className="flex h-full flex-col gap-3 px-5 py-5 sm:px-6 sm:py-6">
         <div className="flex items-center gap-2">
           <TrendingUp size={25} className="text-[#000000]" />
@@ -76,13 +76,13 @@ const PerformanceIndicatorsCard = ({
             return (
               <div
                 key={row.id}
-                className="flex items-center justify-between rounded-[12px] border border-[#E5E5E5] bg-white px-4 py-2.5"
+                className="group flex items-center justify-between rounded-[12px] border border-[#E5E5E5] bg-white px-4 py-2.5 transition-all duration-150 hover:bg-[#FAFAF8]"
               >
                 <div className="flex items-center gap-3">
                   <span
                     aria-hidden="true"
                     className={cn(
-                      "flex size-8 items-center justify-center rounded-[8px]",
+                      "flex size-8 items-center justify-center rounded-[8px] transition-transform duration-200 group-hover:scale-105",
                       bg,
                     )}
                   >
