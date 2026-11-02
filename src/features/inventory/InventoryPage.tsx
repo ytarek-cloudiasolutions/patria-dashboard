@@ -69,20 +69,21 @@ const InventoryPage = ({
   const { categories, getCategories } = useCategories();
   const [activeTab, setActiveTab] = useState<InventoryTab>("stock");
   const [search, setSearch] = useState("");
-  const [warehouseId, setWarehouseId] = useState(
-    () => initialWarehouseId || paramWarehouseId || "",
-  );
+  const routeWarehouseId = initialWarehouseId || paramWarehouseId || "";
+  const [warehouseId, setWarehouseId] = useState(routeWarehouseId);
+  const [prevRouteWarehouseId, setPrevRouteWarehouseId] = useState(routeWarehouseId);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [adjustments, setAdjustments] = useState<Record<string | number, number>>({});
   const [selectedItemIds, setSelectedItemIds] = useState<Set<string | number>>(new Set());
   const [infiniteItemIds, setInfiniteItemIds] = useState<Set<string | number>>(new Set());
 
-  useEffect(() => {
-    const targetId = initialWarehouseId || paramWarehouseId;
-    if (targetId !== undefined) {
-      setWarehouseId(targetId);
-    }
-  }, [initialWarehouseId, paramWarehouseId]);
+  if (routeWarehouseId !== prevRouteWarehouseId) {
+    setPrevRouteWarehouseId(routeWarehouseId);
+    setWarehouseId(routeWarehouseId);
+    setSelectedItemIds(new Set());
+    setAdjustments({});
+    setInfiniteItemIds(new Set());
+  }
 
   const activeWarehouse = useMemo<UiWarehouse | null>(() => {
     if (!warehouseId) return null;

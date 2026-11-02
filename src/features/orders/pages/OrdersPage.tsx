@@ -332,6 +332,9 @@ const OrdersPage = () => {
 
   const handleSourceChange = (source: OrderSource) => {
     setActiveSource(source);
+    if ((source === "application" || source === "call") && selectedStatus === "Completed") {
+      setSelectedStatus("All statuses");
+    }
     setSelectedIds([]);
     setCurrentPage(1);
   };
@@ -498,6 +501,7 @@ const OrdersPage = () => {
           onSearchChange={setSearchValue}
           onStatusChange={handleStatusChange}
           onStatusMenuOpenChange={setIsStatusMenuOpen}
+          hideCompleted={activeSource === "application" || activeSource === "call"}
         />
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5">

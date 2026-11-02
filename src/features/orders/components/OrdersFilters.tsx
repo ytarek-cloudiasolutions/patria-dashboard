@@ -10,6 +10,7 @@ interface OrdersFiltersProps {
   onSearchChange: (value: string) => void;
   onStatusChange: (status: OrderStatusFilter) => void;
   onStatusMenuOpenChange?: (open: boolean) => void;
+  hideCompleted?: boolean;
 }
 
 const OrdersFilters = ({
@@ -18,8 +19,13 @@ const OrdersFilters = ({
   onSearchChange,
   onStatusChange,
   onStatusMenuOpenChange,
+  hideCompleted = false,
 }: OrdersFiltersProps) => {
   const { t } = useTranslation();
+
+  const statusOptions = hideCompleted
+    ? ORDER_STATUS_FILTER_OPTIONS.filter((status) => status !== "Completed")
+    : ORDER_STATUS_FILTER_OPTIONS;
 
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4 md:gap-6">
@@ -32,7 +38,7 @@ const OrdersFilters = ({
       </div>
       <div className="w-full sm:w-64">
         <DropdownSelect
-          options={ORDER_STATUS_FILTER_OPTIONS}
+          options={statusOptions}
           selected={selectedStatus}
           onSelect={(value) => onStatusChange(value as OrderStatusFilter)}
           onOpenChange={onStatusMenuOpenChange}

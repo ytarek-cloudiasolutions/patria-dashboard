@@ -376,6 +376,8 @@ const OrdersTable = ({
                         <DriverCell
                           orderId={order.id}
                           driver={order.driver}
+                          zone={order.zone}
+                          address={order.address}
                           onAssign={(driverName, updatedOrderData) =>
                             onAssignDriver(order.id, driverName, updatedOrderData)
                           }
@@ -414,11 +416,20 @@ interface ApiDriver {
 interface DriverCellProps {
   orderId: string;
   driver?: string;
+  zone?: string;
+  address?: string;
   onAssign: (driverName: string, updatedOrderData?: any) => void;
   onOpenChange?: (open: boolean) => void;
 }
 
-const DriverCell = ({ orderId, driver, onAssign, onOpenChange }: DriverCellProps) => {
+const DriverCell = ({
+  orderId,
+  driver,
+  zone,
+  address,
+  onAssign,
+  onOpenChange,
+}: DriverCellProps) => {
   const { t } = useTranslation();
   const [drivers, setDrivers] = useState<ApiDriver[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -468,6 +479,89 @@ const DriverCell = ({ orderId, driver, onAssign, onOpenChange }: DriverCellProps
     (d) => d.status === "active" || d.status === "busy"
   );
 
+  // Resolve the order's delivery zone from `order.zone`, or by matching a known
+  // driver zone inside `order.address` when `order.zone` is empty.
+  const resolvedZone = (() => {
+    const explicitZone = (zone || "").trim();
+    if (explicitZone) return explicitZone;
+    const addrLower = (address || "").toLowerCase();
+    if (!addrLower) return "";
+    for (const d of availableDrivers) {
+      for (const z of d.zones || []) {
+        const trimmed = z.trim();
+        if (trimmed && addrLower.includes(trimmed.toLowerCase())) {
+          return trimmed;
+        }
+      }
+    }
+    return "";
+  })();
+
+  const driverGroups = (() => {
+    if (resolvedZone) {
+      const targetLower = resolvedZone.toLowerCase();
+      const isMatch = (d: ApiDriver) =>
+        (d.zones || []).some((z) => z.trim().toLowerCase() === targetLower);
+
+      const zoneDrivers = availableDrivers.filter(isMatch);
+      const otherDrivers = availableDrivers.filter((d) => !isMatch(d));
+
+      const groups: { title: string; items: ApiDriver[] }[] = [];
+      if (zoneDrivers.length > 0) {
+        groups.push({
+          title: `${resolvedZone} ${t("Drivers")}`,
+          items: zoneDrivers,
+        });
+      }
+      if (otherDrivers.length > 0) {
+        groups.push({
+          title: t("Other Drivers"),
+          items: otherDrivers,
+        });
+      }
+      return groups;
+    }
+
+    // Fallback when order has no zone: group by each driver's zone, then Other Drivers
+    const zoneDriverMap = new Map<string, ApiDriver[]>();
+    const unzonedDrivers: ApiDriver[] = [];
+
+    availableDrivers.forEach((d) => {
+      if (!d.zones || d.zones.length === 0) {
+        unzonedDrivers.push(d);
+      } else {
+        d.zones.forEach((z) => {
+          const normalizedZone = z.trim();
+          if (!normalizedZone) return;
+          if (!zoneDriverMap.has(normalizedZone)) {
+            zoneDriverMap.set(normalizedZone, []);
+          }
+          const list = zoneDriverMap.get(normalizedZone)!;
+          if (!list.some((existing) => existing._id === d._id)) {
+            list.push(d);
+          }
+        });
+      }
+    });
+
+    const groups: { title: string; items: ApiDriver[] }[] = [];
+    zoneDriverMap.forEach((zoneDrivers, zoneName) => {
+      if (zoneDrivers.length > 0) {
+        groups.push({
+          title: `${zoneName} ${t("Drivers")}`,
+          items: zoneDrivers,
+        });
+      }
+    });
+    if (unzonedDrivers.length > 0) {
+      groups.push({
+        title: t("Other Drivers"),
+        items: unzonedDrivers,
+      });
+    }
+    return groups;
+  })();
+
   return (
     <DropdownMenu onOpenChange={handleOpenChange}>
       <DropdownMenuTrigger asChild>
@@ -490,32 +584,42 @@ const DriverCell = ({ orderId, driver, onAssign, onOpenChange }: DriverCellProps
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"
-        className="z-70 w-40 rounded-[16px] p-2 ring-0"
+        className="z-70 w-52 rounded-[16px] border border-[#E5E5E5] bg-white p-2 shadow-xl ring-0"
       >
-        {isLoading ? (
-          <div className="flex items-center justify-center py-3">
-            <Loader2 className="size-5 animate-spin text-primary" />
-          </div>
-        ) : availableDrivers.length === 0 ? (
-          <div className="px-3 py-2 text-[12px] text-[#8B8B8B] text-center">
-            {t("No drivers available")}
-          </div>
-        ) : (
-          availableDrivers.map((d) => (
-            <DropdownMenuItem
-              key={d._id}
-              disabled={isDispatching}
-              onSelect={() => handleSelect(d)}
-              className={`rounded-[12px] px-3 py-2 text-[12px] font-medium cursor-pointer ${
-                driver === d.name
-                  ? "bg-primary text-primary-foreground pointer-events-none"
-                  : "text-[#28293D] data-highlighted:bg-[#F5F0EA]"
-              }`}
-            >
-              {d.name}
-            </DropdownMenuItem>
-          ))
-        )}
+        <div className="flex max-h-60 flex-col gap-1 overflow-y-auto">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-3">
+              <Loader2 className="size-5 animate-spin text-primary" />
+            </div>
+          ) : availableDrivers.length === 0 ? (
+            <div className="px-3 py-2 text-[12px] text-[#8B8B8B] text-center">
+              {t("No drivers available")}
+            </div>
+          ) : (
+            driverGroups.map((group) => (
+              <Fragment key={group.title}>
+                <div className="flex h-[34px] w-full shrink-0 items-center rounded-[4px] bg-[#F5F0EA] px-3 py-2 text-[12px] font-semibold text-black tracking-[0.24px] pointer-events-none select-none">
+                  {group.title}
+                </div>
+                {group.items.map((d) => (
+                  <DropdownMenuItem
+                    key={`${group.title}-${d._id}`}
+                    disabled={isDispatching}
+                    onSelect={() => handleSelect(d)}
+                    className={cn(
+                      "flex min-h-10 w-full items-center rounded-[12px] px-3.5 py-2 text-[14px] font-medium tracking-[0.24px] cursor-pointer transition-colors outline-none",
+                      driver === d.name
+                        ? "bg-primary text-primary-foreground font-semibold pointer-events-none"
+                        : "text-[#28293D] hover:bg-[#FAFAF7] data-highlighted:bg-[#FAFAF7] data-highlighted:text-[#28293D]"
+                    )}
+                  >
+                    {d.name}
+                  </DropdownMenuItem>
+                ))}
+              </Fragment>
+            ))
+          )}
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );

@@ -43,7 +43,6 @@ const derivePoUiStatus = (o: any): PoStatus => {
     return "Canceled";
   }
   if (
-    rawStatus === "received" ||
     paymentStatus === "paid" ||
     (totalAmount > 0 && paidAmount >= totalAmount)
   ) {
@@ -51,6 +50,7 @@ const derivePoUiStatus = (o: any): PoStatus => {
   }
   if (
     rawStatus === "submitted" ||
+    rawStatus === "received" ||
     paymentStatus === "partial" ||
     paidAmount > 0
   ) {

@@ -68,7 +68,7 @@ const PoActions = ({
   const canCancel = !isCanceled && !isReceived && order.status !== "Paid";
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap items-center gap-1.5 md:flex-nowrap">
       {canSubmit && (
         <DefaultButton
           data={{
@@ -76,7 +76,7 @@ const PoActions = ({
             type: "button",
             onClick: () => onSubmitToSupplier(order),
             className:
-              "h-9 sm:h-9 px-3 sm:px-3 text-[12px] sm:text-[12px] gap-1 sm:gap-1 bg-[#F5F0EA] text-primary rounded-[16px] transition-all duration-150 active:scale-[0.98] hover:opacity-90",
+              "h-8 sm:h-8 px-2.5 sm:px-2.5 text-[12px] sm:text-[12px] gap-1 sm:gap-1 whitespace-nowrap bg-[#F5F0EA] text-primary rounded-[14px] transition-all duration-150 active:scale-[0.98] hover:opacity-90",
           }}
         />
       )}
@@ -87,7 +87,7 @@ const PoActions = ({
             type: "button",
             onClick: () => onMakePayment(order),
             className:
-              "h-9 sm:h-9 px-3 sm:px-3 text-[12px] sm:text-[12px] gap-1 sm:gap-1 rounded-[16px] transition-all duration-150 active:scale-[0.98] hover:opacity-90",
+              "h-8 sm:h-8 px-2.5 sm:px-2.5 text-[12px] sm:text-[12px] gap-1 sm:gap-1 whitespace-nowrap rounded-[14px] transition-all duration-150 active:scale-[0.98] hover:opacity-90",
           }}
         />
       )}
@@ -98,7 +98,7 @@ const PoActions = ({
             type: "button",
             onClick: () => onMarkReceived(order),
             className:
-              "h-9 sm:h-9 px-3 sm:px-3 text-[12px] sm:text-[12px] gap-1 sm:gap-1 bg-[#E2F4ED] text-[#059B5A] rounded-[16px] transition-all duration-150 active:scale-[0.98] hover:opacity-90",
+              "h-8 sm:h-8 px-2.5 sm:px-2.5 text-[12px] sm:text-[12px] gap-1 sm:gap-1 whitespace-nowrap bg-[#E2F4ED] text-[#059B5A] rounded-[14px] transition-all duration-150 active:scale-[0.98] hover:opacity-90",
           }}
         />
       )}
@@ -109,7 +109,7 @@ const PoActions = ({
             type: "button",
             onClick: () => onCancel(order),
             className:
-              "h-9 sm:h-9 px-3 sm:px-3 text-[12px] sm:text-[12px] gap-1 sm:gap-1 bg-[#FFECEC] text-[#C90000] rounded-[16px] transition-all duration-150 active:scale-[0.98] hover:opacity-90",
+              "h-8 sm:h-8 px-2.5 sm:px-2.5 text-[12px] sm:text-[12px] gap-1 sm:gap-1 whitespace-nowrap bg-[#FFECEC] text-[#C90000] rounded-[14px] transition-all duration-150 active:scale-[0.98] hover:opacity-90",
           }}
         />
       )}
@@ -117,9 +117,9 @@ const PoActions = ({
         type="button"
         onClick={() => onDelete(order)}
         title={t("Delete")}
-        className="group inline-flex h-9 items-center justify-center rounded-[16px] px-2 text-[#C90000] hover:bg-[#FFEBEE] transition-all duration-150 active:scale-90 cursor-pointer"
+        className="group inline-flex h-8 shrink-0 items-center justify-center rounded-[14px] px-1.5 text-[#C90000] hover:bg-[#FFEBEE] transition-all duration-150 active:scale-90 cursor-pointer"
       >
-        <Trash2 className="size-4.5 transition-transform duration-150 group-hover:scale-110" />
+        <Trash2 className="size-4 transition-transform duration-150 group-hover:scale-110" />
       </button>
     </div>
   );
@@ -234,22 +234,22 @@ const PurchasingTable = ({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="ps-6 py-4 text-start">
+              <TableHead className="ps-5 pe-3 py-4 text-start">
                 {t("PO NUMBER")}
               </TableHead>
-              <TableHead className="px-6 py-4 text-start">
+              <TableHead className="px-3 py-4 text-start">
                 {t("CONTACT PERSON")}
               </TableHead>
-              <TableHead className="px-6 py-4 text-start">
+              <TableHead className="px-3 py-4 text-start">
                 {t("DESTINATION")}
               </TableHead>
-              <TableHead className="px-6 py-4 text-start">
+              <TableHead className="px-3 py-4 text-start">
                 {t("TOTAL AMOUNT")}
               </TableHead>
-              <TableHead className="px-6 py-4 text-start">
+              <TableHead className="px-3 py-4 text-start">
                 {t("STATUS")}
               </TableHead>
-              <TableHead className="pe-6 py-4 text-end">
+              <TableHead className="ps-3 pe-5 py-4 text-end">
                 {t("ACTIONS")}
               </TableHead>
             </TableRow>
@@ -258,22 +258,22 @@ const PurchasingTable = ({
           <TableBody>
             {orders.map((order) => (
               <TableRow key={order.id} className="hover:bg-[#FAFAF8] transition-colors duration-150">
-                <TableCell className="ps-6 py-4 whitespace-nowrap">
+                <TableCell className="ps-5 pe-3 py-4 whitespace-nowrap">
                   <PoNumberCell order={order} />
                 </TableCell>
-                <TableCell className="px-6 py-4 whitespace-nowrap">
+                <TableCell className="px-3 py-4 whitespace-nowrap">
                   <ContactCell order={order} />
                 </TableCell>
-                <TableCell className="px-6 py-4 whitespace-nowrap">
+                <TableCell className="px-3 py-4 whitespace-nowrap">
                   <Destination name={order.warehouseName} />
                 </TableCell>
-                <TableCell className="px-6 py-4 whitespace-nowrap">
+                <TableCell className="px-3 py-4 whitespace-nowrap">
                   <AmountCell order={order} />
                 </TableCell>
-                <TableCell className="px-6 py-4 whitespace-nowrap">
+                <TableCell className="px-3 py-4 whitespace-nowrap">
                   <PoStatusBadge status={order.status} />
                 </TableCell>
-                <TableCell className="pe-6 py-4">
+                <TableCell className="ps-3 pe-5 py-4 whitespace-nowrap">
                   <div className="flex items-center justify-end">
                     <PoActions
                       order={order}

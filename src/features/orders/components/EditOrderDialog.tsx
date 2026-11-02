@@ -307,7 +307,10 @@ const EditOrderDialog = ({
               {t("Status")}
             </label>
             <DropdownSelect
-              options={ORDER_STATUSES.map((value) => ({
+              options={(order.source !== "pos"
+                ? ORDER_STATUSES.filter((value) => value !== "Completed")
+                : ORDER_STATUSES
+              ).map((value) => ({
                 label: t(value),
                 value,
               }))}
