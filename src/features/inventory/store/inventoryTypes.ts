@@ -24,9 +24,11 @@ export interface GetShortagesResponse {
 
 export interface UpdateStockRequest {
   quantity: number;
+  warehouseId?: string;
 }
 
 export interface BulkUpdateStockRequest {
+  warehouseId?: string;
   updates: Array<{
     id: string | number;
     quantity: number;
@@ -67,6 +69,7 @@ export interface InventoryState {
   items: InventoryItem[];
   shortages: InventoryItem[];
   stats: InventoryStats;
+  lastQueryParams?: GetInventoryParams;
   loading: InventoryLoadingState;
   errors: InventoryErrorState;
   successMessage: string | null;

@@ -56,11 +56,20 @@ const PoActions = ({
   // A Paid/Canceled order has no status-change actions left, but it still
   // needs the Delete button below — a completed order had no way to be
   // removed at all otherwise.
-  const hasStatusActions = order.status !== "Paid" && order.status !== "Canceled";
+  const isCanceled = order.status === "Canceled" || order.rawStatus === "cancelled";
+  const isReceived = order.rawStatus === "received";
+  const isDraft =
+    order.rawStatus === "draft" ||
+    (!order.rawStatus && order.status === "Pending");
+  const remaining = Math.max(0, order.totalAmount - order.paid);
+  const canSubmit = !isCanceled && isDraft;
+  const canPay = !isCanceled && !isDraft && remaining > 0;
+  const canMarkReceived = !isCanceled && !isDraft && !isReceived;
+  const canCancel = !isCanceled && !isReceived && order.status !== "Paid";
 
   return (
     <div className="flex flex-wrap gap-2">
-      {hasStatusActions && order.status === "Pending" && (
+      {canSubmit && (
         <DefaultButton
           data={{
             buttonText: t("Submit to Supplier"),
@@ -71,29 +80,29 @@ const PoActions = ({
           }}
         />
       )}
-      {order.status === "Unpaid" && (
-        <>
-          <DefaultButton
-            data={{
-              buttonText: t("Make a payment"),
-              type: "button",
-              onClick: () => onMakePayment(order),
-              className:
-                "h-9 sm:h-9 px-3 sm:px-3 text-[12px] sm:text-[12px] gap-1 sm:gap-1 rounded-[16px] transition-all duration-150 active:scale-[0.98] hover:opacity-90",
-            }}
-          />
-          <DefaultButton
-            data={{
-              buttonText: t("Mark Received"),
-              type: "button",
-              onClick: () => onMarkReceived(order),
-              className:
-                "h-9 sm:h-9 px-3 sm:px-3 text-[12px] sm:text-[12px] gap-1 sm:gap-1 bg-[#E2F4ED] text-[#059B5A] rounded-[16px] transition-all duration-150 active:scale-[0.98] hover:opacity-90",
-            }}
-          />
-        </>
+      {canPay && (
+        <DefaultButton
+          data={{
+            buttonText: t("Make a payment"),
+            type: "button",
+            onClick: () => onMakePayment(order),
+            className:
+              "h-9 sm:h-9 px-3 sm:px-3 text-[12px] sm:text-[12px] gap-1 sm:gap-1 rounded-[16px] transition-all duration-150 active:scale-[0.98] hover:opacity-90",
+          }}
+        />
       )}
-      {hasStatusActions && (
+      {canMarkReceived && (
+        <DefaultButton
+          data={{
+            buttonText: t("Mark Received"),
+            type: "button",
+            onClick: () => onMarkReceived(order),
+            className:
+              "h-9 sm:h-9 px-3 sm:px-3 text-[12px] sm:text-[12px] gap-1 sm:gap-1 bg-[#E2F4ED] text-[#059B5A] rounded-[16px] transition-all duration-150 active:scale-[0.98] hover:opacity-90",
+          }}
+        />
+      )}
+      {canCancel && (
         <DefaultButton
           data={{
             buttonText: t("Cancel"),
@@ -120,16 +129,24 @@ const AmountCell = ({ order }: { order: PurchaseOrder }) => {
   const { t } = useTranslation();
   const remaining = Math.max(0, order.totalAmount - order.paid);
   return (
-    <div >
+    <div>
       <p className="text-[14px] font-semibold text-[#28293D]">
         {formatEgp(order.totalAmount)}
       </p>
-      <p className="text-[12px] font-semibold text-[#059B5A]">
-        {t("Paid:")} {order.paid}{" "}
-        <span className="text-[#C90000] font-semibold">
-          {t("Remaining:")} {remaining}
-        </span>
-      </p>
+      {(order.paid > 0 || remaining > 0) && (
+        <p className="flex flex-wrap items-center gap-1.5 text-[12px] font-semibold">
+          {order.paid > 0 && (
+            <span className="text-[#059B5A]">
+              {t("Paid:")} {order.paid}
+            </span>
+          )}
+          {remaining > 0 && (
+            <span className="text-[#C90000]">
+              {t("Remaining:")} {remaining}
+            </span>
+          )}
+        </p>
+      )}
     </div>
   );
 };

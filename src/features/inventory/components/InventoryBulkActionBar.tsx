@@ -24,6 +24,7 @@ interface InventoryBulkActionBarProps {
     warehouseId: string;
   }) => void;
   isLoading?: boolean;
+  warehouseDisabled?: boolean;
   className?: string;
 }
 
@@ -34,6 +35,7 @@ const InventoryBulkActionBar = ({
   onSelectWarehouse,
   onApply,
   isLoading = false,
+  warehouseDisabled = false,
   className,
 }: InventoryBulkActionBarProps) => {
   const { t } = useTranslation();
@@ -94,7 +96,10 @@ const InventoryBulkActionBar = ({
         <DropdownSelect
           options={warehouses}
           selected={selectedWarehouse}
-          onSelect={onSelectWarehouse}
+          onSelect={(val) => {
+            if (!warehouseDisabled) onSelectWarehouse(val);
+          }}
+          disabled={warehouseDisabled}
           placeholder={t("Select Warehouse")}
           align="start"
           className="h-12 w-full border-[#E5E5E5] rounded-[12px]"

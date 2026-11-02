@@ -3,12 +3,13 @@ export type PoStatus = "Paid" | "Unpaid" | "Pending" | "Canceled";
 export interface PoLineItem {
   id: string;
   productId: string;
+  productName?: string;
   quantity: number;
   unitCost: number;
 }
 
 export interface PurchaseOrder {
-  id: number;
+  id: string | number;
   poNumber: string;
   kind: "purchase order";
   supplierId: string;
@@ -19,6 +20,8 @@ export interface PurchaseOrder {
   totalAmount: number;
   paid: number;
   status: PoStatus;
+  rawStatus?: string;
+  paymentStatus?: "unpaid" | "partial" | "paid" | string;
   expectedDeliveryDate: string;
   items: PoLineItem[];
 }

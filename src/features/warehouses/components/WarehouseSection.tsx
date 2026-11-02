@@ -7,6 +7,9 @@ interface WarehouseSectionProps {
   title: string;
   kind: WarehouseKind;
   warehouses: Warehouse[];
+  onSelectWarehouse?: (warehouse: Warehouse) => void;
+  onEditWarehouse?: (warehouse: Warehouse) => void;
+  onDeleteWarehouse?: (warehouse: Warehouse) => void;
 }
 
 const EMPTY_STATE: Record<WarehouseKind, string> = {
@@ -18,6 +21,9 @@ const WarehouseSection = ({
   title,
   kind,
   warehouses,
+  onSelectWarehouse,
+  onEditWarehouse,
+  onDeleteWarehouse,
 }: WarehouseSectionProps) => {
   const { t } = useTranslation();
   const isMain = kind === "Main Warehouse";
@@ -40,7 +46,13 @@ const WarehouseSection = ({
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 animate-in fade-in-50 duration-300">
           {warehouses.map((warehouse) => (
-            <WarehouseCard key={warehouse.id} warehouse={warehouse} />
+            <WarehouseCard
+              key={warehouse.id}
+              warehouse={warehouse}
+              onSelect={onSelectWarehouse}
+              onEdit={onEditWarehouse}
+              onDelete={onDeleteWarehouse}
+            />
           ))}
         </div>
       )}

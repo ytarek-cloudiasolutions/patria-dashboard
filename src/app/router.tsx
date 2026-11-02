@@ -182,6 +182,14 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: "/warehouses/:warehouseId",
+        element: (
+          <RoleRoute path="/warehouses">
+            <InventoryPage />
+          </RoleRoute>
+        ),
+      },
+      {
         path: "/subscriptions",
         element: (
           <RoleRoute path="/subscriptions">

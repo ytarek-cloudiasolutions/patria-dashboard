@@ -25,7 +25,7 @@ interface PaymentDialogProps {
   open: boolean;
   order: PurchaseOrder | null;
   onOpenChange: (open: boolean) => void;
-  onConfirm: (orderId: number, amount: number) => void;
+  onConfirm: (orderId: string | number, amount: number) => void;
 }
 
 const PaymentDialog = ({

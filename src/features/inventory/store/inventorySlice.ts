@@ -64,9 +64,14 @@ const inventorySlice = createSlice({
   reducers: {
     getInventoryRequest: (
       state,
-      _action: PayloadAction<GetInventoryParams | string | undefined>,
+      action: PayloadAction<GetInventoryParams | string | undefined>,
     ) => {
       setOperationLoading(state, "fetch");
+      if (typeof action.payload === "string") {
+        state.lastQueryParams = { warehouseId: action.payload };
+      } else if (action.payload !== undefined) {
+        state.lastQueryParams = action.payload;
+      }
     },
     getInventorySuccess: (
       state,

@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { ArrowLeftRight, Plus, Warehouse as WarehouseIcon } from "lucide-react";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
+import DeleteDialog from "@/shared/components/DeleteDialog";
 
 import WarehouseSection from "./components/WarehouseSection";
 import TransfersTable from "./components/TransfersTable";
@@ -20,7 +22,7 @@ import { useProducts } from "@/features/products/hooks/useProducts";
 
 const mapApiWarehouse = (w: any): Warehouse => ({
   id: w._id ?? w.id,
-  shortId: (w._id ?? "").slice(-6).toUpperCase(),
+  shortId: (w._id ?? w.id ?? "").slice(-6).toUpperCase(),
   name: w.name ?? "",
   address: w.address ?? w.location ?? "",
   kind: w.type === "sub" ? "Sub Warehouse" : "Main Warehouse",
@@ -46,14 +48,25 @@ const mapApiTransfer = (t: any): InternalTransfer => ({
 
 const WarehousesPage = () => {
   const { t } = useTranslation();
-  const { warehouses: apiWarehouses, transfers: apiTransfers, getWarehouses, getTransfers, createWarehouse, createTransfer, loading: warehousesLoading } = useWarehouses();
+  const navigate = useNavigate();
+  const {
+    warehouses: apiWarehouses,
+    transfers: apiTransfers,
+    getWarehouses,
+    getTransfers,
+    createWarehouse,
+    updateWarehouse,
+    deleteWarehouse,
+    createTransfer,
+    loading: warehousesLoading,
+  } = useWarehouses();
   const { products: apiProducts, getProducts, isFetchingProducts } = useProducts();
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [transfers, setTransfers] = useState<InternalTransfer[]>([]);
 
   useEffect(() => { getWarehouses(); getTransfers(); getProducts({}); }, [getWarehouses, getTransfers, getProducts]);
-  useEffect(() => { if (apiWarehouses?.length) setWarehouses(apiWarehouses.map(mapApiWarehouse)); }, [apiWarehouses]);
-  useEffect(() => { if (apiTransfers?.length) setTransfers(apiTransfers.map(mapApiTransfer)); }, [apiTransfers]);
+  useEffect(() => { if (apiWarehouses) setWarehouses(apiWarehouses.map(mapApiWarehouse)); }, [apiWarehouses]);
+  useEffect(() => { if (apiTransfers) setTransfers(apiTransfers.map(mapApiTransfer)); }, [apiTransfers]);
 
   const productOptions = useMemo(() =>
     (apiProducts ?? []).map((p: any) => ({ value: p.id ?? p._id, label: p.name })),
@@ -61,6 +74,8 @@ const WarehousesPage = () => {
   );
 
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [editingWarehouse, setEditingWarehouse] = useState<Warehouse | null>(null);
+  const [deletingWarehouse, setDeletingWarehouse] = useState<Warehouse | null>(null);
   const [isTransferOpen, setIsTransferOpen] = useState(false);
 
   const [warehousesLoaded, setWarehousesLoaded] = useState(false);
@@ -102,12 +117,37 @@ const WarehousesPage = () => {
     };
   }, [warehouses]);
 
-  const handleAddWarehouse = (data: WarehouseFormData) => {
-    createWarehouse({
+  const handleSaveWarehouse = (data: WarehouseFormData) => {
+    const payload = {
       name: data.name.trim(),
       address: data.address.trim(),
-      type: data.kind === "Sub Warehouse" ? "sub" : "main",
-    });
+      type: (data.kind === "Sub Warehouse" ? "sub" : "main") as "main" | "sub",
+    };
+    if (editingWarehouse) {
+      updateWarehouse(editingWarehouse.id, payload);
+      setEditingWarehouse(null);
+    } else {
+      createWarehouse(payload);
+    }
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deletingWarehouse) return;
+    deleteWarehouse(deletingWarehouse.id);
+    setDeletingWarehouse(null);
+  };
+
+  const handleSelectWarehouse = (warehouse: Warehouse) => {
+    navigate(`/warehouses/${warehouse.id}`, { state: { warehouse } });
+  };
+
+  const handleEditWarehouse = (warehouse: Warehouse) => {
+    setEditingWarehouse(warehouse);
+    setIsAddOpen(true);
+  };
+
+  const handleDeleteWarehouse = (warehouse: Warehouse) => {
+    setDeletingWarehouse(warehouse);
   };
 
   const handleCreateTransfer = (form: TransferFormState) => {
@@ -151,7 +191,10 @@ const WarehousesPage = () => {
             data={{
               buttonText: t("Add Warehouse"),
               icon: <Plus className="size-4.5 transition-transform duration-200 group-hover:rotate-90" />,
-              onClick: () => setIsAddOpen(true),
+              onClick: () => {
+                setEditingWarehouse(null);
+                setIsAddOpen(true);
+              },
               className: "transition-all duration-150 active:scale-[0.98]",
             }}
           />
@@ -162,20 +205,37 @@ const WarehousesPage = () => {
         title={t("Main Warehouses")}
         kind="Main Warehouse"
         warehouses={mainWarehouses}
+        onSelectWarehouse={handleSelectWarehouse}
+        onEditWarehouse={handleEditWarehouse}
+        onDeleteWarehouse={handleDeleteWarehouse}
       />
 
       <WarehouseSection
         title={t("Sub Warehouses")}
         kind="Sub Warehouse"
         warehouses={subWarehouses}
+        onSelectWarehouse={handleSelectWarehouse}
+        onEditWarehouse={handleEditWarehouse}
+        onDeleteWarehouse={handleDeleteWarehouse}
       />
 
       <TransfersTable transfers={transfers} />
 
       <AddWarehouseModal
         open={isAddOpen}
-        onOpenChange={setIsAddOpen}
-        onSave={handleAddWarehouse}
+        onOpenChange={(open) => {
+          setIsAddOpen(open);
+          if (!open) setEditingWarehouse(null);
+        }}
+        editingWarehouse={editingWarehouse}
+        onSave={handleSaveWarehouse}
+      />
+
+      <DeleteDialog
+        open={!!deletingWarehouse}
+        onOpenChange={(open) => !open && setDeletingWarehouse(null)}
+        data={{ item: deletingWarehouse?.name ?? "", type: "warehouse" }}
+        onConfirm={handleConfirmDelete}
       />
 
       <InternalTransferModal

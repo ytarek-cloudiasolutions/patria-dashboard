@@ -18,4 +18,5 @@ export interface DropdownSelectProps {
   searchable?: boolean;
   onSearchChange?: (query: string) => void;
   isLoading?: boolean;
+  disabled?: boolean;
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Box, Plus, X } from "lucide-react";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import {
@@ -13,6 +13,7 @@ import DefaultButton from "@/shared/components/DefaultButton";
 import DropdownSelect from "@/shared/components/DropdownSelect";
 import InputField from "@/shared/components/InputField";
 import DatePicker from "@/shared/components/DatePicker";
+import { getProducts } from "@/features/products/api/productsApi";
 import type {
   PoFormState,
   PoLineItem,
@@ -20,6 +21,23 @@ import type {
   SupplierOption,
   WarehouseOption,
 } from "../types";
+
+const extractProducts = (responseData: any): any[] => {
+  const candidates = [
+    responseData?.products,
+    responseData?.data?.products,
+    responseData?.data?.data,
+    responseData?.data,
+    responseData,
+  ];
+  return candidates.find(Array.isArray) || [];
+};
+
+const mapRawProductToOption = (p: any): ProductOption => ({
+  id: String(p._id ?? p.id ?? ""),
+  label: p.name ?? "",
+  defaultCost: Number(p.price ?? 0) || 0,
+});
 
 const FORM_ID = "create-po-form";
 
@@ -69,12 +87,148 @@ const CreatePoDialog = ({
   // backend always rejected it with "Supplier not found".
   const supplierOptions = suppliers.map((s) => ({ value: s.id, label: s.label }));
   const warehouseOptions = warehouses.map((w) => ({ value: w.id, label: w.label }));
-  const productOptions = products.map((p) => ({ value: p.id, label: p.label }));
+
+  const [allFetchedProducts, setAllFetchedProducts] = useState<ProductOption[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchedProducts, setSearchedProducts] = useState<ProductOption[]>([]);
+  const [isSearchingProducts, setIsSearchingProducts] = useState(false);
+
+  // Fetch all products across all categories/pages when dialog opens
+  useEffect(() => {
+    if (!open) return;
+    let isMounted = true;
+
+    const loadAllProducts = async () => {
+      try {
+        const firstRes: any = await getProducts({ page: 1, limit: 200 });
+        const firstBatch = extractProducts(firstRes).map(mapRawProductToOption);
+        const totalPages = Number(
+          firstRes?.pages ?? firstRes?.pagination?.pages ?? firstRes?.totalPages ?? 1,
+        );
+        const totalItems = Number(
+          firstRes?.total ?? firstRes?.pagination?.total ?? firstBatch.length,
+        );
+
+        let allItems = [...firstBatch];
+        if (totalPages > 1 && firstBatch.length < totalItems) {
+          const remainingPages = Array.from(
+            { length: totalPages - 1 },
+            (_, idx) => idx + 2,
+          );
+          const pageResults = await Promise.all(
+            remainingPages.map((page) =>
+              getProducts({ page, limit: 200 }).catch(() => null),
+            ),
+          );
+          for (const res of pageResults) {
+            if (res) {
+              allItems.push(...extractProducts(res).map(mapRawProductToOption));
+            }
+          }
+        }
+
+        if (isMounted && allItems.length > 0) {
+          const uniqueMap = new Map<string, ProductOption>();
+          allItems.forEach((item) => {
+            if (item.id) uniqueMap.set(item.id, item);
+          });
+          setAllFetchedProducts(Array.from(uniqueMap.values()));
+        }
+      } catch (err) {
+        console.error("Failed to fetch all products for PO dialog:", err);
+      }
+    };
+
+    loadAllProducts();
+    return () => {
+      isMounted = false;
+    };
+  }, [open]);
+
+  // Search products via Products API when user types in the dropdown search bar
+  useEffect(() => {
+    const q = searchQuery.trim();
+    if (!q) {
+      setSearchedProducts([]);
+      setIsSearchingProducts(false);
+      return;
+    }
+
+    let isMounted = true;
+    const timer = setTimeout(async () => {
+      setIsSearchingProducts(true);
+      try {
+        const res: any = await getProducts({
+          search: q,
+          page: 1,
+          limit: 100,
+        });
+        const items = extractProducts(res).map(mapRawProductToOption);
+        if (isMounted) {
+          setSearchedProducts(items.filter((item) => Boolean(item.id)));
+        }
+      } catch (err) {
+        console.error("Failed to search products for PO dialog:", err);
+        if (isMounted) setSearchedProducts([]);
+      } finally {
+        if (isMounted) setIsSearchingProducts(false);
+      }
+    }, 300);
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
+  }, [searchQuery]);
+
+  // Combined map of all known products for defaultCost & label lookup
+  const combinedProductsMap = useMemo(() => {
+    const map = new Map<string, ProductOption>();
+    products.forEach((p) => {
+      if (p.id) map.set(p.id, p);
+    });
+    allFetchedProducts.forEach((p) => {
+      if (p.id) map.set(p.id, p);
+    });
+    searchedProducts.forEach((p) => {
+      if (p.id) map.set(p.id, p);
+    });
+    return map;
+  }, [products, allFetchedProducts, searchedProducts]);
+
+  const baseProductsList = useMemo(() => {
+    const map = new Map<string, ProductOption>();
+    allFetchedProducts.forEach((p) => {
+      if (p.id) map.set(p.id, p);
+    });
+    products.forEach((p) => {
+      if (p.id && !map.has(p.id)) map.set(p.id, p);
+    });
+    return Array.from(map.values());
+  }, [allFetchedProducts, products]);
+
+  const getProductDropdownOptions = (selectedProductId?: string) => {
+    const activeSource = searchQuery.trim() ? searchedProducts : baseProductsList;
+    const opts = activeSource.map((p) => ({ value: p.id, label: p.label }));
+    // Keep currently selected product in options if not in search results so trigger button label stays visible
+    if (
+      selectedProductId &&
+      !opts.some((o) => o.value === selectedProductId)
+    ) {
+      const selectedProd = combinedProductsMap.get(selectedProductId);
+      if (selectedProd && !searchQuery.trim()) {
+        opts.unshift({ value: selectedProd.id, label: selectedProd.label });
+      }
+    }
+    return opts;
+  };
 
   useEffect(() => {
     if (open) {
       setForm({ ...INITIAL_FORM, items: [newLineItem()] });
       setOpenDropdown(null);
+      setSearchQuery("");
+      setSearchedProducts([]);
     }
   }, [open]);
 
@@ -222,28 +376,43 @@ const CreatePoDialog = ({
                           {t("Product")}<span className="text-[#C90000]">*</span>
                         </Label>
                         <DropdownSelect
-                          options={productOptions}
+                          options={getProductDropdownOptions(item.productId)}
                           selected={item.productId}
+                          searchable
+                          onSearchChange={setSearchQuery}
+                          isLoading={isSearchingProducts}
                           onSelect={(value) => {
-                            updateItem(item.id, "productId", value);
-                            const product = products.find(
-                              (p) => p.id === value,
-                            );
-                            if (product && item.unitCost === 0) {
-                              updateItem(
-                                item.id,
-                                "unitCost",
-                                product.defaultCost,
-                              );
-                            }
+                            const product = combinedProductsMap.get(value);
+                            setForm((prev) => ({
+                              ...prev,
+                              items: prev.items.map((li) =>
+                                li.id === item.id
+                                  ? {
+                                      ...li,
+                                      productId: value,
+                                      productName: product?.label ?? li.productName,
+                                      unitCost:
+                                        li.unitCost === 0 && product
+                                          ? product.defaultCost
+                                          : li.unitCost,
+                                    }
+                                  : li,
+                              ),
+                            }));
                           }}
                           onOpenChange={(o) =>
                             setOpenDropdown(o ? "product" : null)
                           }
-                          placeholder={t("Select SKU")}
+                          placeholder={
+                            item.productId
+                              ? combinedProductsMap.get(item.productId)?.label ||
+                                item.productName ||
+                                t("Select SKU")
+                              : t("Select SKU")
+                          }
                           align="start"
                           className="md:w-full"
-                          contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
+                          contentClassName="w-[calc(100vw-4.5rem)] sm:w-[664px] md:w-[664px]"
                         />
                       </div>
 

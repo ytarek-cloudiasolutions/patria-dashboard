@@ -32,6 +32,8 @@ const DropdownSelect = ({
   align = "end",
   searchable = false,
   onSearchChange,
+  isLoading = false,
+  disabled = false,
 }: DropdownSelectProps) => {
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
@@ -45,24 +47,32 @@ const DropdownSelect = ({
   const handleOpenChange = (open: boolean) => {
     if (!open) {
       setSearchQuery("");
+      onSearchChange?.("");
     }
     onOpenChange?.(open);
   };
 
-  const filteredOptions = normalizedOptions.filter((option) =>
-    option.label.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredOptions = onSearchChange
+    ? normalizedOptions
+    : normalizedOptions.filter((option) =>
+        option.label.toLowerCase().includes(searchQuery.toLowerCase())
+      );
 
   return (
-    <DropdownMenu onOpenChange={handleOpenChange}>
-      <DropdownMenuTrigger asChild>
+    <DropdownMenu
+      open={disabled ? false : undefined}
+      onOpenChange={disabled ? undefined : handleOpenChange}
+    >
+      <DropdownMenuTrigger asChild disabled={disabled}>
         <Button
           variant="outline"
+          disabled={disabled}
           className={cn(
             "group h-12 w-full justify-between rounded-[12px] border-[#E5E5E5]",
             "bg-white px-4 py-3 text-[14px] font-medium cursor-pointer transition-all duration-200 ease-out",
             "hover:bg-[#FAFAF7] hover:border-[#8F6900]/40 data-[state=open]:bg-white data-[state=open]:border-primary",
             "focus-visible:border-[#E5E5E5] focus-visible:ring-0",
+            disabled && "cursor-not-allowed opacity-75 hover:bg-white hover:border-[#E5E5E5]",
             className
           )}
         >
@@ -81,7 +91,7 @@ const DropdownSelect = ({
       >
         {searchable && (
           <div
-            className="px-2 py-1.5 border-b border-[#E5E5E5] mb-1"
+            className="sticky top-0 z-10 bg-white px-1 pb-1"
             onClick={(e) => e.stopPropagation()}
           >
             <input
@@ -93,53 +103,59 @@ const DropdownSelect = ({
                 onSearchChange?.(val);
               }}
               onKeyDown={(e) => e.stopPropagation()}
-              placeholder={t("Search...")}
-              className="h-9 w-full rounded-[8px] border border-[#E5E5E5] px-2.5 text-[13px] text-[#28293D] focus:outline-none focus:border-primary placeholder:text-[#8B8B8B]"
+              placeholder={t("Search products...")}
+              className="h-10 w-full rounded-[10px] border border-[#E5E5E5] bg-white px-3 text-[14px] text-[#28293D] focus:outline-none focus:border-[#8F6900] placeholder:text-[#8B8B8B]"
               autoFocus
             />
           </div>
         )}
-        {filteredOptions.length === 0 ? (
-          <div className="px-4 py-2.5 text-[14px] text-[#8B8B8B] text-center font-normal">
-            {t("No results found.")}
-          </div>
-        ) : (
-          filteredOptions.map((option) => {
-            if (option.isHeader) {
+        <div className="max-h-60 overflow-y-auto flex flex-col gap-1">
+          {isLoading ? (
+            <div className="px-4 py-2.5 text-[13px] text-[#8B8B8B] text-center font-normal">
+              {t("Loading...")}
+            </div>
+          ) : filteredOptions.length === 0 ? (
+            <div className="px-4 py-2.5 text-[14px] text-[#8B8B8B] text-center font-normal">
+              {t("No results found.")}
+            </div>
+          ) : (
+            filteredOptions.map((option) => {
+              if (option.isHeader) {
+                return (
+                  <div
+                    key={option.value || option.label}
+                    className="flex h-[34px] w-full items-center rounded-[4px] bg-[#F5F0EA] px-3 py-2 text-[12px] font-semibold text-black tracking-[0.24px] pointer-events-none select-none"
+                  >
+                    {t(option.label)}
+                  </div>
+                );
+              }
+
+              const isOptSelected = selected === option.value;
+              const isLightSelection = option.isLightSelected;
+
               return (
-                <div
-                  key={option.value || option.label}
-                  className="flex h-[34px] w-full items-center rounded-[4px] bg-[#F5F0EA] px-3 py-2 text-[12px] font-semibold text-black tracking-[0.24px] pointer-events-none select-none"
+                <DropdownMenuItem
+                  key={option.value}
+                  disabled={option.disabled}
+                  className={cn(
+                    "flex min-h-10 w-full items-center rounded-[12px] px-3.5 py-2 text-[14px] font-medium tracking-[0.24px] cursor-pointer transition-colors outline-none",
+                    option.disabled
+                      ? "cursor-not-allowed text-black/20 text-[12px] tracking-[0.24px] data-disabled:opacity-100 data-disabled:pointer-events-none"
+                      : isOptSelected
+                        ? isLightSelection
+                          ? "bg-[#F5F0EA] text-black font-semibold cursor-default data-highlighted:bg-[#F5F0EA] data-highlighted:text-black"
+                          : "bg-[#8F6900] text-white font-semibold cursor-default data-highlighted:bg-[#8F6900] data-highlighted:text-white"
+                        : "text-[#28293D] hover:bg-[#FAFAF7] data-highlighted:bg-[#FAFAF7] data-highlighted:text-[#28293D]"
+                  )}
+                  onSelect={() => onSelect(option.value)}
                 >
                   {t(option.label)}
-                </div>
+                </DropdownMenuItem>
               );
-            }
-
-            const isOptSelected = selected === option.value;
-            const isLightSelection = option.isLightSelected;
-
-            return (
-              <DropdownMenuItem
-                key={option.value}
-                disabled={option.disabled}
-                className={cn(
-                  "flex h-10 w-full items-center rounded-[12px] px-3.5 py-2 text-[14px] font-medium tracking-[0.24px] cursor-pointer transition-colors outline-none",
-                  option.disabled
-                    ? "cursor-not-allowed text-black/20 text-[12px] tracking-[0.24px] data-disabled:opacity-100 data-disabled:pointer-events-none"
-                    : isOptSelected
-                      ? isLightSelection
-                        ? "bg-[#F5F0EA] text-black font-semibold cursor-default data-highlighted:bg-[#F5F0EA] data-highlighted:text-black"
-                        : "bg-[#8F6900] text-white font-semibold cursor-default data-highlighted:bg-[#8F6900] data-highlighted:text-white"
-                      : "text-[#28293D] hover:bg-[#FAFAF7] data-highlighted:bg-[#FAFAF7] data-highlighted:text-[#28293D]"
-                )}
-                onSelect={() => onSelect(option.value)}
-              >
-                {t(option.label)}
-              </DropdownMenuItem>
-            );
-          })
-        )}
+            })
+          )}
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );

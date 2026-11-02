@@ -1,12 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   AlertTriangle,
+  ArrowLeft,
+  ArrowRight,
   Box,
   Coffee,
   MoveUp,
   RefreshCw,
   Save,
 } from "lucide-react";
+import { Button } from "@/shared/components/ui/button";
 import OverviewCard from "@/shared/components/OverviewCard";
 import SearchInputField from "@/shared/components/SearchInputField";
 import TabItem from "@/shared/components/TabItem";
@@ -18,6 +22,7 @@ import StockStatusTable from "./components/StockStatusTable";
 import ExpectedShortagesTable from "./components/ExpectedShortagesTable";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { useWarehouses } from "@/features/warehouses/hooks/useWarehouses";
+import type { Warehouse as UiWarehouse } from "@/features/warehouses/types";
 import { useCategories } from "@/features/categories";
 import InventoryBulkActionBar, {
   type BulkQuantityMode,
@@ -26,8 +31,28 @@ import InventoryBulkActionBar, {
 
 type InventoryTab = "stock" | "shortages";
 
-const InventoryPage = () => {
-  const { t } = useTranslation();
+interface InventoryPageProps {
+  initialWarehouseId?: string;
+  warehouse?: UiWarehouse;
+  onBack?: () => void;
+}
+
+const InventoryPage = ({
+  initialWarehouseId,
+  warehouse: propWarehouse,
+  onBack,
+}: InventoryPageProps = {}) => {
+  const { t, dir } = useTranslation();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { warehouseId: paramWarehouseId } = useParams<{ warehouseId?: string }>();
+
+  const passedWarehouse =
+    propWarehouse ??
+    (location.state as { warehouse?: UiWarehouse } | undefined)?.warehouse;
+
+  const isWarehouseRoute = Boolean(paramWarehouseId || initialWarehouseId || onBack);
+
   const {
     items,
     shortages,
@@ -44,11 +69,49 @@ const InventoryPage = () => {
   const { categories, getCategories } = useCategories();
   const [activeTab, setActiveTab] = useState<InventoryTab>("stock");
   const [search, setSearch] = useState("");
-  const [warehouseId, setWarehouseId] = useState("");
+  const [warehouseId, setWarehouseId] = useState(
+    () => initialWarehouseId || paramWarehouseId || "",
+  );
   const [selectedCategory, setSelectedCategory] = useState("");
   const [adjustments, setAdjustments] = useState<Record<string | number, number>>({});
   const [selectedItemIds, setSelectedItemIds] = useState<Set<string | number>>(new Set());
   const [infiniteItemIds, setInfiniteItemIds] = useState<Set<string | number>>(new Set());
+
+  useEffect(() => {
+    const targetId = initialWarehouseId || paramWarehouseId;
+    if (targetId !== undefined) {
+      setWarehouseId(targetId);
+    }
+  }, [initialWarehouseId, paramWarehouseId]);
+
+  const activeWarehouse = useMemo<UiWarehouse | null>(() => {
+    if (!warehouseId) return null;
+    const matched = warehouses.find(
+      (w: any) => (w._id || w.id) === warehouseId,
+    );
+    if (matched) {
+      const id = (matched as any)._id ?? (matched as any).id ?? warehouseId;
+      return {
+        id,
+        shortId: String(id).slice(-6).toUpperCase(),
+        name: matched.name ?? "",
+        address: matched.address ?? (matched as any).location ?? "",
+        kind: matched.type === "sub" ? "Sub Warehouse" : "Main Warehouse",
+      };
+    }
+    if (passedWarehouse && passedWarehouse.id === warehouseId) {
+      return passedWarehouse;
+    }
+    return null;
+  }, [warehouseId, warehouses, passedWarehouse]);
+
+  const handleBackToWarehouses = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      navigate("/warehouses");
+    }
+  };
 
   const hasAdjustments =
     Object.keys(adjustments).length > 0 || infiniteItemIds.size > 0;
@@ -77,10 +140,12 @@ const InventoryPage = () => {
 
   // Fetch lists on mount
   useEffect(() => {
-    getShortagesList();
+    if (!isWarehouseRoute) {
+      getShortagesList();
+    }
     getWarehouses();
     getCategories();
-  }, [getShortagesList, getWarehouses, getCategories]);
+  }, [isWarehouseRoute, getShortagesList, getWarehouses, getCategories]);
 
   // Re-fetch stock whenever the selected warehouse or category changes — sends
   // warehouseId and categoryId as query parameters to GET /inventory
@@ -98,7 +163,7 @@ const InventoryPage = () => {
     const total = backendStats.totalProducts || items.length;
     const lowStock = backendStats.lowStock ?? items.filter((i) => i.status === "Low Stock").length;
     const outOfStock = backendStats.outOfStock ?? items.filter((i) => i.status === "Out Of Stock").length;
-    const inventoryValue = backendStats.inventoryValue || 12000;
+    const inventoryValue = backendStats.inventoryValue ?? 0;
     return {
       total,
       lowStock,
@@ -164,13 +229,19 @@ const InventoryPage = () => {
     return result;
   }, [activeItems, search, selectedCategory, categories]);
 
-  const warehouseOptions: WarehouseOption[] = useMemo(
-    () => [
+  const warehouseOptions: WarehouseOption[] = useMemo(() => {
+    if (isWarehouseRoute && warehouseId) {
+      const currentLabel =
+        activeWarehouse?.name ||
+        warehouses.find((w: any) => (w._id || w.id) === warehouseId)?.name ||
+        warehouseId;
+      return [{ value: warehouseId, label: currentLabel }];
+    }
+    return [
       { value: "", label: t("All Warehouses") },
       ...warehouses.map((w: any) => ({ value: w._id || w.id, label: w.name })),
-    ],
-    [warehouses, t]
-  );
+    ];
+  }, [isWarehouseRoute, warehouseId, activeWarehouse, warehouses, t]);
 
   const isAllSelected =
     filteredItems.length > 0 &&
@@ -214,15 +285,19 @@ const InventoryPage = () => {
     isInfinite: boolean;
     warehouseId: string;
   }) => {
-    if (newWarehouseId !== warehouseId) {
-      setWarehouseId(newWarehouseId);
+    const targetWarehouseId = isWarehouseRoute
+      ? initialWarehouseId || paramWarehouseId || warehouseId
+      : newWarehouseId;
+
+    if (!isWarehouseRoute && targetWarehouseId !== warehouseId) {
+      setWarehouseId(targetWarehouseId);
     }
 
     const productIds = Array.from(selectedItemIds).map(String);
-    if (productIds.length === 0) return;
+    if (productIds.length === 0 || !targetWarehouseId) return;
 
     executeBulkStockAction({
-      warehouseId: newWarehouseId,
+      warehouseId: targetWarehouseId,
       productIds,
       mode: isInfinite ? "infinite" : mode,
       quantity: isInfinite ? undefined : (quantity ?? 0),
@@ -239,13 +314,16 @@ const InventoryPage = () => {
       quantity,
     }));
     if (updatesToUpdate.length > 0) {
-      bulkUpdateItemsStock({ updates: updatesToUpdate });
+      bulkUpdateItemsStock({
+        updates: updatesToUpdate,
+        ...(warehouseId ? { warehouseId } : {}),
+      });
     }
     setAdjustments({});
     setSelectedItemIds(new Set());
   };
 
-  const isLoading = !inventoryLoaded || !shortagesLoaded;
+  const isLoading = !inventoryLoaded || (!isWarehouseRoute && !shortagesLoaded);
 
   if (isLoading) {
     return (
@@ -259,16 +337,72 @@ const InventoryPage = () => {
     <section className="animate-in fade-in-50 duration-300">
       {/* Header */}
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="text-[28px] font-bold text-[#28293D] sm:text-[32px]">
-            {t("Inventory")}
-          </h1>
-          <p className="text-[14px] text-[#8B8B8B]">
-            {t(
-              "Manage stock levels across all kitchen stations and the main warehouse.",
-            )}
-          </p>
-        </div>
+        {isWarehouseRoute ? (
+          <div className="flex flex-wrap items-center gap-4 sm:gap-6">
+            <Button
+              size="icon"
+              variant="ghost"
+              aria-label={t("Back to Warehouses")}
+              className="group/back size-12 rounded-2xl bg-white cursor-pointer hover:bg-white hover:shadow-xs active:scale-95 transition-all duration-200"
+              onClick={handleBackToWarehouses}
+            >
+              {dir === "rtl" ? (
+                <ArrowRight className="size-5 transition-transform duration-200 group-hover/back:translate-x-0.5" />
+              ) : (
+                <ArrowLeft className="size-5 transition-transform duration-200 group-hover/back:-translate-x-0.5" />
+              )}
+            </Button>
+
+            <div className="flex items-center gap-3">
+              <div
+                className={cn(
+                  "flex size-12 items-center justify-center rounded-full",
+                  activeWarehouse?.kind === "Sub Warehouse"
+                    ? "bg-[#E5E8D3] text-[#444A18]"
+                    : "bg-[#F5F0EA] text-primary",
+                )}
+              >
+                <Box className="size-6" />
+              </div>
+              <div>
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <h1 className="text-[24px] font-bold text-[#28293D] sm:text-[28px]">
+                    {activeWarehouse?.name || t("Inventory")}
+                  </h1>
+                  {activeWarehouse && (
+                    <span
+                      className={cn(
+                        "inline-flex items-center justify-center rounded-full border px-3 py-1 text-[13px] font-medium leading-none transition-colors",
+                        activeWarehouse.kind === "Sub Warehouse"
+                          ? "bg-[#E5E8D3] text-[#444A18] border-[#444A18]/30"
+                          : "bg-[#F5F0EA] text-primary border-primary/30",
+                      )}
+                    >
+                      {t(activeWarehouse.kind)}
+                    </span>
+                  )}
+                </div>
+                <p className="text-[14px] text-[#8B8B8B]">
+                  {activeWarehouse?.address ||
+                    t(
+                      "Manage stock levels across all kitchen stations and the main warehouse.",
+                    )}
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div>
+            <h1 className="text-[28px] font-bold text-[#28293D] sm:text-[32px]">
+              {t("Inventory")}
+            </h1>
+            <p className="text-[14px] text-[#8B8B8B]">
+              {t(
+                "Manage stock levels across all kitchen stations and the main warehouse.",
+              )}
+            </p>
+          </div>
+        )}
 
         <div className="flex items-center gap-4">
           <DefaultButton
@@ -345,20 +479,22 @@ const InventoryPage = () => {
       </div>
 
       {/* Tabs */}
-      <div className="mb-6 grid grid-cols-2 gap-1.5">
-        <TabItem
-          value="stock"
-          label={t("Stock status")}
-          isActive={activeTab === "stock"}
-          onClick={(v) => setActiveTab(v as InventoryTab)}
-        />
-        <TabItem
-          value="shortages"
-          label={t("Expected shortages")}
-          isActive={activeTab === "shortages"}
-          onClick={(v) => setActiveTab(v as InventoryTab)}
-        />
-      </div>
+      {!isWarehouseRoute && (
+        <div className="mb-6 grid grid-cols-2 gap-1.5">
+          <TabItem
+            value="stock"
+            label={t("Stock status")}
+            isActive={activeTab === "stock"}
+            onClick={(v) => setActiveTab(v as InventoryTab)}
+          />
+          <TabItem
+            value="shortages"
+            label={t("Expected shortages")}
+            isActive={activeTab === "shortages"}
+            onClick={(v) => setActiveTab(v as InventoryTab)}
+          />
+        </div>
+      )}
 
       {/* Search + Category + Warehouse filter */}
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -384,7 +520,10 @@ const InventoryPage = () => {
             <DropdownSelect
               options={warehouseOptions}
               selected={warehouseId}
-              onSelect={setWarehouseId}
+              onSelect={(val) => {
+                if (!isWarehouseRoute) setWarehouseId(val);
+              }}
+              disabled={isWarehouseRoute}
               placeholder={t("All Warehouses")}
               align="start"
               className="h-12 w-full"
@@ -400,7 +539,10 @@ const InventoryPage = () => {
             selectedCount={selectedItemIds.size}
             warehouses={warehouseOptions}
             selectedWarehouse={warehouseId}
-            onSelectWarehouse={setWarehouseId}
+            onSelectWarehouse={(val) => {
+              if (!isWarehouseRoute) setWarehouseId(val);
+            }}
+            warehouseDisabled={isWarehouseRoute}
             onApply={handleApplyBulkQuantity}
             isLoading={loading.update}
           />

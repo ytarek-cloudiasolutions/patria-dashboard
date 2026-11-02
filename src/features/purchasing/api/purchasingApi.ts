@@ -39,24 +39,48 @@ export const submitPurchaseOrder = async (id: string) => {
   return response.data;
 };
 
-export const cancelPurchaseOrder = async (id: string) => {
+export const cancelPurchaseOrder = async (id: string, reason?: string) => {
   const response = await api.post<PurchaseOrderActionResponse>(
     ENDPOINTS.PURCHASE_ORDER_CANCEL(id),
+    reason ? { reason } : {},
   );
   return response.data;
 };
 
-export const makePurchaseOrderPayment = async (id: string, amount: number) => {
+export const makePurchaseOrderPayment = async (
+  id: string,
+  amount: number,
+  options?: {
+    paymentMethod?: string;
+    referenceNumber?: string;
+    notes?: string;
+  },
+) => {
   const response = await api.post<PurchaseOrderActionResponse>(
     ENDPOINTS.PURCHASE_ORDER_PAYMENT(id),
-    { amount },
+    {
+      amount,
+      ...(options?.paymentMethod ? { paymentMethod: options.paymentMethod } : {}),
+      ...(options?.referenceNumber ? { referenceNumber: options.referenceNumber } : {}),
+      ...(options?.notes ? { notes: options.notes } : {}),
+    },
   );
   return response.data;
 };
 
-export const receivePurchaseOrder = async (id: string) => {
+export const receivePurchaseOrder = async (
+  id: string,
+  options?: {
+    receivedDate?: string;
+    notes?: string;
+  },
+) => {
   const response = await api.post<PurchaseOrderActionResponse>(
     ENDPOINTS.PURCHASE_ORDER_RECEIVE(id),
+    {
+      ...(options?.receivedDate ? { receivedDate: options.receivedDate } : {}),
+      ...(options?.notes ? { notes: options.notes } : {}),
+    },
   );
   return response.data;
 };

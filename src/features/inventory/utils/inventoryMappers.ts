@@ -5,7 +5,9 @@ export const mapBackendStatusToStockStatus = (
   status: string,
   qty: number,
   threshold: number,
+  isInfinite?: boolean,
 ): StockStatus => {
+  if (isInfinite) return "Available";
   const norm = (status || "").toLowerCase().replace(/_/g, " ");
   if (norm === "out of stock" || qty === 0) return "Out Of Stock";
   if (norm === "low stock" || qty < threshold) return "Low Stock";
@@ -34,7 +36,13 @@ export const mapInventoryItem = (item: any): InventoryItem => {
 
   const qty = item.stockQty ?? item.currentQuantity ?? 0;
   const threshold = item.lowStockThreshold ?? item.minimumQuantity ?? 5;
-  const status = mapBackendStatusToStockStatus(item.status || "", qty, threshold);
+  const isInfinite = Boolean(item.isInfiniteStock ?? item.isInfinite);
+  const status = mapBackendStatusToStockStatus(
+    item.status || "",
+    qty,
+    threshold,
+    isInfinite,
+  );
 
   return {
     id: item._id || item.id,
@@ -44,6 +52,7 @@ export const mapInventoryItem = (item: any): InventoryItem => {
     currentQuantity: qty,
     minimumQuantity: threshold,
     status,
+    isInfinite,
     salesRatePerDay: item.salesRatePerDay ?? null,
     expectedExpiryDate: item.expectedExpiryDate ?? null,
     daysRemaining: item.daysRemaining ?? null,

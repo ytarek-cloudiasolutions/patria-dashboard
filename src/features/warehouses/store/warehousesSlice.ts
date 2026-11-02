@@ -117,13 +117,15 @@ const warehousesSlice = createSlice({
     ) => {
       state.loading.update = false;
       const updated = action.payload.warehouse;
-      const replace = (arr: Warehouse[]) => {
-        const idx = arr.findIndex((w) => w._id === updated._id);
-        if (idx !== -1) arr[idx] = updated;
-      };
-      replace(state.warehouses);
-      replace(state.mainWarehouses);
-      replace(state.subWarehouses);
+      const updatedId = updated._id || (updated as any).id;
+      const idx = state.warehouses.findIndex(
+        (w) => (w._id || (w as any).id) === updatedId,
+      );
+      if (idx !== -1) {
+        state.warehouses[idx] = { ...state.warehouses[idx], ...updated };
+      }
+      state.mainWarehouses = state.warehouses.filter((w) => w.type === "main");
+      state.subWarehouses = state.warehouses.filter((w) => w.type !== "main");
       state.successMessage =
         action.payload.message ?? "Warehouse updated successfully";
     },

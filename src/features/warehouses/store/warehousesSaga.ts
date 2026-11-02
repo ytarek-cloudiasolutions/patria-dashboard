@@ -70,15 +70,22 @@ function* handleUpdateWarehouse(
 ) {
   try {
     const { id, data } = action.payload;
-    const response: { warehouse: Warehouse } = yield call(
+    const response: { warehouse?: Warehouse } & Partial<Warehouse> = yield call(
       warehousesApi.updateWarehouse,
       id,
       data,
     );
+    const updatedWarehouse = (response?.warehouse ?? response) as Warehouse;
     yield call(showSuccessToast, "Warehouse updated successfully");
     yield put(
       warehousesActions.updateWarehouseSuccess({
-        warehouse: response.warehouse,
+        warehouse: {
+          ...updatedWarehouse,
+          _id: updatedWarehouse?._id || (updatedWarehouse as any)?.id || id,
+          name: updatedWarehouse?.name ?? data.name ?? "",
+          type: (updatedWarehouse?.type ?? data.type ?? "main") as "main" | "sub",
+          address: updatedWarehouse?.address ?? data.address ?? "",
+        },
         message: "Warehouse updated successfully",
       }),
     );

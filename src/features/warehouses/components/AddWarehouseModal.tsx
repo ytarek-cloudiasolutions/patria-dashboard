@@ -14,7 +14,7 @@ import InputField from "@/shared/components/InputField";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { WAREHOUSE_TYPE_OPTIONS } from "../data";
-import type { WarehouseFormData, WarehouseKind } from "../types";
+import type { Warehouse, WarehouseFormData, WarehouseKind } from "../types";
 
 const FORM_ID = "warehouse-form";
 
@@ -27,12 +27,14 @@ const INITIAL_FORM: WarehouseFormData = {
 interface AddWarehouseModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  editingWarehouse?: Warehouse | null;
   onSave: (data: WarehouseFormData) => void;
 }
 
 const AddWarehouseModal = ({
   open,
   onOpenChange,
+  editingWarehouse,
   onSave,
 }: AddWarehouseModalProps) => {
   const { t } = useTranslation();
@@ -44,11 +46,19 @@ const AddWarehouseModal = ({
 
   useEffect(() => {
     if (open) {
-      setForm(INITIAL_FORM);
+      if (editingWarehouse) {
+        setForm({
+          name: editingWarehouse.name,
+          kind: editingWarehouse.kind,
+          address: editingWarehouse.address,
+        });
+      } else {
+        setForm(INITIAL_FORM);
+      }
       setErrors({});
       setIsTypeOpen(false);
     }
-  }, [open]);
+  }, [open, editingWarehouse]);
 
   const set = <K extends keyof WarehouseFormData>(
     key: K,
@@ -87,7 +97,7 @@ const AddWarehouseModal = ({
           {/* Header */}
           <div className="px-5 pt-5 sm:px-7 sm:pt-7">
             <DialogTitle className="text-[20px] font-semibold text-[#28293D] sm:text-[22px]">
-              {t("Add Warehouse")}
+              {editingWarehouse ? t("Edit Warehouse") : t("Add Warehouse")}
             </DialogTitle>
           </div>
 
@@ -191,7 +201,7 @@ const AddWarehouseModal = ({
                 type="submit"
                 className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[5px] px-4 text-sm font-semibold text-white sm:h-14 sm:w-auto sm:gap-3 sm:px-7.5 sm:text-[16px] transition-all duration-150 active:scale-[0.98]"
               >
-                {t("Create Warehouse")}
+                {editingWarehouse ? t("Save Changes") : t("Create Warehouse")}
               </Button>
             </div>
           </div>

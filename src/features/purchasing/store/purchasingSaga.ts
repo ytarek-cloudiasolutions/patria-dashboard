@@ -41,6 +41,12 @@ function* handleGetPurchaseOrders(
   }
 }
 
+const extractPurchaseOrder = (response: any) =>
+  response?.purchaseOrder ??
+  response?.data?.purchaseOrder ??
+  response?.data ??
+  (response?._id ? response : undefined);
+
 function* handleCreatePurchaseOrder(
   action: PayloadAction<CreatePurchaseOrderRequest>,
 ) {
@@ -49,13 +55,18 @@ function* handleCreatePurchaseOrder(
       purchasingApi.createPurchaseOrder,
       action.payload,
     );
-    yield call(showSuccessToast, "Purchase order created successfully");
+    const createdPo = extractPurchaseOrder(response);
+    yield call(
+      showSuccessToast,
+      (response as any)?.message || "Purchase order created successfully",
+    );
     yield put(
       purchasingActions.createPurchaseOrderSuccess({
-        purchaseOrder: response.purchaseOrder,
+        purchaseOrder: createdPo,
         message: "Purchase order created successfully",
       }),
     );
+    yield put(purchasingActions.getPurchaseOrdersRequest());
   } catch (error) {
     const msg = getErrorMessage(error);
     yield call(showErrorToast, msg);
@@ -69,13 +80,20 @@ function* handleSubmitPurchaseOrder(action: PayloadAction<{ id: string }>) {
       purchasingApi.submitPurchaseOrder,
       action.payload.id,
     );
-    yield call(showSuccessToast, "Purchase order submitted");
-    yield put(
-      purchasingActions.submitPurchaseOrderSuccess({
-        purchaseOrder: response.purchaseOrder,
-        message: "Purchase order submitted",
-      }),
+    const updatedPo = extractPurchaseOrder(response);
+    yield call(
+      showSuccessToast,
+      (response as any)?.message || "Purchase order submitted",
     );
+    if (updatedPo) {
+      yield put(
+        purchasingActions.submitPurchaseOrderSuccess({
+          purchaseOrder: updatedPo,
+          message: "Purchase order submitted",
+        }),
+      );
+    }
+    yield put(purchasingActions.getPurchaseOrdersRequest());
   } catch (error) {
     const msg = getErrorMessage(error);
     yield call(showErrorToast, msg);
@@ -89,13 +107,20 @@ function* handleCancelPurchaseOrder(action: PayloadAction<{ id: string }>) {
       purchasingApi.cancelPurchaseOrder,
       action.payload.id,
     );
-    yield call(showSuccessToast, "Purchase order cancelled");
-    yield put(
-      purchasingActions.cancelPurchaseOrderSuccess({
-        purchaseOrder: response.purchaseOrder,
-        message: "Purchase order cancelled",
-      }),
+    const updatedPo = extractPurchaseOrder(response);
+    yield call(
+      showSuccessToast,
+      (response as any)?.message || "Purchase order cancelled",
     );
+    if (updatedPo) {
+      yield put(
+        purchasingActions.cancelPurchaseOrderSuccess({
+          purchaseOrder: updatedPo,
+          message: "Purchase order cancelled",
+        }),
+      );
+    }
+    yield put(purchasingActions.getPurchaseOrdersRequest());
   } catch (error) {
     const msg = getErrorMessage(error);
     yield call(showErrorToast, msg);

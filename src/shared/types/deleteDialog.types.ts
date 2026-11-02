@@ -16,6 +16,7 @@ export interface DeleteDialogProps {
     | "subscription"
     | "supplier"
     | "kitchen"
+    | "warehouse"
     | "customer"
     | "user"
     | "admin"

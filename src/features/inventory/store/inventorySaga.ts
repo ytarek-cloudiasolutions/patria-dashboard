@@ -1,6 +1,7 @@
-import { all, call, put, takeLatest } from "redux-saga/effects";
+import { all, call, put, select, takeLatest } from "redux-saga/effects";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import axios from "axios";
+import type { RootState } from "@/app/store";
 import { inventoryApi } from "../api/inventoryApi";
 import { inventoryActions } from "./inventorySlice";
 import { showErrorToast, showSuccessToast } from "@/shared/utils/toast";
@@ -68,7 +69,10 @@ function* handleSyncInventory() {
     yield call(showSuccessToast, response.message || "Inventory synchronized successfully");
     yield put(inventoryActions.syncInventorySuccess(response));
     // Reload lists to show updated stocks
-    yield put(inventoryActions.getInventoryRequest());
+    const lastParams: GetInventoryParams | undefined = yield select(
+      (state: RootState) => state.inventory.lastQueryParams,
+    );
+    yield put(inventoryActions.getInventoryRequest(lastParams));
     yield put(inventoryActions.getShortagesRequest());
   } catch (error) {
     const errorMsg = getInventoryErrorMessage(error);
@@ -86,7 +90,10 @@ function* handleUpdateStock(
     yield call(showSuccessToast, response.message || "Stock level updated");
     yield put(inventoryActions.updateStockSuccess(response.message));
     // Reload lists to show updated stocks
-    yield put(inventoryActions.getInventoryRequest());
+    const lastParams: GetInventoryParams | undefined = yield select(
+      (state: RootState) => state.inventory.lastQueryParams,
+    );
+    yield put(inventoryActions.getInventoryRequest(lastParams));
     yield put(inventoryActions.getShortagesRequest());
   } catch (error) {
     const errorMsg = getInventoryErrorMessage(error);
@@ -104,7 +111,10 @@ function* handleBulkUpdateStock(action: PayloadAction<BulkUpdateStockRequest>) {
     yield call(showSuccessToast, response.message || "Bulk stock update successful");
     yield put(inventoryActions.bulkUpdateStockSuccess(response.message));
     // Reload lists to show updated stocks
-    yield put(inventoryActions.getInventoryRequest());
+    const lastParams: GetInventoryParams | undefined = yield select(
+      (state: RootState) => state.inventory.lastQueryParams,
+    );
+    yield put(inventoryActions.getInventoryRequest(lastParams));
     yield put(inventoryActions.getShortagesRequest());
   } catch (error) {
     const errorMsg = getInventoryErrorMessage(error);

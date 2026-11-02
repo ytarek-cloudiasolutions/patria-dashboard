@@ -33,6 +33,32 @@ import {
 } from "./api/purchasingApi";
 import { showSuccessToast, showErrorToast } from "@/shared/utils/toast";
 
+const derivePoUiStatus = (o: any): PoStatus => {
+  const rawStatus = String(o.status ?? "").toLowerCase();
+  const paymentStatus = String(o.paymentStatus ?? "").toLowerCase();
+  const totalAmount = Number(o.totalAmount ?? 0);
+  const paidAmount = Number(o.paidAmount ?? o.paid ?? 0);
+
+  if (rawStatus === "cancelled" || rawStatus === "canceled") {
+    return "Canceled";
+  }
+  if (
+    rawStatus === "received" ||
+    paymentStatus === "paid" ||
+    (totalAmount > 0 && paidAmount >= totalAmount)
+  ) {
+    return "Paid";
+  }
+  if (
+    rawStatus === "submitted" ||
+    paymentStatus === "partial" ||
+    paidAmount > 0
+  ) {
+    return "Unpaid";
+  }
+  return "Pending";
+};
+
 const mapApiOrder = (o: any): PurchaseOrder => ({
   id: o._id ?? o.id,
   poNumber: o.poNumber ?? `PO-${(o._id ?? "").slice(-6).toUpperCase()}`,
@@ -45,15 +71,18 @@ const mapApiOrder = (o: any): PurchaseOrder => ({
   contactEmail: o.supplierId?.email ?? o.contactEmail ?? "",
   warehouseId: o.warehouseId?._id ?? o.warehouseId ?? "",
   warehouseName: o.warehouseId?.name ?? o.warehouseName ?? "",
-  totalAmount: o.totalAmount ?? 0,
-  paid: o.paidAmount ?? 0,
-  status: (o.status === "received" ? "Paid" : o.status === "cancelled" ? "Canceled" : o.status === "submitted" ? "Unpaid" : "Pending") as PoStatus,
+  totalAmount: Number(o.totalAmount ?? 0),
+  paid: Number(o.paidAmount ?? o.paid ?? 0),
+  status: derivePoUiStatus(o),
+  rawStatus: o.status,
+  paymentStatus: o.paymentStatus,
   expectedDeliveryDate: o.expectedDeliveryDate ? new Date(o.expectedDeliveryDate).toLocaleDateString() : "",
-  items: (o.items ?? []).map((i: any) => ({
+  items: (o.items ?? []).map((i: any, idx: number) => ({
+    id: i._id ?? i.id ?? `li-${idx}`,
     productId: i.productId?._id ?? i.productId ?? "",
     productName: i.productId?.name ?? i.productName ?? "",
     quantity: i.quantity ?? 0,
-    unitCost: i.unitPrice ?? i.unitCost ?? 0,
+    unitCost: i.unitCost ?? i.unitPrice ?? 0,
     unit: i.unit ?? "kg",
   })),
 });
@@ -74,11 +103,37 @@ const ProcurementPage = () => {
   const { products: apiProducts, getProducts, isFetchingProducts } = useProducts();
 
   useEffect(() => { getPurchaseOrders(); }, [getPurchaseOrders]);
-  useEffect(() => { if (apiOrders?.length) setOrders(apiOrders.map(mapApiOrder)); }, [apiOrders]);
+  useEffect(() => {
+    if (apiOrders) {
+      setOrders(
+        apiOrders.filter(Boolean).map((o: any) => {
+          const mapped = mapApiOrder(o);
+          if (!mapped.supplierName && mapped.supplierId && apiSuppliers?.length) {
+            const matchedSup = apiSuppliers.find(
+              (s: any) => String(s._id ?? s.id) === String(mapped.supplierId),
+            );
+            if (matchedSup) {
+              mapped.supplierName = matchedSup.name ?? "";
+              mapped.contactEmail = mapped.contactEmail || matchedSup.email || "";
+            }
+          }
+          if (!mapped.warehouseName && mapped.warehouseId && apiWarehouses?.length) {
+            const matchedWh = apiWarehouses.find(
+              (w: any) => String(w._id ?? w.id) === String(mapped.warehouseId),
+            );
+            if (matchedWh) {
+              mapped.warehouseName = matchedWh.name ?? "";
+            }
+          }
+          return mapped;
+        }),
+      );
+    }
+  }, [apiOrders, apiSuppliers, apiWarehouses]);
   useEffect(() => {
     getSuppliersList();
     getWarehouses();
-    getProducts({});
+    getProducts({ page: 1, limit: 200 });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -175,9 +230,13 @@ const ProcurementPage = () => {
     let canceled = 0;
     for (const order of orders) {
       total += order.totalAmount;
-      if (order.status === "Pending" || order.status === "Unpaid") pending++;
-      if (order.status === "Paid") received++;
-      if (order.status === "Canceled") canceled++;
+      if (order.status === "Canceled" || order.rawStatus === "cancelled") {
+        canceled++;
+      } else if (order.rawStatus === "received" || order.status === "Paid") {
+        received++;
+      } else {
+        pending++;
+      }
     }
     return { total, pending, received, canceled };
   }, [orders]);
@@ -187,7 +246,10 @@ const ProcurementPage = () => {
       .filter((item) => item.productId && item.quantity > 0)
       .map((item) => ({
         productId: item.productId,
-        productName: productOptions.find((p) => p.id === item.productId)?.label ?? "",
+        productName:
+          item.productName ||
+          productOptions.find((p) => p.id === item.productId)?.label ||
+          "",
         quantity: item.quantity,
         // Backend reads `item.unitCost` to compute each line's subtotal
         // (purchaseController.js createPurchaseOrder) — this was sending
@@ -205,16 +267,56 @@ const ProcurementPage = () => {
   };
 
   const handleSubmitToSupplier = (order: PurchaseOrder) => {
+    setOrders((prev) =>
+      prev.map((o) =>
+        String(o.id) === String(order.id)
+          ? {
+              ...o,
+              rawStatus: "submitted",
+              status: derivePoUiStatus({
+                status: "submitted",
+                paymentStatus: o.paymentStatus,
+                totalAmount: o.totalAmount,
+                paidAmount: o.paid,
+              }),
+            }
+          : o,
+      ),
+    );
     submitPurchaseOrder(String(order.id));
   };
 
-  const handleConfirmPayment = async (orderId: number, amount: number) => {
+  const handleConfirmPayment = async (orderId: string | number, amount: number) => {
     try {
       // Was previously calling submitPurchaseOrder (POST /purchasing/:id/submit)
       // instead of the actual payment endpoint — the entered amount was
       // discarded and no payment was ever recorded against the PO.
-      await makePurchaseOrderPayment(String(orderId), amount);
-      showSuccessToast(t("Payment recorded"));
+      const res: any = await makePurchaseOrderPayment(String(orderId), amount);
+      const updatedPo = res?.data?.purchaseOrder ?? res?.purchaseOrder ?? res?.data;
+      setOrders((prev) =>
+        prev.map((o) => {
+          if (String(o.id) !== String(orderId)) return o;
+          const nextPaid = Number(updatedPo?.paidAmount ?? o.paid + amount);
+          const nextTotal = Number(updatedPo?.totalAmount ?? o.totalAmount);
+          const nextPaymentStatus =
+            updatedPo?.paymentStatus ??
+            (nextPaid >= nextTotal ? "paid" : nextPaid > 0 ? "partial" : "unpaid");
+          const nextUiStatus = derivePoUiStatus({
+            status: o.rawStatus,
+            paymentStatus: nextPaymentStatus,
+            totalAmount: nextTotal,
+            paidAmount: nextPaid,
+          });
+          return {
+            ...o,
+            paid: nextPaid,
+            totalAmount: nextTotal,
+            paymentStatus: nextPaymentStatus,
+            status: nextUiStatus,
+          };
+        }),
+      );
+      showSuccessToast(res?.message || t("Payment recorded"));
       getPurchaseOrders();
     } catch (error: any) {
       showErrorToast(error?.response?.data?.message || t("Failed to record payment"));
@@ -223,8 +325,24 @@ const ProcurementPage = () => {
 
   const handleMarkReceived = async (order: PurchaseOrder) => {
     try {
-      await receivePurchaseOrder(String(order.id));
-      showSuccessToast(t("Purchase order marked as received"));
+      const res: any = await receivePurchaseOrder(String(order.id));
+      setOrders((prev) =>
+        prev.map((o) =>
+          String(o.id) === String(order.id)
+            ? {
+                ...o,
+                rawStatus: "received",
+                status: derivePoUiStatus({
+                  status: "received",
+                  paymentStatus: o.paymentStatus,
+                  totalAmount: o.totalAmount,
+                  paidAmount: o.paid,
+                }),
+              }
+            : o,
+        ),
+      );
+      showSuccessToast(res?.message || t("Purchase order marked as received"));
       getPurchaseOrders();
     } catch (error: any) {
       showErrorToast(error?.response?.data?.message || t("Failed to mark as received"));
@@ -233,8 +351,21 @@ const ProcurementPage = () => {
 
   const handleCancelPo = async (order: PurchaseOrder) => {
     try {
-      await cancelPurchaseOrder(String(order.id));
-      showSuccessToast(t("Purchase order canceled"));
+      const res: any = await cancelPurchaseOrder(String(order.id));
+      // Per backend contract: sets status="cancelled" and leaves paidAmount /
+      // paymentStatus untouched so a cancelled order still shows its paid/remaining figures.
+      setOrders((prev) =>
+        prev.map((o) =>
+          String(o.id) === String(order.id)
+            ? {
+                ...o,
+                rawStatus: "cancelled",
+                status: "Canceled",
+              }
+            : o,
+        ),
+      );
+      showSuccessToast(res?.message || t("Purchase order canceled"));
       getPurchaseOrders();
     } catch (error: any) {
       showErrorToast(error?.response?.data?.message || t("Failed to cancel purchase order"));
@@ -243,8 +374,10 @@ const ProcurementPage = () => {
 
   const handleConfirmDeletePo = async () => {
     if (!deleteTarget) return;
+    const deletedId = String(deleteTarget.id);
     try {
-      await deletePurchaseOrder(String(deleteTarget.id));
+      await deletePurchaseOrder(deletedId);
+      setOrders((prev) => prev.filter((o) => String(o.id) !== deletedId));
       showSuccessToast(t("Purchase order deleted"));
       setDeleteTarget(null);
       getPurchaseOrders();

@@ -65,8 +65,14 @@ const purchasingSlice = createSlice({
       action: PayloadAction<GetPurchaseOrdersResponse>,
     ) => {
       state.loading.fetch = false;
-      state.purchaseOrders = action.payload.data || [];
-      state.pagination = action.payload.pagination ?? null;
+      const payload = action.payload as any;
+      const list =
+        payload?.data ??
+        payload?.purchaseOrders ??
+        payload?.orders ??
+        (Array.isArray(payload) ? payload : []);
+      state.purchaseOrders = Array.isArray(list) ? list.filter(Boolean) : [];
+      state.pagination = action.payload?.pagination ?? null;
     },
     getPurchaseOrdersFailure: (state, action: PayloadAction<string>) => {
       setOperationFailure(state, "fetch", action.payload);
@@ -80,10 +86,12 @@ const purchasingSlice = createSlice({
     },
     createPurchaseOrderSuccess: (
       state,
-      action: PayloadAction<{ purchaseOrder: ApiPurchaseOrder; message?: string }>,
+      action: PayloadAction<{ purchaseOrder?: ApiPurchaseOrder; message?: string }>,
     ) => {
       state.loading.create = false;
-      state.purchaseOrders.unshift(action.payload.purchaseOrder);
+      if (action.payload.purchaseOrder) {
+        state.purchaseOrders.unshift(action.payload.purchaseOrder);
+      }
       state.successMessage = action.payload.message ?? "Purchase order created";
     },
     createPurchaseOrderFailure: (state, action: PayloadAction<string>) => {
@@ -103,7 +111,20 @@ const purchasingSlice = createSlice({
       state.loading.submit = false;
       const updated = action.payload.purchaseOrder;
       const idx = state.purchaseOrders.findIndex((po) => po._id === updated._id);
-      if (idx !== -1) state.purchaseOrders[idx] = updated;
+      if (idx !== -1) {
+        state.purchaseOrders[idx] = {
+          ...state.purchaseOrders[idx],
+          ...updated,
+          supplierId:
+            typeof updated.supplierId === "object" && updated.supplierId !== null
+              ? updated.supplierId
+              : state.purchaseOrders[idx].supplierId,
+          warehouseId:
+            typeof updated.warehouseId === "object" && updated.warehouseId !== null
+              ? updated.warehouseId
+              : state.purchaseOrders[idx].warehouseId,
+        };
+      }
       state.successMessage = action.payload.message ?? "Purchase order submitted";
     },
     submitPurchaseOrderFailure: (state, action: PayloadAction<string>) => {
@@ -123,7 +144,20 @@ const purchasingSlice = createSlice({
       state.loading.cancel = false;
       const updated = action.payload.purchaseOrder;
       const idx = state.purchaseOrders.findIndex((po) => po._id === updated._id);
-      if (idx !== -1) state.purchaseOrders[idx] = updated;
+      if (idx !== -1) {
+        state.purchaseOrders[idx] = {
+          ...state.purchaseOrders[idx],
+          ...updated,
+          supplierId:
+            typeof updated.supplierId === "object" && updated.supplierId !== null
+              ? updated.supplierId
+              : state.purchaseOrders[idx].supplierId,
+          warehouseId:
+            typeof updated.warehouseId === "object" && updated.warehouseId !== null
+              ? updated.warehouseId
+              : state.purchaseOrders[idx].warehouseId,
+        };
+      }
       state.successMessage = action.payload.message ?? "Purchase order cancelled";
     },
     cancelPurchaseOrderFailure: (state, action: PayloadAction<string>) => {
