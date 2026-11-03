@@ -11,6 +11,7 @@ import type { DropdownSelectOption } from "@/shared/types/DropdownSelect.types";
 interface DispatchPanelProps {
   selectedReferences: string[];
   selectedZoneNames?: string[];
+  availableZoneNames?: string[];
   drivers: Driver[];
   selectedDriverId: string;
   onSelectDriver: (id: string) => void;
@@ -23,6 +24,7 @@ interface DispatchPanelProps {
 const DispatchPanel = ({
   selectedReferences,
   selectedZoneNames = [],
+  availableZoneNames = [],
   drivers,
   selectedDriverId,
   onSelectDriver,
@@ -36,25 +38,43 @@ const DispatchPanel = ({
 
   const activeDrivers = useMemo(
     () => drivers.filter((d) => d.status === "Active" || d.status === "On-Route"),
-    [drivers]
+    [drivers],
   );
 
   const driverOptions: DropdownSelectOption[] = useMemo(() => {
     if (selectedZoneNames.length === 0) {
       const zoneDriverMap = new Map<string, Driver[]>();
-      const unzonedDrivers: Driver[] = [];
+      const otherDrivers: Driver[] = [];
+      const activeZonesLower = new Map<string, string>();
+      availableZoneNames.forEach((z) => {
+        const trimmed = z.trim();
+        if (trimmed) activeZonesLower.set(trimmed.toLowerCase(), trimmed);
+      });
 
       activeDrivers.forEach((driver) => {
         if (!driver.zones || driver.zones.length === 0) {
-          unzonedDrivers.push(driver);
+          otherDrivers.push(driver);
+          return;
+        }
+
+        const matchedZones = driver.zones
+          .map((z) => z.trim())
+          .filter((z) =>
+            activeZonesLower.size > 0
+              ? activeZonesLower.has(z.toLowerCase())
+              : Boolean(z),
+          );
+
+        if (matchedZones.length === 0) {
+          otherDrivers.push(driver);
         } else {
-          driver.zones.forEach((z) => {
-            const normalizedZone = z.trim();
-            if (!normalizedZone) return;
-            if (!zoneDriverMap.has(normalizedZone)) {
-              zoneDriverMap.set(normalizedZone, []);
+          matchedZones.forEach((z) => {
+            const canonicalZone =
+              activeZonesLower.get(z.toLowerCase()) || z;
+            if (!zoneDriverMap.has(canonicalZone)) {
+              zoneDriverMap.set(canonicalZone, []);
             }
-            zoneDriverMap.get(normalizedZone)!.push(driver);
+            zoneDriverMap.get(canonicalZone)!.push(driver);
           });
         }
       });
@@ -79,13 +99,13 @@ const DispatchPanel = ({
         }
       });
 
-      if (unzonedDrivers.length > 0) {
+      if (otherDrivers.length > 0) {
         options.push({
           label: "Other Drivers",
           value: "hdr-other-unzoned",
           isHeader: true,
         });
-        unzonedDrivers.forEach((d) => {
+        otherDrivers.forEach((d) => {
           options.push({ value: String(d.id), label: d.name });
         });
       }
@@ -132,7 +152,7 @@ const DispatchPanel = ({
     }
 
     return options;
-  }, [activeDrivers, selectedZoneNames]);
+  }, [activeDrivers, selectedZoneNames, availableZoneNames]);
 
   return (
     <div className="rounded-[16px] border border-[#E5E5E5] bg-white p-5 sm:p-6">

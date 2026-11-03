@@ -95,10 +95,8 @@ const DeliveryTrackingPage = () => {
     return () => window.clearInterval(interval);
   }, [loadRiders]);
 
-  // Live rider position updates — the backend already emits
-  // driverLocationUpdated on every GPS ping (driverController.updateLocation),
-  // but this screen never connected to the socket, so the map only ever
-  // reflected whatever was true at the last manual/interval refresh.
+  // Live rider position and status updates — listens to GPS pings, status changes,
+  // order assignments, and socket reconnections.
   useEffect(() => {
     const socket = getSocket();
     const handleLocationUpdate = (data: { driverId: string; lat: number; lng: number }) => {
@@ -116,11 +114,31 @@ const DeliveryTrackingPage = () => {
       );
     };
 
-    socket.on("driverLocationUpdated", handleLocationUpdate);
-    return () => {
-      socket.off("driverLocationUpdated", handleLocationUpdate);
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    const handleRidersRefresh = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        loadRiders();
+      }, 300);
     };
-  }, []);
+
+    socket.on("driverLocationUpdated", handleLocationUpdate);
+    socket.on("connect", handleRidersRefresh);
+    socket.on("driverUpdated", handleRidersRefresh);
+    socket.on("driverStatusUpdated", handleRidersRefresh);
+    socket.on("orderUpdated", handleRidersRefresh);
+    socket.on("newOrder", handleRidersRefresh);
+
+    return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      socket.off("driverLocationUpdated", handleLocationUpdate);
+      socket.off("connect", handleRidersRefresh);
+      socket.off("driverUpdated", handleRidersRefresh);
+      socket.off("driverStatusUpdated", handleRidersRefresh);
+      socket.off("orderUpdated", handleRidersRefresh);
+      socket.off("newOrder", handleRidersRefresh);
+    };
+  }, [loadRiders]);
 
   const overview = useMemo(() => {
     const activeRiders = riders.filter((r) => r.status !== "Delivered").length;

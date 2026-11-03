@@ -98,14 +98,14 @@ const DriverActions = ({
   onEdit: (d: Driver) => void;
   onNotify: (d: Driver) => void;
 }) => (
-  <div className="flex items-center gap-3">
+  <div className="flex shrink-0 items-center gap-3">
     <button
       type="button"
       onClick={() => openWhatsApp(driver.whatsappPhone)}
       aria-label={`Message ${driver.name} on WhatsApp`}
-      className="flex cursor-pointer items-center justify-center transition-transform duration-150 hover:scale-110 active:scale-90"
+      className="flex size-5 shrink-0 cursor-pointer items-center justify-center transition-transform duration-150 hover:scale-110 active:scale-90"
     >
-      <img src={WhatsAppIcon} alt="" className="size-5" />
+      <img src={WhatsAppIcon} alt="" className="size-5 min-h-5 min-w-5 shrink-0" />
     </button>
     <ActionButton
       data={{

@@ -89,8 +89,8 @@ const PendingRequestsWidget = ({ className, onSelectOrder }: PendingRequestsWidg
     const socket = getSocket();
     socket.on("connect", fetchRequests);
 
-    // Heartbeat polling every 4 seconds as a fallback
-    const interval = setInterval(fetchRequests, 4000);
+    // Heartbeat fallback every 30 seconds (real-time updates are pushed via socket & discount bus)
+    const interval = setInterval(fetchRequests, 30000);
 
     return () => {
       unsubscribe();

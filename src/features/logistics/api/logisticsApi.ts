@@ -43,10 +43,16 @@ export const deleteDriver = async (
 export const dispatchOrder = async (
   driverId: string,
   orderId: string,
-): Promise<{ message?: string }> => {
-  const response = await api.post<{ message?: string }>("/logistics/dispatch", {
+  zone?: string,
+): Promise<{ driver?: any; order?: any; message?: string }> => {
+  const response = await api.post<{
+    driver?: any;
+    order?: any;
+    message?: string;
+  }>("/logistics/dispatch", {
     driverId,
     orderId,
+    ...(zone ? { zone } : {}),
   });
   return response.data;
 };

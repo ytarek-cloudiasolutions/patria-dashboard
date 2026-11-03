@@ -187,22 +187,41 @@ const OrdersPage = () => {
   }, [buildOrdersQuery, getOrdersList]);
 
   // Live updates: play a sound and refresh the list when a new order comes in
-  // or an existing order gets new items sent to the kitchen.
+  // or an existing order gets updated.
   useEffect(() => {
     const socket = getSocket();
-    const handleUpdate = () => {
-      playNotificationSound();
-      getOrdersList(buildOrdersQuery());
+
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    const triggerDebouncedRefresh = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        getOrdersList(buildOrdersQuery());
+        refreshSourceCounts();
+      }, 300);
     };
 
-    socket.on("newOrder", handleUpdate);
-    socket.on("orderUpdated", handleUpdate);
+    const handleNewOrder = () => {
+      playNotificationSound();
+      triggerDebouncedRefresh();
+    };
+
+    const handleOrderChange = () => {
+      triggerDebouncedRefresh();
+    };
+
+    socket.on("connect", handleOrderChange);
+    socket.on("newOrder", handleNewOrder);
+    socket.on("orderUpdated", handleOrderChange);
+    socket.on("orderDiscountUpdated", handleOrderChange);
 
     return () => {
-      socket.off("newOrder", handleUpdate);
-      socket.off("orderUpdated", handleUpdate);
+      if (debounceTimer) clearTimeout(debounceTimer);
+      socket.off("connect", handleOrderChange);
+      socket.off("newOrder", handleNewOrder);
+      socket.off("orderUpdated", handleOrderChange);
+      socket.off("orderDiscountUpdated", handleOrderChange);
     };
-  }, [buildOrdersQuery, getOrdersList]);
+  }, [buildOrdersQuery, getOrdersList, refreshSourceCounts]);
 
   // Fetch products and locations for call orders
   useEffect(() => {

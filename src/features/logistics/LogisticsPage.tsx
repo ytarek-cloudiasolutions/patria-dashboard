@@ -14,14 +14,152 @@ import DispatchPanel from "./components/DispatchPanel";
 import DriverDutyCard from "./components/DriverDutyCard";
 import DriversTable from "./components/DriverStable";
 import AddDriverDialog from "./components/AddDriverDialog";
+import { normalizeWhatsAppPhone } from "./utils";
 import SendNotificationDialog from "./components/SendNotificationDialog";
 
 import type { Driver, DriverFormData, DriverStatus, Zone, ZoneOrder, ZoneOrderStatus } from "./types";
 import { useLogistics } from "./hooks/useLogistics";
+import { useLocations } from "@/features/locations/hooks/useLocations";
+import type { DeliveryZone, ZonePoint } from "@/features/locations/types";
 import { dispatchOrder } from "./api/logisticsApi";
+import { getSocket } from "@/shared/lib/socket";
+
+const OBJECT_ID_REGEX = /^[a-f\d]{24}$/i;
+
+const isPointInPolygon = (lat: number, lng: number, polygon: ZonePoint[]): boolean => {
+  if (!Array.isArray(polygon) || polygon.length < 3) return false;
+  let inside = false;
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const xi = polygon[i].lat;
+    const yi = polygon[i].lng;
+    const xj = polygon[j].lat;
+    const yj = polygon[j].lng;
+    const intersect =
+      yi > lng !== yj > lng &&
+      lat < ((xj - xi) * (lng - yi)) / (yj - yi || Number.EPSILON) + xi;
+    if (intersect) inside = !inside;
+  }
+  return inside;
+};
+
+const resolveOrderZoneName = (
+  o: any,
+  locations: DeliveryZone[],
+  knownZoneNames: string[],
+): string => {
+  const locationById = new Map<string, string>();
+  const locationByName = new Map<string, string>();
+
+  locations.forEach((loc) => {
+    const id = String(loc._id || loc.id || "").trim();
+    const name = (loc.name || "").trim();
+    if (!name) return;
+    if (id) locationById.set(id, name);
+    locationByName.set(name.toLowerCase(), name);
+    if (loc.nameAr?.trim()) {
+      locationByName.set(loc.nameAr.trim().toLowerCase(), name);
+    }
+  });
+
+  knownZoneNames.forEach((zName) => {
+    const trimmed = zName.trim();
+    if (trimmed && !locationByName.has(trimmed.toLowerCase())) {
+      locationByName.set(trimmed.toLowerCase(), trimmed);
+    }
+  });
+
+  const extractValues = (val: any): string[] => {
+    if (!val) return [];
+    if (typeof val === "string") return [val.trim()];
+    if (typeof val === "object") {
+      return [val.name, val.nameAr, val._id, val.id, val.zone, val.area]
+        .filter((v): v is string => typeof v === "string" && Boolean(v.trim()))
+        .map((v) => v.trim());
+    }
+    return [];
+  };
+
+  const candidates = [
+    ...extractValues(o.zone),
+    ...extractValues(o.region),
+    ...extractValues(o.customer?.zone),
+    ...extractValues(o.customer?.region),
+    ...extractValues(o.customerId?.zone),
+    ...extractValues(o.customerId?.region),
+  ];
+
+  const addresses = [
+    ...(Array.isArray(o.customer?.addresses) ? o.customer.addresses : []),
+    ...(Array.isArray(o.customerId?.addresses) ? o.customerId.addresses : []),
+  ];
+  addresses.forEach((addr: any) => {
+    if (!addr) return;
+    candidates.push(
+      ...extractValues(addr.zone),
+      ...extractValues(addr.area),
+      ...extractValues(addr.region),
+      ...extractValues(addr.zoneId),
+      ...extractValues(addr.locationId),
+    );
+  });
+
+  for (const raw of candidates) {
+    if (!raw) continue;
+    if (locationById.has(raw)) return locationById.get(raw)!;
+    const byName = locationByName.get(raw.toLowerCase());
+    if (byName) return byName;
+    if (!OBJECT_ID_REGEX.test(raw)) return raw;
+  }
+
+  // Check if customer address text mentions a known zone name
+  const addressText = String(o.customer?.address || o.address || "").toLowerCase();
+  if (addressText) {
+    for (const [lowerName, canonicalName] of locationByName.entries()) {
+      if (lowerName && addressText.includes(lowerName)) {
+        return canonicalName;
+      }
+    }
+  }
+
+  // Check customer coordinates against location polygons or centers
+  const coords = o.customerLocation || o.customer?.location;
+  const lat = Number(coords?.lat);
+  const lng = Number(coords?.lng);
+  if (Number.isFinite(lat) && Number.isFinite(lng) && (lat !== 0 || lng !== 0)) {
+    for (const loc of locations) {
+      if (loc.polygon && loc.polygon.length >= 3 && isPointInPolygon(lat, lng, loc.polygon)) {
+        return loc.name;
+      }
+    }
+
+    let closestLoc: DeliveryZone | null = null;
+    let minDistanceSq = Infinity;
+    for (const loc of locations) {
+      if (typeof loc.centerLat === "number" && typeof loc.centerLng === "number") {
+        const dLat = lat - loc.centerLat;
+        const dLng = lng - loc.centerLng;
+        const distSq = dLat * dLat + dLng * dLng;
+        if (distSq < minDistanceSq) {
+          minDistanceSq = distSq;
+          closestLoc = loc;
+        }
+      }
+    }
+    if (closestLoc?.name) return closestLoc.name;
+  }
+
+  // Match by deliveryFee if unique/present in locations
+  const fee = Number(o.deliveryFee);
+  if (Number.isFinite(fee) && fee > 0) {
+    const matchedByFee = locations.find((loc) => Number(loc.deliveryFee) === fee);
+    if (matchedByFee?.name) return matchedByFee.name;
+  }
+
+  return "";
+};
 
 const mapApiDriver = (d: any): Driver => {
-  const hourlyRate = d.hourlyRate || 0;
+  const hourlyRate = d.hourlyRate ?? 0;
   // Backend now computes salaryNow itself (real elapsed hours since
   // shiftStartedAt × hourlyRate) so every consumer agrees on one number —
   // fall back to the same formula client-side only for older API
@@ -33,12 +171,20 @@ const mapApiDriver = (d: any): Driver => {
   return {
     id: d._id || d.id,
     name: d.name || "",
-    whatsappPhone: d.phone || d.whatsappPhone || "",
+    whatsappPhone: d.whatsappPhone || d.phone || "",
     vehicleType: d.vehicleType === "car" ? "Car" : d.vehicleType === "van" ? "Van" : "Motorcycle",
     plateNumber: d.plateNumber || "",
     zones: d.zones || [],
-    status: d.status === "busy" ? "On-Route" : d.status === "active" ? "Active" : "Off-Duty",
-    ordersToday: d.shiftDeliveriesCount || d.totalDelivered || (d.activeOrders ? d.activeOrders.length : 0),
+    status:
+      d.status === "busy"
+        ? "On-Route"
+        : d.status === "active" || d.isOnShift
+          ? "Active"
+          : "Off-Duty",
+    ordersToday:
+      d.totalDelivered ??
+      d.shiftDeliveriesCount ??
+      (d.activeOrders ? d.activeOrders.length : 0),
     salaryNow,
     hourlyRate,
     dutyTime: d.dutyTime && d.dutyTime !== "—" ? d.dutyTime : "00:00:00",
@@ -58,6 +204,7 @@ const LogisticsPage = () => {
     deleteDriver,
     loading,
   } = useLogistics();
+  const { locations, getLocations } = useLocations();
 
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [apiOrders, setApiOrders] = useState<any[]>([]);
@@ -68,7 +215,7 @@ const LogisticsPage = () => {
 
   const fetchOrders = useCallback(async () => {
     try {
-      const res = await api.get("/orders", { params: { limit: 100, type: "Delivery" } });
+      const res = await api.get("/orders", { params: { limit: 100 } });
       setApiOrders(res.data?.data || res.data?.orders || []);
     } catch {
       // ignore
@@ -86,6 +233,7 @@ const LogisticsPage = () => {
   useEffect(() => {
     getDrivers();
     fetchOrders();
+    getLocations();
     // Drivers were only ever fetched once on mount, with no polling — a
     // driver who started/ended their shift, or whose duty time simply kept
     // ticking, after this page loaded stayed frozen at whatever the
@@ -97,7 +245,58 @@ const LogisticsPage = () => {
       fetchOrders();
     }, 20000);
     return () => clearInterval(interval);
-  }, [getDrivers, fetchOrders]);
+  }, [getDrivers, fetchOrders, getLocations]);
+
+  // Real-time socket event listeners for instant updates on orders and driver statuses
+  useEffect(() => {
+    const socket = getSocket();
+
+    let ordersTimer: ReturnType<typeof setTimeout> | null = null;
+    let driversTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const debouncedFetchOrders = () => {
+      if (ordersTimer) clearTimeout(ordersTimer);
+      ordersTimer = setTimeout(() => {
+        fetchOrders();
+      }, 300);
+    };
+
+    const debouncedGetDrivers = () => {
+      if (driversTimer) clearTimeout(driversTimer);
+      driversTimer = setTimeout(() => {
+        getDrivers();
+      }, 300);
+    };
+
+    const handleFullRefresh = () => {
+      debouncedFetchOrders();
+      debouncedGetDrivers();
+    };
+
+    socket.on("connect", handleFullRefresh);
+    socket.on("newOrder", handleFullRefresh);
+    socket.on("orderUpdated", handleFullRefresh);
+    socket.on("orderDiscountUpdated", debouncedFetchOrders);
+    socket.on("driverUpdated", debouncedGetDrivers);
+    socket.on("driverStatusUpdated", debouncedGetDrivers);
+    socket.on("driverStatusChanged", debouncedGetDrivers);
+    socket.on("shiftStarted", debouncedGetDrivers);
+    socket.on("shiftEnded", debouncedGetDrivers);
+
+    return () => {
+      if (ordersTimer) clearTimeout(ordersTimer);
+      if (driversTimer) clearTimeout(driversTimer);
+      socket.off("connect", handleFullRefresh);
+      socket.off("newOrder", handleFullRefresh);
+      socket.off("orderUpdated", handleFullRefresh);
+      socket.off("orderDiscountUpdated", debouncedFetchOrders);
+      socket.off("driverUpdated", debouncedGetDrivers);
+      socket.off("driverStatusUpdated", debouncedGetDrivers);
+      socket.off("driverStatusChanged", debouncedGetDrivers);
+      socket.off("shiftStarted", debouncedGetDrivers);
+      socket.off("shiftEnded", debouncedGetDrivers);
+    };
+  }, [fetchOrders, getDrivers]);
 
   useEffect(() => {
     if (apiDrivers) {
@@ -109,84 +308,121 @@ const LogisticsPage = () => {
     const zoneMap = new Map<string, ZoneOrder[]>();
     const processedOrderIds = new Set<string>();
 
-    // 1. First process assigned driver active orders from driversByZone
-    if (driversByZone && Array.isArray(driversByZone)) {
+    const driverById = new Map<string, string>();
+    const orderAssignedDriverMap = new Map<string, string>();
+    const knownZoneNames: string[] = [];
+
+    (apiDrivers || []).forEach((d: any) => {
+      const dId = String(d._id || d.id || "");
+      const dName = d.name || "";
+      if (dId && dName) driverById.set(dId, dName);
+      if (Array.isArray(d.zones)) {
+        d.zones.forEach((z: string) => {
+          if (z) knownZoneNames.push(z);
+        });
+      }
+      const currentId =
+        typeof d.currentOrderId === "object"
+          ? String(d.currentOrderId?._id || d.currentOrderId?.id || "")
+          : String(d.currentOrderId || "");
+      if (currentId && dName) {
+        orderAssignedDriverMap.set(currentId, dName);
+      }
+      if (Array.isArray(d.activeOrders)) {
+        d.activeOrders.forEach((ao: any) => {
+          const aoId = typeof ao === "object" ? String(ao?._id || ao?.id || "") : String(ao || "");
+          if (aoId && dName) {
+            orderAssignedDriverMap.set(aoId, dName);
+          }
+        });
+      }
+    });
+
+    if (Array.isArray(driversByZone)) {
       driversByZone.forEach((dz: any) => {
-        const zoneName = dz.zone || "Kafr Abdo";
-        if (!zoneMap.has(zoneName)) {
-          zoneMap.set(zoneName, []);
-        }
-
-        if (Array.isArray(dz.drivers)) {
-          dz.drivers.forEach((driver: any) => {
-            const activeList = driver.activeOrders || (driver.currentOrderId ? [driver.currentOrderId] : []);
-            if (Array.isArray(activeList)) {
-              activeList.forEach((o: any) => {
-                const orderId = String(o._id || o.id || "");
-                if (!orderId || processedOrderIds.has(orderId)) return;
-
-                const rawStatus = (o.status || "").toLowerCase().trim();
-                if (rawStatus === "completed" || rawStatus === "delivered" || rawStatus === "cancelled") return;
-
-                processedOrderIds.add(orderId);
-                const ref = o.orderNumber || o.orderId
-                  ? `#${o.orderNumber || o.orderId}`
-                  : `#ORD-${orderId.slice(-6).toUpperCase()}`;
-                const customer =
-                  typeof o.customer === "string"
-                    ? o.customer
-                    : o.customer?.name || o.customerId?.name || "Customer";
-                const address = o.address || o.customer?.address || "No address provided";
-                const amount = o.amount || o.total || o.totalAmount || 0;
-
-                zoneMap.get(zoneName)!.push({
-                  id: orderId,
-                  reference: ref,
-                  customer,
-                  address,
-                  amount,
-                  status: "On-Route",
-                  assignedDriverName: driver.name,
-                });
-              });
-            }
-          });
-        }
+        if (dz?.zone) knownZoneNames.push(dz.zone);
       });
     }
 
-    // 2. Process unassigned / pending API orders
-    apiOrders.forEach((o: any) => {
+    const resolveDriverName = (o: any, orderId: string): string | undefined => {
+      const rawAssigned = o.assignedDriver ?? o.driver;
+      if (rawAssigned) {
+        if (typeof rawAssigned === "object") {
+          const name = rawAssigned.name;
+          if (name) return name;
+          const id = String(rawAssigned._id || rawAssigned.id || "");
+          if (id && driverById.has(id)) return driverById.get(id);
+        } else if (typeof rawAssigned === "string") {
+          const trimmed = rawAssigned.trim();
+          if (driverById.has(trimmed)) return driverById.get(trimmed);
+          if (!OBJECT_ID_REGEX.test(trimmed)) return trimmed;
+        }
+      }
+      return orderAssignedDriverMap.get(orderId);
+    };
+
+    // Collect all candidate orders from apiOrders and any full order objects in driver.activeOrders
+    const allRawOrders: any[] = [...apiOrders];
+    (apiDrivers || []).forEach((d: any) => {
+      if (Array.isArray(d.activeOrders)) {
+        d.activeOrders.forEach((ao: any) => {
+          if (ao && typeof ao === "object" && (ao._id || ao.id)) {
+            allRawOrders.push(ao);
+          }
+        });
+      }
+    });
+
+    allRawOrders.forEach((o: any) => {
       const orderId = String(o._id || o.id || "");
-      if (processedOrderIds.has(orderId)) return;
+      if (!orderId || processedOrderIds.has(orderId)) return;
 
       const orderType = String(o.type || "").toLowerCase().trim();
       if (orderType && orderType !== "delivery") return;
 
       const rawStatus = (o.status || "").toLowerCase().trim();
-      if (rawStatus === "completed" || rawStatus === "delivered" || rawStatus === "cancelled") return;
+      const rawDeliveryStatus = (o.deliveryStatus || "").toLowerCase().trim();
+      if (
+        rawStatus === "completed" ||
+        rawStatus === "delivered" ||
+        rawStatus === "cancelled" ||
+        rawDeliveryStatus === "delivered"
+      ) {
+        return;
+      }
+
+      const zoneName = resolveOrderZoneName(o, locations, knownZoneNames);
+      if (!zoneName) return;
 
       processedOrderIds.add(orderId);
 
-      const zoneName = o.zone || "Kafr Abdo";
       if (!zoneMap.has(zoneName)) {
         zoneMap.set(zoneName, []);
       }
 
-      const ref = o.orderId || o.orderNumber
-        ? `#${o.orderId || o.orderNumber}`
+      const rawRef = String(o.orderId || o.orderNumber || "").trim();
+      const ref = rawRef
+        ? rawRef.startsWith("#")
+          ? rawRef
+          : `#${rawRef}`
         : `#ORD-${orderId.slice(-6).toUpperCase()}`;
       const customer =
-        o.customerId?.name || o.customer?.name || o.customerName || "Walk-in Customer";
+        typeof o.customer === "string"
+          ? o.customer
+          : o.customerId?.name || o.customer?.name || o.customerName || "Walk-in Customer";
       const address = o.customer?.address || o.address || "No address provided";
-      const amount = o.totalAmount || o.total || 0;
+      const amount = o.totalAmount ?? o.total ?? o.amount ?? 0;
+
+      const assignedDriverName = resolveDriverName(o, orderId);
 
       let statusStr: ZoneOrderStatus = "Waiting";
       if (rawStatus === "cancelled") {
         statusStr = "Cancelled";
-      } else if (rawStatus === "processing" || rawStatus === "preparing") {
-        statusStr = "Processing";
       } else if (
+        assignedDriverName ||
+        rawDeliveryStatus === "picking up" ||
+        rawDeliveryStatus === "on-route" ||
+        rawDeliveryStatus === "on_the_way" ||
         rawStatus === "on-route" ||
         rawStatus === "on_the_way" ||
         rawStatus === "on-the-way" ||
@@ -195,15 +431,15 @@ const LogisticsPage = () => {
         statusStr = "On-Route";
       } else if (rawStatus === "ready") {
         statusStr = "Ready";
+      } else if (
+        rawStatus === "processing" ||
+        rawStatus === "preparing" ||
+        rawStatus === "confirmed"
+      ) {
+        statusStr = "Processing";
       } else {
         statusStr = "Waiting";
       }
-
-      const assignedDriverName = o.driver
-        ? typeof o.driver === "string"
-          ? o.driver
-          : o.driver.name
-        : undefined;
 
       zoneMap.get(zoneName)!.push({
         id: orderId,
@@ -216,12 +452,14 @@ const LogisticsPage = () => {
       });
     });
 
-    return Array.from(zoneMap.entries()).map(([name, zoneOrders]) => ({
-      id: name.toLowerCase().replace(/\s+/g, "-"),
-      name,
-      orders: zoneOrders,
-    }));
-  }, [driversByZone, apiOrders]);
+    return Array.from(zoneMap.entries())
+      .filter(([, zoneOrders]) => zoneOrders.length > 0)
+      .map(([name, zoneOrders]) => ({
+        id: name.toLowerCase().replace(/\s+/g, "-"),
+        name,
+        orders: zoneOrders,
+      }));
+  }, [apiDrivers, driversByZone, apiOrders, locations]);
 
   const [search, setSearch] = useState("");
   const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(
@@ -292,19 +530,13 @@ const LogisticsPage = () => {
   }, [zones, selectedOrderIds]);
 
   useEffect(() => {
-    if (selectedDriverId && selectedZoneNames.length > 0) {
+    if (selectedDriverId) {
       const selectedDriver = drivers.find((d) => String(d.id) === String(selectedDriverId));
-      if (selectedDriver && selectedDriver.zones) {
-        const driverZonesLower = selectedDriver.zones.map((z) => z.toLowerCase().trim());
-        const isCompatible = selectedZoneNames.some((sz) =>
-          driverZonesLower.includes(sz.toLowerCase().trim())
-        );
-        if (!isCompatible) {
-          setSelectedDriverId("");
-        }
+      if (!selectedDriver || (selectedDriver.status !== "Active" && selectedDriver.status !== "On-Route")) {
+        setSelectedDriverId("");
       }
     }
-  }, [selectedZoneNames, selectedDriverId, drivers]);
+  }, [selectedDriverId, drivers]);
 
   // --- Dispatch -------------------------------------------------------------
 
@@ -332,10 +564,32 @@ const LogisticsPage = () => {
     if (!selectedDriverId || selectedOrderIds.size === 0) return;
     setIsDispatching(true);
     try {
+      const orderZoneMap = new Map<string, string>();
+      zones.forEach((zone) => {
+        zone.orders.forEach((order) => {
+          orderZoneMap.set(order.id, zone.name);
+        });
+      });
       const orderIds = Array.from(selectedOrderIds);
-      await Promise.all(
-        orderIds.map((orderId) => dispatchOrder(selectedDriverId, orderId)),
+      const results = await Promise.all(
+        orderIds.map((orderId) =>
+          dispatchOrder(selectedDriverId, orderId, orderZoneMap.get(orderId)),
+        ),
       );
+      const updatedOrdersById = new Map<string, any>();
+      results.forEach((res) => {
+        const updatedOrder = res?.order;
+        const uId = String(updatedOrder?._id || updatedOrder?.id || "");
+        if (uId) updatedOrdersById.set(uId, updatedOrder);
+      });
+      if (updatedOrdersById.size > 0) {
+        setApiOrders((prev) =>
+          prev.map((o) => {
+            const oId = String(o._id || o.id || "");
+            return updatedOrdersById.get(oId) ?? o;
+          }),
+        );
+      }
       showSuccessToast(t("Order(s) dispatched successfully"));
       setSelectedOrderIds(new Set());
       setSelectedDriverId("");
@@ -366,10 +620,11 @@ const LogisticsPage = () => {
   };
 
   const handleSaveDriver = (data: DriverFormData, id?: number | string) => {
+    const normalizedPhone = normalizeWhatsAppPhone(data.whatsappPhone);
     const payload: any = {
       name: data.name.trim(),
-      phone: data.whatsappPhone.trim(),
-      whatsappPhone: data.whatsappPhone.trim(),
+      phone: normalizedPhone,
+      whatsappPhone: normalizedPhone,
       vehicleType: data.vehicleType.toLowerCase() as any,
       plateNumber: data.plateNumber.trim(),
       hourlyRate: Number(data.hourlyRate) || 0,
@@ -481,6 +736,7 @@ const LogisticsPage = () => {
         <DispatchPanel
           selectedReferences={selectedReferences}
           selectedZoneNames={selectedZoneNames}
+          availableZoneNames={zones.map((z) => z.name)}
           drivers={drivers}
           selectedDriverId={selectedDriverId}
           onSelectDriver={setSelectedDriverId}

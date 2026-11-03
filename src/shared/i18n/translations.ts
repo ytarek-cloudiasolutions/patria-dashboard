@@ -824,6 +824,8 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   "Select vehicle type": "اختر نوع المركبة",
   "Driver name is required": "اسم السائق مطلوب",
   "WhatsApp phone is required": "رقم واتساب مطلوب",
+  "Invalid WhatsApp phone number — must be 11 digits (or + and 10-14 digits for international)":
+    "رقم واتساب غير صالح — يجب أن يتكون من 11 رقمًا (أو + متبوعًا بـ 10-14 رقمًا للأرقام الدولية)",
   "Update Driver": "تحديث السائق",
   "Save Driver": "حفظ السائق",
   // DispatchDialog

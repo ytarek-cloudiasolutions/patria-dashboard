@@ -219,12 +219,6 @@ const PosPage = () => {
     };
   }, [pendingDiscountRequest]);
 
-  useEffect(() => {
-    getProducts({ limit: 100, context: "pos" });
-    getCategories();
-    getTables();
-  }, [getProducts, getCategories, getTables]);
-
   // Check cashier's discount requests (GET /cashier-discounts/requests/mine) for real-time status updates
   const syncDiscountStatus = useCallback(async () => {
     try {
@@ -282,47 +276,203 @@ const PosPage = () => {
     t,
   ]);
 
-  // Listen for real-time discount events via Socket.IO & BroadcastChannel
-  useEffect(() => {
-    // 1. Bus subscription (all socket events + broadcast events)
-    const unsubscribe = subscribeDiscountEvents(() => {
+  // 300ms debounced tables refresh
+  const tablesDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const debouncedFetchTables = useCallback(() => {
+    if (tablesDebounceRef.current) clearTimeout(tablesDebounceRef.current);
+    tablesDebounceRef.current = setTimeout(() => {
+      getTables();
+    }, 300);
+  }, [getTables]);
+
+  // 300ms debounced products refresh honoring active search & category filters
+  const productsDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const debouncedFetchProducts = useCallback(() => {
+    if (productsDebounceRef.current) clearTimeout(productsDebounceRef.current);
+    productsDebounceRef.current = setTimeout(() => {
+      const params: Record<string, any> = { limit: 100, context: "pos" };
+      if (search.trim()) {
+        params.search = search.trim();
+      }
+      if (activeCategory !== "all") {
+        const selectedCategoryObj = categories.find(
+          (c) => (c.name || "").toLowerCase().replace(/\s+/g, "-") === activeCategory
+        );
+        if (selectedCategoryObj) {
+          params.category = selectedCategoryObj.id || selectedCategoryObj.name;
+        } else {
+          params.category = activeCategory;
+        }
+      }
+      getProducts(params);
+    }, 300);
+  }, [search, activeCategory, categories, getProducts]);
+
+  // 300ms debounced categories refresh
+  const categoriesDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const debouncedFetchCategories = useCallback(() => {
+    if (categoriesDebounceRef.current) clearTimeout(categoriesDebounceRef.current);
+    categoriesDebounceRef.current = setTimeout(() => {
+      getCategories();
+    }, 300);
+  }, [getCategories]);
+
+  // 300ms debounced shifts refresh
+  const shiftsDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const debouncedFetchShift = useCallback(() => {
+    if (shiftsDebounceRef.current) clearTimeout(shiftsDebounceRef.current);
+    shiftsDebounceRef.current = setTimeout(() => {
+      getCurrentShift();
+    }, 300);
+  }, [getCurrentShift]);
+
+  // 300ms debounced discount sync
+  const discountDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const debouncedSyncDiscount = useCallback(() => {
+    if (discountDebounceRef.current) clearTimeout(discountDebounceRef.current);
+    discountDebounceRef.current = setTimeout(() => {
       syncDiscountStatus();
-    });
-
-    // 2. Direct socket events from backend
-    const socket = getSocket();
-    const handleSocketUpdate = () => {
-      syncDiscountStatus();
-    };
-
-    socket.on("connect", handleSocketUpdate);
-    socket.on("discount_request_updated", handleSocketUpdate);
-    socket.on("discount_request_approved", handleSocketUpdate);
-    socket.on("discount_request_rejected", handleSocketUpdate);
-    socket.on("discount_request_created", handleSocketUpdate);
-    socket.on("discount_request_cancelled", handleSocketUpdate);
-    socket.on("orderDiscountUpdated", handleSocketUpdate);
-    socket.on("orderUpdated", handleSocketUpdate);
-
-    return () => {
-      unsubscribe();
-      socket.off("connect", handleSocketUpdate);
-      socket.off("discount_request_updated", handleSocketUpdate);
-      socket.off("discount_request_approved", handleSocketUpdate);
-      socket.off("discount_request_rejected", handleSocketUpdate);
-      socket.off("discount_request_created", handleSocketUpdate);
-      socket.off("discount_request_cancelled", handleSocketUpdate);
-      socket.off("orderDiscountUpdated", handleSocketUpdate);
-      socket.off("orderUpdated", handleSocketUpdate);
-    };
+    }, 300);
   }, [syncDiscountStatus]);
 
-  // While awaiting approval dialog is open, heartbeat sync every 2.5s for instant resolution
+  // Listen for real-time POS data events via Socket.IO & BroadcastChannel (300ms debounced)
+  useEffect(() => {
+    const socket = getSocket();
+
+    // 1. Bus subscription (all socket events + broadcast events)
+    const unsubscribeDiscounts = subscribeDiscountEvents(() => {
+      debouncedSyncDiscount();
+    });
+
+    // 2. Event handlers
+    const handleTableUpdate = () => {
+      debouncedFetchTables();
+    };
+
+    const handleProductUpdate = () => {
+      debouncedFetchProducts();
+    };
+
+    const handleCategoryUpdate = () => {
+      debouncedFetchCategories();
+      debouncedFetchProducts();
+    };
+
+    const handleShiftUpdate = () => {
+      debouncedFetchShift();
+    };
+
+    const handleDiscountUpdate = () => {
+      debouncedSyncDiscount();
+    };
+
+    const handleConnect = () => {
+      debouncedFetchTables();
+      debouncedFetchProducts();
+      debouncedFetchCategories();
+      debouncedFetchShift();
+      debouncedSyncDiscount();
+    };
+
+    socket.on("connect", handleConnect);
+
+    // Tables & Orders (order updates/creation affect table occupancy/status)
+    socket.on("tableUpdated", handleTableUpdate);
+    socket.on("tableCreated", handleTableUpdate);
+    socket.on("tableDeleted", handleTableUpdate);
+    socket.on("tableStatusUpdated", handleTableUpdate);
+    socket.on("reservationUpdated", handleTableUpdate);
+    socket.on("reservationCreated", handleTableUpdate);
+    socket.on("reservationDeleted", handleTableUpdate);
+    socket.on("newOrder", handleTableUpdate);
+    socket.on("orderUpdated", handleTableUpdate);
+    socket.on("orderPaid", handleTableUpdate);
+    socket.on("orderCancelled", handleTableUpdate);
+
+    // Products & Inventory / 86 availability
+    socket.on("productUpdated", handleProductUpdate);
+    socket.on("productCreated", handleProductUpdate);
+    socket.on("productDeleted", handleProductUpdate);
+    socket.on("inventoryUpdated", handleProductUpdate);
+    socket.on("stockUpdated", handleProductUpdate);
+    socket.on("availabilityUpdated", handleProductUpdate);
+
+    // Categories
+    socket.on("categoryUpdated", handleCategoryUpdate);
+    socket.on("categoryCreated", handleCategoryUpdate);
+    socket.on("categoryDeleted", handleCategoryUpdate);
+
+    // Shifts
+    socket.on("shiftStarted", handleShiftUpdate);
+    socket.on("shiftEnded", handleShiftUpdate);
+    socket.on("shiftClosed", handleShiftUpdate);
+    socket.on("shiftOpened", handleShiftUpdate);
+    socket.on("shiftUpdated", handleShiftUpdate);
+
+    // Discounts
+    socket.on("discount_request_updated", handleDiscountUpdate);
+    socket.on("discount_request_approved", handleDiscountUpdate);
+    socket.on("discount_request_rejected", handleDiscountUpdate);
+    socket.on("discount_request_created", handleDiscountUpdate);
+    socket.on("discount_request_cancelled", handleDiscountUpdate);
+    socket.on("orderDiscountUpdated", handleDiscountUpdate);
+
+    return () => {
+      unsubscribeDiscounts();
+      if (tablesDebounceRef.current) clearTimeout(tablesDebounceRef.current);
+      if (productsDebounceRef.current) clearTimeout(productsDebounceRef.current);
+      if (categoriesDebounceRef.current) clearTimeout(categoriesDebounceRef.current);
+      if (shiftsDebounceRef.current) clearTimeout(shiftsDebounceRef.current);
+      if (discountDebounceRef.current) clearTimeout(discountDebounceRef.current);
+
+      socket.off("connect", handleConnect);
+      socket.off("tableUpdated", handleTableUpdate);
+      socket.off("tableCreated", handleTableUpdate);
+      socket.off("tableDeleted", handleTableUpdate);
+      socket.off("tableStatusUpdated", handleTableUpdate);
+      socket.off("reservationUpdated", handleTableUpdate);
+      socket.off("reservationCreated", handleTableUpdate);
+      socket.off("reservationDeleted", handleTableUpdate);
+      socket.off("newOrder", handleTableUpdate);
+      socket.off("orderUpdated", handleTableUpdate);
+      socket.off("orderPaid", handleTableUpdate);
+      socket.off("orderCancelled", handleTableUpdate);
+      socket.off("productUpdated", handleProductUpdate);
+      socket.off("productCreated", handleProductUpdate);
+      socket.off("productDeleted", handleProductUpdate);
+      socket.off("inventoryUpdated", handleProductUpdate);
+      socket.off("stockUpdated", handleProductUpdate);
+      socket.off("availabilityUpdated", handleProductUpdate);
+      socket.off("categoryUpdated", handleCategoryUpdate);
+      socket.off("categoryCreated", handleCategoryUpdate);
+      socket.off("categoryDeleted", handleCategoryUpdate);
+      socket.off("shiftStarted", handleShiftUpdate);
+      socket.off("shiftEnded", handleShiftUpdate);
+      socket.off("shiftClosed", handleShiftUpdate);
+      socket.off("shiftOpened", handleShiftUpdate);
+      socket.off("shiftUpdated", handleShiftUpdate);
+      socket.off("discount_request_updated", handleDiscountUpdate);
+      socket.off("discount_request_approved", handleDiscountUpdate);
+      socket.off("discount_request_rejected", handleDiscountUpdate);
+      socket.off("discount_request_created", handleDiscountUpdate);
+      socket.off("discount_request_cancelled", handleDiscountUpdate);
+      socket.off("orderDiscountUpdated", handleDiscountUpdate);
+    };
+  }, [
+    debouncedFetchTables,
+    debouncedFetchProducts,
+    debouncedFetchCategories,
+    debouncedFetchShift,
+    debouncedSyncDiscount,
+  ]);
+
+  // When awaiting approval dialog is open, do an initial sync on dialog open.
+  // Real-time resolution is driven by WebSockets above, with an unobtrusive 30s safety net.
   useEffect(() => {
     if (!isAwaitingApprovalOpen) return;
 
     syncDiscountStatus();
-    const interval = setInterval(syncDiscountStatus, 2500);
+    const interval = setInterval(syncDiscountStatus, 30000);
 
     return () => {
       clearInterval(interval);
@@ -402,26 +552,11 @@ const PosPage = () => {
 
   // Fetch products whenever search or activeCategory changes
   useEffect(() => {
-    const handler = setTimeout(() => {
-      const params: Record<string, any> = { limit: 100, context: "pos" };
-      if (search.trim()) {
-        params.search = search.trim();
-      }
-      if (activeCategory !== "all") {
-        const selectedCategoryObj = categories.find(
-          (c) => (c.name || "").toLowerCase().replace(/\s+/g, "-") === activeCategory
-        );
-        if (selectedCategoryObj) {
-          params.category = selectedCategoryObj.id || selectedCategoryObj.name;
-        } else {
-          params.category = activeCategory;
-        }
-      }
-      getProducts(params);
-    }, 300);
-
-    return () => clearTimeout(handler);
-  }, [search, activeCategory, categories, getProducts]);
+    debouncedFetchProducts();
+    return () => {
+      if (productsDebounceRef.current) clearTimeout(productsDebounceRef.current);
+    };
+  }, [debouncedFetchProducts]);
 
   // Map backend products → PosProduct (excluding raw ingredients)
   const posProducts: PosProduct[] = useMemo(() => {

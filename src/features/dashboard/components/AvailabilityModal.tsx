@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef, type FC } from "react";
 import { createPortal } from "react-dom";
 import {
   X,
@@ -17,6 +17,7 @@ import { useCategories } from "@/features/categories/hooks/useCategories";
 import { getProducts, updateProduct } from "@/features/products/api/productsApi";
 import { mapProducts } from "@/features/products/utils/productMappers";
 import type { Product } from "@/features/products/types";
+import { getSocket } from "@/shared/lib/socket";
 
 export type ProductTarget =
   | "app_only"
@@ -223,7 +224,7 @@ interface AvailabilityModalProps {
 }
 
 /** Derive a single global availability summary label from a flat product list. */
-const computeAvailabilitySummary = (products: import("@/features/products/types").Product[]): string => {
+const computeAvailabilitySummary = (products: Product[]): string => {
   if (products.length === 0) return "All Active";
   const active = products.filter((p) => p.isActive !== false && p.available !== false);
   const hiddenCount = products.length - active.length;
@@ -236,7 +237,7 @@ const computeAvailabilitySummary = (products: import("@/features/products/types"
   return "All Active";
 };
 
-export const AvailabilityModal: React.FC<AvailabilityModalProps> = ({
+export const AvailabilityModal: FC<AvailabilityModalProps> = ({
   open,
   onOpenChange,
   onSummaryChange,
@@ -270,12 +271,19 @@ export const AvailabilityModal: React.FC<AvailabilityModalProps> = ({
     try {
       getCategories();
       const res = await getProducts({ includeInactive: true, limit: 500 });
+      const record = res as unknown as {
+        products?: unknown[];
+        data?: { products?: unknown[] } | unknown[];
+      };
       const rawList =
-        (res as any)?.products ||
-        (res as any)?.data?.products ||
-        (res as any)?.data ||
+        (Array.isArray(res?.products) && res.products) ||
+        (Array.isArray(record?.products) && record.products) ||
+        (record?.data && !Array.isArray(record.data) && Array.isArray(record.data?.products)
+          ? record.data.products
+          : null) ||
+        (Array.isArray(record?.data) && record.data) ||
         [];
-      const mapped = mapProducts(Array.isArray(rawList) ? rawList : []);
+      const mapped = mapProducts(Array.isArray(rawList) ? (rawList as never[]) : []);
       setAllProducts(mapped);
       onSummaryChange?.(computeAvailabilitySummary(mapped));
     } catch (err) {
@@ -285,11 +293,44 @@ export const AvailabilityModal: React.FC<AvailabilityModalProps> = ({
     }
   }, [getCategories, onSummaryChange]);
 
-  useEffect(() => {
-    if (open) {
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const debouncedLoadData = useCallback(() => {
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    debounceTimerRef.current = setTimeout(() => {
       loadData();
-    }
-  }, [open, loadData]);
+    }, 300);
+  }, [loadData]);
+
+  useEffect(() => {
+    if (!open) return;
+    loadData();
+
+    const socket = getSocket();
+    const handleUpdate = () => {
+      debouncedLoadData();
+    };
+
+    socket.on("connect", handleUpdate);
+    socket.on("productUpdated", handleUpdate);
+    socket.on("productCreated", handleUpdate);
+    socket.on("productDeleted", handleUpdate);
+    socket.on("availabilityUpdated", handleUpdate);
+    socket.on("stockUpdated", handleUpdate);
+    socket.on("inventoryUpdated", handleUpdate);
+    socket.on("categoryUpdated", handleUpdate);
+
+    return () => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+      socket.off("connect", handleUpdate);
+      socket.off("productUpdated", handleUpdate);
+      socket.off("productCreated", handleUpdate);
+      socket.off("productDeleted", handleUpdate);
+      socket.off("availabilityUpdated", handleUpdate);
+      socket.off("stockUpdated", handleUpdate);
+      socket.off("inventoryUpdated", handleUpdate);
+      socket.off("categoryUpdated", handleUpdate);
+    };
+  }, [open, loadData, debouncedLoadData]);
 
   useEffect(() => {
     if (!open) return;

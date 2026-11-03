@@ -78,13 +78,17 @@ const ZoneAccordion = ({
           >
             {/* Zone header */}
             <div className="flex items-center gap-3 px-4 py-3.5">
-              <Checkbox
-                checked={allSelected}
-                disabled={unassignedCount === 0}
-                onCheckedChange={() => onToggleZone(zone)}
-                className="size-5 rounded-[6px] border-[#8F6900]"
-                aria-label={`Select all in ${zone.name}`}
-              />
+              <div
+                className={`rounded-[10px] p-1 ${allSelected ? "bg-[#624F1C1A]" : ""}`}
+              >
+                <Checkbox
+                  checked={allSelected}
+                  disabled={unassignedCount === 0}
+                  onCheckedChange={() => onToggleZone(zone)}
+                  className="h-5 w-5 cursor-pointer rounded-[5.99px] border-[#8F6900]"
+                  aria-label={`Select all in ${zone.name}`}
+                />
+              </div>
               <span className="flex-1 text-[15px] font-bold text-[#28293D]">
                 {zone.name}
               </span>
@@ -123,13 +127,17 @@ const ZoneAccordion = ({
                       key={order.id}
                       className="flex items-center gap-3 border-b border-[#F4F2EE] px-4 py-3 last:border-b-0 hover:bg-[#FAFAF8] transition-colors duration-150"
                     >
-                      <Checkbox
-                        checked={selectedIds.has(order.id)}
-                        disabled={assigned}
-                        onCheckedChange={() => onToggleOrder(order.id)}
-                        className="size-5 rounded-[6px] border-[#8F6900] disabled:opacity-40"
-                        aria-label={`Select ${order.reference}`}
-                      />
+                      <div
+                        className={`rounded-[10px] p-1 ${selectedIds.has(order.id) ? "bg-[#624F1C1A]" : ""}`}
+                      >
+                        <Checkbox
+                          checked={selectedIds.has(order.id)}
+                          disabled={assigned}
+                          onCheckedChange={() => onToggleOrder(order.id)}
+                          className="h-5 w-5 cursor-pointer rounded-[5.99px] border-[#8F6900] disabled:opacity-40"
+                          aria-label={`Select ${order.reference}`}
+                        />
+                      </div>
                       <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-[12px] font-semibold text-white">
                         {order.customer.trim().charAt(0).toUpperCase()}
                       </div>

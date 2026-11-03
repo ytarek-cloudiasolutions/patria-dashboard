@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Clock3, Search } from "lucide-react";
 
 import { Button } from "@/shared/components/ui/button";
@@ -11,6 +11,7 @@ import {
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { type PendingOrder, extractCleanItemNotes } from "../types";
 import { api } from "@/config/api";
+import { getSocket } from "@/shared/lib/socket";
 
 type PendingOrdersDialogProps = {
   open: boolean;
@@ -30,9 +31,7 @@ const PendingOrdersDialog = ({
   const [orders, setOrders] = useState<PendingOrder[]>([]);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (!open) return;
-    setSearch("");
+  const fetchOrders = useCallback(() => {
     setLoading(true);
     api
       .get("/orders", {
@@ -128,7 +127,47 @@ const PendingOrdersDialog = ({
       })
       .catch(() => setOrders([]))
       .finally(() => setLoading(false));
-  }, [open]);
+  }, []);
+
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const debouncedFetchOrders = useCallback(() => {
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    debounceTimerRef.current = setTimeout(() => {
+      fetchOrders();
+    }, 300);
+  }, [fetchOrders]);
+
+  useEffect(() => {
+    if (!open) return;
+    setSearch("");
+    fetchOrders();
+
+    const socket = getSocket();
+    const handleUpdate = () => {
+      debouncedFetchOrders();
+    };
+
+    socket.on("connect", handleUpdate);
+    socket.on("newOrder", handleUpdate);
+    socket.on("orderUpdated", handleUpdate);
+    socket.on("orderPaid", handleUpdate);
+    socket.on("orderCancelled", handleUpdate);
+    socket.on("orderDiscountUpdated", handleUpdate);
+    socket.on("tableUpdated", handleUpdate);
+    socket.on("tableStatusUpdated", handleUpdate);
+
+    return () => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+      socket.off("connect", handleUpdate);
+      socket.off("newOrder", handleUpdate);
+      socket.off("orderUpdated", handleUpdate);
+      socket.off("orderPaid", handleUpdate);
+      socket.off("orderCancelled", handleUpdate);
+      socket.off("orderDiscountUpdated", handleUpdate);
+      socket.off("tableUpdated", handleUpdate);
+      socket.off("tableStatusUpdated", handleUpdate);
+    };
+  }, [open, fetchOrders, debouncedFetchOrders]);
 
   const query = search.trim().toLowerCase();
   const filtered = query

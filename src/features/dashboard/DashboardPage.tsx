@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   TrendingUp,
   ShoppingBag,
@@ -13,6 +13,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { api } from "@/config/api";
+import { getSocket } from "@/shared/lib/socket";
 import { DASHBOARD_DATE } from "./data";
 import type {
   DashboardMetric,
@@ -129,15 +130,62 @@ const DashboardPage = () => {
     staffCount?: number;
   }>({});
 
+  const fetchLiveOrders = useCallback(async () => {
+    try {
+      const ordersRes = await api.get("/orders", {
+        params: { limit: 6, sort: "-createdAt" },
+      });
+
+      const rawOrders: any[] = ordersRes.data?.data ?? ordersRes.data?.orders ?? [];
+      const ordersMap = new Map<string, any>();
+
+      const live: LiveOrder[] = rawOrders.map((o: any) => {
+        const idKey = String(o.orderId || o._id || o.id);
+        ordersMap.set(idKey, o);
+        if (o._id) ordersMap.set(String(o._id), o);
+        if (o.orderId) ordersMap.set(String(o.orderId), o);
+
+        const customerName =
+          typeof o.customer === "string"
+            ? o.customer
+            : o.customer?.name ?? o.customerId?.name ?? o.customerName ?? "Walk-in";
+        return {
+          id: idKey,
+          customer: customerName,
+          initials: customerName.charAt(0).toUpperCase(),
+          amount: o.total ?? 0,
+          time: o.createdAt
+            ? new Date(o.createdAt).toLocaleTimeString("en-US", {
+                hour: "numeric",
+                minute: "2-digit",
+                hour12: true,
+              })
+            : "--",
+          status: mapOrderStatus(o.status),
+          orderType: mapOrderType(o.type, o.source),
+        };
+      });
+
+      setRawOrdersMap((prev) => {
+        const next = new Map(prev);
+        ordersMap.forEach((v, k) => next.set(k, v));
+        return next;
+      });
+      setLiveOrders(live);
+    } catch {
+      // silently fail
+    }
+  }, []);
+
   useEffect(() => {
     const load = async () => {
       setIsLoading(true);
       try {
-        const [overviewRes, ordersRes] = await Promise.all([
+        const [overviewRes] = await Promise.all([
           api.get("/reports/overview", {
             params: { startDate: dateRange.from, endDate: dateRange.to },
           }),
-          api.get("/orders", { params: { limit: 6, sort: "-createdAt" } }),
+          fetchLiveOrders(),
         ]);
 
         const ov = overviewRes.data;
@@ -262,46 +310,12 @@ const DashboardPage = () => {
 
         setPosRevenuePercent(ov.posRevenuePercent ?? 0);
 
-        const rawOrders: any[] = ordersRes.data?.data ?? ordersRes.data?.orders ?? [];
-        const ordersMap = new Map<string, any>();
-
-        const live: LiveOrder[] = rawOrders.map((o: any) => {
-          const idKey = String(o.orderId || o._id || o.id);
-          ordersMap.set(idKey, o);
-          if (o._id) ordersMap.set(String(o._id), o);
-          if (o.orderId) ordersMap.set(String(o.orderId), o);
-
-          const customerName =
-            typeof o.customer === "string"
-              ? o.customer
-              : o.customer?.name ?? "Walk-in";
-          return {
-            id: idKey,
-            customer: customerName,
-            initials: customerName.charAt(0).toUpperCase(),
-            amount: o.total ?? 0,
-            time: o.createdAt
-              ? new Date(o.createdAt).toLocaleTimeString("en-US", {
-                hour: "numeric",
-                minute: "2-digit",
-                hour12: true,
-              })
-              : "--",
-            status: mapOrderStatus(o.status),
-            orderType: mapOrderType(o.type, o.source),
-          };
-        });
-
-        setRawOrdersMap(ordersMap);
-        setLiveOrders(live);
         setPosSummary({
-          totalOrders: summary.totalOrders ?? live.length,
+          totalOrders: summary.totalOrders,
           totalRevenue: summary.totalRevenue,
           openShifts: ov.openShifts ?? 0,
           staffCount: ov.staffCount ?? 0,
         });
-
-
       } catch {
         // silently fail — static fallback via initial empty state
       } finally {
@@ -310,7 +324,33 @@ const DashboardPage = () => {
     };
 
     load();
-  }, [dateRange.from, dateRange.to]);
+  }, [dateRange.from, dateRange.to, fetchLiveOrders]);
+
+  // Real-time socket updates for Live Order Stream
+  useEffect(() => {
+    const socket = getSocket();
+
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    const handleUpdate = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        fetchLiveOrders();
+      }, 300);
+    };
+
+    socket.on("connect", handleUpdate);
+    socket.on("newOrder", handleUpdate);
+    socket.on("orderUpdated", handleUpdate);
+    socket.on("orderDiscountUpdated", handleUpdate);
+
+    return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      socket.off("connect", handleUpdate);
+      socket.off("newOrder", handleUpdate);
+      socket.off("orderUpdated", handleUpdate);
+      socket.off("orderDiscountUpdated", handleUpdate);
+    };
+  }, [fetchLiveOrders]);
 
   const handleOrderClick = async (orderId: string) => {
     const cachedRaw = rawOrdersMap.get(String(orderId));

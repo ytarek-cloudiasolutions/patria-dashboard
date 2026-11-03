@@ -346,17 +346,41 @@ const KitchenDetailsPage = () => {
     const socket = getSocket();
     socket.emit("kitchen:join", {});
 
-    const handleUpdate = () => {
-      playNotificationSound();
-      fetchOrders();
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    const debouncedFetchOrders = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        fetchOrders();
+      }, 300);
     };
 
+    const handleUpdate = () => {
+      playNotificationSound();
+      debouncedFetchOrders();
+    };
+
+    const handleSilentUpdate = () => {
+      debouncedFetchOrders();
+    };
+
+    const handleConnect = () => {
+      socket.emit("kitchen:join", {});
+      debouncedFetchOrders();
+    };
+
+    socket.on("connect", handleConnect);
     socket.on("kitchen:new-order", handleUpdate);
     socket.on("kitchen:items-added", handleUpdate);
+    socket.on("orderUpdated", handleSilentUpdate);
+    socket.on("newOrder", handleSilentUpdate);
 
     return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      socket.off("connect", handleConnect);
       socket.off("kitchen:new-order", handleUpdate);
       socket.off("kitchen:items-added", handleUpdate);
+      socket.off("orderUpdated", handleSilentUpdate);
+      socket.off("newOrder", handleSilentUpdate);
     };
   }, [fetchOrders]);
 
