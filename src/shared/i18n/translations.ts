@@ -1600,6 +1600,7 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   "There are no orders this shift.": "لا توجد طلبات في هذه الوردية.",
   "Period": "الفترة",
   "Daily": "يومي",
+  "Yearly": "سنوي",
 
   // Pricing module — price lists
   "Added Products": "المنتجات المضافة",

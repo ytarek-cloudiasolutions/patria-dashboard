@@ -66,14 +66,17 @@ const ShiftManagementPage = () => {
         <DefaultButton
           data={{
             buttonText: t("Create New Shift"),
-            icon: <Plus className="size-4.5 transition-transform duration-200 group-hover:rotate-90" />,
+            icon: (
+              <Plus className="size-4.5 transition-transform duration-200 group-hover:rotate-90" />
+            ),
             onClick: handleOpenCreate,
-            className: "group transition-all duration-200 hover:shadow-xs active:scale-[0.98]",
+            className:
+              "group transition-all duration-200 hover:shadow-xs active:scale-[0.98]",
           }}
         />
       </div>
 
-      <div className="flex flex-col gap-3 sm:gap-4">
+      <div className="flex flex-col gap-3 sm:gap-4 animate-in fade-in-50 duration-200">
         {shifts.length === 0 ? (
           <p className="rounded-[16px] border border-[#E5E5E5] bg-white py-12 text-center text-[14px] text-[#8B8B8B] animate-in fade-in-50 duration-200">
             {t("No shifts found.")}

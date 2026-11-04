@@ -3,8 +3,7 @@ import { useTranslation } from "@/shared/i18n/useTranslation";
 import { cn } from "@/lib/utils";
 import type { ShiftRow, ShiftStatus } from "../types";
 import { formatEgp } from "../utils";
-import { Label } from "@/shared/components/ui/label";
-import DatePicker from "@/shared/components/DatePicker";
+import ReportFilters from "./ReportFilters";
 import { api } from "@/config/api";
 
 import type { ExportPayload } from "./DailyReportTab";
@@ -75,9 +74,20 @@ const renderEgpFormatted = (amount?: number) => {
   );
 };
 
-const ShiftReportsTab = ({ onExportDataReady }: ShiftReportsTabProps) => {
+const PERIOD_OPTIONS = [
+  { value: "Daily", label: "Daily" },
+  { value: "Weekly", label: "Weekly" },
+  { value: "Monthly", label: "Monthly" },
+  { value: "Yearly", label: "Yearly" },
+];
+
+const ShiftReportsTab = ({
+  onMenuOpenChange,
+  onExportDataReady,
+}: ShiftReportsTabProps) => {
   const { t } = useTranslation();
   const [date, setDate] = useState("");
+  const [period, setPeriod] = useState("Daily");
   const [rows, setRows] = useState<ShiftRow[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -85,10 +95,32 @@ const ShiftReportsTab = ({ onExportDataReady }: ShiftReportsTabProps) => {
     setLoading(true);
     const params: Record<string, string | number> = { limit: 50 };
     if (date) {
-      const from = new Date(`${date}T00:00:00`);
-      const to = new Date(`${date}T23:59:59`);
-      params.from = from.toISOString();
-      params.to = to.toISOString();
+      const baseDate = new Date(`${date}T00:00:00`);
+      if (!isNaN(baseDate.getTime())) {
+        let from: Date;
+        let to: Date;
+        if (period === "Weekly") {
+          const start = new Date(baseDate);
+          start.setDate(baseDate.getDate() - baseDate.getDay());
+          start.setHours(0, 0, 0, 0);
+          const end = new Date(start);
+          end.setDate(start.getDate() + 6);
+          end.setHours(23, 59, 59, 999);
+          from = start;
+          to = end;
+        } else if (period === "Monthly") {
+          from = new Date(baseDate.getFullYear(), baseDate.getMonth(), 1, 0, 0, 0, 0);
+          to = new Date(baseDate.getFullYear(), baseDate.getMonth() + 1, 0, 23, 59, 59, 999);
+        } else if (period === "Yearly") {
+          from = new Date(baseDate.getFullYear(), 0, 1, 0, 0, 0, 0);
+          to = new Date(baseDate.getFullYear(), 11, 31, 23, 59, 59, 999);
+        } else {
+          from = new Date(`${date}T00:00:00`);
+          to = new Date(`${date}T23:59:59`);
+        }
+        params.from = from.toISOString();
+        params.to = to.toISOString();
+      }
     }
     api
       .get("/pos/shifts", { params })
@@ -119,7 +151,7 @@ const ShiftReportsTab = ({ onExportDataReady }: ShiftReportsTabProps) => {
       })
       .catch(() => setRows([]))
       .finally(() => setLoading(false));
-  }, [date]);
+  }, [date, period]);
 
   useEffect(() => {
     if (onExportDataReady) {
@@ -155,20 +187,15 @@ const ShiftReportsTab = ({ onExportDataReady }: ShiftReportsTabProps) => {
 
   return (
     <>
-      <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="flex flex-col">
-          <Label className="mb-2 text-[16px] font-medium text-black">
-            {t("Date")}
-          </Label>
-          <DatePicker
-            value={date}
-            onChange={setDate}
-            placeholder="15/6/2026"
-            popoverPlacement="bottom-right"
-            withBackdrop
-          />
-        </div>
-      </div>
+      <ReportFilters
+        date={date}
+        onDateChange={setDate}
+        selectLabel="Period"
+        options={PERIOD_OPTIONS}
+        selected={period}
+        onSelect={setPeriod}
+        onMenuOpenChange={onMenuOpenChange}
+      />
 
       <div className="overflow-x-auto rounded-[16px] border border-[#E5E5E5] bg-white shadow-xs transition-shadow duration-200 hover:shadow-md">
         <table className="w-full min-w-[1050px]">

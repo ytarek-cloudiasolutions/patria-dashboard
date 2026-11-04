@@ -42,7 +42,7 @@ const TransfersTable = ({ transfers }: TransfersTableProps) => {
             className="rounded-2xl border border-[#E5E5E5] bg-white px-4 py-4 transition-all duration-200 hover:shadow-sm"
           >
             <div className="mb-2 flex items-center justify-between gap-3">
-              <p className="text-[14px] font-semibold text-[#28293D]" dir="ltr">
+              <p className="text-[14px] font-bold text-[#28293D]" dir="ltr">
                 {transfer.reference}
               </p>
               <TransferStatusBadge status={transfer.status} />
@@ -53,13 +53,13 @@ const TransfersTable = ({ transfers }: TransfersTableProps) => {
                 <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
                   {t("From")}
                 </p>
-                <p className="text-[14px] font-normal text-black">{transfer.fromName}</p>
+                <p className="text-[14px] font-bold text-black">{transfer.fromName}</p>
               </div>
               <div>
                 <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
                   {t("To")}
                 </p>
-                <p className="text-[14px] font-normal text-black">{transfer.toName}</p>
+                <p className="text-[14px] font-bold text-black">{transfer.toName}</p>
               </div>
               <div>
                 <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
@@ -75,7 +75,7 @@ const TransfersTable = ({ transfers }: TransfersTableProps) => {
                 <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
                   {t("Date")}
                 </p>
-                <p className="text-[14px] font-normal text-black" dir="ltr">{transfer.createdAt}</p>
+                <p className="text-[14px] font-semibold text-black" dir="ltr">{transfer.createdAt}</p>
               </div>
             </div>
           </div>
@@ -104,13 +104,13 @@ const TransfersTable = ({ transfers }: TransfersTableProps) => {
           <TableBody>
             {transfers.map((transfer) => (
               <TableRow key={transfer.id} className="hover:bg-[#FAFAF8] transition-colors duration-150">
-                <TableCell className="ps-6 py-4 whitespace-nowrap text-[12px] font-normal text-[#333333]">
+                <TableCell className="ps-6 py-4 whitespace-nowrap text-[12px] font-bold text-[#333333]">
                   {transfer.reference}
                 </TableCell>
-                <TableCell className="px-6 py-4 whitespace-nowrap text-[14px] font-normal text-black">
+                <TableCell className="px-6 py-4 whitespace-nowrap text-[14px] font-bold text-black">
                   {transfer.fromName}
                 </TableCell>
-                <TableCell className="px-6 py-4 whitespace-nowrap text-[14px] font-normal text-black">
+                <TableCell className="px-6 py-4 whitespace-nowrap text-[14px] font-bold text-black">
                   {transfer.toName}
                 </TableCell>
                 <TableCell className="px-6 py-4 whitespace-nowrap">
@@ -120,7 +120,7 @@ const TransfersTable = ({ transfers }: TransfersTableProps) => {
                     itemsLabel={t("Items")}
                   />
                 </TableCell>
-                <TableCell className="px-6 py-4 whitespace-nowrap text-[14px] font-normal text-black">
+                <TableCell className="px-6 py-4 whitespace-nowrap text-[14px] font-semibold text-black">
                   {transfer.createdAt}
                 </TableCell>
                 <TableCell className="pe-6 py-4 whitespace-nowrap">

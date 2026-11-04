@@ -139,7 +139,7 @@ const CustomersTable = ({
             </div>
 
             <div>
-              <p className="text-[14px] font-semibold text-[#059B5A]">
+              <p className="text-[14px] font-bold text-[#059B5A]">
                 {formatEgp(customer.lifetimeValue)}
               </p>
               <p className="text-[12px] font-semibold uppercase tracking-wide text-[#8B8B8B]">
@@ -201,7 +201,7 @@ const CustomersTable = ({
                   </p>
                 </TableCell>
                 <TableCell className="px-6 py-4 whitespace-nowrap">
-                  <p className="text-[14px] font-semibold text-[#059B5A]">
+                  <p className="text-[14px] font-bold text-[#059B5A]">
                     {formatEgp(customer.lifetimeValue)}
                   </p>
                   <p className="text-[12px] font-semibold uppercase tracking-wide text-[#8B8B8B]">

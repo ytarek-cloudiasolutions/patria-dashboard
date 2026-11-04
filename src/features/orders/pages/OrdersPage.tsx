@@ -225,7 +225,7 @@ const OrdersPage = () => {
 
   // Fetch products and locations for call orders
   useEffect(() => {
-    getProducts({ page: 1, limit: 100 });
+    getProducts({ page: 1, limit: 100, context: "pos" });
     getLocations();
   }, [getProducts, getLocations]);
 
@@ -244,6 +244,9 @@ const OrdersPage = () => {
     return products
       .filter((p: any) => {
         if (p.isActive === false || p.available === false || p.status === "Inactive") {
+          return false;
+        }
+        if (p.showInPos === false || p.showInPos === "false" || !p.showInPos) {
           return false;
         }
         const pType = (p.productType || p.type || "").toLowerCase();
@@ -271,6 +274,7 @@ const OrdersPage = () => {
           name: p.name,
           unitPrice: p.price,
           category,
+          showInPos: Boolean(p.showInPos),
           customizable:
             (p.variantGroups && p.variantGroups.length > 0) ||
             (p.extras && p.extras.length > 0),
@@ -465,7 +469,7 @@ const OrdersPage = () => {
 
   const handleSearchProducts = useCallback(
     (query: string) => {
-      getProducts({ page: 1, limit: 100, search: query || undefined });
+      getProducts({ page: 1, limit: 100, search: query || undefined, context: "pos" });
     },
     [getProducts],
   );

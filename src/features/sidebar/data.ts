@@ -25,6 +25,7 @@ import {
   HelpCircle,
   Megaphone,
   List,
+  FileText,
 } from "lucide-react";
 import type { NavSection } from "./types";
 
@@ -72,7 +73,7 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       { label: "Financial Hub", href: "/financial-hub", icon: Landmark },
       { label: "Shift Reports", href: "/shift-reports", icon: BarChart3 },
-      { label: "Reports", href: "/reports", icon: Receipt },
+      { label: "Reports", href: "/reports", icon: FileText },
       { label: "Pricing", href: "/pricing", icon: Tag },
     ],
   },

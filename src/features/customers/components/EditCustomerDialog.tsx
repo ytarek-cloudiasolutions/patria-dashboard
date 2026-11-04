@@ -147,7 +147,7 @@ const EditCustomerDialog = ({
                         <p className="text-xs font-normal uppercase leading-3 tracking-tight text-[#595959]">
                           {t("LTV")}
                         </p>
-                        <p className="text-base font-normal leading-6 tracking-tight text-primary">
+                        <p className="text-base font-bold leading-6 tracking-tight text-primary">
                           {formatEgp(customer.lifetimeValue)}
                         </p>
                       </div>
