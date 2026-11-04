@@ -65,7 +65,18 @@ const mapRider = (d: any, idx: number): Rider => ({
 const DeliveryTrackingPage = () => {
   const { t } = useTranslation();
   const [riders, setRiders] = useState<Rider[]>([]);
-  const [selectedRider, setSelectedRider] = useState<Rider | null>(null);
+  const [selectedRiderId, setSelectedRiderId] = useState<string | null>(null);
+  // Derived, not its own state — the open rider/order detail panel used to
+  // hold a snapshot Rider object taken at selection time. Every live-update
+  // path below (socket events, the 30s poll) refreshes `riders`, but that
+  // snapshot was never resynced from it, so an open panel kept showing
+  // stale order status/steps until the user manually backed out and
+  // reselected the rider. Deriving it from `riders` on every render means
+  // it can never go stale.
+  const selectedRider = useMemo(
+    () => riders.find((r) => String(r.id) === String(selectedRiderId)) ?? null,
+    [riders, selectedRiderId],
+  );
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [loading, setLoading] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
@@ -107,11 +118,8 @@ const DeliveryTrackingPage = () => {
             : r,
         ),
       );
-      setSelectedRider((prev) =>
-        prev && String(prev.id) === String(data.driverId)
-          ? { ...prev, location: { lat: data.lat, lng: data.lng } }
-          : prev,
-      );
+      // selectedRider is derived from `riders` above, so patching it here
+      // too would be redundant.
     };
 
     let debounceTimer: ReturnType<typeof setTimeout> | null = null;
@@ -190,13 +198,13 @@ const DeliveryTrackingPage = () => {
         <GoogleMap
           riders={riders}
           selectedRider={selectedRider}
-          onSelectRider={setSelectedRider}
+          onSelectRider={(r) => setSelectedRiderId(r.id != null ? String(r.id) : null)}
         />
 
         {selectedRider ? (
-          <RiderDetailPanel rider={selectedRider} onBack={() => setSelectedRider(null)} />
+          <RiderDetailPanel rider={selectedRider} onBack={() => setSelectedRiderId(null)} />
         ) : (
-          <RiderListPanel riders={riders} onSelectRider={setSelectedRider} />
+          <RiderListPanel riders={riders} onSelectRider={(r) => setSelectedRiderId(r.id != null ? String(r.id) : null)} />
         )}
       </div>
     </section>
