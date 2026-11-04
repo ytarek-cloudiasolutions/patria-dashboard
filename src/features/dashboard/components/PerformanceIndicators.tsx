@@ -19,6 +19,7 @@ const toneStyles: Record<PerformanceIndicator["tone"], { bg: string; text: strin
   red: { bg: "bg-[#C90000]", text: "text-white" },
   blue: { bg: "bg-[#DBEAFE]", text: "text-[#155DFC]" },
   amber: { bg: "bg-[rgba(254,154,0,0.10)]", text: "text-[#C7861E]" },
+  green: { bg: "bg-[rgba(22,163,74,0.10)]", text: "text-[#16A34A]" },
 };
 
 const PerformanceIndicators = ({

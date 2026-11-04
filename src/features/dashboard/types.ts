@@ -25,7 +25,7 @@ export interface PerformanceIndicator {
   label: string;
   value: string | number;
   icon: LucideIcon;
-  tone: "gold" | "red" | "blue" | "amber";
+  tone: "gold" | "red" | "blue" | "amber" | "green";
 }
 
 export interface SoldProduct {
