@@ -506,7 +506,12 @@ const PosPage = () => {
     if (busy.length > 0) {
       options.push({ label: "Busy", value: "hdr-busy", isHeader: true });
       busy.forEach((t) => {
-        options.push({ value: `Table ${t.number}`, label: `Table ${t.number}` });
+        // Kept visible (so staff can see it's taken) but unselectable —
+        // same pattern the Reservations table-picker already uses. This
+        // list previously rendered every busy/occupied table as a normal
+        // clickable option, so a cashier could still start a brand-new
+        // dine-in order on a table someone was already sitting at.
+        options.push({ value: `Table ${t.number}`, label: `Table ${t.number}`, disabled: true });
       });
     }
 

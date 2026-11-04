@@ -96,13 +96,6 @@ export const DRIVER_STATUS_OPTIONS = [
   { value: "Off-Duty", label: "Off-Duty" },
 ];
 
-/** Delivery zones a driver can be assigned to (multi-select). */
-export const ZONE_OPTIONS = [
-  "Kafr Abdo",
-  "Semouha",
-  "Fleeming",
-  "Gleem",
-  "Roushdy",
-  "Sporting",
-  "Sidi Gaber",
-];
+// Driver zone options are no longer a hardcoded list here — they're pulled
+// from the real Zone collection (same one the Locations screen manages) via
+// useLocations() in AddDriverDialog, so the two screens can't drift apart.

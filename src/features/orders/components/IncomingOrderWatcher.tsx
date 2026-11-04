@@ -115,11 +115,30 @@ const IncomingOrderWatcher = () => {
       if (raw?.source !== "application") return;
       addToQueue(mapIncomingOrder(raw));
     };
+    // Confirming/closing an order only ever dropped it from THIS device's
+    // own queue (handleConfirm/handleClose below) — the backend already
+    // broadcasts orderStatusUpdated to every connected socket the moment
+    // any device moves an order out of 'pending' (updateOrderStatus), but
+    // nothing here was listening for it, so the popup kept ringing on
+    // every other open dashboard/device until its own next page load.
+    const handleOrderStatusUpdated = (updated: Record<string, unknown>) => {
+      const id = (updated?._id || updated?.id) as string | undefined;
+      if (!id) return;
+      const status = String(updated?.status || "").toLowerCase();
+      if (status === "pending") return;
+      setQueue((prev) => prev.filter((o) => o._id !== id));
+    };
     socket.on("newOrder", handleNewOrder);
     socket.on("connect", fetchPendingAppOrders);
+    socket.on("orderStatusUpdated", handleOrderStatusUpdated);
+    socket.on("orderUpdated", handleOrderStatusUpdated);
+    socket.on("orderDeleted", handleOrderStatusUpdated);
     return () => {
       socket.off("newOrder", handleNewOrder);
       socket.off("connect", fetchPendingAppOrders);
+      socket.off("orderStatusUpdated", handleOrderStatusUpdated);
+      socket.off("orderUpdated", handleOrderStatusUpdated);
+      socket.off("orderDeleted", handleOrderStatusUpdated);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
