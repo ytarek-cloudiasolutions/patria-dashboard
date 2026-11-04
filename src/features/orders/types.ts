@@ -128,6 +128,7 @@ export interface ProductOption {
   name: string;
   unitPrice: number;
   category: Exclude<OrderCategory, "All Categories">;
+  showInPos?: boolean;
   customizable?: boolean;
   variantGroups?: ProductVariantGroup[];
   extras?: ProductExtra[];

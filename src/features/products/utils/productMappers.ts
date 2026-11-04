@@ -154,8 +154,8 @@ export const mapProduct = (backendProduct: any): Product => {
     extraQuantity: backendProduct.extraQuantity,
     productType: backendProduct.productType || "ready",
     barcode: backendProduct.barcode || "",
-    showInApp: Boolean(backendProduct.showInApp),
-    showInPos: Boolean(backendProduct.showInPos),
+    showInApp: backendProduct.showInApp === true || backendProduct.showInApp === "true",
+    showInPos: backendProduct.showInPos === true || backendProduct.showInPos === "true",
     isInfiniteStock: Boolean(backendProduct.isInfiniteStock ?? backendProduct.isInfinite),
   };
 };

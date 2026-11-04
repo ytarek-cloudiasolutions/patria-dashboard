@@ -53,8 +53,14 @@ const OrderProductsStep = ({
 
   const filteredProducts = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
-    if (!query) return productOptions;
-    return productOptions.filter((product) =>
+    const availableProducts = productOptions.filter(
+      (product) =>
+        product.showInPos !== false &&
+        String(product.showInPos) !== "false" &&
+        Boolean(product.showInPos),
+    );
+    if (!query) return availableProducts;
+    return availableProducts.filter((product) =>
       product.name.toLowerCase().includes(query),
     );
   }, [productOptions, searchQuery]);
