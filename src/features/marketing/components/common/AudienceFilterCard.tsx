@@ -21,9 +21,25 @@ export const AudienceFilterCard = ({
   className,
   customerCount = 12,
   deviceCount = 8,
-  womenCount = 7,
-  menCount = 1,
+  womenCount,
+  menCount,
 }: AudienceFilterCardProps) => {
+  const resolvedWomenCount =
+    womenCount !== undefined
+      ? womenCount
+      : criteria.gender === "women"
+        ? customerCount
+        : criteria.gender === "men"
+          ? 0
+          : Math.max(1, Math.round(customerCount * 0.8));
+  const resolvedMenCount =
+    menCount !== undefined
+      ? menCount
+      : criteria.gender === "men"
+        ? customerCount
+        : criteria.gender === "women"
+          ? 0
+          : Math.max(1, customerCount - resolvedWomenCount);
   const handleSelectSegment = (segment: AudienceCriteria["segment"]) => {
     onCriteriaChange((prev) => ({ ...prev, segment }));
   };
@@ -82,8 +98,8 @@ export const AudienceFilterCard = ({
       <AudienceSummaryBadges
         customerCount={customerCount}
         deviceCount={deviceCount}
-        womenCount={womenCount}
-        menCount={menCount}
+        womenCount={resolvedWomenCount}
+        menCount={resolvedMenCount}
       />
     </div>
   );

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { RefreshCw, Receipt } from "lucide-react";
+import { RefreshCw, FileText } from "lucide-react";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
 import DropdownSelect from "@/shared/components/DropdownSelect";
@@ -95,7 +95,7 @@ const ReportsPage = () => {
 
       {!hasLoaded && (
         <div className="flex min-h-[60vh] w-full items-center justify-center animate-in fade-in-50 duration-300">
-          <Receipt className="size-16 animate-spin text-primary" />
+          <FileText className="size-16 animate-spin text-primary" />
         </div>
       )}
 

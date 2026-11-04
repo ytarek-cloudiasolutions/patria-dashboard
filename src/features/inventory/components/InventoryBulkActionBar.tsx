@@ -49,7 +49,7 @@ const InventoryBulkActionBar = ({
   // Active button state determines label, type, and styling
   const isButtonActive = isInfinite || hasValidQty;
 
-  let buttonText = t("Stock + Opening Balance");
+  let buttonText = t("Apply Stock & Post Balance");
   if (isInfinite) {
     buttonText = t("Set as infinite inventory");
   } else if (hasValidQty) {

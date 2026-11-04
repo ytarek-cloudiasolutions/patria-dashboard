@@ -58,3 +58,4 @@ export interface ShiftRow {
   discount?: number;
   status: ShiftStatus;
 }
+

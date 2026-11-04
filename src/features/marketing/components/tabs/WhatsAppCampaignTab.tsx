@@ -76,8 +76,18 @@ export const WhatsAppCampaignTab = () => {
     Math.round(audienceBase * genderMultiplier * interestMultiplier)
   );
   const deviceCount = Math.max(1, Math.round(targetCount * 0.7));
-  const womenCount = Math.max(1, Math.round(targetCount * 0.8));
-  const menCount = Math.max(1, targetCount - womenCount);
+  const womenCount =
+    criteria.gender === "women"
+      ? targetCount
+      : criteria.gender === "men"
+        ? 0
+        : Math.max(1, Math.round(targetCount * 0.8));
+  const menCount =
+    criteria.gender === "men"
+      ? targetCount
+      : criteria.gender === "women"
+        ? 0
+        : Math.max(1, targetCount - womenCount);
 
   const handleRemoveRecipient = (id: string) => {
     setRecipients((prev) => prev.filter((r) => r.id !== id));

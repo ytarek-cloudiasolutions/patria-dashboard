@@ -48,8 +48,18 @@ export const AppNotificationsTab = () => {
     Math.round(audienceBase * genderMultiplier * interestMultiplier)
   );
   const deviceCount = Math.max(1, Math.round(targetCount * 0.7));
-  const womenCount = Math.max(1, Math.round(targetCount * 0.8));
-  const menCount = Math.max(1, targetCount - womenCount);
+  const womenCount =
+    criteria.gender === "women"
+      ? targetCount
+      : criteria.gender === "men"
+        ? 0
+        : Math.max(1, Math.round(targetCount * 0.8));
+  const menCount =
+    criteria.gender === "men"
+      ? targetCount
+      : criteria.gender === "women"
+        ? 0
+        : Math.max(1, targetCount - womenCount);
 
   const handleSendToAudience = () => {
     if (!draft.title.trim() || !draft.message.trim()) {
