@@ -1,4 +1,24 @@
-export type ShiftReportsTab = "daily" | "most-selling" | "shifts";
+export type ShiftReportsTab = "daily" | "most-selling" | "shifts" | "staff-tabs";
+
+export interface StaffTabOrder {
+  id: string;
+  orderNumber: string;
+  items: string;
+  date: string;
+  price: number;
+  status: "Paid" | "Unpaid";
+}
+
+export interface StaffTabUser {
+  id: string;
+  name: string;
+  totalOrders: number;
+  unpaidOrders: number;
+  total: number;
+  paid: number;
+  balance: number;
+  orders: StaffTabOrder[];
+}
 
 export type ShiftName = "Morning" | "Evening" | "Night";
 
