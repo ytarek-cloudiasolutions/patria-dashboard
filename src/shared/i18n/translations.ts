@@ -461,6 +461,7 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   "Percentage or fixed amount off selected categories or products":
     "نسبة مئوية أو مبلغ ثابت خصم على الفئات أو المنتجات المحددة",
   "Buy 2 get 1 free (same item)": "اشتري 2 واحصل على 1 مجاناً (نفس المنتج)",
+  "Buy get 1 for free": "اشتري واحصل على 1 مجاناً",
   "Every 2 of the exact same item ordered from the category — 1 of them is free":
     "كل قطعتين من نفس المنتج تماماً يتم طلبهما من الفئة — قطعة واحدة مجانية",
   "Priciest Charged (Legacy)": "تحصيل الأغلى سعراً",
