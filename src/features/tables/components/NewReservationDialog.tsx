@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -12,9 +12,14 @@ import DropdownSelect from "@/shared/components/DropdownSelect";
 import InputField from "@/shared/components/InputField";
 import DatePicker from "@/shared/components/DatePicker";
 import TimePicker from "@/shared/components/TimePicker";
-import type { DropdownSelectOption } from "@/shared/types/DropdownSelect.types";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import type { ReservationFormData } from "../types";
+import type { Reservation, Table } from "../store/tableTypes";
+import { getReservations } from "../api/tablesApi";
+import {
+  hasConflictingReservation,
+  reservationsForTable,
+} from "../utils/tableHelpers";
 
 const FORM_ID = "new-reservation-form";
 // Same shape the backend's isValidPhone/AddDriverDialog's WHATSAPP_PHONE_REGEX
@@ -53,14 +58,14 @@ const INITIAL_FORM: ReservationFormData = {
 
 interface NewReservationDialogProps {
   open: boolean;
-  tableOptions: DropdownSelectOption[];
+  tables: Table[];
   onOpenChange: (open: boolean) => void;
   onSave: (data: ReservationFormData) => void;
 }
 
 const NewReservationDialog = ({
   open,
-  tableOptions,
+  tables,
   onOpenChange,
   onSave,
 }: NewReservationDialogProps) => {
@@ -70,6 +75,11 @@ const NewReservationDialog = ({
     Partial<Record<keyof ReservationFormData, string>>
   >({});
   const [isTableOpen, setIsTableOpen] = useState(false);
+  // Reservations for whichever date is currently picked in THIS dialog —
+  // fetched independently of the page's own date-filtered list (a separate
+  // concern, shown behind the dialog) so changing the date here doesn't
+  // clobber what the Tables page's "Today's Reservations" list is showing.
+  const [reservationsForDate, setReservationsForDate] = useState<Reservation[]>([]);
 
   useEffect(() => {
     if (open) {
@@ -82,6 +92,58 @@ const NewReservationDialog = ({
       setIsTableOpen(false);
     }
   }, [open]);
+
+  useEffect(() => {
+    // The open-effect above always sets a date as soon as the dialog opens,
+    // so this only ever skips the fetch while actually closed.
+    if (!open || !form.date) return;
+    let cancelled = false;
+    getReservations(form.date)
+      .then((res) => {
+        // Response shape is flat (sendSuccess returns the data object
+        // directly), but typed as the nested ApiResponse wrapper — same
+        // dual-shape defensiveness tablesSaga.ts's handleGetReservations
+        // already needs for this same endpoint.
+        const flat = res as unknown as { reservations?: Reservation[] };
+        const nested = res as unknown as { data?: { reservations?: Reservation[] } };
+        const list = flat.reservations || nested.data?.reservations || [];
+        if (!cancelled) setReservationsForDate(Array.isArray(list) ? list : []);
+      })
+      .catch(() => {
+        if (!cancelled) setReservationsForDate([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, form.date]);
+
+  // A table someone could pick is "unavailable" only for the SPECIFIC
+  // date+time that actually conflicts with an existing reservation on it
+  // (within the backend's own minimum gap) — not permanently blocked just
+  // for having any reservation at all. Also surface what times a table
+  // already has booked that day so staff can see the schedule at a glance,
+  // same as the request: a table should look available again once a
+  // non-conflicting time is picked.
+  const tableOptions = useMemo(() => {
+    return tables.map((tbl) => {
+      const tblReservations = reservationsForTable(reservationsForDate, tbl._id);
+      // r.time is already "HH:mm" (24h) from the backend — no conversion needed.
+      const bookedTimes = tblReservations.map((r) => r.time).sort();
+      const conflicts =
+        !!form.date && !!form.time &&
+        hasConflictingReservation(tblReservations, form.date, form.time);
+
+      const label = bookedTimes.length
+        ? `${t("Table")} ${tbl.number} (${tbl.capacity} ${t("ppl")}) — ${t("Booked")}: ${bookedTimes.join(", ")}`
+        : `${t("Table")} ${tbl.number} (${tbl.capacity} ${t("ppl")})`;
+
+      return {
+        value: tbl._id,
+        label,
+        disabled: tbl.status === "occupied" || conflicts,
+      };
+    });
+  }, [tables, reservationsForDate, form.date, form.time, t]);
 
   const set = <K extends keyof ReservationFormData>(
     key: K,
@@ -105,7 +167,14 @@ const NewReservationDialog = ({
     }
     if (!form.date) next.date = "Date is required";
     if (!form.time.trim()) next.time = "Time is required";
-    if (!form.table) next.table = "Select a table";
+    if (!form.table) {
+      next.table = "Select a table";
+    } else if (tableOptions.find((o) => o.value === form.table)?.disabled) {
+      // The selected table became unavailable after the date/time changed
+      // underneath it (or is occupied) — block submission with a clear
+      // message rather than silently swapping/clearing their selection.
+      next.table = "This table is no longer available for the selected date/time — pick another";
+    }
     setErrors(next);
     return Object.keys(next).length === 0;
   };

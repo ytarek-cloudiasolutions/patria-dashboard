@@ -20,6 +20,7 @@ import type {
   AddTableFormData,
   ReservationFormData,
 } from "./types";
+import { convertTo24Hour } from "./utils/tableHelpers";
 
 const getTodayDateString = () => {
   const d = new Date();
@@ -27,25 +28,6 @@ const getTodayDateString = () => {
   const month = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
-};
-
-const convertTo24Hour = (timeStr: string): string => {
-  if (!timeStr) return "";
-  const match = timeStr.trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
-  if (!match) return timeStr;
-
-  let hours = parseInt(match[1], 10);
-  const minutes = match[2];
-  const ampm = match[3].toUpperCase();
-
-  if (ampm === "PM" && hours < 12) {
-    hours += 12;
-  } else if (ampm === "AM" && hours === 12) {
-    hours = 0;
-  }
-
-  const hoursStr = String(hours).padStart(2, "0");
-  return `${hoursStr}:${minutes}`;
 };
 
 const TablesPage = () => {
@@ -150,19 +132,6 @@ const TablesPage = () => {
       : search.trim()
         ? t("No reservations match your search.")
         : t("No reservations yet.");
-
-  // Keep occupied tables visible so staff can see why a table can't be
-  // picked, but render them disabled/shadowed instead of allowing a
-  // reservation the backend would reject with 409.
-  const tableOptions = useMemo(
-    () =>
-      tables.map((tbl) => ({
-        value: tbl._id,
-        label: `${t("Table")} ${tbl.number} (${tbl.capacity} ${t("ppl")})`,
-        disabled: tbl.status === "occupied",
-      })),
-    [tables, t],
-  );
 
   const handleAddTable = (data: AddTableFormData) => {
     createTable({
@@ -342,7 +311,7 @@ const TablesPage = () => {
 
       <NewReservationDialog
         open={isReservationOpen}
-        tableOptions={tableOptions}
+        tables={tables}
         onOpenChange={setIsReservationOpen}
         onSave={handleAddReservation}
       />
