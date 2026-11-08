@@ -84,6 +84,7 @@ export const DELIVERY_ZONES: DeliveryZone[] = [
   { id: "z2", name: "Mohandiseen", deliveryFee: 50, minOrder: 300 },
   { id: "z3", name: "Maadi", deliveryFee: 60, minOrder: 320 },
   { id: "z4", name: "Zamalek", deliveryFee: 70, minOrder: 350 },
+  { id: "z5", name: "Wabour El Mayah", deliveryFee: 45, minOrder: 250 },
 ];
 
 /** Phone numbers that resolve to an existing customer during a call order. */
@@ -93,6 +94,47 @@ export const CUSTOMER_DIRECTORY: Record<string, CustomerLookup> = {
     phone: "01288716491",
     lastAddress: "Villa 4, Bastour, Bab Sharki And Wabour El Miyah, Alexandria",
     tier: "BRONZE (STANDARD)",
+    addresses: [
+      {
+        _id: "addr-1",
+        label: "Home",
+        area: "Kafr Abdo",
+        zone: "Kafr Abdo",
+        street: "Mina Street",
+        floor: "12",
+        apartmentNo: "7",
+        buildingName: "20",
+        city: "Alexandria",
+        isDefault: true,
+        details: "Villa 4, Bastour, Bab Sharki And Wabour El Miyah, Alexandria",
+      },
+      {
+        _id: "addr-2",
+        label: "Office",
+        area: "Wabour El Mayah",
+        zone: "Wabour El Mayah",
+        street: "Mina Street",
+        floor: "12",
+        apartmentNo: "7",
+        buildingName: "20",
+        city: "Alexandria",
+        isDefault: false,
+        details: "Mina Street, floor 12, Apartment no. 7, Building 20, Wabour El Mayah",
+      },
+      {
+        _id: "addr-3",
+        label: "Office",
+        area: "Wabour El Mayah",
+        zone: "Wabour El Mayah",
+        street: "Mina Street",
+        floor: "12",
+        apartmentNo: "7",
+        buildingName: "20",
+        city: "Alexandria",
+        isDefault: false,
+        details: "Mina Street, floor 12, Apartment no. 7, Building 20, Wabour El Mayah",
+      },
+    ],
   },
 };
 

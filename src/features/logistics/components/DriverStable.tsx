@@ -1,4 +1,4 @@
-import { Bell, ChevronDown, SquarePen } from "lucide-react";
+import { Bell, SquarePen } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -7,17 +7,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/shared/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/shared/components/ui/dropdown-menu";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { cn } from "@/lib/utils";
 import ActionButton from "@/shared/components/ActionButton";
 import WhatsAppIcon from "@/assets/icons/whatsapp.svg";
-import { DRIVER_STATUS_OPTIONS } from "../data";
 import type { Driver, DriverStatus } from "../types";
 
 const STATUS_STYLES: Record<DriverStatus, string> = {
@@ -35,57 +28,21 @@ interface DriversTableProps {
   drivers: Driver[];
   onEdit: (driver: Driver) => void;
   onNotify: (driver: Driver) => void;
-  onChangeStatus: (driver: Driver, status: DriverStatus) => void;
+  onChangeStatus?: (driver: Driver, status: DriverStatus) => void;
   onMenuOpenChange?: (open: boolean) => void;
 }
 
-const StatusDropdown = ({
-  driver,
-  onChangeStatus,
-  onMenuOpenChange,
-}: {
-  driver: Driver;
-  onChangeStatus: (d: Driver, s: DriverStatus) => void;
-  onMenuOpenChange?: (open: boolean) => void;
-}) => {
+const StatusBadge = ({ status }: { status: DriverStatus }) => {
   const { t } = useTranslation();
   return (
-    <div className="flex items-center gap-1.5">
-      <DropdownMenu onOpenChange={onMenuOpenChange}>
-        <DropdownMenuTrigger asChild>
-          <button
-            type="button"
-            className="inline-flex cursor-pointer items-center gap-1 transition-all duration-150 active:scale-95"
-          >
-            <span
-              className={cn(
-                "inline-flex h-7 min-w-18 items-center justify-center rounded-full border px-2.5 text-[12px] font-semibold transition-all duration-200",
-                STATUS_STYLES[driver.status],
-              )}
-            >
-              {t(driver.status)}
-            </span>
-            <ChevronDown className="size-3.5 text-[#28293D] shrink-0" />
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="z-70 rounded-[12px] p-2">
-          {DRIVER_STATUS_OPTIONS.map((option) => (
-            <DropdownMenuItem
-              key={option.value}
-              onSelect={() => onChangeStatus(driver, option.value as DriverStatus)}
-              className={cn(
-                "cursor-pointer rounded-[8px] px-3 py-2 text-[13px] font-medium",
-                option.value === driver.status
-                  ? "bg-primary text-white data-highlighted:bg-primary data-highlighted:text-white"
-                  : "text-[#28293D] data-highlighted:bg-[#F5F0EA]",
-              )}
-            >
-              {t(option.label)}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
+    <span
+      className={cn(
+        "inline-flex h-7 min-w-18 items-center justify-center rounded-full border px-2.5 text-[12px] font-semibold select-none",
+        STATUS_STYLES[status],
+      )}
+    >
+      {t(status)}
+    </span>
   );
 };
 
@@ -168,11 +125,7 @@ const DriversTable = ({
                 <p className="text-[#28293D]">{driver.zones.join(", ")}</p>
               </div>
             </div>
-            <StatusDropdown
-              driver={driver}
-              onChangeStatus={onChangeStatus}
-              onMenuOpenChange={onMenuOpenChange}
-            />
+            <StatusBadge status={driver.status} />
           </div>
         ))}
         {drivers.length === 0 && (
@@ -211,11 +164,7 @@ const DriversTable = ({
                   {driver.zones.length > 0 ? driver.zones.join(", ") : "—"}
                 </TableCell>
                 <TableCell className="px-3 lg:px-4 py-3.5 whitespace-nowrap">
-                  <StatusDropdown
-                    driver={driver}
-                    onChangeStatus={onChangeStatus}
-                    onMenuOpenChange={onMenuOpenChange}
-                  />
+                  <StatusBadge status={driver.status} />
                 </TableCell>
                 <TableCell className="pe-4 lg:pe-6 py-3.5 whitespace-nowrap">
                   <div className="flex items-center justify-end">

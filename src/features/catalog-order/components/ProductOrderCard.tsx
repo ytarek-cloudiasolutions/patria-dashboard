@@ -71,7 +71,7 @@ export const ProductOrderCard = ({
   };
 
   return (
-    <div className="flex-1 w-full lg:max-w-[673px] h-[785px] p-6 bg-white rounded-2xl shadow-lg border border-[#E5E5E5] flex flex-col gap-4 overflow-hidden transition-shadow duration-300 hover:shadow-xl">
+    <div className="flex-1 w-full min-w-0 h-[785px] p-6 bg-white rounded-2xl shadow-lg border border-[#E5E5E5] flex flex-col gap-4 overflow-hidden transition-shadow duration-300 hover:shadow-xl">
       <div className="flex items-center gap-1.5 shrink-0">
         <img src="/images/catalog-order/reorder_products.svg" alt="" className="size-4" />
         <h2 className="text-black text-sm font-semibold tracking-tight">

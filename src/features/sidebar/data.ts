@@ -26,6 +26,7 @@ import {
   Megaphone,
   List,
   FileText,
+  ShieldCheck,
 } from "lucide-react";
 import type { NavSection } from "./types";
 
@@ -38,6 +39,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { label: "Tables", href: "/tables", icon: Armchair },
       { label: "Kitchen", href: "/kitchen", icon: ChefHat },
       { label: "Catalog Order", href: "/catalog-order", icon: List },
+      { label: "Approval Request", href: "/requests", icon: ShieldCheck },
     ],
   },
   {

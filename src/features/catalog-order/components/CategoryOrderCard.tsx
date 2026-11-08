@@ -66,7 +66,7 @@ export const CategoryOrderCard = ({
   );
 
   return (
-    <div className="w-full xl:w-[439px] lg:w-[384px] h-[785px] px-3 py-6 bg-white rounded-2xl shadow-lg border border-[#E5E5E5] flex flex-col gap-4 overflow-hidden transition-shadow duration-300 hover:shadow-xl">
+    <div className="w-full xl:w-[439px] lg:w-[384px] shrink-0 h-[785px] px-3 py-6 bg-white rounded-2xl shadow-lg border border-[#E5E5E5] flex flex-col gap-4 overflow-hidden transition-shadow duration-300 hover:shadow-xl">
       <div className="flex items-center gap-1.5 shrink-0 px-1">
         <img src="/images/catalog-order/category_order.svg" alt="" className="size-4" />
         <h2 className="text-black text-sm font-semibold tracking-tight">
