@@ -21,6 +21,7 @@ import PageChip from "./PageChip";
 import PosPermissionsCard from "./PosPermissionsCard";
 
 const FORM_ID = "create-user-form";
+const PHONE_REGEX = /^(\d{11}|\+\d{10,14})$/;
 
 const INITIAL_FORM: UserFormData = {
   fullName: "",
@@ -78,7 +79,11 @@ const CreateUserDialog = ({
     const next: Partial<Record<keyof UserFormData, string>> = {};
     if (!form.fullName.trim()) next.fullName = t("Full name is required");
     if (!form.email.trim()) next.email = t("Email is required");
-    if (!form.phone.trim()) next.phone = t("Phone is required");
+    if (!form.phone.trim()) {
+      next.phone = t("Phone is required");
+    } else if (!PHONE_REGEX.test(form.phone.trim())) {
+      next.phone = t("Enter a valid phone number (11 digits, or + and 10-14 digits for international)");
+    }
     if (!form.password.trim() || form.password.length < 6)
       next.password = t("Password must be at least 6 characters");
     if (!form.role) next.role = t("Role is required");

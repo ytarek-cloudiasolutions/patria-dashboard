@@ -23,6 +23,11 @@ import CallCustomerStep from "./CallCustomerStep";
 import OrderProductsStep from "./OrderProductsStep";
 import OrderPaymentStep from "./OrderPaymentStep";
 
+// Same shape already used by NewReservationDialog/AddDriverDialog — this
+// Call Order customer phone field previously had no format check at all,
+// only a "required, non-empty" one.
+const PHONE_REGEX = /^(\d{11}|\+\d{10,14})$/;
+
 interface NewCallOrderDialogProps {
   open: boolean;
   productOptions: ProductOption[];
@@ -233,7 +238,11 @@ const NewCallOrderDialog = ({
   const handleStep0Next = () => {
     const errs: Record<string, string> = {};
     if (!name.trim()) errs.name = t("Customer Name is required");
-    if (!phone.trim()) errs.phone = t("Phone Number is required");
+    if (!phone.trim()) {
+      errs.phone = t("Phone Number is required");
+    } else if (!PHONE_REGEX.test(phone.trim())) {
+      errs.phone = t("Enter a valid phone number (11 digits, or + and 10-14 digits for international)");
+    }
     if (!address.trim()) errs.address = t("Detailed address is required");
     if (!zoneId.trim()) errs.zone = t("Zone is required");
 
@@ -318,7 +327,11 @@ const NewCallOrderDialog = ({
                   if (targetStep > 0) {
                     const errs: Record<string, string> = {};
                     if (!name.trim()) errs.name = t("Customer Name is required");
-                    if (!phone.trim()) errs.phone = t("Phone Number is required");
+                    if (!phone.trim()) {
+                      errs.phone = t("Phone Number is required");
+                    } else if (!PHONE_REGEX.test(phone.trim())) {
+                      errs.phone = t("Enter a valid phone number (11 digits, or + and 10-14 digits for international)");
+                    }
                     if (!address.trim()) errs.address = t("Detailed address is required");
                     if (!zoneId.trim()) errs.zone = t("Zone is required");
                     if (Object.keys(errs).length > 0) {

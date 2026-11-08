@@ -15,6 +15,7 @@ import { PRIVILEGE_ROLE_OPTIONS } from "../data";
 import type { InviteFormData, TeamRole } from "../types";
 
 const FORM_ID = "invite-member-form";
+const PHONE_REGEX = /^(\d{11}|\+\d{10,14})$/;
 
 const INITIAL_FORM: InviteFormData = {
   name: "",
@@ -64,6 +65,11 @@ const InviteMemberDialog = ({
     if (!form.email.trim()) next.email = t("Email is required");
     if (!form.securityCode.trim() || form.securityCode.length < 6) {
       next.securityCode = t("Minimum 6 characters");
+    }
+    // Contact phone wasn't validated at all here — not even required,
+    // since it's optional, but format-check it whenever it's filled in.
+    if (form.phone.trim() && !PHONE_REGEX.test(form.phone.trim())) {
+      next.phone = t("Enter a valid phone number (11 digits, or + and 10-14 digits for international)");
     }
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -151,20 +157,27 @@ const InviteMemberDialog = ({
               </div>
 
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                <InputField
-                  data={{
-                    id: "contact-phone",
-                    label: {
-                      htmlFor: "contact-phone",
-                      labelText: t("Contact Phone (Optional)"),
-                    },
-                    placeholder: "e.g. 0123456789",
-                    inputProps: {
-                      value: form.phone,
-                      onChange: (e) => set("phone", e.target.value),
-                    },
-                  }}
-                />
+                <div>
+                  <InputField
+                    data={{
+                      id: "contact-phone",
+                      label: {
+                        htmlFor: "contact-phone",
+                        labelText: t("Contact Phone (Optional)"),
+                      },
+                      placeholder: "e.g. 0123456789",
+                      inputProps: {
+                        value: form.phone,
+                        onChange: (e) => set("phone", e.target.value),
+                      },
+                    }}
+                  />
+                  {errors.phone && (
+                    <p className="mt-1 text-[13px] text-[#C90000] animate-in fade-in slide-in-from-top-1 duration-150">
+                      {errors.phone}
+                    </p>
+                  )}
+                </div>
                 <div>
                   <InputField
                     data={{

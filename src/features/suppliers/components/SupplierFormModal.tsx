@@ -15,6 +15,7 @@ import { useTranslation } from "@/shared/i18n/useTranslation";
 import type { Supplier, SupplierFormData } from "../types";
 
 const FORM_ID = "supplier-form";
+const PHONE_REGEX = /^(\d{11}|\+\d{10,14})$/;
 
 const INITIAL_FORM: SupplierFormData = {
   supplierName: "",
@@ -73,7 +74,11 @@ const SupplierFormModal = ({
     if (!form.supplierName.trim())
       next.supplierName = t("Supplier name is required");
     if (!form.contactName.trim()) next.contactName = t("Name is required");
-    if (!form.phone.trim()) next.phone = t("Phone number is required");
+    if (!form.phone.trim()) {
+      next.phone = t("Phone number is required");
+    } else if (!PHONE_REGEX.test(form.phone.trim())) {
+      next.phone = t("Enter a valid phone number (11 digits, or + and 10-14 digits for international)");
+    }
     if (!form.email.trim()) {
       next.email = t("Email is required");
     } else if (!/^\S+@\S+\.\S+$/.test(form.email)) {
