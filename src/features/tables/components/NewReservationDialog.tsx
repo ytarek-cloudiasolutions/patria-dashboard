@@ -17,6 +17,9 @@ import { useTranslation } from "@/shared/i18n/useTranslation";
 import type { ReservationFormData } from "../types";
 
 const FORM_ID = "new-reservation-form";
+// Same shape the backend's isValidPhone/AddDriverDialog's WHATSAPP_PHONE_REGEX
+// already accept — this field previously had no validation beyond "non-empty".
+const PHONE_REGEX = /^(\d{11}|\+\d{10,14})$/;
 
 const getTodayDateString = () => {
   const d = new Date();
@@ -91,7 +94,12 @@ const NewReservationDialog = ({
   const validate = () => {
     const next: Partial<Record<keyof ReservationFormData, string>> = {};
     if (!form.name.trim()) next.name = "Customer name is required";
-    if (!form.phone.trim()) next.phone = "Phone is required";
+    const trimmedPhone = form.phone.trim();
+    if (!trimmedPhone) {
+      next.phone = "Phone is required";
+    } else if (!PHONE_REGEX.test(trimmedPhone)) {
+      next.phone = "Enter a valid phone number (11 digits, or + and 10-14 digits for international)";
+    }
     if (!form.people.trim() || Number(form.people) <= 0) {
       next.people = "Enter a valid number";
     }
