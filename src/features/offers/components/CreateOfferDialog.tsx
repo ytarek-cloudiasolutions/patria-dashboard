@@ -35,7 +35,7 @@ const OFFER_TYPE_CARDS: Array<{
   },
   {
     id: "buy_2_get_1",
-    title: "Buy 2 get 1 free (same item)",
+    title: "Buy get 1 for free",
     desc: "Every 2 of the exact same item ordered from the category — 1 of them is free",
   },
   {

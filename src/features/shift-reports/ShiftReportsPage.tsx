@@ -9,6 +9,7 @@ import ShiftReportsTabs from "./components/ShiftReportsTabs";
 import DailyReportTab, { type ExportPayload } from "./components/DailyReportTab";
 import MostSellingTab from "./components/MostSellingTab";
 import ShiftReportsTab from "./components/ShiftReportsTab";
+import StaffTabsTab from "./components/StaffTabsTab";
 import type { ShiftReportsTab as ShiftReportsTabKey } from "./types";
 
 const ShiftReportsPage = () => {
@@ -99,6 +100,12 @@ const ShiftReportsPage = () => {
           )}
           {tab === "shifts" && (
             <ShiftReportsTab
+              onMenuOpenChange={setIsMenuOpen}
+              onExportDataReady={handleExportDataReady}
+            />
+          )}
+          {tab === "staff-tabs" && (
+            <StaffTabsTab
               onMenuOpenChange={setIsMenuOpen}
               onExportDataReady={handleExportDataReady}
             />

@@ -461,6 +461,7 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   "Percentage or fixed amount off selected categories or products":
     "نسبة مئوية أو مبلغ ثابت خصم على الفئات أو المنتجات المحددة",
   "Buy 2 get 1 free (same item)": "اشتري 2 واحصل على 1 مجاناً (نفس المنتج)",
+  "Buy get 1 for free": "اشتري واحصل على 1 مجاناً",
   "Every 2 of the exact same item ordered from the category — 1 of them is free":
     "كل قطعتين من نفس المنتج تماماً يتم طلبهما من الفئة — قطعة واحدة مجانية",
   "Priciest Charged (Legacy)": "تحصيل الأغلى سعراً",
@@ -1601,6 +1602,24 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   "Period": "الفترة",
   "Daily": "يومي",
   "Yearly": "سنوي",
+  "Staff Tabs": "حسابات الموظفين",
+  "Open": "مفتوح",
+  "All Tabs": "جميع الحسابات",
+  "Has Balance": "عليه رصيد متبقي",
+  "Fully Paid": "مسدد بالكامل",
+  "Total Outstanding Staff Tab Balance": "إجمالي رصيد حسابات الموظفين المستحق",
+  "unpaid": "غير مدفوع",
+  "Statement / Pay": "كشف حساب / سداد",
+  "Pay specific orders": "سداد طلبات محددة",
+  "Pay an amount (part of the bill)": "سداد مبلغ (جزء من الحساب)",
+  "Payment method": "طريقة الدفع",
+  "Amount to pay": "المبلغ المراد سداده",
+  "Amount to pay (Amount deducted from oldest order first)": "المبلغ المراد سداده (يُخصم من الطلب الأقدم أولاً)",
+  "e.g. from the October salary": "مثال: خصم من راتب أكتوبر",
+  "Payment confirmed successfully": "تم تأكيد السداد بنجاح",
+  "Please select at least one order to pay": "يرجى تحديد طلب واحد على الأقل للسداد",
+  "Please enter a valid amount": "يرجى إدخال مبلغ صالح",
+  "No staff tabs found": "لم يتم العثور على حسابات موظفين",
 
   // Pricing module — price lists
   "Added Products": "المنتجات المضافة",

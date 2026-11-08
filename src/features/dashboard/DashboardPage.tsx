@@ -291,6 +291,16 @@ const DashboardPage = () => {
             tone: "red",
           },
           {
+            id: "pending-dine-in",
+            // Dine-in orders started at the POS (a table) but not yet
+            // sent/paid — same definition the POS "Pending orders
+            // (Dine-in)" dialog uses.
+            label: "Pending Dine-In Orders",
+            value: ov.pendingDineInOrders ?? 0,
+            icon: Clock,
+            tone: "green",
+          },
+          {
             id: "pos",
             // "POs" (Purchase Orders) reads too easily as "POS" at a
             // glance — spell it out so it's never mistaken for pending
@@ -308,16 +318,6 @@ const DashboardPage = () => {
             value: ov.restockWarnings ?? 0,
             icon: DollarSign,
             tone: "amber",
-          },
-          {
-            id: "pending-dine-in",
-            // Dine-in orders started at the POS (a table) but not yet
-            // sent/paid — same definition the POS "Pending orders
-            // (Dine-in)" dialog uses.
-            label: "Pending Dine-In Orders",
-            value: ov.pendingDineInOrders ?? 0,
-            icon: Clock,
-            tone: "green",
           },
         ]);
 
