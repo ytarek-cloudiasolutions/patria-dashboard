@@ -99,6 +99,19 @@ const IncomingOrderDialog = ({ order, isConfirming, onConfirm, onClose }: Incomi
 
           <div className="w-full border-t border-[#CACBD4]" />
 
+          {order.tax > 0 && (
+            <div className="flex flex-col gap-1.5 text-[13px] text-[#595959]">
+              <div className="flex items-center justify-between">
+                <span>{t("Subtotal")}</span>
+                <span dir="ltr">{formatEgp(order.subtotal || 0)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>{t("Tax (14%)")}</span>
+                <span dir="ltr">{formatEgp(order.tax)}</span>
+              </div>
+            </div>
+          )}
+
           <div className="flex items-center justify-between text-[18px]">
             <span className="font-semibold text-black">{t("Total:")}</span>
             <span className="text-black" dir="ltr">

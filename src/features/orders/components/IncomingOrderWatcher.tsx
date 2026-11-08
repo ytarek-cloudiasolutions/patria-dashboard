@@ -15,6 +15,8 @@ export interface IncomingOrder {
   orderId: string;
   customer: { name: string; phone?: string; address?: string };
   items: { name: string; quantity: number; price: number }[];
+  subtotal: number;
+  tax: number;
   total: number;
 }
 
@@ -34,6 +36,8 @@ const mapIncomingOrder = (raw: any): IncomingOrder | null => {
       quantity: i.quantity || 1,
       price: i.price || 0,
     })),
+    subtotal: raw.subtotal || 0,
+    tax: raw.tax || 0,
     total: raw.total || 0,
   };
 };
