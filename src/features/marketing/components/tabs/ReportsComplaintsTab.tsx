@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   Smartphone,
@@ -15,10 +15,10 @@ import DropdownSelect from "@/shared/components/DropdownSelect";
 import { Rating } from "@/shared/components/ui/rating";
 import {
   DAILY_ORDERS_STATS,
-  INITIAL_COMPLAINTS,
   INITIAL_MARKETING_KPIS,
   TOP_DELIVERY_ZONES,
 } from "../../data";
+import complaintsApi, { type Complaint, type ComplaintStats } from "../../api/complaintsApi";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 
@@ -29,11 +29,17 @@ export const ReportsComplaintsTab = () => {
   const [toDate, setToDate] = useState("2026-06-07");
   const [preset, setPreset] = useState("today");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [complaints, setComplaints] = useState<Complaint[]>([]);
+  const [complaintStats, setComplaintStats] = useState<ComplaintStats>();
 
-  const kpis = INITIAL_MARKETING_KPIS;
+  useEffect(() => {
+    complaintsApi.getComplaints().then(setComplaints).catch((err) => console.error("Failed to load complaints:", err));
+    complaintsApi.getComplaintStats().then(setComplaintStats).catch((err) => console.error("Failed to load complaint stats:", err));
+  }, []);
+
+  const kpis = { ...INITIAL_MARKETING_KPIS, complaintsCount: complaintStats?.total ?? INITIAL_MARKETING_KPIS.complaintsCount };
   const dailyStats = DAILY_ORDERS_STATS;
   const topZones = TOP_DELIVERY_ZONES;
-  const complaints = INITIAL_COMPLAINTS;
 
   const periodOptions = [
     { label: t("Today"), value: "today" },
@@ -331,9 +337,14 @@ export const ReportsComplaintsTab = () => {
 
         {/* Complaints Grid */}
         <div className="self-stretch p-6 flex flex-wrap gap-6 items-stretch overflow-hidden">
+          {complaints.length === 0 && (
+            <div className="w-full py-8 text-center text-sm text-[#8B8B8B]">
+              {t("No complaints found")}
+            </div>
+          )}
           {complaints.map((c) => (
             <div
-              key={c.id}
+              key={c._id}
               className="w-full sm:w-[320px] min-h-[288px] p-4 bg-[#FAFAF7] rounded-2xl border-l-[3px] border-l-[#C90000] border-y border-r border-[#CACBD4] flex flex-col justify-between overflow-hidden shadow-xs transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md"
             >
               <div className="self-stretch flex flex-col justify-start items-start gap-4">
@@ -341,64 +352,63 @@ export const ReportsComplaintsTab = () => {
                 <div className="self-stretch flex justify-between items-start">
                   <div className="flex flex-col justify-start items-start gap-1">
                     <div className="text-[#1A1A1A] text-sm font-semibold font-['Montserrat',sans-serif] leading-4 tracking-tight">
-                      {c.customerName}
+                      {c.customerId?.name || t("Unknown Customer")}
                     </div>
                     <div className="text-[#595959] text-xs font-normal font-['Montserrat',sans-serif] leading-4 tracking-tight">
-                      {c.customerPhone}
+                      {c.customerId?.phone || "-"}
                     </div>
                   </div>
 
-                  <div className="flex flex-col items-end gap-1">
-                    <Rating
-                      rating={c.rating}
-                      maxRating={5}
-                      size="sm"
-                      className="gap-0.5 **:data-[slot=rating-star-empty]:text-[#D97706]/30 **:data-[slot=rating-star-filled]:fill-[#F59E0B] **:data-[slot=rating-star-filled]:text-[#F59E0B]"
-                    />
-                    <span className="text-black text-[10px] font-semibold font-['Montserrat',sans-serif] tracking-tight">
-                      {c.rating.toFixed(1)} / 5.0
-                    </span>
-                  </div>
+                  {c.rating != null && (
+                    <div className="flex flex-col items-end gap-1">
+                      <Rating
+                        rating={c.rating}
+                        maxRating={5}
+                        size="sm"
+                        className="gap-0.5 **:data-[slot=rating-star-empty]:text-[#D97706]/30 **:data-[slot=rating-star-filled]:fill-[#F59E0B] **:data-[slot=rating-star-filled]:text-[#F59E0B]"
+                      />
+                      <span className="text-black text-[10px] font-semibold font-['Montserrat',sans-serif] tracking-tight">
+                        {c.rating.toFixed(1)} / 5.0
+                      </span>
+                    </div>
+                  )}
                 </div>
 
-                {/* Order ID & Type Badge */}
+                {/* Order ID & Status Badge */}
                 <div className="self-stretch flex items-center gap-3">
-                  <span className="text-black text-xs font-semibold font-['Montserrat',sans-serif] tracking-tight">
-                    {c.orderNumber}
-                  </span>
-                  <span className="text-[#8B8B8B] text-xs">•</span>
+                  {c.orderId && (
+                    <>
+                      <span className="text-black text-xs font-semibold font-['Montserrat',sans-serif] tracking-tight">
+                        #{c.orderId.orderId}
+                      </span>
+                      <span className="text-[#8B8B8B] text-xs">•</span>
+                    </>
+                  )}
                   <span className="px-2 py-0.5 bg-slate-100 rounded-[30px] border border-blue-700 text-blue-500 text-[10px] font-semibold font-['Montserrat',sans-serif] tracking-tight">
-                    {t(c.orderType)}
+                    {t(c.status)}
                   </span>
                 </div>
 
                 {/* Quoted Comment */}
-                <div className="self-stretch h-12 p-3 bg-white rounded-xl border border-[#CACBD4] flex items-center overflow-hidden">
-                  <span className="text-black text-base font-normal font-['Montserrat',sans-serif]">
-                    {c.comment}
+                <div className="self-stretch p-3 bg-white rounded-xl border border-[#CACBD4] flex items-center overflow-hidden">
+                  <span className="text-black text-base font-normal font-['Montserrat',sans-serif] line-clamp-3">
+                    {c.message}
                   </span>
                 </div>
 
-                {/* Tags / Aspects */}
-                {c.tags.length > 0 && (
-                  <div className="self-stretch flex items-center gap-2 flex-wrap">
-                    {c.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="px-2 py-2 bg-[#F5F0EA] rounded-[4px] border border-[#CACBD4] text-[#1A1A1A] text-[10px] font-semibold font-['Montserrat',sans-serif] leading-3 tracking-tight transition-transform duration-150 hover:scale-105"
-                      >
-                        {t(tag)}
-                      </span>
-                    ))}
-                  </div>
-                )}
+                {/* Category tag */}
+                <div className="self-stretch flex items-center gap-2 flex-wrap">
+                  <span className="px-2 py-2 bg-[#F5F0EA] rounded-[4px] border border-[#CACBD4] text-[#1A1A1A] text-[10px] font-semibold font-['Montserrat',sans-serif] leading-3 tracking-tight transition-transform duration-150 hover:scale-105">
+                    {t(c.category)}
+                  </span>
+                </div>
               </div>
 
               {/* Bottom Separator & Timestamp */}
               <div className="self-stretch flex flex-col justify-start items-start gap-4 mt-auto pt-4">
                 <div className="self-stretch h-px bg-[#CACBD4]" />
                 <div className="text-[#595959] text-sm font-medium font-['Montserrat',sans-serif] tracking-tight">
-                  {c.timestamp}
+                  {new Date(c.createdAt).toLocaleString()}
                 </div>
               </div>
             </div>

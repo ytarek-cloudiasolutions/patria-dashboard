@@ -1,16 +1,22 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Tablet } from "lucide-react";
 import { AudienceFilterCard } from "../common/AudienceFilterCard";
 import type { AudienceCriteria, PushNotificationDraft } from "../../types";
+import marketingApi, { type AudienceSegmentCounts, type BackendGender } from "../../api/marketingApi";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { showSuccessToast, showErrorToast } from "@/shared/utils/toast";
+
+function toBackendGender(gender: AudienceCriteria["gender"]): BackendGender {
+  if (gender === "women") return "female";
+  if (gender === "men") return "male";
+  return "all";
+}
 
 export const AppNotificationsTab = () => {
   const { t } = useTranslation();
 
   const [criteria, setCriteria] = useState<AudienceCriteria>({
     segment: "all",
-    inactiveDays: 30,
     gender: "all",
     interests: [],
   });
@@ -23,78 +29,75 @@ export const AppNotificationsTab = () => {
 
   const [isSending, setIsSending] = useState(false);
   const [isSendingTest, setIsSendingTest] = useState(false);
+  const [segmentCounts, setSegmentCounts] = useState<AudienceSegmentCounts>();
 
-  // Dynamic audience sizing calculation based on filters
-  const audienceBase =
-    criteria.segment === "all"
-      ? 398
-      : criteria.segment === "inactive"
-        ? 142
-        : criteria.segment === "never_ordered"
-          ? 96
-          : criteria.segment === "recent"
-            ? 178
-            : 54;
+  useEffect(() => {
+    let cancelled = false;
+    marketingApi
+      .getAudienceSegments({ gender: toBackendGender(criteria.gender), interests: criteria.interests })
+      .then((counts) => { if (!cancelled) setSegmentCounts(counts); })
+      .catch((err) => console.error("Failed to load audience segment counts:", err));
+    return () => { cancelled = true; };
+  }, [criteria.gender, criteria.interests]);
 
-  const genderMultiplier =
-    criteria.gender === "all" ? 1 : criteria.gender === "women" ? 0.6 : 0.4;
-  const interestMultiplier =
-    criteria.interests.length > 0
-      ? Math.max(0.15, 1 - criteria.interests.length * 0.12)
-      : 1;
+  const targetCount = segmentCounts?.[criteria.segment];
 
-  const targetCount = Math.max(
-    2,
-    Math.round(audienceBase * genderMultiplier * interestMultiplier)
-  );
-  const deviceCount = Math.max(1, Math.round(targetCount * 0.7));
-  const womenCount =
-    criteria.gender === "women"
-      ? targetCount
-      : criteria.gender === "men"
-        ? 0
-        : Math.max(1, Math.round(targetCount * 0.8));
-  const menCount =
-    criteria.gender === "men"
-      ? targetCount
-      : criteria.gender === "women"
-        ? 0
-        : Math.max(1, targetCount - womenCount);
-
-  const handleSendToAudience = () => {
+  const handleSendToAudience = async () => {
     if (!draft.title.trim() || !draft.message.trim()) {
       showErrorToast(t("Please enter both a title and a message."));
       return;
     }
 
     setIsSending(true);
-    setTimeout(() => {
+    try {
+      const campaign = await marketingApi.sendAppNotification({
+        title: draft.title.trim(),
+        body: draft.message.trim(),
+        segment: criteria.segment,
+        gender: toBackendGender(criteria.gender),
+        interests: criteria.interests,
+      });
+      if (campaign.status === "failed") {
+        showErrorToast(campaign.error || t("Failed to send notification"));
+      } else {
+        showSuccessToast(
+          t("Notification sent successfully to {count} customers!").replace(
+            "{count}",
+            String(campaign.stats.targeted)
+          )
+        );
+        setDraft((prev) => ({ ...prev, title: "", message: "" }));
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : undefined;
+      showErrorToast(message || t("Failed to send notification"));
+    } finally {
       setIsSending(false);
-      showSuccessToast(
-        t("Notification sent successfully to {count} customers!").replace(
-          "{count}",
-          String(targetCount)
-        )
-      );
-      setDraft((prev) => ({ ...prev, title: "", message: "" }));
-    }, 1000);
+    }
   };
 
-  const handleSendTest = () => {
+  const handleSendTest = async () => {
     if (!draft.testPhone.trim()) {
       showErrorToast(t("Please enter a valid phone number."));
       return;
     }
     setIsSendingTest(true);
-    setTimeout(() => {
-      setIsSendingTest(false);
+    try {
+      await marketingApi.testSend({
+        channel: "app",
+        phone: draft.testPhone.trim(),
+        title: draft.title.trim() || "Test",
+        message: draft.message.trim() || "Test notification",
+      });
       showSuccessToast(
-        t("Test notification sent successfully to {phone}").replace(
-          "{phone}",
-          draft.testPhone
-        )
+        t("Test notification sent successfully to {phone}").replace("{phone}", draft.testPhone)
       );
-    }, 700);
+    } catch (err: unknown) {
+      const message = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      showErrorToast(message || t("Failed to send test notification"));
+    } finally {
+      setIsSendingTest(false);
+    }
   };
 
   return (
@@ -104,10 +107,8 @@ export const AppNotificationsTab = () => {
         <AudienceFilterCard
           criteria={criteria}
           onCriteriaChange={setCriteria}
-          customerCount={targetCount}
-          deviceCount={deviceCount}
-          womenCount={womenCount}
-          menCount={menCount}
+          segmentCounts={segmentCounts}
+          targetCount={targetCount}
           className="w-full"
         />
       </div>
@@ -176,7 +177,7 @@ export const AppNotificationsTab = () => {
             ? t("Sending...")
             : t("Send to {count} Customers").replace(
                 "{count}",
-                String(targetCount)
+                targetCount != null ? String(targetCount) : "…"
               )}
         </button>
 

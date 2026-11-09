@@ -2,64 +2,41 @@ import { AudienceSegmentCards } from "./AudienceSegmentCards";
 import { GenderSelector } from "./GenderSelector";
 import { CategoryInterestChips } from "./CategoryInterestChips";
 import { AudienceSummaryBadges } from "./AudienceSummaryBadges";
-import type { AudienceCriteria } from "../../types";
+import type { AudienceCriteria, AudienceSegment } from "../../types";
+import type { AudienceSegmentCounts } from "../../api/marketingApi";
 import { cn } from "@/lib/utils";
 
 interface AudienceFilterCardProps {
   criteria: AudienceCriteria;
   onCriteriaChange: (updater: (prev: AudienceCriteria) => AudienceCriteria) => void;
   className?: string;
-  customerCount?: number;
-  deviceCount?: number;
-  womenCount?: number;
-  menCount?: number;
+  segmentCounts?: AudienceSegmentCounts;
+  targetCount?: number;
 }
 
 export const AudienceFilterCard = ({
   criteria,
   onCriteriaChange,
   className,
-  customerCount = 12,
-  deviceCount = 8,
-  womenCount,
-  menCount,
+  segmentCounts,
+  targetCount,
 }: AudienceFilterCardProps) => {
-  const resolvedWomenCount =
-    womenCount !== undefined
-      ? womenCount
-      : criteria.gender === "women"
-        ? customerCount
-        : criteria.gender === "men"
-          ? 0
-          : Math.max(1, Math.round(customerCount * 0.8));
-  const resolvedMenCount =
-    menCount !== undefined
-      ? menCount
-      : criteria.gender === "men"
-        ? customerCount
-        : criteria.gender === "women"
-          ? 0
-          : Math.max(1, customerCount - resolvedWomenCount);
-  const handleSelectSegment = (segment: AudienceCriteria["segment"]) => {
+  const handleSelectSegment = (segment: AudienceSegment) => {
     onCriteriaChange((prev) => ({ ...prev, segment }));
-  };
-
-  const handleInactiveDaysChange = (inactiveDays: number) => {
-    onCriteriaChange((prev) => ({ ...prev, inactiveDays }));
   };
 
   const handleSelectGender = (gender: AudienceCriteria["gender"]) => {
     onCriteriaChange((prev) => ({ ...prev, gender }));
   };
 
-  const handleToggleInterest = (category: string) => {
+  const handleToggleInterest = (categoryId: string) => {
     onCriteriaChange((prev) => {
-      const exists = prev.interests.includes(category);
+      const exists = prev.interests.includes(categoryId);
       return {
         ...prev,
         interests: exists
-          ? prev.interests.filter((c) => c !== category)
-          : [...prev.interests, category],
+          ? prev.interests.filter((c) => c !== categoryId)
+          : [...prev.interests, categoryId],
       };
     });
   };
@@ -71,19 +48,15 @@ export const AudienceFilterCard = ({
         className
       )}
     >
-      {/* 6 Segments Grid with dynamic day adjuster */}
+      {/* 6 Segments Grid with live backend counts */}
       <AudienceSegmentCards
         selectedSegment={criteria.segment}
         onSelectSegment={handleSelectSegment}
-        inactiveDays={criteria.inactiveDays}
-        onInactiveDaysChange={handleInactiveDaysChange}
+        counts={segmentCounts}
       />
 
       {/* Gender Selector */}
-      <GenderSelector
-        selectedGender={criteria.gender}
-        onSelectGender={handleSelectGender}
-      />
+      <GenderSelector selectedGender={criteria.gender} onSelectGender={handleSelectGender} />
 
       {/* Interests Multi-Select */}
       <CategoryInterestChips
@@ -94,13 +67,8 @@ export const AudienceFilterCard = ({
       {/* Separator before footer badges */}
       <div className="w-full h-px bg-[#CACBD4]" />
 
-      {/* Summary Badges */}
-      <AudienceSummaryBadges
-        customerCount={customerCount}
-        deviceCount={deviceCount}
-        womenCount={resolvedWomenCount}
-        menCount={resolvedMenCount}
-      />
+      {/* Summary Badge — real count for the exact combination currently selected */}
+      <AudienceSummaryBadges customerCount={targetCount} />
     </div>
   );
 };

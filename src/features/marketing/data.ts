@@ -38,14 +38,11 @@ export const INITIAL_RECIPIENTS: Recipient[] = [
 ];
 
 export const INITIAL_ABANDONED_CART_CONFIG: AbandonedCartConfig = {
-  enabled: true,
+  enabled: false,
   title: "You left something delicious in your cart! ☕",
   message: "Complete your order now and enjoy fresh coffee delivered to your doorstep.",
-  inactivityMinutes: 5,
-  cooldownHours: 12,
-  testPhone: "01201536738",
-  remindersSentLast7Days: 62,
-  ordersConvertedLast24h: 8,
+  delayMinutes: 60,
+  channels: { app: true, whatsapp: false },
 };
 
 export const INITIAL_MARKETING_KPIS: MarketingKPIs = {

@@ -1,23 +1,17 @@
-import { useState } from "react";
-import { Clock, Tablet } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { Clock, Tablet, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AudienceSegmentCards } from "../common/AudienceSegmentCards";
 import { GenderSelector } from "../common/GenderSelector";
 import { CategoryInterestChips } from "../common/CategoryInterestChips";
 import { AudienceSummaryBadges } from "../common/AudienceSummaryBadges";
-import { RecipientListCard } from "../common/RecipientListCard";
 import DatePicker from "@/shared/components/DatePicker";
 import {
   SetTimePickerModal,
   getFormattedLocalTime,
 } from "../modals/SetTimePickerModal";
-import { INITIAL_RECIPIENTS } from "../../data";
-import type {
-  AudienceCriteria,
-  Recipient,
-  ScheduledNotificationDraft,
-  ScheduleFrequency,
-} from "../../types";
+import marketingApi, { type AudienceSegmentCounts, type BackendGender, type MarketingCampaign } from "../../api/marketingApi";
+import type { AudienceCriteria, ScheduledNotificationDraft } from "../../types";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { showSuccessToast, showErrorToast } from "@/shared/utils/toast";
 
@@ -28,36 +22,41 @@ const toYmd = (date: Date) => {
   return `${year}-${month}-${day}`;
 };
 
-const WEEKDAYS = [
-  "Sunday",
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-];
+// Parses the "hh:mm AM/PM" format getFormattedLocalTime()/SetTimePickerModal
+// produce into 24h { hours, minutes } for building a Date.
+function parseDisplayTime(time: string): { hours: number; minutes: number } {
+  const match = time.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+  if (!match) return { hours: 9, minutes: 0 };
+  let hours = parseInt(match[1], 10);
+  const minutes = parseInt(match[2], 10);
+  const isPM = match[3].toUpperCase() === "PM";
+  if (isPM && hours !== 12) hours += 12;
+  if (!isPM && hours === 12) hours = 0;
+  return { hours, minutes };
+}
+
+function toBackendGender(gender: AudienceCriteria["gender"]): BackendGender {
+  if (gender === "women") return "female";
+  if (gender === "men") return "male";
+  return "all";
+}
 
 export const ScheduledNotificationsTab = () => {
   const { t } = useTranslation();
 
   const [criteria, setCriteria] = useState<AudienceCriteria>({
     segment: "all",
-    inactiveDays: 30,
     gender: "all",
     interests: [],
   });
-
-  const [recipients, setRecipients] = useState<Recipient[]>(INITIAL_RECIPIENTS);
+  const [segmentCounts, setSegmentCounts] = useState<AudienceSegmentCounts>();
 
   const today = new Date();
-  const currentWeekday = WEEKDAYS[today.getDay()];
   const currentDate = toYmd(today);
   const currentTime = getFormattedLocalTime();
 
   const [draft, setDraft] = useState<ScheduledNotificationDraft>(() => ({
-    frequency: "everyday",
-    selectedWeekday: currentWeekday,
+    frequency: "once",
     onceDate: currentDate,
     time: currentTime,
     title: "",
@@ -66,125 +65,162 @@ export const ScheduledNotificationsTab = () => {
 
   const [isTimePickerOpen, setIsTimePickerOpen] = useState(false);
   const [isScheduling, setIsScheduling] = useState(false);
+  const [scheduled, setScheduled] = useState<MarketingCampaign[]>([]);
+  const [isLoadingList, setIsLoadingList] = useState(true);
 
-  // Dynamic audience sizing calculation matching Figma values
-  const audienceBase =
-    criteria.segment === "all"
-      ? 398
-      : criteria.segment === "inactive"
-        ? 142
-        : criteria.segment === "never_ordered"
-          ? 96
-          : criteria.segment === "recent"
-            ? 178
-            : 54;
+  useEffect(() => {
+    let cancelled = false;
+    marketingApi
+      .getAudienceSegments({ gender: toBackendGender(criteria.gender), interests: criteria.interests })
+      .then((counts) => { if (!cancelled) setSegmentCounts(counts); })
+      .catch((err) => console.error("Failed to load audience segment counts:", err));
+    return () => { cancelled = true; };
+  }, [criteria.gender, criteria.interests]);
 
-  const genderMultiplier =
-    criteria.gender === "all" ? 1 : criteria.gender === "women" ? 0.6 : 0.4;
-  const interestMultiplier =
-    criteria.interests.length > 0
-      ? Math.max(0.15, 1 - criteria.interests.length * 0.12)
-      : 1;
+  const targetCount = segmentCounts?.[criteria.segment];
 
-  const targetCount = Math.max(
-    2,
-    Math.round(audienceBase * genderMultiplier * interestMultiplier)
-  );
-  const deviceCount = Math.max(1, Math.round(targetCount * 0.7));
-  const womenCount =
-    criteria.gender === "women"
-      ? targetCount
-      : criteria.gender === "men"
-        ? 0
-        : Math.max(1, Math.round(targetCount * 0.8));
-  const menCount =
-    criteria.gender === "men"
-      ? targetCount
-      : criteria.gender === "women"
-        ? 0
-        : Math.max(1, targetCount - womenCount);
+  const fetchScheduled = useCallback(async () => {
+    try {
+      const campaigns = await marketingApi.getCampaigns({ status: "scheduled" });
+      setScheduled(campaigns.sort((a, b) => new Date(a.scheduledAt || 0).getTime() - new Date(b.scheduledAt || 0).getTime()));
+    } catch (err) {
+      console.error("Failed to load scheduled campaigns:", err);
+    } finally {
+      setIsLoadingList(false);
+    }
+  }, []);
 
-  const frequencies: { id: ScheduleFrequency; label: string }[] = [
-    { id: "everyday", label: t("Everyday") },
-    { id: "weekday", label: t("Certain Weekday") },
-    { id: "once", label: t("Once") },
-  ];
+  useEffect(() => {
+    fetchScheduled();
+  }, [fetchScheduled]);
 
-  const handleRemoveRecipient = (id: string) => {
-    setRecipients((prev) => prev.filter((r) => r.id !== id));
-  };
-
-  const handleSchedule = () => {
+  const handleSchedule = async () => {
     if (!draft.title.trim() || !draft.message.trim()) {
       showErrorToast(t("Please enter both a title and a message."));
       return;
     }
+    if (!draft.onceDate) {
+      showErrorToast(t("Please pick a date."));
+      return;
+    }
+
+    const { hours, minutes } = parseDisplayTime(draft.time);
+    const scheduledAt = new Date(draft.onceDate);
+    scheduledAt.setHours(hours, minutes, 0, 0);
+
+    if (scheduledAt.getTime() <= Date.now()) {
+      showErrorToast(t("Please pick a time in the future."));
+      return;
+    }
 
     setIsScheduling(true);
-    setTimeout(() => {
-      setIsScheduling(false);
+    try {
+      await marketingApi.sendAppNotification({
+        title: draft.title.trim(),
+        body: draft.message.trim(),
+        segment: criteria.segment,
+        gender: toBackendGender(criteria.gender),
+        interests: criteria.interests,
+        scheduledAt: scheduledAt.toISOString(),
+      });
       showSuccessToast(
-        t("Notification scheduled for {time} successfully!").replace(
-          "{time}",
-          draft.time
-        )
+        t("Notification scheduled for {time} successfully!").replace("{time}", draft.time)
       );
-    }, 1000);
+      setDraft((prev) => ({ ...prev, title: "", message: "" }));
+      fetchScheduled();
+    } catch (err: unknown) {
+      const message = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      showErrorToast(message || t("Failed to schedule notification"));
+    } finally {
+      setIsScheduling(false);
+    }
+  };
+
+  const handleCancel = async (id: string) => {
+    try {
+      await marketingApi.cancelCampaign(id);
+      setScheduled((prev) => prev.filter((c) => c._id !== id));
+      showSuccessToast(t("Scheduled notification cancelled"));
+    } catch (err: unknown) {
+      const message = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      showErrorToast(message || t("Failed to cancel"));
+    }
   };
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full items-start animate-in fade-in-50 duration-200">
-      {/* Left Column: Audience Targeting (lg:col-span-7 xl:col-span-8) */}
-      <div className="lg:col-span-7 xl:col-span-8 w-full p-6 bg-white rounded-[12px] border border-[#CACBD4] shadow-[0_10px_15px_-3px_rgba(0,0,0,0.10),0_4px_6px_-4px_rgba(0,0,0,0.10)] transition-shadow duration-300 hover:shadow-[0_14px_20px_-3px_rgba(0,0,0,0.12),0_6px_8px_-4px_rgba(0,0,0,0.10)] flex flex-col justify-start items-start gap-4 overflow-hidden">
-        {/* 6 Segments Cards */}
-        <AudienceSegmentCards
-          selectedSegment={criteria.segment}
-          onSelectSegment={(segment) =>
-            setCriteria((prev) => ({ ...prev, segment }))
-          }
-          inactiveDays={criteria.inactiveDays}
-          onInactiveDaysChange={(inactiveDays) =>
-            setCriteria((prev) => ({ ...prev, inactiveDays }))
-          }
-        />
+      {/* Left Column: Audience Targeting + Upcoming list (lg:col-span-7 xl:col-span-8) */}
+      <div className="lg:col-span-7 xl:col-span-8 w-full flex flex-col gap-6">
+        <div className="w-full p-6 bg-white rounded-[12px] border border-[#CACBD4] shadow-[0_10px_15px_-3px_rgba(0,0,0,0.10),0_4px_6px_-4px_rgba(0,0,0,0.10)] transition-shadow duration-300 hover:shadow-[0_14px_20px_-3px_rgba(0,0,0,0.12),0_6px_8px_-4px_rgba(0,0,0,0.10)] flex flex-col justify-start items-start gap-4 overflow-hidden">
+          {/* 6 Segments Cards */}
+          <AudienceSegmentCards
+            selectedSegment={criteria.segment}
+            onSelectSegment={(segment) =>
+              setCriteria((prev) => ({ ...prev, segment }))
+            }
+            counts={segmentCounts}
+          />
 
-        {/* Gender Selector */}
-        <GenderSelector
-          selectedGender={criteria.gender}
-          onSelectGender={(gender) =>
-            setCriteria((prev) => ({ ...prev, gender }))
-          }
-        />
+          {/* Gender Selector */}
+          <GenderSelector
+            selectedGender={criteria.gender}
+            onSelectGender={(gender) =>
+              setCriteria((prev) => ({ ...prev, gender }))
+            }
+          />
 
-        {/* Category Interests Chips */}
-        <CategoryInterestChips
-          selectedInterests={criteria.interests}
-          onToggleInterest={(category) =>
-            setCriteria((prev) => ({
-              ...prev,
-              interests: prev.interests.includes(category)
-                ? prev.interests.filter((c) => c !== category)
-                : [...prev.interests, category],
-            }))
-          }
-        />
+          {/* Category Interests Chips */}
+          <CategoryInterestChips
+            selectedInterests={criteria.interests}
+            onToggleInterest={(categoryId) =>
+              setCriteria((prev) => ({
+                ...prev,
+                interests: prev.interests.includes(categoryId)
+                  ? prev.interests.filter((c) => c !== categoryId)
+                  : [...prev.interests, categoryId],
+              }))
+            }
+          />
 
-        {/* Separator before badges */}
-        <div className="self-stretch h-px bg-[#CACBD4]" />
+          {/* Separator before badges */}
+          <div className="self-stretch h-px bg-[#CACBD4]" />
 
-        {/* Summary Badges */}
-        <AudienceSummaryBadges
-          customerCount={targetCount}
-          deviceCount={deviceCount}
-          womenCount={womenCount}
-          menCount={menCount}
-        />
+          {/* Summary Badge */}
+          <AudienceSummaryBadges customerCount={targetCount} />
+        </div>
 
-        {/* Recipient Roster List */}
-        <RecipientListCard
-          recipients={recipients}
-          onRemoveRecipient={handleRemoveRecipient}
-        />
+        {/* Upcoming scheduled sends */}
+        <div className="w-full p-6 bg-white rounded-[12px] border border-[#CACBD4] flex flex-col gap-3">
+          <h3 className="text-[#1A1A1A] text-base font-semibold font-['Montserrat',sans-serif] tracking-tight">
+            {t("Upcoming")}
+          </h3>
+          {isLoadingList ? (
+            <div className="py-6 text-center text-xs text-[#8B8B8B]">{t("Loading...")}</div>
+          ) : scheduled.length === 0 ? (
+            <div className="py-6 text-center text-xs text-[#8B8B8B]">{t("No scheduled notifications.")}</div>
+          ) : (
+            <div className="flex flex-col divide-y divide-[#E5E5E5]">
+              {scheduled.map((c) => (
+                <div key={c._id} className="py-3 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold text-black truncate">{c.title || c.message}</div>
+                    <div className="text-xs text-[#8B8B8B]">
+                      {c.scheduledAt ? new Date(c.scheduledAt).toLocaleString() : "-"} · {t(c.audience.segment)}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleCancel(c._id)}
+                    className="shrink-0 p-2 rounded-md text-[#C90000] hover:bg-[#FBE9E9] transition-colors"
+                    aria-label={t("Cancel")}
+                  >
+                    <Trash2 className="size-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Right Column: Notification Composer & Schedule (lg:col-span-5 xl:col-span-4) */}
@@ -244,7 +280,7 @@ export const ScheduledNotificationsTab = () => {
           </div>
         </div>
 
-        {/* Action Button: Send to 8 Customers */}
+        {/* Action Button */}
         <button
           type="button"
           onClick={handleSchedule}
@@ -253,94 +289,28 @@ export const ScheduledNotificationsTab = () => {
         >
           {isScheduling
             ? t("Scheduling...")
-            : t("Send to {count} Customers").replace(
+            : t("Schedule for {count} Customers").replace(
                 "{count}",
-                String(deviceCount)
+                targetCount != null ? String(targetCount) : "…"
               )}
         </button>
 
         {/* Separator */}
         <div className="self-stretch h-px bg-[#CACBD4]" />
 
-        {/* Time Frequency Selector */}
-        <div className="self-stretch flex flex-col justify-start items-start gap-3">
-          <div className="w-32 inline-flex justify-start items-start gap-1">
-            <span className="text-[#1A1A1A] text-sm font-semibold font-['Montserrat',sans-serif] leading-4 tracking-tight">
-              {t("Time")}
-            </span>
-          </div>
-
-          <div className="grid grid-cols-3 gap-1.5 w-full">
-            {frequencies.map((freq) => {
-              const isSelected = draft.frequency === freq.id;
-              return (
-                <button
-                  key={freq.id}
-                  type="button"
-                  onClick={() =>
-                    setDraft((prev) => ({
-                      ...prev,
-                      frequency: freq.id,
-                      selectedWeekday: prev.selectedWeekday || currentWeekday,
-                      onceDate: prev.onceDate || currentDate,
-                    }))
-                  }
-                  className={cn(
-                    "w-full h-11 sm:h-12 px-1 rounded-[5px] outline outline-[1.50px] outline-offset-[-1.50px] flex items-center justify-center cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-2xs active:scale-[0.98] overflow-hidden",
-                    isSelected
-                      ? "bg-[#F5F0EA] outline-[#8F6900] text-black font-semibold"
-                      : "bg-[#FAFAF7] outline-[#CACBD4] text-black font-medium hover:outline-[#8F6900]/50"
-                  )}
-                >
-                  <span className="text-center text-[11px] font-['Montserrat',sans-serif] leading-tight tracking-tight whitespace-nowrap">
-                    {freq.label}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* If Certain Weekday is selected */}
-          {draft.frequency === "weekday" && (
-            <div className="flex flex-wrap gap-1.5 pt-1 w-full animate-in fade-in duration-150">
-              {WEEKDAYS.map((day) => {
-                const isSelected = draft.selectedWeekday === day;
-                return (
-                  <button
-                    key={day}
-                    type="button"
-                    onClick={() =>
-                      setDraft((prev) => ({ ...prev, selectedWeekday: day }))
-                    }
-                    className={cn(
-                      "px-3 py-1.5 rounded-[5px] text-xs font-medium border transition-all duration-150 hover:-translate-y-0.5 active:scale-95 cursor-pointer font-['Montserrat',sans-serif]",
-                      isSelected
-                        ? "bg-[#8F6900] text-white border-[#8F6900]"
-                        : "bg-white text-[#595959] border-[#CACBD4] hover:border-[#8F6900]"
-                    )}
-                  >
-                    {t(day.slice(0, 3))}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
-          {/* If Once is selected */}
-          {draft.frequency === "once" && (
-            <div className="w-full pt-1 animate-in fade-in duration-150">
-              <DatePicker
-                value={draft.onceDate || currentDate}
-                onChange={(date) =>
-                  setDraft((prev) => ({ ...prev, onceDate: date }))
-                }
-                placeholder="dd/MM/YYYY"
-                buttonClassName="h-11 sm:h-12 rounded-xl border-[#CACBD4] text-sm text-[#1A1A1A] font-['Montserrat',sans-serif] focus:border-[#8F6900]"
-                popoverPlacement="bottom-right"
-                withBackdrop
-              />
-            </div>
-          )}
+        {/* Date Field — one-time only: the server has no recurrence/cron concept, so "everyday"/"certain weekday" aren't offered */}
+        <div className="self-stretch flex flex-col justify-start items-start gap-2.5">
+          <span className="text-[#1A1A1A] text-sm font-semibold font-['Montserrat',sans-serif] leading-4 tracking-tight">
+            {t("Date")}
+          </span>
+          <DatePicker
+            value={draft.onceDate || currentDate}
+            onChange={(date) => setDraft((prev) => ({ ...prev, onceDate: date }))}
+            placeholder="dd/MM/YYYY"
+            buttonClassName="h-11 sm:h-12 rounded-xl border-[#CACBD4] text-sm text-[#1A1A1A] font-['Montserrat',sans-serif] focus:border-[#8F6900]"
+            popoverPlacement="bottom-right"
+            withBackdrop
+          />
         </div>
 
         {/* Time (Cairo Time) Field */}

@@ -1,10 +1,11 @@
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
-import { CATEGORY_INTERESTS } from "../../data";
+import { getCategories } from "@/features/categories/api/categoriesApi";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 
 interface CategoryInterestChipsProps {
-  selectedInterests: string[];
-  onToggleInterest: (category: string) => void;
+  selectedInterests: string[]; // Category ids
+  onToggleInterest: (categoryId: string) => void;
   className?: string;
 }
 
@@ -14,6 +15,13 @@ export const CategoryInterestChips = ({
   className,
 }: CategoryInterestChipsProps) => {
   const { t } = useTranslation();
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+
+  useEffect(() => {
+    getCategories()
+      .then((data) => setCategories(data.map((c) => ({ id: c._id, name: c.name }))))
+      .catch((err) => console.error("Failed to load categories for interests filter:", err));
+  }, []);
 
   return (
     <div className={cn("w-full flex flex-col gap-2.5", className)}>
@@ -27,13 +35,13 @@ export const CategoryInterestChips = ({
       </div>
 
       <div className="flex flex-wrap gap-2.5 items-center">
-        {CATEGORY_INTERESTS.map((cat) => {
-          const isSelected = selectedInterests.includes(cat);
+        {categories.map((cat) => {
+          const isSelected = selectedInterests.includes(cat.id);
           return (
             <button
-              key={cat}
+              key={cat.id}
               type="button"
-              onClick={() => onToggleInterest(cat)}
+              onClick={() => onToggleInterest(cat.id)}
               className={cn(
                 "h-9 px-3.5 rounded-[5px] outline outline-2 outline-offset-[-2px] inline-flex items-center justify-center cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-2xs active:scale-95",
                 isSelected
@@ -41,9 +49,7 @@ export const CategoryInterestChips = ({
                   : "bg-white outline-[#CACBD4] hover:outline-[#8F6900]/50 text-[#1A1A1A] font-normal text-xs"
               )}
             >
-              <span className="font-['Montserrat',sans-serif] whitespace-nowrap">
-                {t(cat)}
-              </span>
+              <span className="font-['Montserrat',sans-serif] whitespace-nowrap">{cat.name}</span>
             </button>
           );
         })}

@@ -1,12 +1,9 @@
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   Users,
   Hash,
-  Upload,
   Info,
   X,
-  ChevronUp,
-  ChevronDown,
 } from "lucide-react";
 import FileIcon from "@/assets/icons/file.svg";
 import { cn } from "@/lib/utils";
@@ -15,7 +12,8 @@ import { GenderSelector } from "../common/GenderSelector";
 import { CategoryInterestChips } from "../common/CategoryInterestChips";
 import { AudienceSummaryBadges } from "../common/AudienceSummaryBadges";
 import { RecipientListCard } from "../common/RecipientListCard";
-import { INITIAL_RECIPIENTS } from "../../data";
+import marketingApi, { type AudienceSegmentCounts, type BackendGender } from "../../api/marketingApi";
+import { sendWhatsAppBroadcast } from "@/features/offers/api/offersApi";
 import type {
   AudienceCriteria,
   Recipient,
@@ -25,69 +23,57 @@ import type {
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { showSuccessToast, showErrorToast } from "@/shared/utils/toast";
 
+function toBackendGender(gender: AudienceCriteria["gender"]): BackendGender {
+  if (gender === "women") return "female";
+  if (gender === "men") return "male";
+  return "all";
+}
+
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 export const WhatsAppCampaignTab = () => {
   const { t } = useTranslation();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
 
   const [mode, setMode] = useState<WhatsAppSourceMode>("audience");
 
   const [criteria, setCriteria] = useState<AudienceCriteria>({
     segment: "all",
-    inactiveDays: 30,
     gender: "all",
     interests: [],
   });
 
-  const [recipients, setRecipients] = useState<Recipient[]>(INITIAL_RECIPIENTS);
+  const [recipients, setRecipients] = useState<Recipient[]>([]);
+  const [segmentCounts, setSegmentCounts] = useState<AudienceSegmentCounts>();
 
   const [draft, setDraft] = useState<WhatsAppCampaignDraft>({
     sourceMode: "audience",
-    rawNumbers:
-      "Omnia Maher Galal\n01288716491\nSohaila Desouki\n01288716491\nMohamed Bayoumi\n01288716491",
-    message: "Hi {name}✋🏻\nWe have an offer today...",
-    secondsDelay: 5,
+    rawNumbers: "",
+    message: "",
+    secondsDelay: 0,
   });
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSending, setIsSending] = useState(false);
 
-  // Dynamic audience sizing calculation matching Figma values
-  const audienceBase =
-    criteria.segment === "all"
-      ? 398
-      : criteria.segment === "inactive"
-        ? 142
-        : criteria.segment === "never_ordered"
-          ? 96
-          : criteria.segment === "recent"
-            ? 178
-            : 54;
+  useEffect(() => {
+    if (mode !== "audience") return;
+    let cancelled = false;
+    marketingApi
+      .getAudienceSegments({ gender: toBackendGender(criteria.gender), interests: criteria.interests })
+      .then((counts) => { if (!cancelled) setSegmentCounts(counts); })
+      .catch((err) => console.error("Failed to load audience segment counts:", err));
+    return () => { cancelled = true; };
+  }, [mode, criteria.gender, criteria.interests]);
 
-  const genderMultiplier =
-    criteria.gender === "all" ? 1 : criteria.gender === "women" ? 0.6 : 0.4;
-  const interestMultiplier =
-    criteria.interests.length > 0
-      ? Math.max(0.15, 1 - criteria.interests.length * 0.12)
-      : 1;
-
-  const targetCount = Math.max(
-    2,
-    Math.round(audienceBase * genderMultiplier * interestMultiplier)
-  );
-  const deviceCount = Math.max(1, Math.round(targetCount * 0.7));
-  const womenCount =
-    criteria.gender === "women"
-      ? targetCount
-      : criteria.gender === "men"
-        ? 0
-        : Math.max(1, Math.round(targetCount * 0.8));
-  const menCount =
-    criteria.gender === "men"
-      ? targetCount
-      : criteria.gender === "women"
-        ? 0
-        : Math.max(1, targetCount - womenCount);
+  const targetCount = segmentCounts?.[criteria.segment];
 
   const handleRemoveRecipient = (id: string) => {
     setRecipients((prev) => prev.filter((r) => r.id !== id));
@@ -129,22 +115,7 @@ export const WhatsAppCampaignTab = () => {
       }
     }
 
-    if (parsed.length > 0) {
-      setRecipients(parsed);
-    }
-  };
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setDraft((prev) => ({ ...prev, sheetFileName: file.name }));
-      showSuccessToast(
-        t("File '{name}' loaded with 12 parsed numbers.").replace(
-          "{name}",
-          file.name
-        )
-      );
-    }
+    setRecipients(parsed);
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -164,27 +135,54 @@ export const WhatsAppCampaignTab = () => {
     }
   };
 
-  const handleSendCampaign = () => {
+  const handleSendCampaign = async () => {
     if (!draft.message.trim()) {
       showErrorToast(t("Please write a campaign message."));
       return;
     }
-    const sendCount = mode === "audience" ? deviceCount : recipients.length;
-    if (sendCount === 0) {
-      showErrorToast(t("No recipients selected."));
-      return;
-    }
 
     setIsSending(true);
-    setTimeout(() => {
-      setIsSending(false);
+    try {
+      const image = draft.imageFile ? await fileToBase64(draft.imageFile) : undefined;
+
+      if (mode === "audience") {
+        const campaign = await marketingApi.sendWhatsappCampaign({
+          message: draft.message.trim(),
+          image,
+          segment: criteria.segment,
+          gender: toBackendGender(criteria.gender),
+          interests: criteria.interests,
+        });
+        if (campaign.status === "failed") {
+          showErrorToast(campaign.error || t("Failed to send campaign"));
+        } else {
+          showSuccessToast(
+            t("WhatsApp campaign started for {count} customers!").replace(
+              "{count}",
+              String(campaign.stats.targeted)
+            )
+          );
+          setDraft((prev) => ({ ...prev, message: "" }));
+        }
+        return;
+      }
+
+      const phones = recipients.map((r) => r.phone).filter(Boolean);
+      if (phones.length === 0) {
+        showErrorToast(t("No recipients selected."));
+        return;
+      }
+      await sendWhatsAppBroadcast({ phones, message: draft.message.trim(), image });
       showSuccessToast(
-        t("WhatsApp campaign started for {count} customers!").replace(
-          "{count}",
-          String(sendCount)
-        )
+        t("WhatsApp campaign started for {count} customers!").replace("{count}", String(phones.length))
       );
-    }, 1200);
+      setDraft((prev) => ({ ...prev, message: "" }));
+    } catch (err: unknown) {
+      const message = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      showErrorToast(message || t("Failed to send campaign"));
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
@@ -261,39 +259,6 @@ export const WhatsAppCampaignTab = () => {
                 {t("Type Numbers")}
               </span>
             </button>
-
-            {/* Mode 3: From a sheet */}
-            <button
-              type="button"
-              onClick={() => setMode("sheet")}
-              className={cn(
-                "group flex-1 px-3 py-4 rounded-[5px] outline outline-2 outline-offset-[-2px] flex flex-col justify-center items-center gap-2 overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xs active:scale-[0.98]",
-                mode === "sheet"
-                  ? "bg-[#F5F0EA] outline-[#8F6900]"
-                  : "bg-[#FAFAF7] outline-[#CACBD4] hover:outline-[#8F6900]/50"
-              )}
-            >
-              <div className="size-6 flex items-center justify-center transition-transform duration-200 group-hover:scale-110">
-                <img
-                  src={FileIcon}
-                  alt="From a sheet"
-                  className={cn(
-                    "w-4 h-5 object-contain transition-opacity duration-200",
-                    mode !== "sheet" && "opacity-70"
-                  )}
-                />
-              </div>
-              <span
-                className={cn(
-                  "text-center text-sm font-['Montserrat',sans-serif] leading-4 tracking-tight",
-                  mode === "sheet"
-                    ? "text-black font-semibold"
-                    : "text-black font-medium"
-                )}
-              >
-                {t("From a sheet")}
-              </span>
-            </button>
           </div>
         </div>
 
@@ -306,10 +271,7 @@ export const WhatsAppCampaignTab = () => {
               onSelectSegment={(segment) =>
                 setCriteria((prev) => ({ ...prev, segment }))
               }
-              inactiveDays={criteria.inactiveDays}
-              onInactiveDaysChange={(inactiveDays) =>
-                setCriteria((prev) => ({ ...prev, inactiveDays }))
-              }
+              counts={segmentCounts}
             />
 
             {/* Gender Selector */}
@@ -323,12 +285,12 @@ export const WhatsAppCampaignTab = () => {
             {/* Category Interests Chips */}
             <CategoryInterestChips
               selectedInterests={criteria.interests}
-              onToggleInterest={(category) =>
+              onToggleInterest={(categoryId) =>
                 setCriteria((prev) => ({
                   ...prev,
-                  interests: prev.interests.includes(category)
-                    ? prev.interests.filter((c) => c !== category)
-                    : [...prev.interests, category],
+                  interests: prev.interests.includes(categoryId)
+                    ? prev.interests.filter((c) => c !== categoryId)
+                    : [...prev.interests, categoryId],
                 }))
               }
             />
@@ -336,19 +298,8 @@ export const WhatsAppCampaignTab = () => {
             {/* Separator before badges */}
             <div className="self-stretch h-px bg-[#CACBD4]" />
 
-            {/* Audience Badges */}
-            <AudienceSummaryBadges
-              customerCount={targetCount}
-              deviceCount={deviceCount}
-              womenCount={womenCount}
-              menCount={menCount}
-            />
-
-            {/* Recipient Roster List */}
-            <RecipientListCard
-              recipients={recipients}
-              onRemoveRecipient={handleRemoveRecipient}
-            />
+            {/* Audience Badge */}
+            <AudienceSummaryBadges customerCount={targetCount} />
           </div>
         )}
 
@@ -367,55 +318,6 @@ export const WhatsAppCampaignTab = () => {
                 )}
                 className="w-full p-3.5 rounded-xl border border-[#CACBD4] bg-white text-xs font-['Montserrat',sans-serif] text-black focus:outline-none focus:border-[#8F6900] transition-colors duration-200 resize-none"
               />
-              <span className="text-[11px] text-[#8B8B8B] font-['Montserrat',sans-serif]">
-                {t("Duplicates are removed automatically.")}
-              </span>
-            </div>
-
-            <div className="self-stretch h-px bg-[#CACBD4]" />
-
-            <div className="text-[#1A1A1A] text-sm font-semibold font-['Montserrat',sans-serif] tracking-tight">
-              {recipients.length} {t("Recipents")}
-            </div>
-
-            <RecipientListCard
-              recipients={recipients}
-              onRemoveRecipient={handleRemoveRecipient}
-            />
-          </div>
-        )}
-
-        {mode === "sheet" && (
-          <div className="self-stretch flex flex-col gap-4 animate-in fade-in-50 duration-200">
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileUpload}
-              accept=".csv, .xlsx, .xls"
-              className="hidden"
-            />
-
-            <div
-              onClick={() => fileInputRef.current?.click()}
-              className="group self-stretch p-6 rounded-[16px] border-2 border-dashed border-[#624F1C] bg-[#F5F0EA]/30 flex flex-col justify-center items-center gap-2 overflow-hidden cursor-pointer hover:bg-[#F5F0EA]/50 transition-all duration-200 hover:shadow-xs active:scale-[0.99]"
-            >
-              <div className="size-6 flex items-center justify-center transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:scale-105">
-                <img
-                  src={FileIcon}
-                  alt="Upload sheet"
-                  className="w-4 h-5 object-contain"
-                />
-              </div>
-              <div className="flex flex-col items-center gap-1 text-center">
-                <div className="text-[#1A1A1A] text-sm font-semibold font-['Montserrat',sans-serif] leading-4 tracking-tight">
-                  {draft.sheetFileName || t("Upload an Excel or CSV File")}
-                </div>
-                <div className="text-[#8B8B8B] text-xs font-normal font-['Montserrat',sans-serif] leading-4 tracking-tight">
-                  {t(
-                    "A phone column (mobile / phone), and optionally a name column"
-                  )}
-                </div>
-              </div>
             </div>
 
             <div className="self-stretch h-px bg-[#CACBD4]" />
@@ -449,7 +351,7 @@ export const WhatsAppCampaignTab = () => {
             onChange={(e) =>
               setDraft((prev) => ({ ...prev, message: e.target.value }))
             }
-            placeholder="Hi {name}✋🏻&#10;We have an offer today..."
+            placeholder={t("We have an offer today...")}
             className="self-stretch px-3 py-3.5 bg-white rounded-xl outline outline-1 outline-offset-[-1px] outline-[#CACBD4] focus:outline-[#8F6900] transition-colors duration-200 text-[#1A1A1A] text-xs font-normal font-['Montserrat',sans-serif] resize-none leading-relaxed placeholder:text-[#8B8B8B]"
           />
         </div>
@@ -458,9 +360,7 @@ export const WhatsAppCampaignTab = () => {
         <div className="self-stretch p-2 bg-[#F3F4F6] rounded-[10px] flex justify-start items-center gap-2 overflow-hidden">
           <Info className="size-4 text-[#1A1A1A] shrink-0" />
           <div className="flex-1 text-[#595959] text-xs font-medium font-['Montserrat',sans-serif] tracking-tight leading-4">
-            {t(
-              "{name} becomes each customer's name (\"Dear Customer\" when unknown)."
-            )}
+            {t("The server automatically paces sends with a randomized gap to avoid WhatsApp flagging the number — no manual delay needed.")}
           </div>
         </div>
 
@@ -525,75 +425,7 @@ export const WhatsAppCampaignTab = () => {
           )}
         </div>
 
-        {/* Separator */}
-        <div className="self-stretch h-px bg-[#CACBD4]" />
-
-        {/* Delay Selector */}
-        <div className="self-stretch flex flex-col justify-start items-start gap-2.5">
-          <div className="self-stretch text-black text-base font-medium font-['Montserrat',sans-serif]">
-            {t("Seconds between each message")}
-          </div>
-          <div className="self-stretch flex flex-col justify-start items-start gap-1">
-            <div className="self-stretch h-12 px-3.5 bg-white rounded-xl outline outline-1 outline-offset-[-1px] outline-[#CACBD4] focus-within:outline-[#8F6900] transition-colors duration-200 flex justify-between items-center gap-2 overflow-hidden">
-              <div className="flex-1 flex items-center gap-1">
-                <input
-                  type="number"
-                  min={1}
-                  max={60}
-                  value={draft.secondsDelay}
-                  onChange={(e) => {
-                    const val = parseInt(e.target.value, 10);
-                    setDraft((prev) => ({
-                      ...prev,
-                      secondsDelay: isNaN(val) ? 1 : Math.max(1, val),
-                    }));
-                  }}
-                  style={{
-                    width: `${Math.max(1, String(draft.secondsDelay).length)}ch`,
-                  }}
-                  className="p-0 m-0 border-0 text-[#1A1A1A] text-base font-normal font-['Montserrat',sans-serif] focus:outline-none bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none text-left leading-none"
-                />
-                <span className="text-[#8B8B8B] text-base font-normal font-['Montserrat',sans-serif] select-none leading-none">
-                  {t("seconds")}
-                </span>
-              </div>
-
-              <div className="flex flex-col items-center justify-center -space-y-0.5">
-                <button
-                  type="button"
-                  onClick={() =>
-                    setDraft((prev) => ({
-                      ...prev,
-                      secondsDelay: prev.secondsDelay + 1,
-                    }))
-                  }
-                  className="p-0.5 text-[#8B8B8B] hover:text-[#1A1A1A] transition-all duration-150 active:scale-90 cursor-pointer"
-                  aria-label={t("Increase seconds")}
-                >
-                  <ChevronUp className="size-4 stroke-[2]" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setDraft((prev) => ({
-                      ...prev,
-                      secondsDelay: Math.max(1, prev.secondsDelay - 1),
-                    }))
-                  }
-                  className="p-0.5 text-[#8B8B8B] hover:text-[#1A1A1A] transition-all duration-150 active:scale-90 cursor-pointer"
-                  aria-label={t("Decrease seconds")}
-                >
-                  <ChevronDown className="size-4 stroke-[2]" />
-                </button>
-              </div>
-            </div>
-            <div className="self-stretch text-[#8B8B8B] text-xs font-normal font-['Roboto',sans-serif] leading-5 tracking-tight">
-              {t("Slower sending lowers the chance WhatsApp blocks the number.")}
-            </div>
-          </div>
-        </div>
-
-        {/* Send Button (No separator before it per previous instruction) */}
+        {/* Send Button */}
         <button
           type="button"
           onClick={handleSendCampaign}
@@ -604,11 +436,12 @@ export const WhatsAppCampaignTab = () => {
             ? t("Starting campaign...")
             : t("Send to {count} Customers").replace(
                 "{count}",
-                String(mode === "audience" ? deviceCount : recipients.length)
+                mode === "audience"
+                  ? (targetCount != null ? String(targetCount) : "…")
+                  : String(recipients.length)
               )}
         </button>
       </div>
     </div>
   );
 };
-

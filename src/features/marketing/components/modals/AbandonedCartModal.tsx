@@ -10,6 +10,7 @@ import DefaultButton from "@/shared/components/DefaultButton";
 import { Separator } from "@/shared/components/ui/separator";
 import { Switch } from "@/shared/components/ui/switch";
 import type { AbandonedCartConfig } from "../../types";
+import marketingApi from "../../api/marketingApi";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { showSuccessToast, showErrorToast } from "@/shared/utils/toast";
 
@@ -31,40 +32,60 @@ export const AbandonedCartModal = ({
   const { t } = useTranslation();
 
   const [form, setForm] = useState<AbandonedCartConfig>(config);
-  const [testNumber, setTestNumber] = useState(config.testPhone);
+  const [testNumber, setTestNumber] = useState("");
   const [isSendingTest, setIsSendingTest] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  // Sync state whenever dialog opens
+  // Load the real saved config from the server every time the dialog opens.
   useEffect(() => {
-    if (isOpen) {
-      setForm(config);
-      setTestNumber(config.testPhone);
-      setIsSendingTest(false);
-    }
+    if (!isOpen) return;
+    setForm(config);
+    setTestNumber("");
+    setIsSendingTest(false);
+    marketingApi
+      .getAbandonedCartConfig()
+      .then(setForm)
+      .catch((err) => console.error("Failed to load abandoned cart config:", err));
   }, [isOpen, config]);
 
-  const handleSendTest = () => {
+  const handleSendTest = async () => {
     if (!testNumber.trim()) {
       showErrorToast(t("Please enter a valid phone number."));
       return;
     }
     setIsSendingTest(true);
-    setTimeout(() => {
-      setIsSendingTest(false);
+    try {
+      await marketingApi.testSend({
+        channel: form.channels.app ? "app" : "whatsapp",
+        phone: testNumber.trim(),
+        title: form.title,
+        message: form.message,
+      });
       showSuccessToast(
-        t("Test reminder sent successfully to {phone}").replace(
-          "{phone}",
-          testNumber
-        )
+        t("Test reminder sent successfully to {phone}").replace("{phone}", testNumber)
       );
-    }, 800);
+    } catch (err: unknown) {
+      const message = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      showErrorToast(message || t("Failed to send test reminder"));
+    } finally {
+      setIsSendingTest(false);
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({ ...form, testPhone: testNumber });
-    showSuccessToast(t("Abandoned cart settings saved successfully!"));
-    onClose();
+    setIsSaving(true);
+    try {
+      const saved = await marketingApi.updateAbandonedCartConfig(form);
+      onSave(saved);
+      showSuccessToast(t("Abandoned cart settings saved successfully!"));
+      onClose();
+    } catch (err: unknown) {
+      const message = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      showErrorToast(message || t("Failed to save settings"));
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -135,163 +156,89 @@ export const AbandonedCartModal = ({
                 </div>
               </div>
 
-              {/* Row 2: Send reminder & Cooldown hours (Numeric Fields with steppers) */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div className="flex flex-col gap-2.5">
-                  <div className="flex items-center gap-1">
-                    <span className="text-[16px] font-medium text-black font-['Montserrat',sans-serif]">
-                      {t("Send reminder")}
-                    </span>
-                    <span className="text-[10px] font-medium text-[#595959] font-['Montserrat',sans-serif] tracking-tight">
-                      {t("(After 5 second of inactivity)")}
-                    </span>
-                  </div>
-                  <div className="h-12 px-3.5 bg-white rounded-xl border border-[#CACBD4] focus-within:border-primary flex justify-between items-center gap-2 overflow-hidden transition-colors">
-                    <div className="flex-1 flex items-center gap-1">
-                      <input
-                        type="number"
-                        min={1}
-                        value={form.inactivityMinutes}
-                        onChange={(e) => {
-                          const val = parseInt(e.target.value, 10);
-                          setForm((prev) => ({
-                            ...prev,
-                            inactivityMinutes: isNaN(val)
-                              ? 1
-                              : Math.max(1, val),
-                          }));
-                        }}
-                        style={{
-                          width: `${Math.max(
-                            1,
-                            String(form.inactivityMinutes).length
-                          )}ch`,
-                        }}
-                        className="p-0 m-0 border-0 text-[#1A1A1A] text-base font-normal font-['Montserrat',sans-serif] focus:outline-none bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none text-left leading-none"
-                      />
-                      <span className="text-[#8B8B8B] text-base font-normal font-['Montserrat',sans-serif] select-none leading-none">
-                        {t("minutes")}
-                      </span>
-                    </div>
-
-                    <div className="flex flex-col items-center justify-center -space-y-0.5">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setForm((prev) => ({
-                            ...prev,
-                            inactivityMinutes: prev.inactivityMinutes + 1,
-                          }))
-                        }
-                        className="p-0.5 text-[#8B8B8B] hover:text-[#1A1A1A] transition-all duration-150 active:scale-90 cursor-pointer"
-                        aria-label={t("Increase minutes")}
-                      >
-                        <ChevronUp className="size-4 stroke-[2]" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setForm((prev) => ({
-                            ...prev,
-                            inactivityMinutes: Math.max(
-                              1,
-                              prev.inactivityMinutes - 1
-                            ),
-                          }))
-                        }
-                        className="p-0.5 text-[#8B8B8B] hover:text-[#1A1A1A] transition-all duration-150 active:scale-90 cursor-pointer"
-                        aria-label={t("Decrease minutes")}
-                      >
-                        <ChevronDown className="size-4 stroke-[2]" />
-                      </button>
-                    </div>
-                  </div>
+              {/* Send reminder (delay) */}
+              <div className="flex flex-col gap-2.5 sm:w-1/2 sm:pr-3">
+                <div className="flex items-center gap-1">
+                  <span className="text-[16px] font-medium text-black font-['Montserrat',sans-serif]">
+                    {t("Send reminder after")}
+                  </span>
                 </div>
+                <div className="h-12 px-3.5 bg-white rounded-xl border border-[#CACBD4] focus-within:border-primary flex justify-between items-center gap-2 overflow-hidden transition-colors">
+                  <div className="flex-1 flex items-center gap-1">
+                    <input
+                      type="number"
+                      min={5}
+                      value={form.delayMinutes}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value, 10);
+                        setForm((prev) => ({
+                          ...prev,
+                          delayMinutes: isNaN(val) ? 5 : Math.max(5, val),
+                        }));
+                      }}
+                      style={{
+                        width: `${Math.max(1, String(form.delayMinutes).length)}ch`,
+                      }}
+                      className="p-0 m-0 border-0 text-[#1A1A1A] text-base font-normal font-['Montserrat',sans-serif] focus:outline-none bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none text-left leading-none"
+                    />
+                    <span className="text-[#8B8B8B] text-base font-normal font-['Montserrat',sans-serif] select-none leading-none">
+                      {t("minutes of inactivity")}
+                    </span>
+                  </div>
 
-                <div className="flex flex-col gap-2.5">
-                  <label className="text-[16px] font-medium text-black font-['Montserrat',sans-serif]">
-                    {t("Cooldown hours/customer")}
-                  </label>
-                  <div className="h-12 px-3.5 bg-white rounded-xl border border-[#CACBD4] focus-within:border-primary flex justify-between items-center gap-2 overflow-hidden transition-colors">
-                    <div className="flex-1 flex items-center gap-1">
-                      <input
-                        type="number"
-                        min={1}
-                        value={form.cooldownHours}
-                        onChange={(e) => {
-                          const val = parseInt(e.target.value, 10);
-                          setForm((prev) => ({
-                            ...prev,
-                            cooldownHours: isNaN(val)
-                              ? 1
-                              : Math.max(1, val),
-                          }));
-                        }}
-                        style={{
-                          width: `${Math.max(
-                            1,
-                            String(form.cooldownHours).length
-                          )}ch`,
-                        }}
-                        className="p-0 m-0 border-0 text-[#1A1A1A] text-base font-normal font-['Montserrat',sans-serif] focus:outline-none bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none text-left leading-none"
-                      />
-                      <span className="text-[#8B8B8B] text-base font-normal font-['Montserrat',sans-serif] select-none leading-none">
-                        {t("hours")}
-                      </span>
-                    </div>
-
-                    <div className="flex flex-col items-center justify-center -space-y-0.5">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setForm((prev) => ({
-                            ...prev,
-                            cooldownHours: prev.cooldownHours + 1,
-                          }))
-                        }
-                        className="p-0.5 text-[#8B8B8B] hover:text-[#1A1A1A] transition-all duration-150 active:scale-90 cursor-pointer"
-                        aria-label={t("Increase hours")}
-                      >
-                        <ChevronUp className="size-4 stroke-[2]" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setForm((prev) => ({
-                            ...prev,
-                            cooldownHours: Math.max(
-                              1,
-                              prev.cooldownHours - 1
-                            ),
-                          }))
-                        }
-                        className="p-0.5 text-[#8B8B8B] hover:text-[#1A1A1A] transition-all duration-150 active:scale-90 cursor-pointer"
-                        aria-label={t("Decrease hours")}
-                      >
-                        <ChevronDown className="size-4 stroke-[2]" />
-                      </button>
-                    </div>
+                  <div className="flex flex-col items-center justify-center -space-y-0.5">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setForm((prev) => ({ ...prev, delayMinutes: prev.delayMinutes + 1 }))
+                      }
+                      className="p-0.5 text-[#8B8B8B] hover:text-[#1A1A1A] transition-all duration-150 active:scale-90 cursor-pointer"
+                      aria-label={t("Increase minutes")}
+                    >
+                      <ChevronUp className="size-4 stroke-[2]" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setForm((prev) => ({ ...prev, delayMinutes: Math.max(5, prev.delayMinutes - 1) }))
+                      }
+                      className="p-0.5 text-[#8B8B8B] hover:text-[#1A1A1A] transition-all duration-150 active:scale-90 cursor-pointer"
+                      aria-label={t("Decrease minutes")}
+                    >
+                      <ChevronDown className="size-4 stroke-[2]" />
+                    </button>
                   </div>
                 </div>
               </div>
 
-              {/* Performance Badges */}
-              <div className="flex flex-wrap items-center gap-4">
-                <div className="px-3 py-1 bg-[#F5F0EA] rounded-[30px] border border-[#8F6900] flex items-center transition-transform duration-200 hover:scale-[1.03]">
-                  <span className="text-[#8F6900] text-xs font-semibold font-['Montserrat',sans-serif] tracking-tight">
-                    {t("Last 7 days: {count} reminders").replace(
-                      "{count}",
-                      String(form.remindersSentLast7Days)
-                    )}
-                  </span>
-                </div>
-                <div className="px-3 py-1 bg-[#E2F4ED] rounded-[30px] border border-[#059B5A] flex items-center transition-transform duration-200 hover:scale-[1.03]">
-                  <span className="text-[#059B5A] text-xs font-semibold font-['Montserrat',sans-serif] tracking-tight">
-                    {t("{count} orders within 24h").replace(
-                      "{count}",
-                      String(form.ordersConvertedLast24h)
-                    )}
-                  </span>
+              {/* Channels */}
+              <div className="flex flex-col gap-2.5">
+                <span className="text-[16px] font-medium text-black font-['Montserrat',sans-serif]">
+                  {t("Send via")}
+                </span>
+                <div className="flex flex-wrap gap-6">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <Switch
+                      checked={form.channels.app}
+                      onCheckedChange={(checked) =>
+                        setForm((prev) => ({ ...prev, channels: { ...prev.channels, app: checked } }))
+                      }
+                    />
+                    <span className="text-sm font-medium text-[#1A1A1A] font-['Montserrat',sans-serif]">
+                      {t("App Notification")}
+                    </span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <Switch
+                      checked={form.channels.whatsapp}
+                      onCheckedChange={(checked) =>
+                        setForm((prev) => ({ ...prev, channels: { ...prev.channels, whatsapp: checked } }))
+                      }
+                    />
+                    <span className="text-sm font-medium text-[#1A1A1A] font-['Montserrat',sans-serif]">
+                      {t("WhatsApp")}
+                    </span>
+                  </label>
                 </div>
               </div>
 
@@ -333,7 +280,7 @@ export const AbandonedCartModal = ({
               <div className="p-2 bg-[#F0F0F2] rounded-[10px] flex items-center gap-2">
                 <Info className="size-3.5 text-black shrink-0" />
                 <span className="text-[#595959] text-xs font-medium font-['Montserrat',sans-serif] tracking-tight">
-                  {t("Changes apply to future reminders.")}
+                  {t("Changes apply to future reminders — checked every minute by the server.")}
                 </span>
               </div>
 
@@ -369,9 +316,10 @@ export const AbandonedCartModal = ({
               <Button
                 form={FORM_ID}
                 type="submit"
-                className="flex h-12 sm:h-14 cursor-pointer items-center justify-center rounded-[5px] px-7 py-4 text-base font-semibold text-white font-['Montserrat',sans-serif] transition-all duration-200 hover:shadow-xs active:scale-[0.98]"
+                disabled={isSaving}
+                className="flex h-12 sm:h-14 cursor-pointer items-center justify-center rounded-[5px] px-7 py-4 text-base font-semibold text-white font-['Montserrat',sans-serif] transition-all duration-200 hover:shadow-xs active:scale-[0.98] disabled:opacity-50"
               >
-                {t("Save changes")}
+                {isSaving ? t("Saving...") : t("Save changes")}
               </Button>
             </div>
           </div>

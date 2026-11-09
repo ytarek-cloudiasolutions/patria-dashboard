@@ -1,8 +1,9 @@
+// Matches backend/src/utils/customerSegments.js SEGMENTS exactly.
 export type AudienceSegment =
   | "all"
-  | "inactive"
+  | "havent_ordered_lately"
   | "never_ordered"
-  | "recent"
+  | "ordered_recently"
   | "loyal"
   | "birthday";
 
@@ -14,9 +15,8 @@ export type ScheduleFrequency = "everyday" | "weekday" | "once";
 
 export interface AudienceCriteria {
   segment: AudienceSegment;
-  inactiveDays: number;
   gender: GenderFilter;
-  interests: string[];
+  interests: string[]; // Category ids
 }
 
 export interface Recipient {
@@ -56,11 +56,8 @@ export interface AbandonedCartConfig {
   enabled: boolean;
   title: string;
   message: string;
-  inactivityMinutes: number;
-  cooldownHours: number;
-  testPhone: string;
-  remindersSentLast7Days: number;
-  ordersConvertedLast24h: number;
+  delayMinutes: number;
+  channels: { app: boolean; whatsapp: boolean };
 }
 
 export interface MarketingKPIs {
