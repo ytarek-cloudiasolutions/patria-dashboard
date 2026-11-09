@@ -286,13 +286,25 @@ export const mapOrder = (o: any): Order => {
     creator?.name || creator?.fullName || o.createdByName || undefined;
   const createdByRole = creator?.role || o.createdByRole || undefined;
 
+  const resolvedAddress =
+    (typeof o.customer?.address === "string" ? o.customer.address : undefined) ||
+    (typeof o.address === "string" ? o.address : undefined) ||
+    (typeof o.deliveryAddress === "string" ? o.deliveryAddress : undefined) ||
+    (typeof o.shippingAddress === "string" ? o.shippingAddress : undefined) ||
+    (typeof o.customerId?.address === "string" ? o.customerId.address : undefined) ||
+    (Array.isArray(o.customer?.addresses) && (o.customer.addresses.find((a: any) => a.isDefault) || o.customer.addresses[0])?.details) ||
+    (Array.isArray(o.customer?.addresses) && (o.customer.addresses.find((a: any) => a.isDefault) || o.customer.addresses[0])?.address) ||
+    (Array.isArray(o.customerId?.addresses) && (o.customerId.addresses.find((a: any) => a.isDefault) || o.customerId.addresses[0])?.details) ||
+    (Array.isArray(o.customerId?.addresses) && (o.customerId.addresses.find((a: any) => a.isDefault) || o.customerId.addresses[0])?.address) ||
+    "";
+
   return {
     id: o._id || o.id,
     orderId: o.orderId || null,
     customerName,
     customerPhone,
     customerEmail: o.customerId?.email || o.customer?.email || o.customerEmail || "",
-    address: o.customer?.address || o.address || ((o.type || "").toLowerCase() === "takeaway" ? "Takeaway" : "In Store"),
+    address: resolvedAddress || ((o.type || "").toLowerCase() === "takeaway" && resolvedSource !== "call" ? "Takeaway" : "In Store"),
     zone,
     date: dateStr,
     time: timeStr,
@@ -319,7 +331,7 @@ export const mapOrder = (o: any): Order => {
     source: resolvedSource,
     paymentMethod: o.paymentMethod || "Cash on delivery",
     paymentState,
-    type: o.type,
+    type: resolvedSource === "call" || rawSource === "call" || (o.deliveryFee && o.deliveryFee > 0) ? "delivery" : o.type,
     items,
     driver: o.assignedDriver?.name || o.driver || undefined,
     billedToStaffId: typeof o.billedToStaffId === "object" ? o.billedToStaffId?._id : o.billedToStaffId,

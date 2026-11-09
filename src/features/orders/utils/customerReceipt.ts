@@ -20,6 +20,7 @@ export interface CustomerReceiptData {
   tableNumber?: string;
   customerName?: string;
   customerPhone?: string;
+  deliveryAddress?: string;
   paymentMethod?: string;
   status?: string;
   items: CustomerReceiptItem[];
@@ -105,7 +106,8 @@ export function generateCustomerReceiptHtml(data: CustomerReceiptData): string {
   const isDelivery =
     rawType === "delivery" ||
     rawType.includes("delivery") ||
-    rawType.includes("توصيل");
+    rawType.includes("توصيل") ||
+    Boolean(data.deliveryFee && data.deliveryFee > 0);
 
   let orderTypeLabel = "Takeaway";
   if (isDineIn) {
@@ -117,6 +119,19 @@ export function generateCustomerReceiptHtml(data: CustomerReceiptData): string {
   } else if (isDelivery) {
     orderTypeLabel = "Delivery";
   }
+
+  // Delivery address info
+  const rawDeliveryAddress =
+    data.deliveryAddress ||
+    (isDelivery && data.tableNumber && !data.tableNumber.toLowerCase().includes("table")
+      ? data.tableNumber
+      : "");
+  const deliveryAddress = rawDeliveryAddress.trim();
+  const hasDeliveryAddress =
+    deliveryAddress.length > 0 &&
+    deliveryAddress !== "—" &&
+    deliveryAddress.toLowerCase() !== "in store" &&
+    deliveryAddress.toLowerCase() !== "takeaway";
 
   // Customer info
   const customerName = data.customerName?.trim() || "Walk-in Customer";
@@ -257,22 +272,32 @@ export function generateCustomerReceiptHtml(data: CustomerReceiptData): string {
       margin: 3.5px 0;
       font-size: 12.5px;
     }
+    .meta-row.address-row {
+      align-items: flex-start;
+    }
     .meta-label {
       font-weight: 700;
       color: #000;
+      white-space: nowrap;
     }
-    .meta-val {
+    .meta-val, .meta-value {
       font-weight: 600;
       text-align: right;
       color: #000;
     }
-    .meta-val.order-num {
+    .meta-val.order-num, .meta-value.order-num {
       font-size: 16px;
       font-weight: 900;
       letter-spacing: 0.5px;
     }
-    .meta-val.order-type, .meta-val.payment {
+    .meta-val.order-type, .meta-value.order-type, .meta-val.payment, .meta-value.payment {
       font-weight: 800;
+    }
+    .meta-value.address-val {
+      flex: 1;
+      padding-left: 10px;
+      word-break: break-word;
+      line-height: 1.3;
     }
     .table-header {
       display: flex;
@@ -404,6 +429,15 @@ export function generateCustomerReceiptHtml(data: CustomerReceiptData): string {
       <span class="meta-label">Phone</span>
       <span class="meta-value">${customerPhone}</span>
     </div>
+    ${
+      hasDeliveryAddress
+        ? `
+    <div class="meta-row address-row">
+      <span class="meta-label">Address</span>
+      <span class="meta-value address-val">${deliveryAddress}</span>
+    </div>`
+        : ""
+    }
     <div class="meta-row">
       <span class="meta-label">Payment</span>
       <span class="meta-value payment">${paymentLabel}</span>

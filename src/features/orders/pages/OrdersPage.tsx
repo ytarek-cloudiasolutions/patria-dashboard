@@ -447,7 +447,8 @@ const OrdersPage = () => {
     }));
 
     const createRequest: CreateOrderRequest = {
-      type: order.source === "pos" ? "dine_in" : "takeaway",
+      type: order.source === "call" ? "delivery" : order.source === "pos" ? "dine_in" : ((order.type as any) || "delivery"),
+      source: "call",
       customerName: order.customerName,
       customerPhone: order.customerPhone,
       address: order.address,

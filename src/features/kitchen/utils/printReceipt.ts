@@ -15,10 +15,11 @@ export function printKitchenOrderReceipt(order: KitchenOrder, stationName?: stri
   const printDate = now.toLocaleDateString("en-US", { month: "numeric", day: "numeric", year: "2-digit" });
 
   const rawType = (order.type || "").toLowerCase();
+  const isCall = (order as any).source === "call" || rawType === "call";
   const rawAddr = typeof order.customer === "object" ? order.customer?.address || "" : "";
-  const isDineIn = rawType === "dine_in" || rawType === "dine-in" || rawAddr.toLowerCase().includes("table");
-  const isTakeaway = rawType === "takeaway" || rawAddr.toLowerCase() === "takeaway";
-  const isDelivery = rawType === "delivery" || (!isDineIn && !isTakeaway && !!rawAddr && rawAddr !== "In Store" && rawAddr !== "Takeaway");
+  const isDineIn = !isCall && (rawType === "dine_in" || rawType === "dine-in" || rawAddr.toLowerCase().includes("table"));
+  const isTakeaway = !isCall && (rawType === "takeaway" || rawAddr.toLowerCase() === "takeaway");
+  const isDelivery = isCall || rawType === "delivery" || (!isDineIn && !isTakeaway && !!rawAddr && rawAddr !== "In Store" && rawAddr !== "Takeaway");
 
   const tableOrAddressText = isDineIn
     ? (order.table || (rawAddr && rawAddr !== "In Store" && rawAddr !== "Takeaway" ? rawAddr : ""))

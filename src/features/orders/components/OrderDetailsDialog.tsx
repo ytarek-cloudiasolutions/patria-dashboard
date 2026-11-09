@@ -47,7 +47,12 @@ interface RawOrder {
     region?: { name?: string } | string;
     zone?: { name?: string } | string;
     address?: string;
+    addresses?: any[];
   };
+  customerId?: any;
+  address?: string;
+  deliveryAddress?: string;
+  shippingAddress?: string;
   region?: { name?: string } | string;
   type?: string;
   source?: string;
@@ -157,16 +162,29 @@ const OrderDetailsDialog = ({
 
   // Derive order type label from type ("dine_in" | "takeaway" | "delivery") or address content
   const rawType = (order.type || rawOrder.type || "").toLowerCase();
-  const rawAddr = rawOrder.customer?.address || order.address || "";
+  const rawSource = String(order.source || rawOrder.source || "").toLowerCase();
+  const rawAddr =
+    (typeof rawOrder.customer?.address === "string" ? rawOrder.customer.address : undefined) ||
+    (typeof order.address === "string" ? order.address : undefined) ||
+    (typeof rawOrder.address === "string" ? rawOrder.address : undefined) ||
+    (typeof rawOrder.deliveryAddress === "string" ? rawOrder.deliveryAddress : undefined) ||
+    (typeof rawOrder.shippingAddress === "string" ? rawOrder.shippingAddress : undefined) ||
+    (typeof rawOrder.customerId?.address === "string" ? rawOrder.customerId.address : undefined) ||
+    (Array.isArray(rawOrder.customer?.addresses) && (rawOrder.customer.addresses.find((a: any) => a.isDefault) || rawOrder.customer.addresses[0])?.details) ||
+    (Array.isArray(rawOrder.customer?.addresses) && (rawOrder.customer.addresses.find((a: any) => a.isDefault) || rawOrder.customer.addresses[0])?.address) ||
+    (Array.isArray(rawOrder.customerId?.addresses) && (rawOrder.customerId.addresses.find((a: any) => a.isDefault) || rawOrder.customerId.addresses[0])?.details) ||
+    (Array.isArray(rawOrder.customerId?.addresses) && (rawOrder.customerId.addresses.find((a: any) => a.isDefault) || rawOrder.customerId.addresses[0])?.address) ||
+    "";
 
-  const isDineIn = rawType === "dine_in" || rawAddr.toLowerCase().includes("table");
-  const isTakeaway = rawType === "takeaway" || rawAddr.toLowerCase() === "takeaway";
-  const isDelivery = rawType === "delivery" || (!isDineIn && !isTakeaway && !!rawAddr && rawAddr !== "In Store" && rawAddr !== "Takeaway");
+  const isCallOrder = rawSource === "call" || rawSource === "call_center";
+  const isDineIn = !isCallOrder && (rawType === "dine_in" || rawType === "dine-in" || rawAddr.toLowerCase().includes("table"));
+  const isTakeaway = !isCallOrder && (rawType === "takeaway" || rawAddr.toLowerCase() === "takeaway") && !(deliveryFeeVal > 0);
+  const isDelivery = isCallOrder || rawType === "delivery" || deliveryFeeVal > 0 || (!isDineIn && !isTakeaway && !!rawAddr && rawAddr !== "In Store" && rawAddr !== "Takeaway");
 
   const tableOrAddressText = isDineIn
     ? (rawAddr && rawAddr !== "In Store" && rawAddr !== "Takeaway" ? rawAddr : "")
     : isDelivery
-      ? rawAddr
+      ? (rawAddr && rawAddr !== "In Store" && rawAddr !== "Takeaway" ? rawAddr : "")
       : "";
 
   const orderTypeLabel = isDineIn
@@ -245,7 +263,7 @@ const OrderDetailsDialog = ({
 
     const kitchenReceiptHtml = generateKitchenReceiptHtml({
       orderNumber: String(displayId),
-      orderType: isDineIn ? "dine-in" : isTakeaway ? "takeaway" : isDelivery ? "delivery" : "dine-in",
+      orderType: isDineIn ? "dine-in" : isTakeaway ? "takeaway" : "delivery",
       tableNumber: tableOrAddressText,
       customerName: order.customerName,
       date: order.date || printDate,
@@ -269,8 +287,9 @@ const OrderDetailsDialog = ({
       orderNumber: String(displayId),
       date: order.date || printDate,
       time: order.time || printTime,
-      orderType: isDineIn ? "dine-in" : isTakeaway ? "takeaway" : isDelivery ? "delivery" : "dine-in",
-      tableNumber: tableOrAddressText,
+      orderType: isDineIn ? "dine-in" : isTakeaway ? "takeaway" : "delivery",
+      tableNumber: isDineIn ? tableOrAddressText : undefined,
+      deliveryAddress: isDelivery ? (tableOrAddressText || rawAddr || undefined) : undefined,
       customerName: order.customerName,
       customerPhone: order.customerPhone,
       paymentMethod: order.paymentMethod,
@@ -300,7 +319,6 @@ const OrderDetailsDialog = ({
     printHtmlInCurrentTab(receiptHtml);
   };
 
-  const rawSource = String(order.source || rawOrder.source || "").toLowerCase();
   const isPosOrder =
     rawSource === "pos" ||
     (rawType !== "delivery" &&

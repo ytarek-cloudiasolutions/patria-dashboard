@@ -27,7 +27,7 @@ export interface GetOrdersResponse {
 }
 
 export interface CreateOrderRequest {
-  type: "dine_in" | "takeaway";
+  type: "dine_in" | "takeaway" | "delivery";
   source?: "application" | "pos" | "call";
   tableId?: string;
   customerId?: string;
