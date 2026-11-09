@@ -56,6 +56,7 @@ export interface DiscountApprovalRequestItem {
   status: "pending" | "approved" | "rejected" | "cancelled" | "canceled";
   discountId?: string;
   discountName?: string;
+  discountType?: "percentage" | "fixed";
   discountValue?: number;
   discount?: {
     _id?: string;
@@ -69,6 +70,12 @@ export interface DiscountApprovalRequestItem {
     name?: string;
     email?: string;
     role?: string;
+  };
+  respondedBy?: {
+    _id?: string;
+    id?: string;
+    name?: string;
+    email?: string;
   };
   orderId?:
     | {
@@ -132,6 +139,21 @@ export const cashierDiscountsApi = {
     );
     const data: any = response.data;
     return data?.requests || (Array.isArray(data) ? data : []);
+  },
+
+  /**
+   * Convenience wrapper for the Approval Requests dashboard page — the API
+   * only filters by one status per call (defaulting to "pending"), so this
+   * fetches pending/approved/rejected in parallel and merges them for a
+   * single "all history" list.
+   */
+  getAllDiscountRequests: async (): Promise<DiscountApprovalRequestItem[]> => {
+    const [pending, approved, rejected] = await Promise.all([
+      cashierDiscountsApi.getDiscountRequests("pending"),
+      cashierDiscountsApi.getDiscountRequests("approved"),
+      cashierDiscountsApi.getDiscountRequests("rejected"),
+    ]);
+    return [...pending, ...approved, ...rejected];
   },
 
   /**

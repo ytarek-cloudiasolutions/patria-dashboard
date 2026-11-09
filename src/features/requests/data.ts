@@ -1,50 +1,31 @@
-import type { ApprovalRequest } from "./types";
+import type { DiscountApprovalRequestItem } from "@/features/offers/api/cashierDiscountsApi";
+import type { ApprovalRequest, ApprovalStatus } from "./types";
 
-export const DEFAULT_APPROVAL_REQUESTS: ApprovalRequest[] = [
-  {
-    id: "1",
-    orderId: "#ORD-214067",
-    company: "Bibliotheca Alexandrina",
-    discount: "20%",
-    approvedBy: "Super Admin",
-    status: "Pending",
-    date: "3/31/2026, 2:37:57 PM",
-  },
-  {
-    id: "2",
-    orderId: "#ORD-214069",
-    company: "CloudiaSolutions",
-    discount: "25%",
-    approvedBy: "Super Admin",
-    status: "Approved",
-    date: "3/31/2026, 2:37:57 PM",
-  },
-  {
-    id: "3",
-    orderId: "#ORD-214070",
-    company: "Space Academy",
-    discount: "20%",
-    approvedBy: "Super Admin",
-    status: "Approved",
-    date: "3/31/2026, 2:37:57 PM",
-  },
-  {
-    id: "4",
-    orderId: "#ORD-214067",
-    company: "Clickers",
-    discount: "20%",
-    approvedBy: "Super Admin",
-    status: "Rejected",
-    date: "3/31/2026, 2:37:57 PM",
-  },
-  {
-    id: "5",
-    orderId: "#ORD-214068",
-    company: "Bibliotheca Alexandrina",
-    discount: "20%",
-    approvedBy: "Super Admin",
-    status: "Rejected",
-    date: "3/31/2026, 2:37:57 PM",
-  },
-];
+const STATUS_MAP: Record<string, ApprovalStatus> = {
+  pending: "Pending",
+  approved: "Approved",
+  rejected: "Rejected",
+};
 
+/** Maps a real `/cashier-discounts/requests` row to what this page renders. */
+export function mapApprovalRequest(item: DiscountApprovalRequestItem): ApprovalRequest | null {
+  const status = STATUS_MAP[item.status];
+  if (!status) return null; // "cancelled" requests (withdrawn by the cashier) aren't shown here
+
+  const order = typeof item.orderId === "object" ? item.orderId : null;
+  const orderLabel = order?.orderId || (typeof item.orderId === "string" ? item.orderId : "-");
+
+  const discountValue = item.discountValue ?? item.discount?.value;
+  const discountLabel =
+    discountValue != null ? `${discountValue}${item.discountType === "fixed" ? " EGP" : "%"}` : "-";
+
+  return {
+    id: item._id || item.id || "",
+    orderId: orderLabel.startsWith("#") ? orderLabel : `#${orderLabel}`,
+    requestedBy: item.requestedBy?.name || "-",
+    discount: discountLabel,
+    approvedBy: item.respondedBy?.name || "-",
+    status,
+    date: item.updatedAt || item.createdAt || "",
+  };
+}

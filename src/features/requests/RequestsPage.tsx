@@ -1,11 +1,13 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import HeaderLayout from "@/layouts/HeaderLayout";
 import DatePicker from "@/shared/components/DatePicker";
 import DropdownSelect from "@/shared/components/DropdownSelect";
 import { Label } from "@/shared/components/ui/label";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { cn } from "@/lib/utils";
-import { DEFAULT_APPROVAL_REQUESTS } from "./data";
+import cashierDiscountsApi from "@/features/offers/api/cashierDiscountsApi";
+import { subscribeDiscountEvents } from "@/features/offers/utils/discountSocketBus";
+import { mapApprovalRequest } from "./data";
 import type { ApprovalRequest, ApprovalStatus, ApprovalStatusFilter } from "./types";
 
 const TH =
@@ -19,6 +21,32 @@ const RequestsPage = () => {
   const [toDate, setToDate] = useState("");
   const [statusFilter, setStatusFilter] = useState<ApprovalStatusFilter>("all");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [requests, setRequests] = useState<ApprovalRequest[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchRequests = useCallback(async () => {
+    try {
+      const data = await cashierDiscountsApi.getAllDiscountRequests();
+      const mapped = data
+        .map(mapApprovalRequest)
+        .filter((r): r is ApprovalRequest => r !== null)
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      setRequests(mapped);
+    } catch (err) {
+      console.error("Failed to fetch discount approval requests:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchRequests();
+    // Discount approve/reject/cancel actions emit socket events (see
+    // cashierDiscountController.js) — refetch so this history list stays
+    // live without the operator needing to reload the page.
+    const unsubscribe = subscribeDiscountEvents(() => fetchRequests());
+    return unsubscribe;
+  }, [fetchRequests]);
 
   const statusOptions = useMemo(
     () => [
@@ -31,7 +59,7 @@ const RequestsPage = () => {
   );
 
   const filteredRequests = useMemo(() => {
-    return DEFAULT_APPROVAL_REQUESTS.filter((req) => {
+    return requests.filter((req) => {
       // Filter by status
       if (statusFilter !== "all") {
         if (req.status.toLowerCase() !== statusFilter) {
@@ -58,7 +86,7 @@ const RequestsPage = () => {
 
       return true;
     });
-  }, [statusFilter, fromDate, toDate]);
+  }, [requests, statusFilter, fromDate, toDate]);
 
   const renderStatusBadge = (status: ApprovalStatus) => {
     switch (status) {
@@ -157,7 +185,7 @@ const RequestsPage = () => {
             <thead className="bg-[#F5F0EA] border-b border-[#CACBD4]">
               <tr className="h-11">
                 <th className={cn(TH, "text-start ps-6")}>{t("ORDER ID")}</th>
-                <th className={cn(TH, "text-center")}>{t("COMPANY")}</th>
+                <th className={cn(TH, "text-center")}>{t("REQUESTED BY")}</th>
                 <th className={cn(TH, "text-center")}>{t("DISCOUNT")}</th>
                 <th className={cn(TH, "text-center")}>{t("APPROVED BY")}</th>
                 <th className={cn(TH, "text-center")}>{t("STATUS")}</th>
@@ -176,9 +204,9 @@ const RequestsPage = () => {
                       {req.orderId}
                     </td>
 
-                    {/* Company */}
+                    {/* Requested By */}
                     <td className={cn(TD, "text-center font-semibold text-[#333333] tracking-[0.28px]")}>
-                      {t(req.company)}
+                      {req.requestedBy}
                     </td>
 
                     {/* Discount */}
@@ -188,7 +216,7 @@ const RequestsPage = () => {
 
                     {/* Approved By */}
                     <td className={cn(TD, "text-center font-medium text-[#595959] tracking-[0.28px]")}>
-                      {t(req.approvedBy)}
+                      {req.approvedBy}
                     </td>
 
                     {/* Status Badge */}
@@ -200,7 +228,7 @@ const RequestsPage = () => {
 
                     {/* Date */}
                     <td className={cn(TD, "text-center pe-6 font-medium text-[#595959] tracking-[0.28px]")}>
-                      {req.date}
+                      {req.date ? new Date(req.date).toLocaleString() : "-"}
                     </td>
                   </tr>
                 ))
@@ -210,7 +238,7 @@ const RequestsPage = () => {
                     colSpan={6}
                     className="py-12 text-center text-[14px] font-medium text-[#8B8B8B]"
                   >
-                    {t("No approval requests found")}
+                    {isLoading ? t("Loading...") : t("No approval requests found")}
                   </td>
                 </tr>
               )}

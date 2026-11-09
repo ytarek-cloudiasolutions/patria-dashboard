@@ -3,7 +3,7 @@ export type ApprovalStatus = "Pending" | "Approved" | "Rejected";
 export interface ApprovalRequest {
   id: string;
   orderId: string;
-  company: string;
+  requestedBy: string;
   discount: string;
   approvedBy: string;
   status: ApprovalStatus;
@@ -11,4 +11,3 @@ export interface ApprovalRequest {
 }
 
 export type ApprovalStatusFilter = "all" | "pending" | "approved" | "rejected";
-
