@@ -129,6 +129,11 @@ const CustomersTable = ({
               <p className="text-[12px] text-[#6B6B6B]" dir="ltr">
                 {customer.phone}
               </p>
+              {customer.gender && (
+                <p className="text-[12px] text-[#8B8B8B]">
+                  {t(customer.gender === "male" ? "Male" : "Female")}
+                </p>
+              )}
             </div>
 
             <div className="mb-3">
@@ -193,6 +198,11 @@ const CustomersTable = ({
                 <TableCell className="px-6 py-4 whitespace-nowrap">
                   <p className="text-[13px] text-[#28293D]">{customer.email}</p>
                   <p className="text-[12px] text-[#6B6B6B]">{customer.phone}</p>
+                  {customer.gender && (
+                    <p className="text-[12px] text-[#8B8B8B]">
+                      {t(customer.gender === "male" ? "Male" : "Female")}
+                    </p>
+                  )}
                 </TableCell>
                 <TableCell className="px-6 py-4 whitespace-nowrap">
                   <TierBadge tier={customer.tier} />

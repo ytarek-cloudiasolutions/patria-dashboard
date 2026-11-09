@@ -1,4 +1,7 @@
-import type { Customer, CustomerTier, CustomerSegment, CustomerRole } from "../types";
+import type { Customer, CustomerTier, CustomerSegment, CustomerRole, CustomerGender } from "../types";
+
+export const mapCustomerGender = (gender?: string | null): CustomerGender | null =>
+  gender === "male" || gender === "female" ? gender : null;
 
 export const mapTier = (tier: string): CustomerTier => {
   const norm = (tier || "").toLowerCase();
@@ -36,6 +39,7 @@ export const mapCustomer = (c: any): Customer => {
     orderCount: c.orderCount ?? 0,
     segment: mapCustomerSegment(c.segment),
     createdBy: c.createdBy,
+    gender: mapCustomerGender(c.gender),
   };
 };
 
