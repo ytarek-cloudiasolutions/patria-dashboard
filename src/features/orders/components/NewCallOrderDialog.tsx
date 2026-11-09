@@ -324,6 +324,7 @@ const NewCallOrderDialog = ({
       status: "Pending",
       category: "Meals",
       source: "call",
+      type: "delivery",
       paymentMethod: paymentMethodLabel(payment),
       paymentState: "Waiting for payment",
       items: cartToOrderItems(cart),
