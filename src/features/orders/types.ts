@@ -164,10 +164,31 @@ export interface Driver {
   name: string;
 }
 
+export interface CustomerAddress {
+  _id?: string;
+  id?: string;
+  label?: string;
+  area?: string;
+  zone?: string;
+  zoneId?: string;
+  buildingName?: string;
+  apartmentNo?: string;
+  floor?: string;
+  street?: string;
+  city?: string;
+  phone?: string;
+  isDefault?: boolean;
+  source?: string;
+  details?: string;
+  lat?: number;
+  lng?: number;
+}
+
 /** A customer record matched by phone number during a call order. */
 export interface CustomerLookup {
   name: string;
   phone: string;
   lastAddress: string;
   tier: string;
+  addresses?: CustomerAddress[];
 }

@@ -456,19 +456,29 @@ const AddDriverDialog = ({
                 <Label className="mb-2.5 text-[16px] font-medium text-black">
                   {t("Status")}<span className="text-[#C90000]">*</span>
                 </Label>
-                <DropdownSelect
-                  options={DRIVER_STATUS_OPTIONS.map((o) => ({
-                    ...o,
-                    label: t(o.label),
-                  }))}
-                  selected={form.status}
-                  onSelect={(value) => set("status", value as DriverStatus)}
-                  onOpenChange={(o) => setOpenDropdown(o ? "status" : null)}
-                  placeholder={t("Select status")}
-                  align="start"
-                  className="md:w-full"
-                  contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
-                />
+                {driver ? (
+                  <InputField
+                    inputProps={{
+                      value: t(form.status),
+                      readOnly: true,
+                      className: "pointer-events-none select-none",
+                    }}
+                  />
+                ) : (
+                  <DropdownSelect
+                    options={DRIVER_STATUS_OPTIONS.map((o) => ({
+                      ...o,
+                      label: t(o.label),
+                    }))}
+                    selected={form.status}
+                    onSelect={(value) => set("status", value as DriverStatus)}
+                    onOpenChange={(o) => setOpenDropdown(o ? "status" : null)}
+                    placeholder={t("Select status")}
+                    align="start"
+                    className="md:w-full"
+                    contentClassName="md:w-[var(--radix-dropdown-menu-trigger-width)]"
+                  />
+                )}
               </div>
             </div>
           </form>

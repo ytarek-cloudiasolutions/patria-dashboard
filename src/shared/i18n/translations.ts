@@ -1502,6 +1502,13 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   "e.g Kafr Abdo": "مثال: كفر عبده",
   "e.g Loyalty Discount, compensation": "مثال: خصم ولاء، تعويض",
   "e.g No sugar, Extra hot": "مثال: بدون سكر، ساخن جدًا",
+  "Use a different address": "استخدام عنوان آخر",
+  "Use a different number": "استخدام رقم آخر",
+  "Retrieve customer's number": "استرجاع رقم العميل",
+  "Use customer's number": "استخدام رقم العميل",
+  "Saved Addresses": "العناوين المحفوظة",
+  "Default": "الافتراضي",
+  "App": "التطبيق",
 
   // Authentication (Sign in / Sign up / Reset password)
   "Welcome back, Admin": "مرحباً بعودتك، أيها المشرف",
@@ -1901,4 +1908,17 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   "Orders To": "الطلبات إلى",
   "All Orders": "جميع الطلبات",
   "Pcs": "قطع",
+
+  // Approval Requests
+  "Approval Requests": "طلبات الموافقة",
+  "Discount and manager-approval requests sent from POS": "طلبات الخصم وموافقة المدير المرسلة من نظام نقاط البيع",
+  "ORDER ID": "رقم الطلب",
+  "COMPANY": "الشركة",
+  "DISCOUNT": "الخصم",
+  "APPROVED BY": "تمت الموافقة بواسطة",
+  "No approval requests found": "لا توجد طلبات موافقة",
+  "Bibliotheca Alexandrina": "مكتبة الإسكندرية",
+  "CloudiaSolutions": "كلاوديا سوليوشنز",
+  "Space Academy": "سبيس أكاديمي",
+  "Clickers": "كليكرز",
 };

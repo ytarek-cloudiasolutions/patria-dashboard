@@ -10,7 +10,7 @@ import {
 import { Separator } from "@/shared/components/ui/separator";
 import DefaultButton from "@/shared/components/DefaultButton";
 import { useTranslation } from "@/shared/i18n/useTranslation";
-import type { CartLineItem, CustomerLookup, DeliveryZone, Order, ProductOption } from "../types";
+import type { CartLineItem, CustomerAddress, CustomerLookup, DeliveryZone, Order, ProductOption } from "../types";
 import { CUSTOMER_DIRECTORY } from "../data";
 import { cartSubtotal, cartToOrderItems, formatCurrency } from "../utils";
 import {
@@ -51,6 +51,7 @@ const NewCallOrderDialog = ({
   const [phoneQuery, setPhoneQuery] = useState("");
   const [searched, setSearched] = useState(false);
   const [existing, setExisting] = useState<CustomerLookup | null>(null);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
@@ -69,11 +70,56 @@ const NewCallOrderDialog = ({
   const tax = payment.preview?.tax ?? 0;
   const total = payment.preview?.total ?? subtotal + paymentDeliveryFee(payment);
 
+  const matchZoneForAddress = (addr: CustomerAddress, zones: DeliveryZone[]): string => {
+    if (zones.length === 0) return "";
+    const matchedZone = zones.find((z) => {
+      if (!z) return false;
+      const zId = String(z.id || (z as any)._id || "").trim();
+      const addrZoneId = String(
+        addr.zoneId || (addr as any)._zoneId || (addr as any).locationId || ""
+      ).trim();
+
+      if (zId && addrZoneId && zId === addrZoneId) return true;
+
+      const zName = (z.name || "").toLowerCase().trim();
+      const addrZone = (addr.zone || "").toLowerCase().trim();
+      const addrArea = (addr.area || "").toLowerCase().trim();
+      const addrCity = (addr.city || "").toLowerCase().trim();
+
+      if (!zName) return false;
+      if (addrZone && (zName === addrZone || addrZone.includes(zName) || zName.includes(addrZone))) {
+        return true;
+      }
+      if (addrArea && (zName === addrArea || addrArea.includes(zName) || zName.includes(addrArea))) {
+        return true;
+      }
+      if (addrCity && (zName === addrCity || addrCity.includes(zName) || zName.includes(addrCity))) {
+        return true;
+      }
+      return false;
+    });
+
+    return matchedZone ? matchedZone.id : zones[0]?.id || "";
+  };
+
+  const formatAddressDetails = (addr: CustomerAddress): string => {
+    if (addr.details) return addr.details;
+    const parts = [
+      addr.buildingName ? `Building ${addr.buildingName}` : "",
+      addr.street ? `Street ${addr.street}` : "",
+      addr.floor ? `Floor ${addr.floor}` : "",
+      addr.apartmentNo ? `Apt ${addr.apartmentNo}` : "",
+      addr.area || addr.zone || "",
+    ].filter(Boolean);
+    return parts.length > 0 ? parts.join(", ") : addr.label || "";
+  };
+
   const resetAll = () => {
     setStep(0);
     setPhoneQuery("");
     setSearched(false);
     setExisting(null);
+    setSelectedAddressId(null);
     setName("");
     setPhone("");
     setAddress("");
@@ -88,21 +134,19 @@ const NewCallOrderDialog = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  // Auto-match zone whenever deliveryZones load or existing customer address is set
+  // Auto-match zone whenever deliveryZones load or address is set
   useEffect(() => {
-    if (!zoneId && deliveryZones.length > 0 && (existing?.lastAddress || address)) {
-      const addrStr = (existing?.lastAddress || address).toLowerCase();
+    if (!zoneId && deliveryZones.length > 0 && address) {
+      const addrStr = address.toLowerCase();
       const matchedZone = deliveryZones.find((z) => {
         const zName = (z.name || "").toLowerCase().trim();
         return zName && addrStr.includes(zName);
       });
       if (matchedZone) {
         handleZoneChange(matchedZone.id);
-      } else {
-        handleZoneChange(deliveryZones[0].id);
       }
     }
-  }, [deliveryZones, existing, address, zoneId]);
+  }, [deliveryZones, address, zoneId]);
 
   const handleSearch = async () => {
     const normalized = phoneQuery.replace(/\s/g, "");
@@ -111,52 +155,77 @@ const NewCallOrderDialog = ({
     setIsSearching(true);
     setSearched(true);
     try {
-      const response = await api.get(`/customers/by-phone/${normalized}`);
-      const customer = response.data?.customer || response.data;
+      let customer: any = null;
+      try {
+        const response = await api.get(`/customers/by-phone/${normalized}`);
+        customer = response.data?.customer || response.data;
+      } catch {
+        customer = CUSTOMER_DIRECTORY[normalized] || null;
+      }
+
+      if (!customer && CUSTOMER_DIRECTORY[normalized]) {
+        customer = CUSTOMER_DIRECTORY[normalized];
+      }
+
       if (customer) {
+        const rawAddresses = Array.isArray(customer.addresses)
+          ? customer.addresses
+          : [];
+
+        const addresses: CustomerAddress[] = rawAddresses.map((a: any, idx: number) => ({
+          _id: a._id || a.id || `addr-${idx}`,
+          id: a.id || a._id || `addr-${idx}`,
+          label: a.label || "Home",
+          area: a.area || "",
+          zone: a.zone || a.area || "",
+          zoneId: a.zoneId || a._zoneId || a.locationId || "",
+          buildingName: a.buildingName || a.building || "",
+          apartmentNo: a.apartmentNo || a.apartment || "",
+          floor: a.floor ? String(a.floor) : "",
+          street: a.street || "",
+          city: a.city || "",
+          phone: a.phone || "",
+          isDefault: Boolean(a.isDefault),
+          source: a.source || "App",
+          details: a.details || a.address || "",
+        }));
+
+        const defaultAddr =
+          addresses.find((a) => a.isDefault) || addresses[0] || null;
+
+        const defaultFormatted = defaultAddr ? formatAddressDetails(defaultAddr) : "";
+        const lastAddressStr = customer.lastAddress || defaultFormatted;
+
         const foundCustomer: CustomerLookup = {
-          name: customer.name,
-          phone: customer.phone,
-          lastAddress: "",
+          name: customer.name || "",
+          phone: customer.phone || normalized,
+          lastAddress: lastAddressStr,
           tier: customer.tier || "bronze",
+          addresses,
         };
 
-        const addr = customer.addresses?.find((a: any) => a.isDefault) || customer.addresses?.[0];
-        if (addr) {
-          const addressStr = [
-            addr.buildingName ? `Building ${addr.buildingName}` : "",
-            addr.street ? `Street ${addr.street}` : "",
-            addr.floor ? `Floor ${addr.floor}` : "",
-            addr.apartmentNo ? `Apt ${addr.apartmentNo}` : "",
-            addr.area || addr.zone || ""
-          ].filter(Boolean).join(", ");
+        setExisting(foundCustomer);
+        setName(customer.name || "");
+        setPhone(customer.phone || normalized);
 
-          foundCustomer.lastAddress = addressStr;
-          setAddress(addressStr);
-
+        if (defaultAddr) {
+          setSelectedAddressId(defaultAddr._id || defaultAddr.id || "");
+          setAddress(defaultFormatted);
+          const matchedZoneId = matchZoneForAddress(defaultAddr, deliveryZones);
+          if (matchedZoneId) {
+            handleZoneChange(matchedZoneId);
+          } else if (deliveryZones.length > 0) {
+            handleZoneChange(deliveryZones[0].id);
+          } else {
+            setZoneId("");
+          }
+        } else if (lastAddressStr) {
+          setSelectedAddressId(null);
+          setAddress(lastAddressStr);
           const matchedZone = deliveryZones.find((z) => {
-            if (!z) return false;
-            const zId = String(z.id || (z as any)._id || "").trim();
-            const addrZoneId = String(
-              addr.zoneId || (addr as any)._zoneId || (addr as any).locationId || ""
-            ).trim();
-
-            if (zId && addrZoneId && zId === addrZoneId) return true;
-
-            const zName = (z.name || "").toLowerCase().trim();
-            const addrZone = (addr.zone || "").toLowerCase().trim();
-            const addrArea = (addr.area || "").toLowerCase().trim();
-
-            if (!zName) return false;
-            if (addrZone && (zName === addrZone || addrZone.includes(zName) || zName.includes(addrZone))) {
-              return true;
-            }
-            if (addrArea && (zName === addrArea || addrArea.includes(zName) || zName.includes(addrArea))) {
-              return true;
-            }
-            return false;
+            const zn = (z.name || "").toLowerCase().trim();
+            return zn && lastAddressStr.toLowerCase().includes(zn);
           });
-
           if (matchedZone) {
             handleZoneChange(matchedZone.id);
           } else if (deliveryZones.length > 0) {
@@ -165,15 +234,13 @@ const NewCallOrderDialog = ({
             setZoneId("");
           }
         } else {
+          setSelectedAddressId(null);
           setAddress("");
           setZoneId("");
         }
-
-        setExisting(foundCustomer);
-        setName(customer.name || "");
-        setPhone(customer.phone || "");
       } else {
         setExisting(null);
+        setSelectedAddressId(null);
         setPhone(phoneQuery);
         setName("");
         setAddress("");
@@ -182,12 +249,46 @@ const NewCallOrderDialog = ({
     } catch (err) {
       console.error("Customer lookup failed:", err);
       setExisting(null);
+      setSelectedAddressId(null);
       setPhone(phoneQuery);
       setName("");
       setAddress("");
       setZoneId("");
     } finally {
       setIsSearching(false);
+    }
+  };
+
+  const handleSelectAddress = (addr: CustomerAddress) => {
+    const id = addr._id || addr.id || "";
+    setSelectedAddressId(id);
+    const formatted = formatAddressDetails(addr);
+    setAddress(formatted);
+    if (formatted.trim()) {
+      setCustomerErrors((prev) => ({ ...prev, address: "" }));
+    }
+
+    const matchedZoneId = matchZoneForAddress(addr, deliveryZones);
+    if (matchedZoneId) {
+      handleZoneChange(matchedZoneId);
+      setCustomerErrors((prev) => ({ ...prev, zone: "" }));
+    }
+  };
+
+  const handleUseDifferentAddress = () => {
+    setSelectedAddressId(null);
+    setAddress("");
+    setZoneId("");
+  };
+
+  const handleUseDifferentNumber = () => {
+    setPhone("");
+  };
+
+  const handleRetrieveCustomerNumber = () => {
+    if (existing?.phone) {
+      setPhone(existing.phone);
+      setCustomerErrors((prev) => ({ ...prev, phone: "" }));
     }
   };
 
@@ -309,13 +410,13 @@ const NewCallOrderDialog = ({
           <div className="pointer-events-none fixed inset-0 z-60 bg-black/40" />
         )}
 
-        <div className="flex max-h-[calc(100vh-2rem)] flex-col">
+        <div className="flex max-h-[calc(100vh-2rem)] w-full min-w-0 flex-col">
           {/* Header + stepper */}
-          <div className="px-6 pt-8">
+          <div className="px-6 pt-8 w-full min-w-0">
             <DialogTitle className="text-[24px] font-semibold tracking-[0.48px] text-black">
               {t("New Call Order")}
             </DialogTitle>
-            <div className="mt-6">
+            <div className="mt-6 w-full min-w-0">
               <OrderWizardStepper
                 steps={[
                   t("Customer Information"),
@@ -352,7 +453,7 @@ const NewCallOrderDialog = ({
           </div>
 
           {/* Body */}
-          <div className="flex-1 overflow-y-auto px-6 py-6">
+          <div className="flex-1 overflow-y-auto px-6 py-6 w-full min-w-0">
             {step === 0 && (
               <CallCustomerStep
                 phoneQuery={phoneQuery}
@@ -360,6 +461,11 @@ const NewCallOrderDialog = ({
                 onSearch={handleSearch}
                 searched={searched}
                 existing={existing}
+                selectedAddressId={selectedAddressId}
+                onSelectAddress={handleSelectAddress}
+                onUseDifferentAddress={handleUseDifferentAddress}
+                onUseDifferentNumber={handleUseDifferentNumber}
+                onRetrieveCustomerNumber={handleRetrieveCustomerNumber}
                 name={name}
                 onNameChange={(val) => {
                   setName(val);
@@ -373,6 +479,7 @@ const NewCallOrderDialog = ({
                 address={address}
                 onAddressChange={(val) => {
                   setAddress(val);
+                  setSelectedAddressId(null);
                   if (val.trim()) setCustomerErrors((prev) => ({ ...prev, address: "" }));
                 }}
                 zoneId={zoneId}
@@ -409,15 +516,15 @@ const NewCallOrderDialog = ({
           </div>
 
           {/* Footer */}
-          <div className="bg-white px-6 pb-6 pt-4">
+          <div className="bg-white px-6 pb-6 pt-4 w-full min-w-0">
             <Separator className="mb-6 bg-[#CACBD4]" />
-            <div className="flex justify-between items-center gap-4">
+            <div className="flex justify-between items-center gap-4 w-full min-w-0">
               <div>
                 {step > 0 && (
                   <button
                     type="button"
                     onClick={() => setStep((prev) => prev - 1)}
-                    className="flex h-[56px] items-center gap-2 text-[16px] font-semibold text-primary cursor-pointer"
+                    className="flex h-[56px] items-center gap-2 text-[16px] font-semibold text-primary cursor-pointer shrink-0"
                   >
                     {dir === "rtl" ? (
                       <ArrowRight size={18} className="text-primary" />
@@ -428,11 +535,11 @@ const NewCallOrderDialog = ({
                   </button>
                 )}
               </div>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 shrink-0">
                 <button
                   type="button"
                   onClick={() => onOpenChange(false)}
-                  className="h-[56px] rounded-[5px] border border-primary px-[30px] py-4 text-[16px] font-semibold text-primary cursor-pointer"
+                  className="h-[56px] shrink-0 rounded-[5px] border border-primary px-[30px] py-4 text-[16px] font-semibold text-primary cursor-pointer"
                 >
                   {t("Cancel")}
                 </button>
@@ -440,7 +547,7 @@ const NewCallOrderDialog = ({
                   type="button"
                   onClick={primary.onClick}
                   disabled={primary.disabled}
-                  className={primary.className}
+                  className={`${primary.className} shrink-0`}
                 >
                   {primary.buttonText}
                 </button>
