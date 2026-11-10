@@ -50,6 +50,30 @@ const RoleSubLabel = ({ customer }: { customer: Customer }) => {
   );
 };
 
+const CustomerDemographicsBadge = ({ customer }: { customer: Customer }) => {
+  const { t } = useTranslation();
+
+  if (!customer.gender) return null;
+
+  const isFemale = customer.gender === "female";
+  const ageLabel =
+    customer.age === null
+      ? ""
+      : ` • ${customer.age} ${t(customer.age === 1 ? "year" : "years")}`;
+
+  return (
+    <span
+      className={`inline-flex items-center rounded-[30px] border px-2 py-0.5 text-[10px] font-semibold tracking-[0.2px] ${
+        isFemale
+          ? "border-[#E91E63] bg-[#FFF8F9] text-[#E91E63]"
+          : "border-[#004EF9] bg-[#EDF4FB] text-[#3574FF]"
+      }`}
+    >
+      {`${t(isFemale ? "Woman" : "Man")}${ageLabel}`}
+    </span>
+  );
+};
+
 const CustomerActions = ({
   customer,
   onEdit,
@@ -112,8 +136,9 @@ const CustomersTable = ({
                 <p className="truncate text-[15px] font-semibold text-[#28293D]">
                   {customer.name}
                 </p>
-                <div className="mt-1">
+                <div className="mt-1 flex flex-wrap items-center gap-2">
                   <RoleSubLabel customer={customer} />
+                  <CustomerDemographicsBadge customer={customer} />
                 </div>
               </div>
               <CustomerActions
@@ -129,11 +154,6 @@ const CustomersTable = ({
               <p className="text-[12px] text-[#6B6B6B]" dir="ltr">
                 {customer.phone}
               </p>
-              {customer.gender && (
-                <p className="text-[12px] text-[#8B8B8B]">
-                  {t(customer.gender === "male" ? "Male" : "Female")}
-                </p>
-              )}
             </div>
 
             <div className="mb-3">
@@ -191,18 +211,14 @@ const CustomersTable = ({
                   <p className="text-[14px] font-semibold text-[#28293D]">
                     {customer.name}
                   </p>
-                  <div className="mt-1">
+                  <div className="mt-1 flex flex-wrap items-center gap-2">
                     <RoleSubLabel customer={customer} />
+                    <CustomerDemographicsBadge customer={customer} />
                   </div>
                 </TableCell>
                 <TableCell className="px-6 py-4 whitespace-nowrap">
                   <p className="text-[13px] text-[#28293D]">{customer.email}</p>
                   <p className="text-[12px] text-[#6B6B6B]">{customer.phone}</p>
-                  {customer.gender && (
-                    <p className="text-[12px] text-[#8B8B8B]">
-                      {t(customer.gender === "male" ? "Male" : "Female")}
-                    </p>
-                  )}
                 </TableCell>
                 <TableCell className="px-6 py-4 whitespace-nowrap">
                   <TierBadge tier={customer.tier} />

@@ -16,6 +16,7 @@ export interface Customer {
   segment: CustomerSegment;
   createdBy?: string;
   gender: CustomerGender | null;
+  age: number | null;
 }
 
 export interface CustomerFormData {

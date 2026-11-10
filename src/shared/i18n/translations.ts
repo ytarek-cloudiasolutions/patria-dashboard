@@ -1897,6 +1897,8 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   "Chat on WhatsApp": "محادثة عبر واتساب",
   "Woman": "أنثى",
   "Man": "ذكر",
+  "year": "سنة",
+  "years": "سنوات",
   "Joined": "تاريخ الانضمام",
   "Has App": "لديه التطبيق",
   "No App": "بدون تطبيق",
