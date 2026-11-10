@@ -112,7 +112,7 @@ const RequestsPage = () => {
   };
 
   return (
-    <div className="w-full max-w-[1142px] mx-auto animate-in fade-in-50 duration-300">
+    <div className="w-full animate-in fade-in-50 duration-300">
       {/* Dark overlay when dropdown is open */}
       {isDropdownOpen && (
         <div className="pointer-events-none fixed inset-0 z-60 bg-black/50 transition-opacity animate-in fade-in-0 duration-200" />
