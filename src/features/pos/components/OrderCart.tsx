@@ -17,6 +17,7 @@ import {
   Users,
   Utensils,
   X,
+  Wallet,
 } from "lucide-react";
 
 import { api } from "@/config/api";
@@ -36,7 +37,6 @@ type OrderCartProps = {
   notes: string;
   sentToKitchen: boolean;
   customerCount?: number;
-  isShiftActive?: boolean;
   newItemsCount?: number;
   isExistingOrder?: boolean;
   discountInfo?: {
@@ -46,6 +46,8 @@ type OrderCartProps = {
   } | null;
   onCustomerChange: (value: string) => void;
   onCustomerPhoneChange?: (value: string) => void;
+  onCustomerFound?: () => void;
+  onCustomerSelectionChange?: (isSelected: boolean) => void;
   onNotesChange: (value: string) => void;
   onRemoveItem: (lineId: string) => void;
   onUpdateQty: (lineId: string, delta: number) => void;
@@ -66,11 +68,12 @@ const OrderCart = ({
   sentToKitchen,
   discountInfo,
   customerCount = 0,
-  isShiftActive = true,
   newItemsCount = 0,
   isExistingOrder = false,
   onCustomerChange,
   onCustomerPhoneChange,
+  onCustomerFound,
+  onCustomerSelectionChange,
   onNotesChange,
   onRemoveItem,
   onUpdateQty,
@@ -97,9 +100,6 @@ const OrderCart = ({
       : typeof newItemsCount === "number" && newItemsCount > 0
         ? true
         : !sentToKitchen);
-  const isActionDisabled =
-    isCartEmpty || !isShiftActive || (showSendToKitchen && !selectedTable);
-
   const handleCustomerSearch = async () => {
     const normalized = phoneQuery.replace(/\s+/g, "").trim();
     if (!normalized) return;
@@ -124,13 +124,17 @@ const OrderCart = ({
         setSelectedCustomer(found);
         onCustomerChange(found.name);
         onCustomerPhoneChange?.(found.phone);
+        onCustomerFound?.();
+        onCustomerSelectionChange?.(true);
         setSearchError(null);
       } else {
         setSelectedCustomer(null);
+        onCustomerSelectionChange?.(false);
         setSearchError(t("No customer found with this phone number"));
       }
     } catch (err: any) {
       setSelectedCustomer(null);
+      onCustomerSelectionChange?.(false);
       setSearchError(t("No customer found with this phone number"));
     } finally {
       setIsSearchingCustomer(false);
@@ -165,6 +169,7 @@ const OrderCart = ({
                   setPhoneQuery("");
                   onCustomerChange("");
                   onCustomerPhoneChange?.("");
+                  onCustomerSelectionChange?.(false);
                 }}
                 className="p-0.5 text-black transition-transform duration-150 hover:scale-125 hover:text-[#C90000] active:scale-90 cursor-pointer"
                 aria-label={t("Remove customer")}
@@ -213,18 +218,20 @@ const OrderCart = ({
                   className="h-[46px] w-full rounded-[8px] border border-[#CACBD4] bg-white ps-10 pe-3 text-[14px] text-[#333333] outline-none placeholder:text-[#8B8B8B] focus:border-[#8F6900] focus:ring-0 focus-visible:ring-0 transition-colors"
                 />
               </div>
-              <button
-                type="button"
-                onClick={handleCustomerSearch}
-                disabled={isSearchingCustomer || !phoneQuery.trim()}
-                className="flex h-[46px] items-center justify-center rounded-[8px] bg-[#8F6900] px-3.5 text-[13px] font-semibold text-white transition-all duration-150 hover:bg-[#8F6900]/90 active:scale-95 disabled:opacity-50 cursor-pointer shrink-0"
-              >
-                {isSearchingCustomer ? (
-                  <Loader2 className="size-4 animate-spin text-white" />
-                ) : (
-                  t("Search")
-                )}
-              </button>
+              {phoneQuery.trim() && (
+                <button
+                  type="button"
+                  onClick={handleCustomerSearch}
+                  disabled={isSearchingCustomer}
+                  className="flex h-[46px] shrink-0 items-center justify-center rounded-[8px] bg-[#8F6900] px-3.5 text-[13px] font-semibold text-white transition-colors duration-150 hover:bg-[#8F6900]/90 disabled:opacity-50 cursor-pointer"
+                >
+                  {isSearchingCustomer ? (
+                    <Loader2 className="size-4 animate-spin text-white" />
+                  ) : (
+                    t("Search")
+                  )}
+                </button>
+              )}
             </div>
             {searchError && (
               <p className="text-[11px] font-medium text-[#C90000] px-1">
@@ -334,7 +341,7 @@ const OrderCart = ({
 
                 {item.extras.length > 0 && (
                   <div className="flex flex-col gap-1.5 pt-1">
-                    <div className="rounded-[16px] border border-dashed border-[#8F6900] bg-[#FAFAF7] p-3 space-y-2">
+                    <div className="border-dashed-gold-spaced bg-[#FAFAF7] p-3 space-y-2">
                       {item.extras.map((extra) => (
                         <label
                           key={extra.id}
@@ -388,14 +395,16 @@ const OrderCart = ({
 
         {/* Subtotal, Extras, Tax */}
         <div className="space-y-2 text-[14px]">
-          <div className="flex items-center justify-between">
-            <span className="font-semibold text-[#8B8B8B] leading-[15.40px]">
-              {t("Subtotal")}
-            </span>
-            <span className="font-semibold text-[#23252A] leading-[15.40px]">
-              EGP {totals.subtotal.toFixed(2)}
-            </span>
-          </div>
+          {totals.subtotal > 0 && (
+            <div className="flex items-center justify-between">
+              <span className="font-semibold text-[#8B8B8B] leading-[15.40px]">
+                {t("Subtotal")}
+              </span>
+              <span className="font-semibold text-[#23252A] leading-[15.40px]">
+                EGP {totals.subtotal.toFixed(2)}
+              </span>
+            </div>
+          )}
           {totals.extras > 0 && (
             <div className="flex items-center justify-between">
               <span className="font-semibold text-[#8B8B8B] leading-[15.40px]">
@@ -406,14 +415,16 @@ const OrderCart = ({
               </span>
             </div>
           )}
-          <div className="flex items-center justify-between">
-            <span className="font-semibold text-[#8B8B8B] leading-[15.40px]">
-              {t("Tax (14%)")}
-            </span>
-            <span className="font-semibold text-[#23252A] leading-[15.40px]">
-              EGP {totals.tax.toFixed(2)}
-            </span>
-          </div>
+          {totals.tax > 0 && (
+            <div className="flex items-center justify-between">
+              <span className="font-semibold text-[#8B8B8B] leading-[15.40px]">
+                {t("Tax (14%)")}
+              </span>
+              <span className="font-semibold text-[#23252A] leading-[15.40px]">
+                EGP {totals.tax.toFixed(2)}
+              </span>
+            </div>
+          )}
           {totals.discount != null && totals.discount > 0 && (
             <div className="flex items-center justify-between gap-2">
               <span
@@ -458,11 +469,10 @@ const OrderCart = ({
 
         {/* Action buttons */}
         {showSendToKitchen ? (
-          <div className="flex flex-col gap-2.5">
+          <div className="flex flex-col gap-2.5" data-pos-tour="actions">
             <button
               type="button"
-              className="group flex h-[56px] w-full items-center justify-center gap-3 rounded-[5px] bg-[#8F6900] px-[30px] py-4 text-[16px] font-semibold uppercase leading-6 text-white transition-all duration-200 hover:bg-[#725400] active:scale-[0.98] hover:shadow-xs disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
-              disabled={isActionDisabled}
+              className="group flex h-[56px] w-full items-center justify-center gap-3 rounded-[5px] bg-[#8F6900] px-[30px] py-4 text-[16px] font-semibold uppercase leading-6 text-white transition-all duration-200 hover:bg-[#725400] active:scale-[0.98] hover:shadow-xs cursor-pointer"
               onClick={onSendToKitchen}
             >
               <Utensils className="size-[18px] text-white transition-transform duration-200 group-hover:scale-110" />
@@ -472,36 +482,39 @@ const OrderCart = ({
                   : t("SEND TO KITCHEN")}
               </span>
             </button>
-            <button
-              type="button"
-              className="group flex h-[56px] w-full items-center justify-center gap-2 rounded-[5px] bg-[#F5F0EA] px-2 py-4 text-[12px] font-bold tracking-[0.2px] uppercase leading-6 text-[#8F6900] whitespace-nowrap transition-all duration-200 hover:bg-[#EFE7DC] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none cursor-pointer sm:text-[13px]"
-              disabled={isActionDisabled}
-              onClick={onDeductFromEmployee}
-            >
-              <UserRound className="size-4.5 shrink-0 text-[#8F6900] transition-transform duration-200 group-hover:scale-110" />
-              <span className="whitespace-nowrap">{t("DEDUCT FROM EMPLOYEE ACC.")}</span>
-            </button>
+            {orderType !== "dine-in" && (
+              <button
+                type="button"
+                disabled={Boolean(selectedCustomer)}
+                className="group flex h-[56px] w-full items-center justify-center gap-2 rounded-[5px] bg-[#F5F0EA] px-2 py-4 text-[12px] font-bold tracking-[0.2px] uppercase leading-6 text-[#8F6900] whitespace-nowrap transition-all duration-200 hover:bg-[#EFE7DC] active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 cursor-pointer sm:text-[13px]"
+                onClick={onDeductFromEmployee}
+              >
+                <UserRound className="size-4.5 shrink-0 text-[#8F6900] transition-transform duration-200 group-hover:scale-110" />
+                <span className="whitespace-nowrap">{t("DEDUCT FROM EMPLOYEE ACC.")}</span>
+              </button>
+            )}
           </div>
         ) : (
-          <div className="flex flex-col gap-2.5">
+          <div className="flex flex-col gap-2.5" data-pos-tour="actions">
             <button
               type="button"
-              className="group flex h-[56px] w-full items-center justify-center gap-3 rounded-[5px] bg-[#8F6900] px-[30px] py-4 text-[16px] font-semibold uppercase leading-6 text-white transition-all duration-200 hover:bg-[#725400] active:scale-[0.98] hover:shadow-xs disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
-              disabled={isActionDisabled}
+              className="group flex h-[56px] w-full items-center justify-center gap-3 rounded-[5px] bg-[#8F6900] px-[30px] py-4 text-[16px] font-semibold uppercase leading-6 text-white transition-all duration-200 hover:bg-[#725400] active:scale-[0.98] hover:shadow-xs cursor-pointer"
               onClick={onCheckout}
             >
-              <ShoppingCart className="size-[18px] text-white transition-transform duration-200 group-hover:scale-110" />
+              <Wallet className="size-[18px] text-white transition-transform duration-200 group-hover:scale-110" />
               {t("Checkout")}
             </button>
-            <button
-              type="button"
-              className="group flex h-[56px] w-full items-center justify-center gap-2 rounded-[5px] bg-[#F5F0EA] px-2 py-4 text-[12px] font-bold tracking-[0.2px] uppercase leading-6 text-[#8F6900] whitespace-nowrap transition-all duration-200 hover:bg-[#EFE7DC] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none cursor-pointer sm:text-[13px]"
-              disabled={isActionDisabled}
-              onClick={onDeductFromEmployee}
-            >
-              <UserRound className="size-4.5 shrink-0 text-[#8F6900] transition-transform duration-200 group-hover:scale-110" />
-              <span className="whitespace-nowrap">{t("DEDUCT FROM EMPLOYEE ACC.")}</span>
-            </button>
+            {orderType !== "dine-in" && (
+              <button
+                type="button"
+                disabled={Boolean(selectedCustomer)}
+                className="group flex h-[56px] w-full items-center justify-center gap-2 rounded-[5px] bg-[#F5F0EA] px-2 py-4 text-[12px] font-bold tracking-[0.2px] uppercase leading-6 text-[#8F6900] whitespace-nowrap transition-all duration-200 hover:bg-[#EFE7DC] active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 cursor-pointer sm:text-[13px]"
+                onClick={onDeductFromEmployee}
+              >
+                <UserRound className="size-4.5 shrink-0 text-[#8F6900] transition-transform duration-200 group-hover:scale-110" />
+                <span className="whitespace-nowrap">{t("DEDUCT FROM EMPLOYEE ACC.")}</span>
+              </button>
+            )}
           </div>
         )}
       </div>

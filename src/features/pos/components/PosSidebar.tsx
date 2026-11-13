@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import type { ChangeEvent } from "react";
 import {
   CalendarClock,
   Clock3,
@@ -18,6 +18,7 @@ import type { OrderType } from "../types";
 import type { DropdownSelectOption } from "@/shared/types/DropdownSelect.types";
 import PendingApprovalsWidget from "./PendingApprovalsWidget";
 import PendingRequestsWidget from "./PendingRequestsWidget";
+import PosGuidanceCard from "./PosGuidanceCard";
 import type { DiscountApprovalRequestItem } from "@/features/offers/api/cashierDiscountsApi";
 
 type PosSidebarProps = {
@@ -25,8 +26,10 @@ type PosSidebarProps = {
   selectedTable: string;
   tableOptions?: DropdownSelectOption[] | string[];
   customerCount?: number;
+  guidanceStep?: "shift" | "table" | "products" | null;
   shiftOpen: boolean;
   isTakeawayDisabled?: boolean;
+  isDineInDisabled?: boolean;
   onOrderTypeChange: (value: OrderType) => void;
   onTableChange: (value: string) => void;
   onCustomerCountChange?: (count: number) => void;
@@ -43,9 +46,11 @@ const PosSidebar = ({
   orderType,
   selectedTable,
   tableOptions,
-  customerCount = 1,
+  customerCount = 0,
+  guidanceStep = null,
   shiftOpen,
   isTakeawayDisabled = false,
+  isDineInDisabled = false,
   onOrderTypeChange,
   onTableChange,
   onCustomerCountChange,
@@ -59,15 +64,10 @@ const PosSidebar = ({
 }: PosSidebarProps) => {
   const { t, language, toggleLanguage } = useTranslation();
 
-  const [localCount, setLocalCount] = useState<string>(String(customerCount ?? 0));
+  const localCount = customerCount ? String(customerCount) : "";
 
-  useEffect(() => {
-    setLocalCount(String(customerCount ?? 0));
-  }, [customerCount]);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value.replace(/[^0-9]/g, "");
-    setLocalCount(raw);
     if (raw !== "") {
       const parsed = parseInt(raw, 10);
       onCustomerCountChange?.(parsed);
@@ -78,11 +78,9 @@ const PosSidebar = ({
 
   const handleInputBlur = () => {
     if (localCount === "") {
-      setLocalCount("0");
       onCustomerCountChange?.(0);
     } else {
       const parsed = parseInt(localCount, 10);
-      setLocalCount(String(parsed));
       onCustomerCountChange?.(parsed);
     }
   };
@@ -108,7 +106,9 @@ const PosSidebar = ({
         {/* Order type toggle */}
         <div className="mt-6 flex h-[56px] w-full items-center justify-center gap-[6px] overflow-hidden rounded-[12px] bg-[#F5F0EA] p-1">
           {(["dine-in", "takeaway"] as const).map((type) => {
-            const isDisabled = type === "takeaway" && isTakeawayDisabled;
+            const isDisabled =
+              (type === "takeaway" && isTakeawayDisabled) ||
+              (type === "dine-in" && isDineInDisabled);
             return (
               <button
                 key={type}
@@ -139,6 +139,12 @@ const PosSidebar = ({
           <div className="flex flex-col gap-6">
             {/* Table Number */}
             <div className="flex flex-col gap-2.5">
+              {guidanceStep === "table" && (
+                <PosGuidanceCard
+                  title={t("Table required")}
+                  description={t("Select a dine-in table to continue.")}
+                />
+              )}
               <label className="text-[10px] font-medium text-[#595959]">
                 {t("Table Number")}{" "}
                 <span className="text-[#C90000]">*</span>
@@ -169,7 +175,6 @@ const PosSidebar = ({
                   type="button"
                   onClick={() => {
                     const next = Math.max(0, (customerCount ?? 0) - 1);
-                    setLocalCount(String(next));
                     onCustomerCountChange?.(next);
                   }}
                   className="group/btn flex size-9 shrink-0 items-center justify-center rounded-[8px] bg-[#8F6900] text-white transition-all duration-150 hover:bg-[#725400] active:scale-90 cursor-pointer"
@@ -182,6 +187,7 @@ const PosSidebar = ({
                   inputMode="numeric"
                   pattern="[0-9]*"
                   value={localCount}
+                  placeholder="0"
                   onChange={handleInputChange}
                   onBlur={handleInputBlur}
                   className="flex h-[46px] w-full min-w-0 flex-1 items-center justify-center rounded-[12px] border border-[#E5E5E5] bg-white px-2 text-center text-[16px] font-medium text-[#333333] transition-colors duration-200 outline-none hover:border-[#D4D4D8] focus:border-[#8F6900] focus:ring-1 focus:ring-[#8F6900]"
@@ -191,7 +197,6 @@ const PosSidebar = ({
                   type="button"
                   onClick={() => {
                     const next = (customerCount ?? 0) + 1;
-                    setLocalCount(String(next));
                     onCustomerCountChange?.(next);
                   }}
                   className="group/btn flex size-9 shrink-0 items-center justify-center rounded-[8px] bg-[#8F6900] text-white transition-all duration-150 hover:bg-[#725400] active:scale-90 cursor-pointer"
@@ -213,6 +218,12 @@ const PosSidebar = ({
         <PendingApprovalsWidget className="w-full" />
 
         {/* Open/Close Shift */}
+        {guidanceStep === "shift" && (
+          <PosGuidanceCard
+            title={t("Shift required")}
+            description={t("Open a shift to continue with this order.")}
+          />
+        )}
         <button
           className="group flex h-[40px] w-full items-center justify-center gap-2.5 rounded-[5px] border border-[#8F6900] bg-white px-3 text-[12px] font-semibold leading-6 text-[#8F6900] cursor-pointer whitespace-nowrap transition-all duration-200 hover:bg-[#8F6900]/5 active:scale-98 hover:shadow-xs"
           onClick={onToggleShift}

@@ -14,6 +14,7 @@ import { AvailabilityModal } from "@/features/dashboard/components/AvailabilityM
 import ProductCustomizeDialog from "./components/ProductCustomizeDialog";
 import ProductGrid from "./components/ProductGrid";
 import ReceiptDialog from "./components/ReceiptDialog";
+import PosGuidanceCard from "./components/PosGuidanceCard";
 import SelectStaffDialog, {
   type StaffOrderConfirmationData,
 } from "./components/SelectStaffDialog";
@@ -63,6 +64,8 @@ import {
   type RecipeItem,
 } from "@/features/products/api/recipeApi";
 
+type PosGuidanceStep = "shift" | "table" | "products";
+
 const PosPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -86,6 +89,7 @@ const PosPage = () => {
   const [customerCount, setCustomerCount] = useState(0);
   const [customer, setCustomer] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
+  const [hasSearchedCustomer, setHasSearchedCustomer] = useState(false);
   const [notes, setNotes] = useState("");
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [sentToKitchen, setSentToKitchen] = useState(false);
@@ -99,6 +103,7 @@ const PosPage = () => {
   const [isCloseShiftDialogOpen, setIsCloseShiftDialogOpen] = useState(false);
   const [isTableMenuOpen, setTableMenuOpen] = useState(false);
   const [timeLabel, setTimeLabel] = useState(() => formatTime(new Date()));
+  const [guidanceStep, setGuidanceStep] = useState<PosGuidanceStep | null>(null);
 
   // Active shift is driven by backend GET /pos/shifts/current response
   const isShiftActive = Boolean(currentShift && currentShift.status === "open");
@@ -668,6 +673,45 @@ const PosPage = () => {
     return cartItems.filter((item) => !sentLineIds.has(item.lineId)).length;
   }, [cartItems, loadedOrderId, sentLineIds]);
 
+  const getMissingRequirement = useCallback((): PosGuidanceStep | null => {
+    if (!isShiftActive) return "shift";
+    if (orderType === "dine-in" && !selectedTable) return "table";
+    if (cartItems.length === 0) return "products";
+    return null;
+  }, [cartItems.length, isShiftActive, orderType, selectedTable]);
+
+  const validateOrderRequirements = (
+    action: "send" | "checkout" | "employee",
+  ) => {
+    const missingStep = getMissingRequirement();
+    if (!missingStep) return true;
+
+    const message =
+      missingStep === "shift"
+        ? action === "send"
+          ? t("Please open a shift before sending orders to kitchen")
+          : action === "employee"
+            ? t("Please open a shift before deducting from employee account")
+            : t("Please open a shift before proceeding to checkout")
+        : missingStep === "table"
+          ? action === "send"
+            ? t("Please select a table before sending to kitchen")
+            : t("Please select a table before proceeding")
+          : t("Cart is empty");
+    showErrorToast(message);
+    setGuidanceStep(missingStep);
+    return false;
+  };
+
+  useEffect(() => {
+    if (guidanceStep) {
+      const missingRequirement = getMissingRequirement();
+      if (missingRequirement !== guidanceStep) {
+        setGuidanceStep(missingRequirement);
+      }
+    }
+  }, [getMissingRequirement, guidanceStep]);
+
   // --- Cart mutations -------------------------------------------------------
 
   const removeItem = (lineId: string) =>
@@ -978,18 +1022,7 @@ const PosPage = () => {
   };
 
   const handleSendToKitchen = async () => {
-    if (!isShiftActive) {
-      showErrorToast(t("Please open a shift before sending orders to kitchen"));
-      setIsOpenShiftDialogOpen(true);
-      return;
-    }
-
-    if (cartItems.length === 0) return;
-
-    if (orderType === "dine-in" && !selectedTable) {
-      showErrorToast(t("Please select a table before sending to kitchen"));
-      return;
-    }
+    if (!validateOrderRequirements("send")) return;
 
     if (loadedOrderId) {
       const newItems = cartItems.filter((item) => !sentLineIds.has(item.lineId));
@@ -1037,16 +1070,7 @@ const PosPage = () => {
   };
 
   const handleCheckout = async () => {
-    if (!isShiftActive) {
-      showErrorToast(t("Please open a shift before proceeding to checkout"));
-      setIsOpenShiftDialogOpen(true);
-      return;
-    }
-
-    if (cartItems.length === 0) {
-      showErrorToast(t("Cart is empty"));
-      return;
-    }
+    if (!validateOrderRequirements("checkout")) return;
 
     // 1. Only check pending discount requests if an existing order is loaded (not a brand-new order)
     if (loadedOrderId) {
@@ -1331,12 +1355,7 @@ const PosPage = () => {
   const confirmStaffOrder = async (data: StaffOrderConfirmationData) => {
     setSelectStaffOpen(false);
 
-    if (cartItems.length === 0) return;
-
-    if (orderType === "dine-in" && !selectedTable) {
-      showErrorToast(t("Please select a table before proceeding"));
-      return;
-    }
+    if (!validateOrderRequirements("checkout")) return;
 
     // Creates a real order billed to the selected staff member's account
     // (billedToStaffId, distinct from staffId which just records who rang
@@ -1449,6 +1468,11 @@ const PosPage = () => {
     } else {
       setSentToKitchen(false);
     }
+  };
+
+  const handleDeductFromEmployee = () => {
+    if (!validateOrderRequirements("employee")) return;
+    setSelectStaffOpen(true);
   };
 
   const payEmployeeAccount = (account: EmployeeAccount) => {
@@ -1714,8 +1738,10 @@ const PosPage = () => {
             selectedTable={selectedTable}
             tableOptions={tableOptions}
             customerCount={customerCount}
+            guidanceStep={guidanceStep}
             shiftOpen={isShiftActive}
             isTakeawayDisabled={Boolean(loadedOrderId && orderType === "dine-in")}
+            isDineInDisabled={hasSearchedCustomer}
             onOrderTypeChange={handleOrderTypeChange}
             onTableChange={handleTableChange}
             onCustomerCountChange={setCustomerCount}
@@ -1746,12 +1772,13 @@ const PosPage = () => {
             notes={notes}
             sentToKitchen={sentToKitchen}
             customerCount={customerCount}
-            isShiftActive={isShiftActive}
             newItemsCount={newItemsCount}
             isExistingOrder={Boolean(loadedOrderId)}
             discountInfo={appliedDiscountInfo}
             onCustomerChange={setCustomer}
             onCustomerPhoneChange={setCustomerPhone}
+            onCustomerFound={() => handleOrderTypeChange("takeaway")}
+            onCustomerSelectionChange={setHasSearchedCustomer}
             onNotesChange={setNotes}
             onRemoveItem={removeItem}
             onUpdateQty={updateQty}
@@ -1759,7 +1786,7 @@ const PosPage = () => {
             onEditItem={openEdit}
             onSendToKitchen={handleSendToKitchen}
             onCheckout={handleCheckout}
-            onDeductFromEmployee={() => setSelectStaffOpen(true)}
+            onDeductFromEmployee={handleDeductFromEmployee}
           />
         }
       >
@@ -1768,6 +1795,14 @@ const PosPage = () => {
           activeCategory={activeCategory}
           onCategoryChange={setActiveCategory}
         />
+        {guidanceStep === "products" && (
+          <div className="mt-5">
+            <PosGuidanceCard
+              title={t("Products required")}
+              description={t("Add at least one product to the order to continue.")}
+            />
+          </div>
+        )}
         <div className="mt-5">
           <ProductGrid
             products={filteredProducts}
@@ -1844,6 +1879,7 @@ const PosPage = () => {
 
       <SelectStaffDialog
         open={isSelectStaffOpen}
+        orderType={orderType}
         onOpenChange={setSelectStaffOpen}
         onConfirm={confirmStaffOrder}
       />

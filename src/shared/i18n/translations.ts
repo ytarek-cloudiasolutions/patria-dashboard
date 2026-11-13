@@ -1270,8 +1270,27 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   "Employees accounts": "حسابات الموظفين",
   "Close Register": "إغلاق الصندوق",
   "Back to Dashboard": "العودة للوحة التحكم",
-  "Search products by name or SKU...": "ابحث عن المنتجات بالاسم أو الرمز...",
+  "Search products by name or SKU…": "ابحث عن المنتجات بالاسم أو الرمز...",
   Cashier: "الكاشير",
+  "Shift required": "الوردية مطلوبة",
+  "Open a shift to continue with this order.":
+    "افتح وردية للمتابعة بهذا الطلب.",
+  "Table required": "الطاولة مطلوبة",
+  "Select a dine-in table to continue.":
+    "اختر طاولة لتناول الطعام للمتابعة.",
+  "Products required": "المنتجات مطلوبة",
+  "Add at least one product to the order to continue.":
+    "أضف منتجاً واحداً على الأقل للطلب للمتابعة.",
+  "Please open a shift before sending orders to kitchen":
+    "يرجى فتح وردية قبل إرسال الطلبات إلى المطبخ",
+  "Please open a shift before proceeding to checkout":
+    "يرجى فتح وردية قبل إتمام الدفع",
+  "Please open a shift before deducting from employee account":
+    "يرجى فتح وردية قبل الخصم من حساب الموظف",
+  "Please select a table before sending to kitchen":
+    "يرجى اختيار طاولة قبل إرسال الطلب إلى المطبخ",
+  "Please select a table before proceeding":
+    "يرجى اختيار طاولة قبل المتابعة",
 
   // POS — categories
   Drinks: "المشروبات",

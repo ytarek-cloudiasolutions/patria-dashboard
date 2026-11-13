@@ -17,15 +17,16 @@ const PosTopbar = ({ search, timeLabel, onSearchChange, onAvailabilityClick }: P
 
   const staffName = user?.name || "Mariam";
   const staffRole = user?.role || "Staff";
-  const staffLabel = `${staffName} · ${staffRole}`;
+  const capitalizedRole = `${staffRole.charAt(0).toUpperCase()}${staffRole.slice(1)}`;
+  const staffLabel = `${staffName} · ${capitalizedRole}`;
 
   return (
-    <header className="flex h-[74px] shrink-0 items-center justify-between gap-5 bg-white px-4 sm:px-6">
-      <div className="max-w-[460px] flex-1">
+    <header className="flex h-[74px] shrink-0 items-center justify-between gap-3 bg-white px-4 sm:px-6">
+      <div className="max-w-[600px] min-w-0 flex-1 [&_input]:text-[14px]">
         <SearchInputField
           value={search}
           onChange={onSearchChange}
-          placeholder={t("Search products by name or SKU...")}
+          placeholder={t("Search products by name or SKU…")}
         />
       </div>
 
@@ -40,7 +41,7 @@ const PosTopbar = ({ search, timeLabel, onSearchChange, onAvailabilityClick }: P
           data-trailing-icon="False"
           data-type="Secondary"
           onClick={onAvailabilityClick}
-          className="group h-10 px-6 py-3 bg-[#F5F0EA] rounded-[5px] inline-flex justify-center items-center gap-3 cursor-pointer transition-all duration-200 hover:shadow-xs active:scale-95"
+          className="group h-10 px-4 py-3 bg-[#F5F0EA] rounded-[5px] inline-flex justify-center items-center gap-2 cursor-pointer transition-all duration-200 hover:shadow-xs active:scale-95"
         >
           <SlidersHorizontal className="size-4 text-[#8F6900] transition-transform duration-200 group-hover:rotate-12" />
           <span className="text-[#8F6900] text-sm font-semibold font-['Montserrat'] leading-6">
@@ -49,7 +50,7 @@ const PosTopbar = ({ search, timeLabel, onSearchChange, onAvailabilityClick }: P
         </button>
 
         {/* Clock Badge */}
-        <div className="flex h-[46px] items-center justify-center gap-3 rounded-[16px] border border-[#E5E5E5] bg-[#FAFAF7] px-6 transition-all duration-200 hover:border-[#D4D4D8] hover:shadow-xs">
+        <div className="flex h-[46px] items-center justify-center gap-2 rounded-[16px] border border-[#E5E5E5] bg-[#FAFAF7] px-4 transition-all duration-200 hover:border-[#D4D4D8] hover:shadow-xs">
           <Clock className="size-6 text-black stroke-[1.75]" />
           <span className="text-[14px] font-bold tracking-wide text-black">
             {timeLabel}

@@ -9,11 +9,12 @@ export const formatEgp = (value: number) => `EGP ${value.toFixed(2)}`;
 export const formatEgpAmount = (value: number) =>
   Number.isInteger(value) ? value.toFixed(0) : value.toFixed(2);
 
-/** "10:43 PM" — 12-hour clock used in the POS topbar. */
+/** "22:43:15" — 24-hour clock with seconds used in the POS topbar. */
 export const formatTime = (date: Date) =>
-  date.toLocaleTimeString("en-US", {
+  date.toLocaleTimeString("en-GB", {
     hour: "2-digit",
     minute: "2-digit",
+    second: "2-digit",
   });
 
 /** Price of a single unit including its selected extras. */

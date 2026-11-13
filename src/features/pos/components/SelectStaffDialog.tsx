@@ -12,7 +12,7 @@ import { Input } from "@/shared/components/ui/input";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { useAuth } from "@/features/auth";
 import { STAFF_MEMBERS } from "../data";
-import type { StaffMember } from "../types";
+import type { OrderType, StaffMember } from "../types";
 import SuperAdminApprovalDialog from "./SuperAdminApprovalDialog";
 
 export interface StaffOrderConfirmationData {
@@ -30,12 +30,14 @@ export interface StaffOrderConfirmationData {
 
 type SelectStaffDialogProps = {
   open: boolean;
+  orderType: OrderType;
   onOpenChange: (open: boolean) => void;
   onConfirm: (data: StaffOrderConfirmationData) => void;
 };
 
 const SelectStaffDialog = ({
   open,
+  orderType,
   onOpenChange,
   onConfirm,
 }: SelectStaffDialogProps) => {
@@ -322,7 +324,9 @@ const SelectStaffDialog = ({
               }
               className="h-[50px] min-w-[150px] px-6 rounded-[5px] bg-[#8F6900] text-[16px] font-semibold text-white active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {t("Confirm Order")}
+              {orderType === "dine-in"
+                ? t("Send to Kitchen")
+                : t("Confirm Order")}
             </Button>
           </div>
         </DialogContent>

@@ -91,14 +91,14 @@ const ProductGrid = ({
                   </div>
                   <button
                     type="button"
-                    className="group/btn flex size-9 shrink-0 items-center justify-center rounded-[5.71px] bg-[#8F6900] p-2.5 text-white transition-all duration-150 hover:bg-[#725400] hover:scale-110 active:scale-90 cursor-pointer"
+                    className="group/btn flex size-9 shrink-0 items-center justify-center rounded-[5.71px] bg-[#8F6900] p-2.5 text-white transition-colors duration-150 hover:bg-[#725400] active:scale-95 cursor-pointer"
                     aria-label={`${t("Add")} ${product.name}`}
                     onClick={(event) => {
                       event.stopPropagation();
                       onSelectProduct(product);
                     }}
                   >
-                    <Plus className="size-4 text-white transition-transform duration-200 group-hover/btn:rotate-90" />
+                    <Plus className="size-4 text-white" />
                   </button>
                 </div>
                 {isInCart && (
