@@ -324,6 +324,8 @@ export const mapOrder = (o: any): Order => {
     discount: o.discountAmount || o.discount || 0,
     discountType: o.discountType || undefined,
     discountValue: o.discountValue ?? undefined,
+    discountSource: o.discountSource ?? null,
+    appDiscount: Number(o.appDiscount) || 0,
     deliveryFee: o.deliveryFee || 0,
     tax: o.tax || 0,
     status: mapOrderStatus(o.status, resolvedSource),

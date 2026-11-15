@@ -69,6 +69,8 @@ export interface Order {
   discount: number;
   discountType?: "fixed" | "percentage";
   discountValue?: number;
+  discountSource?: "manual" | "coupon" | "offer" | "mixed" | null;
+  appDiscount?: number;
   /** Coupon/discount code typed in the call-center "New Order" wizard, forwarded to the backend for real validation+application. */
   discountCode?: string;
   deliveryFee: number;

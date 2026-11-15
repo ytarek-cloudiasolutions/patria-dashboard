@@ -128,27 +128,51 @@ const OrderDetailsDialog = ({
     return formatCurrency(effectiveDiscount);
   };
 
-  // A manually-applied discount (right here, via "Administrative discount
-  // application" below) always overrides discountSource to "manual" on the
-  // backend the moment it's used, regardless of what the order started
-  // with — so once adminDiscount is set in THIS session, the label should
-  // say so immediately rather than waiting for a refetch. Otherwise fall
-  // back to whatever the backend order already says (an app-side coupon
-  // or auto-applied offer, or nothing if the order predates this field).
-  const discountSourceLabel = (() => {
-    if (adminDiscount > 0) {
-      return (rawOrder.appDiscount ?? 0) > 0
-        ? t("App discount + administrative discount")
-        : t("Administrative discount");
-    }
-    switch (rawOrder.discountSource) {
-      case "manual": return t("Administrative discount");
-      case "mixed":  return t("App discount + administrative discount");
-      case "coupon": return t("App discount (coupon)");
-      case "offer":  return t("App discount (offer)");
-      default:       return t("Discount");
-    }
-  })();
+  const promoDiscountAmount = Number(rawOrder.appDiscount) || 0;
+  const isPromoDiscount =
+    rawOrder.discountSource === "coupon" || rawOrder.discountSource === "offer";
+  const isAdminDiscount =
+    adminDiscount > 0 ||
+    rawOrder.discountSource === "manual" ||
+    rawOrder.discountSource === "mixed";
+  const discountBreakdown: {
+    label: string;
+    amount: number;
+    displayLabel: string;
+    displayAmount: string;
+  }[] = [];
+
+  if (promoDiscountAmount > 0) {
+    discountBreakdown.push({
+      label: "Promo Discount",
+      displayLabel: t("Promo Discount"),
+      amount: promoDiscountAmount,
+      displayAmount: formatCurrency(promoDiscountAmount),
+    });
+  }
+  if (isAdminDiscount && effectiveDiscount > 0) {
+    discountBreakdown.push({
+      label: "Admin Discount",
+      displayLabel: t("Admin Discount"),
+      amount: effectiveDiscount,
+      displayAmount: getDiscountDisplayText(),
+    });
+  } else if (isPromoDiscount && effectiveDiscount > 0 && promoDiscountAmount === 0) {
+    discountBreakdown.push({
+      label: "Promo Discount",
+      displayLabel: t("Promo Discount"),
+      amount: effectiveDiscount,
+      displayAmount: getDiscountDisplayText(),
+    });
+  }
+  if (discountBreakdown.length === 0 && effectiveDiscount > 0) {
+    discountBreakdown.push({
+      label: "Discount",
+      displayLabel: t("Discount"),
+      amount: effectiveDiscount,
+      displayAmount: getDiscountDisplayText(),
+    });
+  }
 
   const displayId = order.orderId || order.id;
   // gross = subtotal + tax, computed the same way the backend computes it —
@@ -319,8 +343,9 @@ const OrderDetailsDialog = ({
       paymentMethod: order.paymentMethod,
       status: order.paymentState || "paid",
       subtotal: order.subtotal,
-      discount: effectiveDiscount,
+      discount: discountBreakdown.reduce((sum, line) => sum + line.amount, 0),
       discountName: effectiveDiscount > 0 ? getDiscountDisplayText() : undefined,
+      discountLines: discountBreakdown.map(({ label, amount }) => ({ label, amount })),
       deliveryFee: order.deliveryFee,
       tax: (order as any).tax || (rawOrder as any).tax,
       total: finalTotal,
@@ -592,14 +617,19 @@ const OrderDetailsDialog = ({
                   </div>
                 )}
 
-                {effectiveDiscount > 0 && (
-                  <div className="flex items-center justify-between text-[#059B5A]">
-                    <span className="font-medium leading-[17.60px]">{discountSourceLabel}:</span>
+                {discountBreakdown.map((discountLine) => (
+                  <div
+                    key={discountLine.label}
+                    className="flex items-center justify-between text-[#059B5A]"
+                  >
+                    <span className="font-medium leading-[17.60px]">
+                      {discountLine.displayLabel}:
+                    </span>
                     <span className="font-semibold tracking-[0.32px]">
-                      {getDiscountDisplayText()}
+                      {discountLine.displayAmount}
                     </span>
                   </div>
-                )}
+                ))}
 
                 {order.deliveryFee > 0 && (
                   <div className="flex items-center justify-between text-[#23252A]">

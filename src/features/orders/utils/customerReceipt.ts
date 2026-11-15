@@ -28,6 +28,7 @@ export interface CustomerReceiptData {
   extras?: number;
   discount?: number;
   discountName?: string;
+  discountLines?: { label: string; amount: number }[];
   tax?: number;
   deliveryFee?: number;
   total: number;
@@ -171,6 +172,14 @@ export function generateCustomerReceiptHtml(data: CustomerReceiptData): string {
   const statusLabel = isPaid ? "✓ Paid" : "Unpaid";
 
   const discountVal = data.discount || 0;
+  const discountLines = data.discountLines?.length
+    ? data.discountLines.filter((line) => line.amount > 0)
+    : discountVal > 0
+      ? [{
+          label: `Discount ${data.discountName ? `(${data.discountName})` : ""}`,
+          amount: discountVal,
+        }]
+      : [];
   const deliveryFeeVal = data.deliveryFee || 0;
   const extrasVal = data.extras || 0;
   const rawTax =
@@ -529,15 +538,15 @@ export function generateCustomerReceiptHtml(data: CustomerReceiptData): string {
       </div>`
         : ""
     }
-    ${
-      discountVal > 0
-        ? `
+    ${discountLines
+      .map(
+        (line) => `
       <div class="total-row">
-        <span>Discount ${data.discountName ? `(${data.discountName})` : ""}</span>
-        <span>-EGP ${discountVal.toFixed(2)}</span>
-      </div>`
-        : ""
-    }
+        <span>${line.label}</span>
+        <span>-EGP ${line.amount.toFixed(2)}</span>
+      </div>`,
+      )
+      .join("")}
     ${
       deliveryFeeVal > 0
         ? `

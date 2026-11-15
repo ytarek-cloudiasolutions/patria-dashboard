@@ -66,6 +66,14 @@ import {
 
 type PosGuidanceStep = "shift" | "table" | "products";
 
+type PosReceiptPricing = {
+  subtotal?: number;
+  extras?: number;
+  tax?: number;
+  discount?: number;
+  total?: number;
+};
+
 const PosPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -1196,13 +1204,14 @@ const PosPage = () => {
     method: string = "cash",
     finalTotal: number = totals.total,
     discountInfo?: { name: string; value: number; discountAmount: number } | null,
-    mode: "order" | "payment" = "payment"
+    mode: "order" | "payment" = "payment",
+    receiptPricing?: PosReceiptPricing,
   ) => {
     const generatedNum = `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
     setOrderNumber(generatedNum);
     setOrderConfirmedData({
       orderNumber: generatedNum,
-      totalAmount: finalTotal,
+      totalAmount: receiptPricing?.total ?? finalTotal,
       customerName: customer || "Walk-in Customer",
       customerPhone: customerPhone || undefined,
       orderType,
@@ -1212,10 +1221,14 @@ const PosPage = () => {
       guestCount: customerCount,
       mode,
       notes: notes || undefined,
-      subtotal: totals.subtotal,
-      extras: totals.extras,
-      tax: totals.tax,
-      discount: discountInfo?.discountAmount ?? totals.discount ?? 0,
+      subtotal: receiptPricing?.subtotal ?? totals.subtotal,
+      extras: receiptPricing?.extras ?? totals.extras,
+      tax: receiptPricing?.tax ?? totals.tax,
+      discount:
+        receiptPricing?.discount ??
+        discountInfo?.discountAmount ??
+        totals.discount ??
+        0,
       discountName: discountInfo?.name ?? (appliedDiscountInfo?.name ? `${appliedDiscountInfo.value}% ${appliedDiscountInfo.name}` : undefined),
     });
     if (discountInfo) {
@@ -1255,25 +1268,59 @@ const PosPage = () => {
     // estimate so the receipt and the shift tape always match what was
     // actually charged.
     const resolveFromServerOrder = (
-      resp: any
+      resp: any,
+      fallbackResp?: any,
     ): {
       total: number;
       discountInfo?: { name: string; value: number; discountAmount: number };
+      receiptPricing: PosReceiptPricing;
     } => {
-      const o = resp?.order || resp?.data?.order || resp?.data || resp;
-      const serverTotal = Number(o?.total);
-      const serverDiscountAmt = Number(o?.discountAmount);
-      const hasServerTotal = Number.isFinite(serverTotal) && serverTotal >= 0;
-      const hasServerDiscount = Number.isFinite(serverDiscountAmt) && serverDiscountAmt > 0;
+      const unwrapOrder = (response: any) =>
+        response?.order || response?.data?.order || response?.data || response;
+      const fallbackOrder = fallbackResp ? unwrapOrder(fallbackResp) : {};
+      const o = { ...fallbackOrder, ...unwrapOrder(resp) };
+      const readAmount = (value: unknown): number | undefined => {
+        if (value === null || value === undefined || value === "") return undefined;
+        const amount = Number(value);
+        return Number.isFinite(amount) ? amount : undefined;
+      };
+      const responseExtras = readAmount(o?.extras);
+      const itemExtras = Array.isArray(o?.items)
+        ? o.items.reduce((sum: number, item: any) => {
+            const lineExtras = Array.isArray(item?.selectedExtras)
+              ? item.selectedExtras.reduce(
+                  (lineSum: number, extra: any) =>
+                    lineSum + (readAmount(extra?.price) ?? 0),
+                  0,
+                )
+              : 0;
+            return sum + lineExtras * (readAmount(item?.quantity) ?? 1);
+          }, 0)
+        : undefined;
+      const serverTotal = readAmount(o?.total);
+      const serverDiscountAmt = readAmount(o?.discountAmount);
+      const hasServerTotal = serverTotal !== undefined && serverTotal >= 0;
+      const hasServerDiscount =
+        serverDiscountAmt !== undefined && serverDiscountAmt > 0;
       return {
         total: hasServerTotal ? serverTotal : clientTotal,
+        receiptPricing: {
+          subtotal: readAmount(o?.subtotal),
+          extras: responseExtras ?? itemExtras,
+          tax: readAmount(o?.tax),
+          discount: readAmount(o?.discountAmount ?? o?.discount),
+          total: readAmount(o?.total),
+        },
         discountInfo: hasServerDiscount
           ? {
               name:
                 discountInfo?.name ||
                 o?.discountReason ||
                 t("Discount"),
-              value: Number(o?.discountValue) || discountInfo?.value || 0,
+              value:
+                readAmount(o?.discountValue) ??
+                discountInfo?.value ??
+                0,
               discountAmount: serverDiscountAmt,
             }
           : discountInfo,
@@ -1285,14 +1332,18 @@ const PosPage = () => {
       setPendingCreatePayload({ method });
       try {
         const payResp = await payOrder(loadedOrderId, method);
-        const { total: finalTotal, discountInfo: receiptDiscount } =
+        const {
+          total: finalTotal,
+          discountInfo: receiptDiscount,
+          receiptPricing,
+        } =
           resolveFromServerOrder(payResp);
         setLoadedOrderId(null);
         setPendingCreatePayload(null);
         setPaymentOpen(false);
         setShiftOrders((prev) => [...prev, { method, total: finalTotal }]);
         showSuccessToast("Payment confirmed");
-        finishWithReceipt(method, finalTotal, receiptDiscount);
+        finishWithReceipt(method, finalTotal, receiptDiscount, "payment", receiptPricing);
       } catch (err: any) {
         setPendingCreatePayload(null);
         const errMsg =
@@ -1334,14 +1385,18 @@ const PosPage = () => {
       if (createdId) {
         payResp = await payOrder(createdId, method);
       }
-      const { total: finalTotal, discountInfo: receiptDiscount } =
-        resolveFromServerOrder(payResp);
+      const {
+        total: finalTotal,
+        discountInfo: receiptDiscount,
+        receiptPricing,
+      } =
+        resolveFromServerOrder(payResp, created);
 
       setPendingCreatePayload(null);
       setPaymentOpen(false);
       setShiftOrders((prev) => [...prev, { method, total: finalTotal }]);
       showSuccessToast("Payment confirmed");
-      finishWithReceipt(method, finalTotal, receiptDiscount);
+      finishWithReceipt(method, finalTotal, receiptDiscount, "payment", receiptPricing);
     } catch (err: any) {
       setPendingCreatePayload(null);
       const errMsg =

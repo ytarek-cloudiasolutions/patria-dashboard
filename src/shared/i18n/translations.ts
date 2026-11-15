@@ -1485,6 +1485,8 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   "Add products to cart": "أضف المنتجات إلى السلة",
   "Administrative discount application": "تطبيق خصم إداري",
   "Administrative discount": "خصم إداري",
+  "Admin Discount": "خصم إداري",
+  "Promo Discount": "خصم ترويجي",
   "App discount (coupon)": "خصم تطبيق (كوبون)",
   "App discount (offer)": "خصم تطبيق (عرض)",
   "Apply Discount": "تطبيق الخصم",

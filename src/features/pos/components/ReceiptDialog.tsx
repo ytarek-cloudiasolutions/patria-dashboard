@@ -156,6 +156,10 @@ const ReceiptDialog = ({
               <span>{formatEgp(totals.extras)}</span>
             </div>
           )}
+          <div className="flex justify-between">
+            <span>{t("Tax (14%)")}</span>
+            <span>{formatEgp(totals.tax)}</span>
+          </div>
           {discountAmt > 0 && (
             <div className="flex justify-between text-[#C90000] font-semibold">
               <span>
@@ -165,10 +169,6 @@ const ReceiptDialog = ({
               <span>-{formatEgp(discountAmt)}</span>
             </div>
           )}
-          <div className="flex justify-between">
-            <span>{t("Tax (14%)")}</span>
-            <span>{formatEgp(totals.tax)}</span>
-          </div>
 
           <Divider />
 
