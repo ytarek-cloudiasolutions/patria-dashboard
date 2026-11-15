@@ -43,6 +43,7 @@ interface RawOrder {
   discount?: number;
   discountType?: "fixed" | "percentage";
   discountValue?: number;
+  discountSource?: "manual" | "coupon" | "offer" | null;
   customer?: {
     region?: { name?: string } | string;
     zone?: { name?: string } | string;
@@ -125,6 +126,23 @@ const OrderDetailsDialog = ({
     }
     return formatCurrency(effectiveDiscount);
   };
+
+  // A manually-applied discount (right here, via "Administrative discount
+  // application" below) always overrides discountSource to "manual" on the
+  // backend the moment it's used, regardless of what the order started
+  // with — so once adminDiscount is set in THIS session, the label should
+  // say so immediately rather than waiting for a refetch. Otherwise fall
+  // back to whatever the backend order already says (an app-side coupon
+  // or auto-applied offer, or nothing if the order predates this field).
+  const discountSourceLabel = (() => {
+    if (adminDiscount > 0) return t("Administrative discount");
+    switch (rawOrder.discountSource) {
+      case "manual": return t("Administrative discount");
+      case "coupon": return t("App discount (coupon)");
+      case "offer":  return t("App discount (offer)");
+      default:       return t("Discount");
+    }
+  })();
 
   const displayId = order.orderId || order.id;
   // gross = subtotal + tax, computed the same way the backend computes it —
@@ -570,7 +588,7 @@ const OrderDetailsDialog = ({
 
                 {effectiveDiscount > 0 && (
                   <div className="flex items-center justify-between text-[#059B5A]">
-                    <span className="font-medium leading-[17.60px]">{t("Discount")}:</span>
+                    <span className="font-medium leading-[17.60px]">{discountSourceLabel}:</span>
                     <span className="font-semibold tracking-[0.32px]">
                       {getDiscountDisplayText()}
                     </span>
