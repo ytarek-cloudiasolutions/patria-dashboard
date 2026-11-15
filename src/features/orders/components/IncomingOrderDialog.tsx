@@ -109,6 +109,18 @@ const IncomingOrderDialog = ({ order, isConfirming, onConfirm, onClose }: Incomi
                 <span>{t("Tax (14%)")}</span>
                 <span dir="ltr">{formatEgp(order.tax)}</span>
               </div>
+              {order.groupOfferDiscount > 0 && (
+                <div className="flex items-center justify-between text-[#059B5A]">
+                  <span>{t("App discount (offer)")}</span>
+                  <span dir="ltr">-{formatEgp(order.groupOfferDiscount)}</span>
+                </div>
+              )}
+              {order.deliveryFee > 0 && (
+                <div className="flex items-center justify-between">
+                  <span>{t("Delivery Fee")}</span>
+                  <span dir="ltr">{formatEgp(order.deliveryFee)}</span>
+                </div>
+              )}
             </div>
           )}
 

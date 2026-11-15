@@ -17,6 +17,8 @@ export interface IncomingOrder {
   items: { name: string; quantity: number; price: number }[];
   subtotal: number;
   tax: number;
+  deliveryFee: number;
+  groupOfferDiscount: number;
   total: number;
 }
 
@@ -38,6 +40,8 @@ const mapIncomingOrder = (raw: any): IncomingOrder | null => {
     })),
     subtotal: raw.subtotal || 0,
     tax: raw.tax || 0,
+    deliveryFee: raw.deliveryFee || 0,
+    groupOfferDiscount: raw.groupOfferDiscount || 0,
     total: raw.total || 0,
   };
 };

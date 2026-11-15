@@ -43,7 +43,8 @@ interface RawOrder {
   discount?: number;
   discountType?: "fixed" | "percentage";
   discountValue?: number;
-  discountSource?: "manual" | "coupon" | "offer" | null;
+  discountSource?: "manual" | "coupon" | "offer" | "mixed" | null;
+  appDiscount?: number;
   customer?: {
     region?: { name?: string } | string;
     zone?: { name?: string } | string;
@@ -135,9 +136,14 @@ const OrderDetailsDialog = ({
   // back to whatever the backend order already says (an app-side coupon
   // or auto-applied offer, or nothing if the order predates this field).
   const discountSourceLabel = (() => {
-    if (adminDiscount > 0) return t("Administrative discount");
+    if (adminDiscount > 0) {
+      return (rawOrder.appDiscount ?? 0) > 0
+        ? t("App discount + administrative discount")
+        : t("Administrative discount");
+    }
     switch (rawOrder.discountSource) {
       case "manual": return t("Administrative discount");
+      case "mixed":  return t("App discount + administrative discount");
       case "coupon": return t("App discount (coupon)");
       case "offer":  return t("App discount (offer)");
       default:       return t("Discount");
