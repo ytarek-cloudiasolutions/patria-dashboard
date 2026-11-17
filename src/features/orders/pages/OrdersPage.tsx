@@ -212,6 +212,7 @@ const OrdersPage = () => {
     socket.on("connect", handleOrderChange);
     socket.on("newOrder", handleNewOrder);
     socket.on("orderUpdated", handleOrderChange);
+    socket.on("orderStatusUpdated", handleOrderChange);
     socket.on("orderDiscountUpdated", handleOrderChange);
 
     return () => {
@@ -219,6 +220,7 @@ const OrdersPage = () => {
       socket.off("connect", handleOrderChange);
       socket.off("newOrder", handleNewOrder);
       socket.off("orderUpdated", handleOrderChange);
+      socket.off("orderStatusUpdated", handleOrderChange);
       socket.off("orderDiscountUpdated", handleOrderChange);
     };
   }, [buildOrdersQuery, getOrdersList, refreshSourceCounts]);
