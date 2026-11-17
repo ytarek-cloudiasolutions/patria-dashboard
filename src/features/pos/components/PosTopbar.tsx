@@ -1,4 +1,4 @@
-import { Clock, UserRound, SlidersHorizontal } from "lucide-react";
+import { Clock, Globe, UserRound, SlidersHorizontal } from "lucide-react";
 
 import SearchInputField from "@/shared/components/SearchInputField";
 import { useTranslation } from "@/shared/i18n/useTranslation";
@@ -12,7 +12,7 @@ type PosTopbarProps = {
 };
 
 const PosTopbar = ({ search, timeLabel, onSearchChange, onAvailabilityClick }: PosTopbarProps) => {
-  const { t } = useTranslation();
+  const { t, language, toggleLanguage } = useTranslation();
   const { user } = useAuth();
 
   const staffName = user?.name || "Mariam";
@@ -71,6 +71,18 @@ const PosTopbar = ({ search, timeLabel, onSearchChange, onAvailabilityClick }: P
             </p>
           </div>
         </div>
+
+        {/* Language toggle */}
+        <button
+          type="button"
+          onClick={toggleLanguage}
+          aria-label={language === "en" ? "Switch to Arabic" : "Switch to English"}
+          title={language === "en" ? "Switch to Arabic" : "Switch to English"}
+          className="group flex size-12 shrink-0 items-center justify-center gap-1 rounded-full bg-[#FAFAF7] text-[14px] font-bold text-black transition-all duration-200 hover:bg-[#F2F1EC] hover:shadow-2xs active:scale-95"
+        >
+          <Globe className="size-[18px] transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110" />
+          <span>{language === "en" ? "ع" : "A"}</span>
+        </button>
       </div>
     </header>
   );
