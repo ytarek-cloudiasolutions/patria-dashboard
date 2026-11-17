@@ -57,6 +57,18 @@ const PosTopbar = ({ search, timeLabel, onSearchChange, onAvailabilityClick }: P
           </span>
         </div>
 
+        {/* Language toggle */}
+        <button
+          type="button"
+          onClick={toggleLanguage}
+          aria-label={language === "en" ? "Switch to Arabic" : "Switch to English"}
+          title={language === "en" ? "Switch to Arabic" : "Switch to English"}
+          className="group flex size-12 shrink-0 items-center justify-center gap-1 rounded-full bg-[#FAFAF7] text-[14px] font-bold text-black transition-all duration-200 hover:bg-[#F2F1EC] hover:shadow-2xs active:scale-95"
+        >
+          <Globe className="size-[18px] transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110" />
+          <span>{language === "en" ? "ع" : "A"}</span>
+        </button>
+
         {/* Cashier Badge */}
         <div className="group flex items-center gap-[13px] cursor-default">
           <div className="flex size-[36px] items-center justify-center rounded-full bg-[#8F6900] transition-transform duration-200 group-hover:scale-105">
@@ -71,18 +83,6 @@ const PosTopbar = ({ search, timeLabel, onSearchChange, onAvailabilityClick }: P
             </p>
           </div>
         </div>
-
-        {/* Language toggle */}
-        <button
-          type="button"
-          onClick={toggleLanguage}
-          aria-label={language === "en" ? "Switch to Arabic" : "Switch to English"}
-          title={language === "en" ? "Switch to Arabic" : "Switch to English"}
-          className="group flex size-12 shrink-0 items-center justify-center gap-1 rounded-full bg-[#FAFAF7] text-[14px] font-bold text-black transition-all duration-200 hover:bg-[#F2F1EC] hover:shadow-2xs active:scale-95"
-        >
-          <Globe className="size-[18px] transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110" />
-          <span>{language === "en" ? "ع" : "A"}</span>
-        </button>
       </div>
     </header>
   );
