@@ -866,11 +866,18 @@ const PosPage = () => {
   const formatOrderItems = (items: CartItem[]) =>
     items.map((item) => {
       const activeExtras = (item.extras || []).filter((e) => e.selected);
+      // item.unitPrice is the base/variant price only (see
+      // ProductCustomizeDialog's `unitPrice` calc) — extras are tracked
+      // separately as `selectedExtras` metadata. The backend's order total
+      // is computed purely from `price * quantity` (computeOrderPricing in
+      // orderController.js), so sending the bare unitPrice here silently
+      // dropped every extra's cost from the order total.
+      const extrasTotal = activeExtras.reduce((sum, e) => sum + (e.price || 0), 0);
       return {
         productId: item.productId,
         name: item.name,
         quantity: item.qty,
-        price: item.unitPrice,
+        price: item.unitPrice + extrasTotal,
         notes: extractCleanItemNotes(item.instructions, item.variants) || undefined,
         ...(item.variants && item.variants.length > 0
           ? {
