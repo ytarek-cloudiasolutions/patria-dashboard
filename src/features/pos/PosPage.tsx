@@ -1304,6 +1304,17 @@ const PosPage = () => {
             return sum + lineExtras * (readAmount(item?.quantity) ?? 1);
           }, 0)
         : undefined;
+      const extrasVal = responseExtras ?? itemExtras ?? 0;
+      // o.subtotal is the backend's real subtotal, which already has every
+      // selected extra folded into each item's unit price (see
+      // formatOrderItems) — showing it as-is next to a separate "Extras"
+      // line double-counted the extra on receipts (it was inside the
+      // product's own price AND listed again on its own line). Receipts
+      // want the product price and the extra price broken out separately,
+      // so subtract extrasVal back out for display; the real total (below)
+      // is untouched.
+      const rawSubtotal = readAmount(o?.subtotal);
+      const baseSubtotal = rawSubtotal !== undefined ? Math.max(0, rawSubtotal - extrasVal) : undefined;
       const serverTotal = readAmount(o?.total);
       const serverDiscountAmt = readAmount(o?.discountAmount);
       const hasServerTotal = serverTotal !== undefined && serverTotal >= 0;
@@ -1312,8 +1323,8 @@ const PosPage = () => {
       return {
         total: hasServerTotal ? serverTotal : clientTotal,
         receiptPricing: {
-          subtotal: readAmount(o?.subtotal),
-          extras: responseExtras ?? itemExtras,
+          subtotal: baseSubtotal,
+          extras: extrasVal,
           tax: readAmount(o?.tax),
           discount: readAmount(o?.discountAmount ?? o?.discount),
           total: readAmount(o?.total),

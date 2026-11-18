@@ -123,9 +123,11 @@ const OrderConfirmedDialog = ({
       guestCount: orderType === "dine-in" ? guestCount : undefined,
       costPerPerson: orderType === "dine-in" ? calculatedCostPerPerson : undefined,
       items: cartItems.map((item) => {
-        const extrasTotal =
-          item.extras?.filter((e) => e.selected).reduce((s, e) => s + (e.price || 0), 0) || 0;
-        const itemLineTotal = (item.unitPrice + extrasTotal) * item.qty;
+        // Product price and extras price are shown as separate figures on
+        // the receipt (the product's own line price, then each extra on
+        // its own line below) — not combined into one number — so the
+        // customer can see what they're actually being charged for.
+        const itemLineTotal = item.unitPrice * item.qty;
         return {
           name: item.name,
           qty: item.qty,

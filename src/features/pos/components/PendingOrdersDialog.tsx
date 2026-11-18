@@ -46,30 +46,45 @@ const PendingOrdersDialog = ({
       .then((res) => {
         const raw: any[] = res.data?.data ?? res.data?.orders ?? [];
         const mapped: PendingOrder[] = raw.map((o) => {
-          const items = (o.items || []).map((item: any) => ({
-            productId: item.productId?._id || item.product?._id || String(item.productId || ""),
-            name: item.productId?.name || item.product?.name || item.name || "Unknown",
-            qty: item.quantity || 1,
-            unitPrice: item.price || item.productId?.price || 0,
-            instructions: extractCleanItemNotes(
-              item.notes || item.instructions,
-              (item.selectedVariants || []).map((v: any) => ({
-                group: v.group || v.groupName || "",
-                option: v.option || v.optionName || "",
-              })),
-            ),
-            extras: (item.selectedExtras || []).map((e: any) => ({
+          const items = (o.items || []).map((item: any) => {
+            const extras = (item.selectedExtras || []).map((e: any) => ({
               id: e._id || e.id || String(Math.random()),
               name: e.name || "",
               price: Number(e.price) || 0,
               selected: true,
-            })),
-            variants: (item.selectedVariants || []).map((v: any) => ({
-              name: v.group || v.groupName || "",
-              option: v.option || v.optionName || "",
-              price: Number(v.priceAdjustment || v.price || 0),
-            })),
-          }));
+            }));
+            // item.price is the stored per-unit price, which already has
+            // every selected extra folded in (see PosPage.formatOrderItems)
+            // — the rest of the cart (computeTotals, lineUnitPrice,
+            // formatOrderItems itself) all assume CartItem.unitPrice is the
+            // BASE price only and add `extras` back on top separately.
+            // Loading it in verbatim double-counted every extra: once
+            // inside this already-inclusive unitPrice, and again from the
+            // carried-over `extras` array — visible on receipts as a
+            // "Subtotal" that silently already contains the "Extras" line
+            // added right under it.
+            const extrasPerUnit = extras.reduce((s: number, e: any) => s + e.price, 0);
+            const rawUnitPrice = item.price || item.productId?.price || 0;
+            return {
+              productId: item.productId?._id || item.product?._id || String(item.productId || ""),
+              name: item.productId?.name || item.product?.name || item.name || "Unknown",
+              qty: item.quantity || 1,
+              unitPrice: Math.max(0, rawUnitPrice - extrasPerUnit),
+              instructions: extractCleanItemNotes(
+                item.notes || item.instructions,
+                (item.selectedVariants || []).map((v: any) => ({
+                  group: v.group || v.groupName || "",
+                  option: v.option || v.optionName || "",
+                })),
+              ),
+              extras,
+              variants: (item.selectedVariants || []).map((v: any) => ({
+                name: v.group || v.groupName || "",
+                option: v.option || v.optionName || "",
+                price: Number(v.priceAdjustment || v.price || 0),
+              })),
+            };
+          });
 
           const subtotal = items.reduce((sum: number, it: any) => sum + it.unitPrice * it.qty, 0);
           const extrasTotal = items.reduce(
