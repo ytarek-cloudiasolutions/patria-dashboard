@@ -8,6 +8,7 @@ import type {
 const ENDPOINTS = {
   NOTIFICATIONS: "/notifications",
   MARK_READ: (id: string) => `/notifications/${id}/read`,
+  DELETE_ONE: (id: string) => `/notifications/${id}`,
 };
 
 // Safely unwrap backend notifications response
@@ -35,8 +36,21 @@ export const markNotificationAsRead = async (id: string): Promise<MarkAsReadResp
   return { notification };
 };
 
+// Previously the "Decline"/"Clear all" buttons only removed the item from
+// local React state — nothing deleted it server-side, so GET /notifications
+// brought the exact same list right back on the next refresh.
+export const deleteNotification = async (id: string): Promise<void> => {
+  await api.delete(ENDPOINTS.DELETE_ONE(id));
+};
+
+export const deleteAllNotifications = async (): Promise<void> => {
+  await api.delete(ENDPOINTS.NOTIFICATIONS);
+};
+
 export const notificationsApi = {
   getNotifications,
   markNotificationAsRead,
+  deleteNotification,
+  deleteAllNotifications,
 };
 export default notificationsApi;

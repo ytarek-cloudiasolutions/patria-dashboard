@@ -11,12 +11,23 @@ import { cn } from "@/lib/utils";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { api } from "@/config/api";
 import { notificationsApi } from "../api/notificationsApi";
+import { updateOrderStatus } from "@/features/orders/api/ordersApi";
+import { showErrorToast } from "@/shared/utils/toast";
 import { getSocket } from "@/shared/lib/socket";
 import type { AppNotification, NotificationCategory, NotificationTab } from "../types";
 import NotificationItem from "./NotificationItem";
 import OrderDetailsDialog from "@/features/orders/components/OrderDetailsDialog";
 import { mapOrder } from "@/features/orders/utils/orderMappers";
 import type { Order } from "@/features/orders/types";
+
+// Shared by accept/decline/open — the notification only ever carries the
+// human-readable orderId as free text inside its title/description.
+const extractOrderId = (notification: AppNotification): string | undefined =>
+  notification.orderId ||
+  notification.description.match(/#?(ORD-[A-Za-z0-9]+)/i)?.[1] ||
+  notification.title.match(/#?(ORD-[A-Za-z0-9]+)/i)?.[1] ||
+  notification.description.match(/#([A-Za-z0-9-]+)/)?.[1] ||
+  notification.title.match(/#([A-Za-z0-9-]+)/)?.[1];
 
 const mapCategory = (type?: string, title?: string, message?: string): NotificationCategory => {
   const t = (type || "").toLowerCase();
@@ -159,12 +170,7 @@ const NotificationsPanel = ({ open, onOpenChange, onUnreadCountChange }: Notific
       prev.map((n) => (n.id === notification.id ? { ...n, read: true } : n))
     );
 
-    const targetOrderId =
-      notification.orderId ||
-      notification.description.match(/#?(ORD-[A-Za-z0-9]+)/i)?.[1] ||
-      notification.title.match(/#?(ORD-[A-Za-z0-9]+)/i)?.[1] ||
-      notification.description.match(/#([A-Za-z0-9-]+)/)?.[1] ||
-      notification.title.match(/#([A-Za-z0-9-]+)/)?.[1];
+    const targetOrderId = extractOrderId(notification);
 
     if (targetOrderId) {
       try {
@@ -187,6 +193,41 @@ const NotificationsPanel = ({ open, onOpenChange, onUnreadCountChange }: Notific
         return;
       }
     } catch {}
+  };
+
+  // "Accept"/"Decline" on an order notification used to only open the order
+  // (Accept) or wipe the notification from local state (Decline) — neither
+  // ever touched the order's actual status. The order stayed "pending" in
+  // the database either way, so the next page load's fetchPendingAppOrders
+  // (IncomingOrderWatcher) found it still pending and rang the incoming-
+  // order alert again. Accept now actually confirms the order; Decline now
+  // actually cancels it — matching what the buttons say they do.
+  const handleAcceptOrder = async (notification: AppNotification) => {
+    const orderId = extractOrderId(notification);
+    if (orderId) {
+      try {
+        await updateOrderStatus(orderId, "confirmed");
+      } catch (err: any) {
+        showErrorToast(
+          err?.response?.data?.message || t("Failed to confirm order"),
+        );
+      }
+    }
+    handleOpenOrderDetails(notification);
+  };
+
+  const handleDeclineOrder = async (notification: AppNotification) => {
+    const orderId = extractOrderId(notification);
+    if (orderId) {
+      try {
+        await updateOrderStatus(orderId, "cancelled");
+      } catch (err: any) {
+        showErrorToast(
+          err?.response?.data?.message || t("Failed to cancel order"),
+        );
+      }
+    }
+    removeOne(notification.id);
   };
 
   const counts = useMemo(
@@ -222,7 +263,10 @@ const NotificationsPanel = ({ open, onOpenChange, onUnreadCountChange }: Notific
     });
   };
 
-  const clearAll = () => setNotifications([]);
+  const clearAll = () => {
+    notificationsApi.deleteAllNotifications().catch(() => {});
+    setNotifications([]);
+  };
 
   const resolve = (id: number | string) => {
     notificationsApi.markNotificationAsRead(String(id)).catch(() => {});
@@ -231,8 +275,10 @@ const NotificationsPanel = ({ open, onOpenChange, onUnreadCountChange }: Notific
     );
   };
 
-  const removeOne = (id: number | string) =>
+  const removeOne = (id: number | string) => {
+    notificationsApi.deleteNotification(String(id)).catch(() => {});
     setNotifications((prev) => prev.filter((n) => n.id !== id));
+  };
 
   return (
     <>
@@ -330,9 +376,12 @@ const NotificationsPanel = ({ open, onOpenChange, onUnreadCountChange }: Notific
                   onClosePanel={() => onOpenChange(false)}
                   onAccept={(id) => {
                     const n = notifications.find((item) => item.id === id);
-                    if (n) handleOpenOrderDetails(n);
+                    if (n) handleAcceptOrder(n);
                   }}
-                  onDecline={(id) => removeOne(id)}
+                  onDecline={(id) => {
+                    const n = notifications.find((item) => item.id === id);
+                    if (n) handleDeclineOrder(n);
+                  }}
                   onResolve={(id) => resolve(id)}
                   onClick={(id) => {
                     const n = notifications.find((item) => item.id === id);
