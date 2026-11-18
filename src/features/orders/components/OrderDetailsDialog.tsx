@@ -115,17 +115,17 @@ const OrderDetailsDialog = ({
     rawOrder.discountValue ??
     0;
 
-  const getDiscountDisplayText = () => {
+  const getDiscountDisplayText = (amount: number = effectiveDiscount) => {
     if (effectiveDiscountType === "percentage") {
       if (effectiveDiscountValue > 0) {
-        return `${effectiveDiscountValue}% (${formatCurrency(effectiveDiscount)})`;
+        return `${effectiveDiscountValue}% (${formatCurrency(amount)})`;
       }
-      return `${effectiveDiscount.toLocaleString(undefined, {
+      return `${amount.toLocaleString(undefined, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       })} %`;
     }
-    return formatCurrency(effectiveDiscount);
+    return formatCurrency(amount);
   };
 
   const promoDiscountAmount = Number(rawOrder.appDiscount) || 0;
@@ -151,18 +151,25 @@ const OrderDetailsDialog = ({
     });
   }
   if (isAdminDiscount && effectiveDiscount > 0) {
+    // effectiveDiscount is the backend's combined discountAmount (promo +
+    // manual, preserved together since the appDiscount fix) — when a promo
+    // line is already shown above, the Admin Discount line must only show
+    // the manual portion on top of it, not the same combined figure again.
+    const adminAmount = promoDiscountAmount > 0
+      ? Math.max(0, effectiveDiscount - promoDiscountAmount)
+      : effectiveDiscount;
     discountBreakdown.push({
       label: "Admin Discount",
       displayLabel: t("Admin Discount"),
-      amount: effectiveDiscount,
-      displayAmount: getDiscountDisplayText(),
+      amount: adminAmount,
+      displayAmount: getDiscountDisplayText(adminAmount),
     });
   } else if (isPromoDiscount && effectiveDiscount > 0 && promoDiscountAmount === 0) {
     discountBreakdown.push({
       label: "Promo Discount",
       displayLabel: t("Promo Discount"),
       amount: effectiveDiscount,
-      displayAmount: getDiscountDisplayText(),
+      displayAmount: getDiscountDisplayText(effectiveDiscount),
     });
   }
   if (discountBreakdown.length === 0 && effectiveDiscount > 0) {
@@ -170,7 +177,7 @@ const OrderDetailsDialog = ({
       label: "Discount",
       displayLabel: t("Discount"),
       amount: effectiveDiscount,
-      displayAmount: getDiscountDisplayText(),
+      displayAmount: getDiscountDisplayText(effectiveDiscount),
     });
   }
 
