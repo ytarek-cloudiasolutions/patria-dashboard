@@ -115,6 +115,12 @@ const IncomingOrderDialog = ({ order, isConfirming, onConfirm, onClose }: Incomi
                   <span dir="ltr">-{formatEgp(order.groupOfferDiscount)}</span>
                 </div>
               )}
+              {order.pointsDiscountAmount > 0 && (
+                <div className="flex items-center justify-between text-[#059B5A]">
+                  <span>{t("Points Discount")}</span>
+                  <span dir="ltr">-{formatEgp(order.pointsDiscountAmount)}</span>
+                </div>
+              )}
               {order.deliveryFee > 0 && (
                 <div className="flex items-center justify-between">
                   <span>{t("Delivery Fee")}</span>

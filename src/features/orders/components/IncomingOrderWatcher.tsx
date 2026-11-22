@@ -19,6 +19,7 @@ export interface IncomingOrder {
   tax: number;
   deliveryFee: number;
   groupOfferDiscount: number;
+  pointsDiscountAmount: number;
   total: number;
 }
 
@@ -42,6 +43,7 @@ const mapIncomingOrder = (raw: any): IncomingOrder | null => {
     tax: raw.tax || 0,
     deliveryFee: raw.deliveryFee || 0,
     groupOfferDiscount: raw.groupOfferDiscount || 0,
+    pointsDiscountAmount: raw.pointsDiscountAmount || 0,
     total: raw.total || 0,
   };
 };

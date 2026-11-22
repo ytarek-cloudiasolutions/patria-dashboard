@@ -421,10 +421,13 @@ const OrdersPage = () => {
   };
 
   const handleBulkDelete = () => {
+    // The selection checkboxes and this Delete button render on every tab
+    // (App/POS/Call/Staff), but this silently did nothing on any tab other
+    // than "call" — the backend's DELETE /orders/:id has no such
+    // restriction, so there was no reason selecting and deleting an order
+    // from, say, the App or POS tab should be a no-op.
     selectedIds.forEach((id) => {
-      if (activeSource === "call") {
-        deleteOrderValue(id);
-      }
+      deleteOrderValue(id);
     });
     setSelectedIds([]);
     setIsBulkDeleteOpen(false);

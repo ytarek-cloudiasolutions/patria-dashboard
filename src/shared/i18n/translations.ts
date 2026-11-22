@@ -1489,6 +1489,7 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   "Promo Discount": "خصم ترويجي",
   "App discount (coupon)": "خصم تطبيق (كوبون)",
   "App discount (offer)": "خصم تطبيق (عرض)",
+  "Points Discount": "خصم النقاط",
   "App discount + administrative discount": "خصم تطبيق + خصم إداري",
   "Apply Discount": "تطبيق الخصم",
   "Call": "اتصال",
