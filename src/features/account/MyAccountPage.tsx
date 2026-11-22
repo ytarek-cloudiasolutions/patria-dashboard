@@ -41,12 +41,21 @@ const MyAccountPage = () => {
   const [orderReports, setOrderReports] = useState<OrderReport[]>([]);
   const [totalOrders, setTotalOrders] = useState(0);
   const [totalRevenue, setTotalRevenue] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
   const [dateRange, setDateRange] = useState<AccountDateRangeType>({
     from: "",
     to: "",
   });
   const [profileLoaded, setProfileLoaded] = useState(false);
   const [ordersLoaded, setOrdersLoaded] = useState(false);
+
+  // A new date range invalidates whatever page we were on — reset to page 1
+  // instead of silently requesting, say, page 3 of a range that may only
+  // have one page of results.
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [dateRange]);
 
   // Load current user profile on mount
   useEffect(() => {
@@ -67,7 +76,7 @@ const MyAccountPage = () => {
 
   // Fetch orders for the stats table
   useEffect(() => {
-    const params: Record<string, string> = { limit: "50" };
+    const params: Record<string, string> = { limit: "20", page: String(currentPage) };
     if (dateRange.from) params.from = dateRange.from;
     if (dateRange.to) params.to = dateRange.to;
     api
@@ -76,7 +85,11 @@ const MyAccountPage = () => {
         const raw: any[] = res.data?.data ?? res.data?.orders ?? [];
         const pagination = res.data?.pagination;
         setTotalOrders(pagination?.total ?? raw.length);
-        setTotalRevenue(raw.reduce((sum: number, o: any) => sum + (o.total ?? 0), 0));
+        setTotalPages(pagination?.totalPages ?? 1);
+        // Server-computed sum across every order matching the date filter —
+        // summing just this page's `raw` would only reflect the current 20
+        // rows, which barely changes as the range widens (see backend fix).
+        setTotalRevenue(pagination?.totalRevenue ?? raw.reduce((sum: number, o: any) => sum + (o.total ?? 0), 0));
         const mapped: OrderReport[] = raw.map((o: any, idx: number) => {
           const name =
             typeof o.customer === "string"
@@ -97,7 +110,7 @@ const MyAccountPage = () => {
       })
       .catch(() => {})
       .finally(() => setOrdersLoaded(true));
-  }, [dateRange]);
+  }, [dateRange, currentPage]);
 
   const handleChange = (key: keyof AccountFormData, value: string) =>
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -199,6 +212,9 @@ const MyAccountPage = () => {
             orders={orderReports}
             count={totalOrders}
             onDownload={handleDownloadExcel}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
           />
         </div>
       </div>

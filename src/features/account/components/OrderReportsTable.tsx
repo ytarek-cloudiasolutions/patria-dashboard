@@ -17,6 +17,9 @@ interface OrderReportsTableProps {
   orders: OrderReport[];
   count: number;
   onDownload?: () => void;
+  currentPage?: number;
+  totalPages?: number;
+  onPageChange?: (page: number) => void;
 }
 
 const STATUS_STYLES: Record<OrderStatus, string> = {
@@ -50,6 +53,9 @@ const OrderReportsTable = ({
   orders,
   count,
   onDownload,
+  currentPage = 1,
+  totalPages = 1,
+  onPageChange,
 }: OrderReportsTableProps) => {
   const { t } = useTranslation();
   return (
@@ -142,6 +148,42 @@ const OrderReportsTable = ({
           </TableBody>
         </Table>
       </div>
+
+      {onPageChange && totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 border-t border-[#E5E5E5] px-4 py-4">
+          <button
+            type="button"
+            disabled={currentPage === 1}
+            onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+            className="flex size-9 items-center justify-center rounded-[8px] border border-[#E5E5E5] bg-white text-[#28293D] hover:bg-[#F5F0EA] disabled:opacity-50 disabled:hover:bg-white cursor-pointer transition-all duration-150"
+          >
+            &lt;
+          </button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+            <button
+              key={p}
+              type="button"
+              onClick={() => onPageChange(p)}
+              className={cn(
+                "flex size-9 items-center justify-center rounded-[8px] text-[14px] font-semibold transition-all duration-150 cursor-pointer",
+                p === currentPage
+                  ? "bg-primary text-white shadow-2xs"
+                  : "border border-[#E5E5E5] bg-white text-[#28293D] hover:bg-[#F5F0EA]"
+              )}
+            >
+              {p}
+            </button>
+          ))}
+          <button
+            type="button"
+            disabled={currentPage === totalPages}
+            onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+            className="flex size-9 items-center justify-center rounded-[8px] border border-[#E5E5E5] bg-white text-[#28293D] hover:bg-[#F5F0EA] disabled:opacity-50 disabled:hover:bg-white cursor-pointer transition-all duration-150"
+          >
+            &gt;
+          </button>
+        </div>
+      )}
     </div>
   );
 };

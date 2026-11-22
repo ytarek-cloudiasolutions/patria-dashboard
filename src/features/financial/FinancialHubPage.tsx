@@ -110,7 +110,15 @@ const FinancialHubPage = () => {
           setTransactions(raw.map(mapTransaction));
         }
       })
-      .catch(() => {})
+      .catch((err: any) => {
+        // This used to fail completely silently — a 403 (non-admin/manager
+        // role), an expired session, or any backend error left the page
+        // quietly showing the hardcoded INITIAL_TRANSACTIONS mock data
+        // forever, with nothing telling the user real data never loaded.
+        // That's indistinguishable from "it's just not working".
+        console.error('[FinancialHub] failed to load overview/transactions:', err);
+        showErrorToast(err?.response?.data?.message || t("Failed to load financial data"));
+      })
       .finally(() => {
         setLoading(false);
         setHasLoaded(true);
