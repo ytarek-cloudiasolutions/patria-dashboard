@@ -23,6 +23,10 @@ import { useLocations } from "@/features/locations/hooks/useLocations";
 import type { DeliveryZone, ZonePoint } from "@/features/locations/types";
 import { dispatchOrder } from "./api/logisticsApi";
 import { getSocket } from "@/shared/lib/socket";
+import type {
+  CreateDriverRequest,
+  Driver as ApiDriver,
+} from "./store/logisticsTypes";
 
 const OBJECT_ID_REGEX = /^[a-f\d]{24}$/i;
 
@@ -158,7 +162,7 @@ const resolveOrderZoneName = (
   return "";
 };
 
-const mapApiDriver = (d: any): Driver => {
+const mapApiDriver = (d: ApiDriver): Driver => {
   const hourlyRate = d.hourlyRate ?? 0;
   // Backend now computes salaryNow itself (real elapsed hours since
   // shiftStartedAt × hourlyRate) so every consumer agrees on one number —
@@ -169,7 +173,7 @@ const mapApiDriver = (d: any): Driver => {
   const salaryNow = d.salaryNow ?? Number((hourlyRate * hoursElapsed).toFixed(2));
 
   return {
-    id: d._id || d.id,
+    id: d._id || d.id || "",
     name: d.name || "",
     whatsappPhone: d.whatsappPhone || d.phone || "",
     vehicleType: d.vehicleType === "car" ? "Car" : d.vehicleType === "van" ? "Van" : "Motorcycle",
@@ -621,11 +625,16 @@ const LogisticsPage = () => {
 
   const handleSaveDriver = (data: DriverFormData, id?: number | string) => {
     const normalizedPhone = normalizeWhatsAppPhone(data.whatsappPhone);
-    const payload: any = {
+    const payload: CreateDriverRequest = {
       name: data.name.trim(),
       phone: normalizedPhone,
       whatsappPhone: normalizedPhone,
-      vehicleType: data.vehicleType.toLowerCase() as any,
+      vehicleType:
+        data.vehicleType === "Car"
+          ? "car"
+          : data.vehicleType === "Van"
+            ? "van"
+            : "motorcycle",
       plateNumber: data.plateNumber.trim(),
       hourlyRate: Number(data.hourlyRate) || 0,
       zones: data.zones,
@@ -640,9 +649,9 @@ const LogisticsPage = () => {
       payload.password = data.password.trim();
     }
     if (id !== undefined) {
-      updateDriver(String(id), payload as any);
+      updateDriver(String(id), payload);
     } else {
-      createDriver(payload as any);
+      createDriver(payload);
     }
   };
 

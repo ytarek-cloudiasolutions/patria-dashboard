@@ -3,6 +3,7 @@ export type DriverStatus = "active" | "offline" | "busy";
 
 export interface Driver {
   _id: string;
+  id?: string;
   name: string;
   whatsappPhone?: string;
   phone?: string;
@@ -14,6 +15,9 @@ export interface Driver {
   isOnShift?: boolean;
   shiftDeliveriesCount?: number;
   totalDelivered?: number;
+  hourlyRate?: number;
+  salaryNow?: number;
+  shiftStartedAt?: string | null;
   dutyTime?: string;
   activeOrders?: any[];
   currentOrderId?: any;
@@ -44,6 +48,7 @@ export interface CreateDriverRequest {
   password?: string;
   vehicleType?: VehicleType;
   plateNumber?: string;
+  hourlyRate?: number;
   zones?: string[];
   status?: DriverStatus;
 }

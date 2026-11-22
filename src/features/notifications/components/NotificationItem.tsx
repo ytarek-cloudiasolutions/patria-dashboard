@@ -51,7 +51,7 @@ const NotificationItem = ({
       onClick={() => onClick?.(notification.id)}
       role={notification.category === "orders" ? "button" : undefined}
       className={cn(
-        "flex gap-3 px-4 py-3.5 sm:px-5 transition-colors border-b border-[#E5E5E5] last:border-b-0",
+        "flex animate-in fade-in-0 slide-in-from-top-2 duration-300 gap-3 px-4 py-3.5 sm:px-5 transition-colors border-b border-[#E5E5E5] last:border-b-0",
         notification.category === "orders" && "cursor-pointer hover:bg-[#F5F0EA]/40",
         !notification.read && "bg-[#FAFAF7]",
       )}

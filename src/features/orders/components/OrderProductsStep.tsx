@@ -272,8 +272,8 @@ const OrderProductsStep = ({
                   </button>
                 </div>
                 <span className="text-[13px] tracking-[0.26px] text-black">
-                  <span className="font-medium">EGP</span>{" "}
-                  <span className="font-normal">
+                  <span className="font-normal">EGP</span>{" "}
+                  <span className="font-semibold">
                     {(line.unitPrice * line.quantity).toFixed(2)}
                   </span>
                 </span>

@@ -1,6 +1,8 @@
-import { ChevronRight, Clock, ShoppingBag } from "lucide-react";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import type { Rider } from "../types";
+import orderIcon from "../assets/rider-orders.svg";
+import dutyTimeIcon from "../assets/rider-duty-time.svg";
+import chevronIcon from "../assets/rider-card-chevron.svg";
 
 interface RiderCardProps {
   rider: Rider;
@@ -8,7 +10,7 @@ interface RiderCardProps {
 }
 
 const statusStyles: Record<string, { bg: string; border: string; text: string }> = {
-  "On-Route": { bg: "bg-[#EDF4FB]", border: "border-[#004EF9]", text: "text-[#004EF9]" },
+  "On-Route": { bg: "bg-[#EDF4FB]", border: "border-[#004EF9]", text: "text-[#3574FF]" },
   Active: { bg: "bg-[#E2F4ED]", border: "border-[#059B5A]", text: "text-[#059B5A]" },
   Delivered: { bg: "bg-[#E2F4ED]", border: "border-[#059B5A]", text: "text-[#059B5A]" },
 };
@@ -30,75 +32,55 @@ const RiderCard = ({ rider, onClick }: RiderCardProps) => {
     <button
       type="button"
       onClick={() => onClick(rider)}
-      className="group flex w-full cursor-pointer items-center gap-3 rounded-[16px] border border-[#E5E5E5] bg-white p-3 transition-all duration-200 hover:bg-[#FAFAF7] hover:border-[#D4D4D8] hover:shadow-xs active:scale-[0.99] text-start"
+      className="group flex w-full cursor-pointer items-center justify-between gap-3 rounded-[16px] border border-[#E5E5E5] bg-white p-3 text-start transition-all duration-200 hover:bg-[#FAFAF7] hover:border-[#D4D4D8] hover:shadow-xs active:scale-[0.99]"
     >
-      {/* Avatar */}
-      <div className="flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-full bg-[#8F6900] text-[14px] font-bold text-white transition-transform duration-200 group-hover:scale-105">
-        {initials}
-      </div>
-
-      {/* Content */}
-      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-        {/* Name + phone + GPS indicator */}
-        <div className="flex items-center justify-between">
-          <div className="flex flex-col items-start">
-            <span className="text-[14px] font-semibold text-[#28293D]">
+      <div className="flex min-w-0 flex-1 flex-col items-start gap-4">
+        <div className="flex w-full items-center gap-[13px]">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#8F6900] text-[13px] font-bold text-white">
+            {initials}
+          </div>
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
+            <span className="truncate text-[14px] font-semibold leading-[1.07] tracking-[0.28px] text-[#333333]">
               {rider.name}
             </span>
-            <span className="text-[12px] text-[#8B8B8B]">{rider.phone}</span>
+            <span className="truncate text-[12px] leading-[1.4] tracking-[0.24px] text-[#8B8B8B]">
+              {rider.phone}
+            </span>
           </div>
-
-          {/* GPS status badge */}
-          {rider.location ? (
-            <span
-              className="inline-flex items-center gap-1.5 rounded-full border border-[#059B5A]/30 bg-[#E2F4ED] px-2 py-0.5 text-[10px] font-semibold text-[#059B5A]"
-              title={t("Live GPS active")}
-            >
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#059B5A] opacity-75"></span>
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-[#059B5A]"></span>
-              </span>
-              GPS
-            </span>
-          ) : (
-            <span
-              className="inline-flex items-center gap-1 rounded-full border border-[#CACBD4]/60 bg-[#F5F5F5] px-2 py-0.5 text-[10px] font-medium text-[#8B8B8B]"
-              title={t("No GPS signal")}
-            >
-              <span className="h-1.5 w-1.5 rounded-full bg-[#B0B0B0]"></span>
-              {t("No GPS")}
-            </span>
-          )}
         </div>
 
-        {/* Status · Orders · Time */}
-        <div className="flex flex-wrap items-center gap-1.5">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
           <span
-            className={`inline-flex h-[22px] items-center rounded-full border px-2 text-[11px] font-semibold ${style.bg} ${style.border} ${style.text}`}
+            className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[13px] font-semibold leading-[normal] tracking-[0.26px] ${style.bg} ${style.border} ${style.text}`}
           >
             {t(rider.status)}
           </span>
 
-          <span className="text-[12px] font-semibold text-[#595959]">•</span>
+          <span className="text-[12px] font-semibold tracking-[0.24px] text-[#595959]">•</span>
 
           <div className="flex items-center gap-1">
-            <ShoppingBag size={13} className="text-[#595959]" />
-            <span className="text-[12px] text-[#595959]">
-              {orderCount} {orderCount === 1 ? t("Order") : t("Orders")}
+            <span className="flex size-3 shrink-0 items-center justify-center">
+              <img src={orderIcon} alt="" />
+            </span>
+            <span className="text-[12px] font-semibold tracking-[0.24px] text-[#595959]">
+              {orderCount} {orderCount > 1 ? t("Orders") : t("Order")}
             </span>
           </div>
 
-          <span className="text-[12px] font-semibold text-[#595959]">•</span>
+          <span className="text-[12px] font-semibold tracking-[0.24px] text-[#595959]">•</span>
 
           <div className="flex items-center gap-1">
-            <Clock size={13} className="text-[#595959]" />
-            <span className="text-[12px] text-[#595959]">{rider.dutyTime}</span>
+            <img src={dutyTimeIcon} alt="" />
+            <span className="text-[12px] font-semibold tracking-[0.24px] text-[#595959]">
+              {rider.dutyTime}
+            </span>
           </div>
         </div>
       </div>
 
-      {/* Chevron */}
-      <ChevronRight size={22} className="shrink-0 text-[#8B8B8B] transition-transform duration-200 group-hover:translate-x-1" />
+      <span className="flex h-[19.2px] w-5 shrink-0 items-center justify-center transition-transform duration-200 group-hover:translate-x-1">
+        <img src={chevronIcon} alt="" />
+      </span>
     </button>
   );
 };

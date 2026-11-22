@@ -18,10 +18,12 @@ const STATUS_COLORS: Record<string, string> = {
 
 const ALEXANDRIA_CENTER = { lat: 31.2001, lng: 29.9187 };
 
-function makeMarkerIcon(color: string) {
+function makeMarkerIcon(color: string, vehicleType: Rider["vehicleType"]) {
+  const vehicleIcon =
+    vehicleType === "Motorcycle" ? "🏍️" : vehicleType === "Van" ? "🚐" : "🚗";
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="40" viewBox="0 0 32 40">
     <path d="M16 0C7.163 0 0 7.163 0 16c0 9.941 14 24 16 24s16-14.059 16-24C32 7.163 24.837 0 16 0z" fill="${color}"/>
-    <circle cx="16" cy="16" r="7" fill="white"/>
+    <text x="16" y="22" text-anchor="middle" font-family="Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji, sans-serif" font-size="14">${vehicleIcon}</text>
   </svg>`;
   return {
     url: "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg),
@@ -176,7 +178,7 @@ const GoogleMap = ({ riders, selectedRider, onSelectRider }: GoogleMapProps) => 
         if (!rider.location) return;
         const position = { lat: rider.location.lat, lng: rider.location.lng };
         const color = STATUS_COLORS[rider.status] ?? "#9ca3af";
-        const icon = makeMarkerIcon(color);
+        const icon = makeMarkerIcon(color, rider.vehicleType);
 
         let marker = findMarker(rider.id);
         if (!marker) {

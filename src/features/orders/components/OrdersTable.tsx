@@ -378,6 +378,7 @@ const OrdersTable = ({
                           driver={order.driver}
                           zone={order.zone}
                           address={order.address}
+                          disabled={order.status === "Cancelled"}
                           onAssign={(driverName, updatedOrderData) =>
                             onAssignDriver(order.id, driverName, updatedOrderData)
                           }
@@ -418,6 +419,7 @@ interface DriverCellProps {
   driver?: string;
   zone?: string;
   address?: string;
+  disabled?: boolean;
   onAssign: (driverName: string, updatedOrderData?: any) => void;
   onOpenChange?: (open: boolean) => void;
 }
@@ -427,6 +429,7 @@ const DriverCell = ({
   driver,
   zone,
   address,
+  disabled = false,
   onAssign,
   onOpenChange,
 }: DriverCellProps) => {
@@ -564,18 +567,20 @@ const DriverCell = ({
 
   return (
     <DropdownMenu onOpenChange={handleOpenChange}>
-      <DropdownMenuTrigger asChild>
+      <DropdownMenuTrigger asChild disabled={disabled}>
         {driver ? (
           <button
             type="button"
-            className="inline-flex h-8 cursor-pointer items-center justify-center rounded-full bg-[#E5E5E5] px-4 text-[13px] font-semibold text-[#23252A] border border-[#CCCCCC] transition-all duration-200 hover:bg-[#DCDCDC] active:scale-95"
+            disabled={disabled}
+            className="inline-flex h-8 cursor-pointer items-center justify-center rounded-full bg-[#E5E5E5] px-4 text-[13px] font-semibold text-[#23252A] border border-[#CCCCCC] transition-all duration-200 hover:bg-[#DCDCDC] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-[#E5E5E5] disabled:active:scale-100"
           >
             {driver}
           </button>
         ) : (
           <button
             type="button"
-            className="group/rider inline-flex h-8 cursor-pointer items-center justify-center gap-1.5 rounded-full border border-[#7E00D7] bg-[#F3E9FA] px-3.5 text-[13px] font-semibold text-[#9524E4] hover:bg-[#EBD8F7] transition-all duration-200 hover:shadow-2xs active:scale-95"
+            disabled={disabled}
+            className="group/rider inline-flex h-8 cursor-pointer items-center justify-center gap-1.5 rounded-full border border-[#7E00D7] bg-[#F3E9FA] px-3.5 text-[13px] font-semibold text-[#9524E4] hover:bg-[#EBD8F7] transition-all duration-200 hover:shadow-2xs active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-[#F3E9FA] disabled:hover:shadow-none disabled:active:scale-100"
           >
             <span>{t("Rider")}</span>
             <ChevronDown className="size-3.5 text-[#9524E4] transition-transform duration-200 ease-out group-hover/rider:translate-y-0.5" />

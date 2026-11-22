@@ -97,7 +97,7 @@ const OrderCard = ({ order }: OrderCardProps) => {
           {t("Order")} #{order.orderNumber}
         </span>
         <span
-          className={`inline-flex h-[22px] items-center rounded-full border px-3 text-[11px] font-semibold italic ${badge.bg} ${badge.border} ${badge.text}`}
+          className={`inline-flex h-[22px] items-center rounded-full border px-3 text-[11px] font-semibold ${badge.bg} ${badge.border} ${badge.text}`}
         >
           {t(order.status)}
         </span>

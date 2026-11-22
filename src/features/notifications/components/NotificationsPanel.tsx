@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Bell, CheckCheck, Trash2, X } from "lucide-react";
+import { Bell, X } from "lucide-react";
 import {
   Sheet,
   SheetClose,
@@ -255,19 +255,6 @@ const NotificationsPanel = ({ open, onOpenChange, onUnreadCountChange }: Notific
     );
   };
 
-  const markAllRead = () => {
-    const unread = notifications.filter((n) => !n.read);
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-    unread.forEach((n) => {
-      notificationsApi.markNotificationAsRead(String(n.id)).catch(() => {});
-    });
-  };
-
-  const clearAll = () => {
-    notificationsApi.deleteAllNotifications().catch(() => {});
-    setNotifications([]);
-  };
-
   const resolve = (id: number | string) => {
     notificationsApi.markNotificationAsRead(String(id)).catch(() => {});
     setNotifications((prev) =>
@@ -300,24 +287,6 @@ const NotificationsPanel = ({ open, onOpenChange, onUnreadCountChange }: Notific
               </SheetTitle>
             </div>
             <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={markAllRead}
-                aria-label={t("Mark all as read")}
-                className="cursor-pointer text-[#595959] hover:text-[#28293D] transition-colors"
-                title={t("Mark all as read")}
-              >
-                <CheckCheck className="size-[18px]" />
-              </button>
-              <button
-                type="button"
-                onClick={clearAll}
-                aria-label={t("Clear all")}
-                className="cursor-pointer text-[#595959] hover:text-[#C90000] transition-colors"
-                title={t("Clear all")}
-              >
-                <Trash2 className="size-[18px]" />
-              </button>
               <SheetClose asChild>
                 <button
                   type="button"
