@@ -35,7 +35,12 @@ export interface SoldProduct {
   units: number;
 }
 
-export type OrderStatus = "Confirmed" | "Pending" | "Delivered" | "On The Way";
+export type OrderStatus =
+  | "Confirmed"
+  | "Preparing"
+  | "Pending"
+  | "Delivered"
+  | "On The Way";
 
 export interface LiveOrder {
   id: string;

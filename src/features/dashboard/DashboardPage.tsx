@@ -60,8 +60,9 @@ const getSevenDaysAgoDateString = () => {
 const mapOrderStatus = (s: string): LiveOrder["status"] => {
   switch ((s ?? "").toLowerCase()) {
     case "confirmed":
-    case "preparing":
       return "Confirmed";
+    case "preparing":
+      return "Preparing";
     case "delivered":
     case "completed":
     case "served":

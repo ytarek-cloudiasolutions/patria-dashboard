@@ -10,6 +10,7 @@ interface LiveOrderStreamProps {
 
 const statusStyles: Record<OrderStatus, string> = {
   Confirmed: "border-current bg-[#EDF4FB] text-[#004EF9]",
+  Preparing: "border-[#725400] bg-[#F5F0EA] text-[#8F6900]",
   Pending: "border-current bg-[#FFF4DA] text-[#C7861E]",
   Delivered: "border-current bg-[#E2F4ED] text-[#059B5A]",
   "On The Way": "border-current bg-[#F3E9FA] text-[#7E00D7]",

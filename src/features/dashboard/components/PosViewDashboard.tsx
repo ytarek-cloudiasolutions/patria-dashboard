@@ -31,6 +31,7 @@ import DailyProductsSold, { type DailyProduct } from "./DailyProductsSold";
 // ─────────────────────────────────────────────
 const statusStyles: Record<OrderStatus, string> = {
   Confirmed: "border-[#004EF9] bg-[#EDF4FB] text-[#004EF9]",
+  Preparing: "border-[#725400] bg-[#F5F0EA] text-[#8F6900]",
   Pending: "border-[#C7861E] bg-[#FFF4DA] text-[#C7861E]",
   Delivered: "border-[#059B5A] bg-[#E2F4ED] text-[#059B5A]",
   "On The Way": "border-[#7E00D7] bg-[#F3E9FA] text-[#7E00D7]",
