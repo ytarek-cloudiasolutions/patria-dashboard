@@ -11,6 +11,7 @@ import {
 } from "@/shared/components/ui/table";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { api } from "@/config/api";
+import { showErrorToast } from "@/shared/utils/toast";
 import type { InventoryCountSession } from "../types";
 
 interface InventoryCountViewProps {
@@ -40,7 +41,14 @@ const InventoryCountView = ({ refreshKey, onSelectSession }: InventoryCountViewP
           })),
         );
       })
-      .catch(() => setSessions([]))
+      .catch((err: any) => {
+        // Silently falling back to an empty list made a real failure (e.g.
+        // a 403, an expired session, a backend error) look identical to
+        // "no sessions have been created yet" — impossible to tell apart.
+        console.error('[InventoryCountView] failed to load sessions:', err);
+        showErrorToast(err?.response?.data?.message || t("Failed to load inventory count sessions"));
+        setSessions([]);
+      })
       .finally(() => setLoading(false));
   }, [refreshKey]);
 

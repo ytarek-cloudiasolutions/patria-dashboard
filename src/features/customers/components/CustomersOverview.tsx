@@ -35,7 +35,11 @@ const CustomersOverview = ({
       />
       <OverviewCard
         data={{
-          title: t("Active Customers (Today)"),
+          // Backend defines "active" as ordered in the last 30 days (see
+          // customerController.getCustomerStats), not literally today —
+          // "(Today)" overstated it and made the figure read as broken
+          // whenever nobody had ordered in the last few hours specifically.
+          title: t("Active Customers (30 days)"),
           value: activeCustomersToday,
           icon: <UserCheck size={20} />,
           iconColor: "text-[#B56C00]",
