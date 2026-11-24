@@ -40,6 +40,15 @@ export const deleteDriver = async (
   return response.data;
 };
 
+export const forceEndDriverShift = async (
+  id: string,
+): Promise<{ message?: string }> => {
+  const response = await api.post<{ message?: string }>(
+    `${BASE}/${id}/force-end-shift`,
+  );
+  return response.data;
+};
+
 export const dispatchOrder = async (
   driverId: string,
   orderId: string,
@@ -62,6 +71,7 @@ export const logisticsApi = {
   createDriver,
   updateDriver,
   deleteDriver,
+  forceEndDriverShift,
   dispatchOrder,
 };
 

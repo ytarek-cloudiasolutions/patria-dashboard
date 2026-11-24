@@ -60,6 +60,15 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   // Common actions (available for reuse across modules)
   "Save changes": "حفظ التغييرات",
   Cancel: "إلغاء",
+  "Are you sure you want to force-end “{driverName}’s” shift?":
+    "هل أنت متأكد أنك تريد إنهاء وردية “{driverName}” بالقوة؟",
+  "This will immediately end the employee's active shift. Any ongoing shift activities will be closed, and the shift will be marked as ended.":
+    "سيؤدي هذا إلى إنهاء وردية الموظف النشطة فورًا. سيتم إغلاق أي أنشطة جارية في الوردية، وسيتم وضع علامة على الوردية بأنها انتهت.",
+  "Force End Shift": "إنهاء الوردية بالقوة",
+  "Ending Shift...": "جارٍ إنهاء الوردية...",
+  "Ending...": "جارٍ الإنهاء...",
+  "Shift ended successfully": "تم إنهاء الوردية بنجاح",
+  "Failed to force-end shift": "تعذر إنهاء الوردية بالقوة",
   Back: "رجوع",
   Save: "حفظ",
   Delete: "حذف",

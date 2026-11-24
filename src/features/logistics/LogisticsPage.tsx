@@ -16,12 +16,13 @@ import DriversTable from "./components/DriverStable";
 import AddDriverDialog from "./components/AddDriverDialog";
 import { normalizeWhatsAppPhone } from "./utils";
 import SendNotificationDialog from "./components/SendNotificationDialog";
+import ForceEndShiftDialog from "./components/ForceEndShiftDialog";
 
 import type { Driver, DriverFormData, DriverStatus, Zone, ZoneOrder, ZoneOrderStatus } from "./types";
 import { useLogistics } from "./hooks/useLogistics";
 import { useLocations } from "@/features/locations/hooks/useLocations";
 import type { DeliveryZone, ZonePoint } from "@/features/locations/types";
-import { dispatchOrder } from "./api/logisticsApi";
+import { dispatchOrder, forceEndDriverShift } from "./api/logisticsApi";
 import { getSocket } from "@/shared/lib/socket";
 import type {
   CreateDriverRequest,
@@ -476,6 +477,8 @@ const LogisticsPage = () => {
   const [editingDriver, setEditingDriver] = useState<Driver | undefined>();
   const [deletingDriver, setDeletingDriver] = useState<Driver | null>(null);
   const [notifyingDriver, setNotifyingDriver] = useState<Driver | null>(null);
+  const [forceEndingDriver, setForceEndingDriver] = useState<Driver | null>(null);
+  const [endingShiftDriverId, setEndingShiftDriverId] = useState<string | null>(null);
 
   const overview = useMemo(() => {
     const pendingOrders =
@@ -671,6 +674,31 @@ const LogisticsPage = () => {
     updateDriver(String(id), { hourlyRate: rate });
   };
 
+  const handleForceEndShift = async () => {
+    if (!forceEndingDriver || endingShiftDriverId) return;
+    const driver = forceEndingDriver;
+    const driverId = String(driver.id);
+    if (!driverId) {
+      showErrorToast(t("Failed to force-end shift"));
+      return;
+    }
+
+    setEndingShiftDriverId(driverId);
+    try {
+      const response = await forceEndDriverShift(driverId);
+      showSuccessToast(response.message || t("Shift ended successfully"));
+      setForceEndingDriver(null);
+      getDrivers();
+      fetchOrders();
+    } catch (error) {
+      showErrorToast(
+        error instanceof Error ? error.message : t("Failed to force-end shift"),
+      );
+    } finally {
+      setEndingShiftDriverId(null);
+    }
+  };
+
   const handleRemoveDriver = (driver: Driver) => {
     setIsAddDriverOpen(false);
     setEditingDriver(undefined);
@@ -763,6 +791,8 @@ const LogisticsPage = () => {
             key={driver.id}
             driver={driver}
             onHourlyRateChange={handleHourlyRateChange}
+            onEndShift={setForceEndingDriver}
+            isEndingShift={endingShiftDriverId === String(driver.id)}
           />
         ))}
       </div>
@@ -787,6 +817,13 @@ const LogisticsPage = () => {
         driver={notifyingDriver}
         onOpenChange={(open) => !open && setNotifyingDriver(null)}
         onSend={() => setNotifyingDriver(null)}
+      />
+
+      <ForceEndShiftDialog
+        driver={forceEndingDriver}
+        isLoading={!!endingShiftDriverId}
+        onOpenChange={(open) => !open && setForceEndingDriver(null)}
+        onConfirm={handleForceEndShift}
       />
 
       <DeleteDialog

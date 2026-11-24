@@ -2,11 +2,14 @@ import { useEffect, useState } from "react";
 import { Check, ChevronDown, ChevronUp, DollarSign, Package } from "lucide-react";
 import { useTranslation } from "@/shared/i18n/useTranslation";
 import { cn } from "@/lib/utils";
+import { Button } from "@/shared/components/ui/button";
 import type { Driver, DriverStatus } from "../types";
 
 interface DriverDutyCardProps {
   driver: Driver;
   onHourlyRateChange: (id: string | number, rate: number) => void;
+  onEndShift: (driver: Driver) => void;
+  isEndingShift: boolean;
 }
 
 const STATUS_STYLES: Record<DriverStatus, string> = {
@@ -31,7 +34,12 @@ const formatHms = (totalSeconds: number) => {
   return `${pad(h)}:${pad(m)}:${pad(s)}`;
 };
 
-const DriverDutyCard = ({ driver, onHourlyRateChange }: DriverDutyCardProps) => {
+const DriverDutyCard = ({
+  driver,
+  onHourlyRateChange,
+  onEndShift,
+  isEndingShift,
+}: DriverDutyCardProps) => {
   const { t } = useTranslation();
   const [rate, setRate] = useState<number>(driver.hourlyRate);
   const [inputValue, setInputValue] = useState<string>(String(driver.hourlyRate ?? 0));
@@ -194,10 +202,18 @@ const DriverDutyCard = ({ driver, onHourlyRateChange }: DriverDutyCardProps) => 
           type="button"
           aria-label={t("Save hourly rate")}
           onClick={() => onHourlyRateChange(driver.id, rate)}
-          className="flex size-12 shrink-0 cursor-pointer items-center justify-center rounded-[8px] bg-primary text-white hover:opacity-90 transition-all duration-150 active:scale-95"
+          className="flex size-[34px] shrink-0 cursor-pointer items-center justify-center rounded-[8px] bg-primary text-white hover:opacity-90 transition-all duration-150 active:scale-95"
         >
-          <Check className="size-5" />
+          <Check className="size-3.5" />
         </button>
+        <Button
+          type="button"
+          disabled={isEndingShift}
+          onClick={() => onEndShift(driver)}
+          className="h-[34px] shrink-0 cursor-pointer gap-3 rounded-[5px] bg-[#C90000] px-[10px] text-[12px] leading-6 font-semibold text-white hover:bg-[#C90000]"
+        >
+          {isEndingShift ? t("Ending...") : t("End Shift")}
+        </Button>
       </div>
     </div>
   );
