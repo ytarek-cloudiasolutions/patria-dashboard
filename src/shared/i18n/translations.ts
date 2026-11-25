@@ -357,6 +357,7 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   "Kitchen not found": "المطبخ غير موجود",
   "Back to Kitchens": "العودة إلى المطابخ",
   "Low Stock": "مخزون منخفض",
+  "Sold Out": "نفذ من المخزون",
   Takeaway: "طلب خارجي",
   "Takeaway is disabled for an active dine-in table order": "الطلبات الخارجية معطلة لطلبات الصالة النشطة",
   "Dine-In": "داخل المطعم",

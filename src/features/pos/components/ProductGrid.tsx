@@ -35,23 +35,33 @@ const ProductGrid = ({
     <div className="grid grid-cols-[repeat(auto-fill,minmax(186px,1fr))] gap-4">
       {products.map((product) => {
         const isInCart = cartProductIds.includes(product.id);
+        const soldOut = Boolean(product.soldOut);
+        const select = () => {
+          if (soldOut) return;
+          onSelectProduct(product);
+        };
 
         return (
           <article
             key={product.id}
             role="button"
-            tabIndex={0}
+            tabIndex={soldOut ? -1 : 0}
+            aria-disabled={soldOut}
             className={cn(
-              "group relative flex h-[257px] w-full flex-col overflow-hidden rounded-[24px] bg-white transition-all duration-300 hover:shadow-md hover:-translate-y-1 cursor-pointer select-none",
+              "group relative flex h-[257px] w-full flex-col overflow-hidden rounded-[24px] bg-white transition-all duration-300 select-none",
+              soldOut
+                ? "cursor-not-allowed opacity-60"
+                : "cursor-pointer hover:shadow-md hover:-translate-y-1",
               isInCart
                 ? "border-2 border-[#8F6900]"
-                : "border-2 border-[#E5E5E5] hover:border-[#8F6900]/50",
+                : "border-2 border-[#E5E5E5]",
+              !soldOut && !isInCart && "hover:border-[#8F6900]/50",
             )}
-            onClick={() => onSelectProduct(product)}
+            onClick={select}
             onKeyDown={(event) => {
               if (event.key === "Enter" || event.key === " ") {
                 event.preventDefault();
-                onSelectProduct(product);
+                select();
               }
             }}
           >
@@ -91,11 +101,12 @@ const ProductGrid = ({
                   </div>
                   <button
                     type="button"
-                    className="group/btn flex size-9 shrink-0 items-center justify-center rounded-[5.71px] bg-[#8F6900] p-2.5 text-white transition-colors duration-150 hover:bg-[#725400] active:scale-95 cursor-pointer"
+                    disabled={soldOut}
+                    className="group/btn flex size-9 shrink-0 items-center justify-center rounded-[5.71px] bg-[#8F6900] p-2.5 text-white transition-colors duration-150 hover:bg-[#725400] active:scale-95 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-[#8F6900]"
                     aria-label={`${t("Add")} ${product.name}`}
                     onClick={(event) => {
                       event.stopPropagation();
-                      onSelectProduct(product);
+                      select();
                     }}
                   >
                     <Plus className="size-4 text-white" />

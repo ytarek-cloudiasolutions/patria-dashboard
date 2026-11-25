@@ -3,8 +3,22 @@ import type { Order, OrderStatus, OrderSource, PaymentState } from "../types";
 export const mapOrderStatus = (
   backendStatus: string,
   source?: OrderSource,
+  deliveryStatus?: string,
 ): OrderStatus => {
   const status = (backendStatus || "").toLowerCase();
+  // deliveryStatus is the DRIVER's own lifecycle (Picking Up/Picked Up/
+  // Delivering/Near Customer/Delivered/Failed) — it never touched
+  // order.status except on 'Delivered' (see driverController.
+  // updateOrderStatus), so this screen's status column stayed frozen on
+  // whatever the kitchen last set (usually "On The Way" the moment it hit
+  // 'ready') through the driver's whole trip: a rider picking up the order,
+  // or marking "Delivering", showed no visible change here at all. Mirror
+  // the same deliveryStatus-aware mapping the Drivers/Logistics page
+  // already uses once a driver is actually involved.
+  const ds = (deliveryStatus || "").toLowerCase();
+  if (ds === "picked up" || ds === "delivering" || ds === "near customer") {
+    return "On The Way";
+  }
   switch (status) {
     case "pending":
       return "Pending";
@@ -328,7 +342,7 @@ export const mapOrder = (o: any): Order => {
     appDiscount: Number(o.appDiscount) || 0,
     deliveryFee: o.deliveryFee || 0,
     tax: o.tax || 0,
-    status: mapOrderStatus(o.status, resolvedSource),
+    status: mapOrderStatus(o.status, resolvedSource, o.deliveryStatus),
     category,
     source: resolvedSource,
     paymentMethod: o.paymentMethod || "Cash on delivery",

@@ -29,6 +29,8 @@ export type PosProduct = {
   accent?: string;
   /** Low-stock label, e.g. "Low - 7". */
   stockBadge?: string;
+  /** True once stock hits 0 (and stock isn't tracked as infinite) — blocks adding to cart. */
+  soldOut?: boolean;
   /** Extras the customer can pick when adding this product. */
   extras?: ProductExtra[];
   variantGroups?: any[];

@@ -599,9 +599,19 @@ const PosPage = () => {
         extras: p.extras?.map((e) => ({ id: e.id, name: e.name, price: e.price })) ?? [],
         variantGroups: p.variantGroups ?? [],
         recipe: p.recipe ?? [],
-        stockBadge: (p.quantity ?? 0) < 10 && (p.quantity ?? 0) > 0
-          ? `Low - ${p.quantity}`
-          : undefined,
+        // A 0-quantity product (not tracked as infinite stock) rendered
+        // completely normally here — no badge, fully clickable — so staff
+        // could keep ringing up something the kitchen had no stock for at
+        // all. Only the "Low - N" badge existed; nothing ever covered the
+        // actual sold-out case.
+        stockBadge: p.isInfiniteStock
+          ? undefined
+          : (p.quantity ?? 0) <= 0
+            ? "Sold Out"
+            : (p.quantity ?? 0) < 10
+              ? `Low - ${p.quantity}`
+              : undefined,
+        soldOut: !p.isInfiniteStock && (p.quantity ?? 0) <= 0,
       }));
   }, [products]);
 

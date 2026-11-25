@@ -99,36 +99,41 @@ const IncomingOrderDialog = ({ order, isConfirming, onConfirm, onClose }: Incomi
 
           <div className="w-full border-t border-[#CACBD4]" />
 
-          {order.tax > 0 && (
-            <div className="flex flex-col gap-1.5 text-[13px] text-[#595959]">
-              <div className="flex items-center justify-between">
-                <span>{t("Subtotal")}</span>
-                <span dir="ltr">{formatEgp(order.subtotal || 0)}</span>
-              </div>
+          {/* This whole block used to be gated on order.tax > 0 — an order
+              with zero tax (e.g. fully discounted, or tax-exempt) hid its
+              Subtotal AND every discount line (points, group offer) along
+              with it, not just the tax row. Only the tax row itself should
+              be conditional. */}
+          <div className="flex flex-col gap-1.5 text-[13px] text-[#595959]">
+            <div className="flex items-center justify-between">
+              <span>{t("Subtotal")}</span>
+              <span dir="ltr">{formatEgp(order.subtotal || 0)}</span>
+            </div>
+            {order.tax > 0 && (
               <div className="flex items-center justify-between">
                 <span>{t("Tax (14%)")}</span>
                 <span dir="ltr">{formatEgp(order.tax)}</span>
               </div>
-              {order.groupOfferDiscount > 0 && (
-                <div className="flex items-center justify-between text-[#059B5A]">
-                  <span>{t("App discount (offer)")}</span>
-                  <span dir="ltr">-{formatEgp(order.groupOfferDiscount)}</span>
-                </div>
-              )}
-              {order.pointsDiscountAmount > 0 && (
-                <div className="flex items-center justify-between text-[#059B5A]">
-                  <span>{t("Points Discount")}</span>
-                  <span dir="ltr">-{formatEgp(order.pointsDiscountAmount)}</span>
-                </div>
-              )}
-              {order.deliveryFee > 0 && (
-                <div className="flex items-center justify-between">
-                  <span>{t("Delivery Fee")}</span>
-                  <span dir="ltr">{formatEgp(order.deliveryFee)}</span>
-                </div>
-              )}
-            </div>
-          )}
+            )}
+            {order.groupOfferDiscount > 0 && (
+              <div className="flex items-center justify-between text-[#059B5A]">
+                <span>{t("App discount (offer)")}</span>
+                <span dir="ltr">-{formatEgp(order.groupOfferDiscount)}</span>
+              </div>
+            )}
+            {order.pointsDiscountAmount > 0 && (
+              <div className="flex items-center justify-between text-[#059B5A]">
+                <span>{t("Points Discount")}</span>
+                <span dir="ltr">-{formatEgp(order.pointsDiscountAmount)}</span>
+              </div>
+            )}
+            {order.deliveryFee > 0 && (
+              <div className="flex items-center justify-between">
+                <span>{t("Delivery Fee")}</span>
+                <span dir="ltr">{formatEgp(order.deliveryFee)}</span>
+              </div>
+            )}
+          </div>
 
           <div className="flex items-center justify-between text-[18px]">
             <span className="font-semibold text-black">{t("Total:")}</span>

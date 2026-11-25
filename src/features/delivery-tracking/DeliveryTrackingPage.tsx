@@ -5,6 +5,7 @@ import HeaderLayout from "@/layouts/HeaderLayout";
 import DefaultButton from "@/shared/components/DefaultButton";
 import { api } from "@/config/api";
 import { getSocket } from "@/shared/lib/socket";
+import { showErrorToast } from "@/shared/utils/toast";
 
 import TrackingOverview from "./components/TrackingOverview";
 import RiderListPanel from "./components/RiderListPanel";
@@ -90,7 +91,13 @@ const DeliveryTrackingPage = () => {
         setRiders(raw.map(mapRider));
         setLastUpdated(new Date());
       })
-      .catch(() => {})
+      .catch((err: any) => {
+        // A failed fetch left the page either stuck on its loading spinner
+        // forever (first load) or silently frozen on stale data (later
+        // polls), with nothing to say the page itself wasn't the problem.
+        console.error('[DeliveryTracking] failed to load drivers:', err);
+        showErrorToast(err?.response?.data?.message || 'Failed to load delivery tracking data');
+      })
       .finally(() => {
         setLoading(false);
         setHasLoaded(true);

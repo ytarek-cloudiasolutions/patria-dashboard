@@ -128,7 +128,14 @@ const OrderDetailsDialog = ({
     return formatCurrency(amount);
   };
 
-  const promoDiscountAmount = Number(rawOrder.appDiscount) || 0;
+  // order.appDiscount is the COMBINED app-side discount (coupon/offer +
+  // loyalty points redeemed, see orderController's totalDiscount at
+  // placement time) — using it as-is for "Promo Discount" silently folded
+  // any points redemption into that same label, with no separate line for
+  // it at all. Split the points portion back out, same as the incoming-
+  // order popup already does.
+  const pointsDiscountAmount = Number(rawOrder.pointsDiscountAmount) || 0;
+  const promoDiscountAmount = Math.max(0, (Number(rawOrder.appDiscount) || 0) - pointsDiscountAmount);
   const isPromoDiscount =
     rawOrder.discountSource === "coupon" || rawOrder.discountSource === "offer";
   const isAdminDiscount =
@@ -142,6 +149,14 @@ const OrderDetailsDialog = ({
     displayAmount: string;
   }[] = [];
 
+  if (pointsDiscountAmount > 0) {
+    discountBreakdown.push({
+      label: "Points Discount",
+      displayLabel: t("Points Discount"),
+      amount: pointsDiscountAmount,
+      displayAmount: formatCurrency(pointsDiscountAmount),
+    });
+  }
   if (promoDiscountAmount > 0) {
     discountBreakdown.push({
       label: "Promo Discount",
@@ -152,19 +167,18 @@ const OrderDetailsDialog = ({
   }
   if (isAdminDiscount && effectiveDiscount > 0) {
     // effectiveDiscount is the backend's combined discountAmount (promo +
-    // manual, preserved together since the appDiscount fix) — when a promo
-    // line is already shown above, the Admin Discount line must only show
-    // the manual portion on top of it, not the same combined figure again.
-    const adminAmount = promoDiscountAmount > 0
-      ? Math.max(0, effectiveDiscount - promoDiscountAmount)
-      : effectiveDiscount;
+    // points + manual, preserved together since the appDiscount fix) —
+    // when promo/points lines are already shown above, the Admin Discount
+    // line must only show the remaining manual portion on top, not the
+    // same combined figure again.
+    const adminAmount = Math.max(0, effectiveDiscount - promoDiscountAmount - pointsDiscountAmount);
     discountBreakdown.push({
       label: "Admin Discount",
       displayLabel: t("Admin Discount"),
       amount: adminAmount,
       displayAmount: getDiscountDisplayText(adminAmount),
     });
-  } else if (isPromoDiscount && effectiveDiscount > 0 && promoDiscountAmount === 0) {
+  } else if (isPromoDiscount && effectiveDiscount > 0 && promoDiscountAmount === 0 && pointsDiscountAmount === 0) {
     discountBreakdown.push({
       label: "Promo Discount",
       displayLabel: t("Promo Discount"),
