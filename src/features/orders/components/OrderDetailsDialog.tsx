@@ -45,6 +45,7 @@ interface RawOrder {
   discountValue?: number;
   discountSource?: "manual" | "coupon" | "offer" | "mixed" | null;
   appDiscount?: number;
+  pointsDiscountAmount?: number;
   customer?: {
     region?: { name?: string } | string;
     zone?: { name?: string } | string;
