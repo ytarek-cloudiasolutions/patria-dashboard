@@ -38,7 +38,11 @@ const StatusBadge = ({ available }: { available: boolean }) => {
           : "bg-[#DCDCDC] text-[#23252A] border-[#595959]"
       )}
     >
-      {available ? t("Available") : t("Out Of Stock")}
+      {/* `available` is the manual enable/disable toggle (isActive), not
+          actual stock level — a disabled product that still has real
+          stock showed "Out Of Stock" here, which just isn't true. The
+          Inventory page's equivalent badge already calls this "Disabled". */}
+      {available ? t("Available") : t("Disabled")}
     </Badge>
   );
 };

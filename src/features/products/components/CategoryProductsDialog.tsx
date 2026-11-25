@@ -209,7 +209,15 @@ const CategoryProductsDialog = ({
                                     : "bg-[#DCDCDC] text-[#23252A] border-[#595959]"
                                 }`}
                               >
-                                {product.available ? t("Active") : t("Out of stock")}
+                                {/* product.available reflects the manual
+                                    enable/disable toggle (isActive), not
+                                    actual stock level — a disabled product
+                                    with real stock (see the Stock column)
+                                    showed "Out of stock" here, which was
+                                    just wrong; the Inventory page's own
+                                    equivalent badge already calls this
+                                    "Disabled". */}
+                                {product.available ? t("Active") : t("Disabled")}
                               </Badge>
                             </div>
                           </TableCell>
