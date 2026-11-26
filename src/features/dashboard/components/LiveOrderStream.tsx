@@ -14,6 +14,7 @@ const statusStyles: Record<OrderStatus, string> = {
   Pending: "border-current bg-[#FFF4DA] text-[#C7861E]",
   Delivered: "border-current bg-[#E2F4ED] text-[#059B5A]",
   "On The Way": "border-current bg-[#F3E9FA] text-[#7E00D7]",
+  Cancelled: "border-current bg-[#FBE7E7] text-[#C90000]",
 };
 
 const formatAmount = (amount: number) =>

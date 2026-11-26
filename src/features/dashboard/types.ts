@@ -40,7 +40,8 @@ export type OrderStatus =
   | "Preparing"
   | "Pending"
   | "Delivered"
-  | "On The Way";
+  | "On The Way"
+  | "Cancelled";
 
 export interface LiveOrder {
   id: string;

@@ -71,6 +71,9 @@ const mapOrderStatus = (s: string): LiveOrder["status"] => {
     case "on_the_way":
     case "ready":
       return "On The Way";
+    case "cancelled":
+    case "canceled":
+      return "Cancelled";
     default:
       return "Pending";
   }
