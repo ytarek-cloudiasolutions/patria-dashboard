@@ -162,7 +162,6 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   "4 App Only": "4 للتطبيق فقط",
   "Active (All)": "نشط (الكل)",
   "Disabled (All)": "معطل (الكل)",
-  Disabled: "معطل",
   "App Only": "التطبيق فقط",
   "Hide from App": "إخفاء من التطبيق",
   "Hide from POS": "إخفاء من نقطة البيع",
