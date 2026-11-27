@@ -15,6 +15,7 @@ import NewReservationDialog from "./components/NewReservationDialog";
 
 import { useTables } from "./hooks/useTables";
 import { useTranslation } from "@/shared/i18n/useTranslation";
+import { getSocket } from "@/shared/lib/socket";
 import type { Table, TableSection, ReservationStatus } from "./store/tableTypes";
 import type {
   AddTableFormData,
@@ -95,6 +96,51 @@ const TablesPage = () => {
       getReservations({ date: reservationDate });
     }
   }, [reservationDate, getReservations]);
+
+  // This screen never listened for any live update at all — changing a
+  // table's status (or a reservation's) anywhere else (POS, another open
+  // tab) never showed up here until the whole dashboard was reloaded.
+  useEffect(() => {
+    const socket = getSocket();
+
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    const refreshTables = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => getTables(), 300);
+    };
+    const refreshReservations = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        if (reservationDate) getReservations({ date: reservationDate });
+      }, 300);
+    };
+
+    socket.on("connect", refreshTables);
+    socket.on("tableCreated", refreshTables);
+    socket.on("tableUpdated", refreshTables);
+    socket.on("tableStatusUpdated", refreshTables);
+    socket.on("tableDeleted", refreshTables);
+    socket.on("newOrder", refreshTables);
+    socket.on("orderUpdated", refreshTables);
+
+    socket.on("reservationCreated", refreshReservations);
+    socket.on("reservationUpdated", refreshReservations);
+    socket.on("reservationDeleted", refreshReservations);
+
+    return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      socket.off("connect", refreshTables);
+      socket.off("tableCreated", refreshTables);
+      socket.off("tableUpdated", refreshTables);
+      socket.off("tableStatusUpdated", refreshTables);
+      socket.off("tableDeleted", refreshTables);
+      socket.off("newOrder", refreshTables);
+      socket.off("orderUpdated", refreshTables);
+      socket.off("reservationCreated", refreshReservations);
+      socket.off("reservationUpdated", refreshReservations);
+      socket.off("reservationDeleted", refreshReservations);
+    };
+  }, [getTables, getReservations, reservationDate]);
 
   const sectionTables = useMemo(() => {
     const q = search.toLowerCase().trim();
