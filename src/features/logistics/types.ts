@@ -16,6 +16,8 @@ export interface Driver {
   dutyTime: string;
   /** ISO timestamp the current shift started, or null if off-duty — drives the live ticking clock on the duty card. */
   shiftStartedAt: string | null;
+  /** Shift auto-ends once elapsed time passes this many hours. null/undefined = uncapped. */
+  maxShiftHours?: number | null;
 }
 
 export type ZoneOrderStatus = "Waiting" | "Processing" | "Confirmed" | "Ready" | "On-Route" | "Delivered" | "Cancelled" | (string & {});
@@ -44,6 +46,7 @@ export interface DriverFormData {
   vehicleType: VehicleType;
   plateNumber: string;
   hourlyRate?: string | number;
+  maxShiftHours?: string | number;
   zones: string[];
   status: DriverStatus;
 }

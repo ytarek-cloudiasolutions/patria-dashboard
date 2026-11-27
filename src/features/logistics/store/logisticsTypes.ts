@@ -16,6 +16,7 @@ export interface Driver {
   shiftDeliveriesCount?: number;
   totalDelivered?: number;
   hourlyRate?: number;
+  maxShiftHours?: number | null;
   salaryNow?: number;
   shiftStartedAt?: string | null;
   dutyTime?: string;
@@ -49,6 +50,7 @@ export interface CreateDriverRequest {
   vehicleType?: VehicleType;
   plateNumber?: string;
   hourlyRate?: number;
+  maxShiftHours?: number | null;
   zones?: string[];
   status?: DriverStatus;
 }
@@ -64,6 +66,7 @@ export interface UpdateDriverRequest {
   status?: DriverStatus;
   isActive?: boolean;
   hourlyRate?: number;
+  maxShiftHours?: number | null;
 }
 
 export type LogisticsOperation = "fetch" | "create" | "update" | "delete";

@@ -1706,6 +1706,9 @@ export const AR_TRANSLATIONS: Record<string, string> = {
   // Logistics module — dispatch & duty cards
   "--- Select Driver ---": "--- اختر السائق ---",
   "Hourly Rate": "السعر بالساعة",
+  "Max Shift Hours": "أقصى عدد ساعات الشيفت",
+  "No limit": "بلا حد أقصى",
+  "Shift auto-ends once this many hours pass. Leave empty for no limit.": "الشيفت هينتهي تلقائيًا بعد مرور عدد الساعات ده. سيبه فاضي لو مفيش حد أقصى.",
   "Orders Selected": "الطلبات المختارة",
   "Orders selected": "الطلبات المختارة",
   "Salary Now": "الراتب الآن",

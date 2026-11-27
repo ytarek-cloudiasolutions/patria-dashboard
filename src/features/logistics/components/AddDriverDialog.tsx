@@ -43,6 +43,7 @@ const INITIAL_FORM: DriverFormData = {
   vehicleType: "Motorcycle",
   plateNumber: "",
   hourlyRate: "",
+  maxShiftHours: "",
   zones: [],
   status: "Active",
 };
@@ -90,6 +91,8 @@ const AddDriverDialog = ({
           vehicleType: driver.vehicleType,
           plateNumber: driver.plateNumber ?? "",
           hourlyRate: driver.hourlyRate ? String(driver.hourlyRate) : "",
+          maxShiftHours:
+            driver.maxShiftHours != null ? String(driver.maxShiftHours) : "",
           zones: driver.zones,
           status: driver.status,
         });
@@ -324,42 +327,86 @@ const AddDriverDialog = ({
                 </div>
               </div>
 
-              <div className="min-w-0">
-                <Label htmlFor="hourly-rate" className="mb-2.5 text-[16px] font-medium text-black">
-                  {t("Hourly Rate")}
-                </Label>
-                <div className="flex h-12 w-full items-center justify-between gap-3 rounded-[12px] border border-[#E5E5E5] bg-white px-4 transition-colors focus-within:border-[#8F6900]">
-                  <input
-                    id="hourly-rate"
-                    type="number"
-                    min="0"
-                    value={form.hourlyRate ?? ""}
-                    onChange={(e) => set("hourlyRate", e.target.value)}
-                    className="w-full bg-transparent text-[14px] font-normal text-black placeholder:text-[#8B8B8B] outline-none focus:ring-0 border-0 p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                    placeholder="0"
-                  />
-                  <div className="flex flex-col items-center justify-center shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const currentVal = Number(form.hourlyRate || "0") || 0;
-                        set("hourlyRate", String(currentVal + 1));
-                      }}
-                      className="cursor-pointer text-[#8B8B8B] hover:text-black transition-colors"
-                    >
-                      <ChevronUp className="size-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const currentVal = Number(form.hourlyRate || "0") || 0;
-                        set("hourlyRate", String(Math.max(0, currentVal - 1)));
-                      }}
-                      className="cursor-pointer text-[#8B8B8B] hover:text-black transition-colors"
-                    >
-                      <ChevronDown className="size-3.5" />
-                    </button>
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 min-w-0">
+                <div className="min-w-0">
+                  <Label htmlFor="hourly-rate" className="mb-2.5 text-[16px] font-medium text-black">
+                    {t("Hourly Rate")}
+                  </Label>
+                  <div className="flex h-12 w-full items-center justify-between gap-3 rounded-[12px] border border-[#E5E5E5] bg-white px-4 transition-colors focus-within:border-[#8F6900]">
+                    <input
+                      id="hourly-rate"
+                      type="number"
+                      min="0"
+                      value={form.hourlyRate ?? ""}
+                      onChange={(e) => set("hourlyRate", e.target.value)}
+                      className="w-full bg-transparent text-[14px] font-normal text-black placeholder:text-[#8B8B8B] outline-none focus:ring-0 border-0 p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      placeholder="0"
+                    />
+                    <div className="flex flex-col items-center justify-center shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const currentVal = Number(form.hourlyRate || "0") || 0;
+                          set("hourlyRate", String(currentVal + 1));
+                        }}
+                        className="cursor-pointer text-[#8B8B8B] hover:text-black transition-colors"
+                      >
+                        <ChevronUp className="size-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const currentVal = Number(form.hourlyRate || "0") || 0;
+                          set("hourlyRate", String(Math.max(0, currentVal - 1)));
+                        }}
+                        className="cursor-pointer text-[#8B8B8B] hover:text-black transition-colors"
+                      >
+                        <ChevronDown className="size-3.5" />
+                      </button>
+                    </div>
                   </div>
+                </div>
+
+                <div className="min-w-0">
+                  <Label htmlFor="max-shift-hours" className="mb-2.5 text-[16px] font-medium text-black">
+                    {t("Max Shift Hours")}
+                  </Label>
+                  <div className="flex h-12 w-full items-center justify-between gap-3 rounded-[12px] border border-[#E5E5E5] bg-white px-4 transition-colors focus-within:border-[#8F6900]">
+                    <input
+                      id="max-shift-hours"
+                      type="number"
+                      min="0"
+                      value={form.maxShiftHours ?? ""}
+                      onChange={(e) => set("maxShiftHours", e.target.value)}
+                      className="w-full bg-transparent text-[14px] font-normal text-black placeholder:text-[#8B8B8B] outline-none focus:ring-0 border-0 p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      placeholder={t("No limit")}
+                    />
+                    <div className="flex flex-col items-center justify-center shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const currentVal = Number(form.maxShiftHours || "0") || 0;
+                          set("maxShiftHours", String(currentVal + 1));
+                        }}
+                        className="cursor-pointer text-[#8B8B8B] hover:text-black transition-colors"
+                      >
+                        <ChevronUp className="size-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const currentVal = Number(form.maxShiftHours || "0") || 0;
+                          set("maxShiftHours", String(Math.max(0, currentVal - 1)));
+                        }}
+                        className="cursor-pointer text-[#8B8B8B] hover:text-black transition-colors"
+                      >
+                        <ChevronDown className="size-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                  <p className="mt-1 text-[12px] text-[#8B8B8B]">
+                    {t("Shift auto-ends once this many hours pass. Leave empty for no limit.")}
+                  </p>
                 </div>
               </div>
 

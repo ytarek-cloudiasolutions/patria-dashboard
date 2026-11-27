@@ -194,6 +194,7 @@ const mapApiDriver = (d: ApiDriver): Driver => {
     hourlyRate,
     dutyTime: d.dutyTime && d.dutyTime !== "—" ? d.dutyTime : "00:00:00",
     shiftStartedAt: d.shiftStartedAt || null,
+    maxShiftHours: d.maxShiftHours ?? null,
   };
 };
 
@@ -640,6 +641,10 @@ const LogisticsPage = () => {
             : "motorcycle",
       plateNumber: data.plateNumber.trim(),
       hourlyRate: Number(data.hourlyRate) || 0,
+      maxShiftHours:
+        data.maxShiftHours !== undefined && data.maxShiftHours !== ""
+          ? Number(data.maxShiftHours)
+          : null,
       zones: data.zones,
       status:
         data.status === "On-Route"
